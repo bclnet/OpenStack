@@ -10,13 +10,15 @@ namespace System.IO
     {
         #region Stream
 
-        //public static byte[] ReadAllBytes(this Stream stream)
-        //{
-        //    using var b = new MemoryStream();
-        //    stream.Position = 0;
-        //    stream.CopyTo(b);
-        //    return b.ToArray();
-        //}
+        public static Byte[] ReadAllBytes(this Stream stream)
+        {
+            using var s = new MemoryStream();
+            var oldPosition = stream.Position;
+            stream.Position = 0;
+            stream.CopyTo(s);
+            stream.Position = oldPosition;
+            return s.ToArray();
+        }
 
         public static byte[] ReadBytes(this Stream stream, int count) { var data = new byte[count]; stream.Read(data, 0, count); return data; }
         public static void WriteBytes(this Stream stream, byte[] data) => stream.Write(data, 0, data.Length);
@@ -161,6 +163,53 @@ namespace System.IO
             // flip the bytes in the string to undo the obfuscation: i.e. 0xAB => 0xBA
             for (var i = 0; i < stringlength; i++) thestring[i] = (byte)((thestring[i] >> 4) | (thestring[i] << 4));
             return Encoding.GetEncoding(1252).GetString(thestring);
+        }
+
+        /// <summary>
+        /// Read a Length-prefixed string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="byteLength">Size of the Length representation</param>
+        /// <returns></returns>
+        public static string ReadPString(this BinaryReader source, int byteLength = 4)
+        {
+            var stringLength = byteLength switch
+            {
+                1 => source.ReadByte(),
+                2 => source.ReadInt16(),
+                4 => source.ReadInt32(),
+                _ => throw new NotSupportedException("Only Int8, Int16, and Int32 string sizes are supported"),
+            };
+            // If there is actually a string to read
+            return stringLength > 0 ? new string(source.ReadChars(stringLength)) : null;
+        }
+
+        /// <summary>
+        /// Read a NULL-Terminated string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static string ReadCString(this BinaryReader source)
+        {
+            var stringLength = 0;
+            while (source.ReadByte() != 0) stringLength++;
+            source.BaseStream.Seek(0 - stringLength - 1, SeekOrigin.Current);
+            var chars = source.ReadChars(stringLength + 1);
+            // If there is actually a string to read
+            return stringLength > 0 ? new string(chars, 0, stringLength) : null;
+        }
+
+        /// <summary>
+        /// Read a Fixed-Length string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="stringLength">Size of the String</param>
+        /// <returns></returns>
+        public static string ReadFString(this BinaryReader source, int stringLength)
+        {
+            var chars = source.ReadChars(stringLength);
+            for (var i = 0; i < stringLength; i++) if (chars[i] == 0) return new string(chars, 0, i);
+            return new string(chars);
         }
 
         public static string ReadL8String(this BinaryReader source, Encoding encoding = null) => (encoding ?? Encoding.ASCII).GetString(source.ReadBytes(source.ReadByte()));
@@ -343,7 +392,7 @@ namespace System.IO
 
         public static float ReadHalf(this BinaryReader r)
             => new HalfFloat { bits = r.ReadUInt16() }.ToSingle();
-        
+
         public static float ReadHalf16(this BinaryReader r)
             => Byte2HexIntFracToFloat2(r.ReadUInt16().ToString("X4")) / 127f;
 

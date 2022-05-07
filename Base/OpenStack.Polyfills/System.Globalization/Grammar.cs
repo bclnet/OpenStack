@@ -20,5 +20,36 @@ namespace System.Globalization
             : (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z")) ? name + "es"
             : name.EndsWith("th") ? name
             : name + "s";
+
+        /// <summary>
+        /// Converts an input integer to its ordinal number
+        /// </summary>
+        /// <param name="s">The integer to convert</param>
+        /// <returns>Returns a string of the ordinal</returns>
+        public static string ToOrdinal(this int s) => s + ToOrdinalSuffix(s);
+
+        /// <summary>
+        /// Converts an input integer to its ordinal suffix
+        /// Useful if you need to format the suffix separately of the number itself
+        /// </summary>
+        /// <param name="s">The integer to convert</param>
+        /// <returns>Returns a string of the ordinal suffix</returns>
+        public static string ToOrdinalSuffix(this int s)
+        {
+            // TODO: this only handles English ordinals - in future we may wish to consider the culture
+            // note, we are allowing zeroth - http://en.wikipedia.org/wiki/Zeroth
+            if (s < 0) throw new ArgumentOutOfRangeException(nameof(s), "Ordinal numbers cannot be negative");
+
+            // first check special case, if the result ends in 11, 12, 13, should be th
+            switch (s % 100) { case 11: case 12: case 13: return "th"; }
+            // else we just check the last digit
+            return (s % 10) switch
+            {
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th",
+            };
+        }
     }
 }
