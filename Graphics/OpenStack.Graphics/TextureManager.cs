@@ -314,61 +314,10 @@ namespace OpenStack.Graphics
         CompressedSrgb8Alpha8Etc2Eac = 0x9279 //: GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = 0x9279
     }
 
-//    public enum TextureGLFormat_Old : short
-//    {
-//#pragma warning disable 1591
-//        UNKNOWN = 0,
-//        DXT1 = 1,
-//        DXT5 = 2,
-//        I8 = 3,
-//        RGBA8888 = 4,
-//        R16 = 5,
-//        RG1616 = 6,
-//        RGBA16161616 = 7,
-//        R16F = 8,
-//        RG1616F = 9,
-//        RGBA16161616F = 10,
-//        R32F = 11,
-//        RG3232F = 12,
-//        RGB323232F = 13,
-//        RGBA32323232F = 14,
-//        JPEG_RGBA8888 = 15,
-//        PNG_RGBA8888 = 16,
-//        JPEG_DXT5 = 17,
-//        PNG_DXT5 = 18,
-//        BC6H = 19,
-//        BC7 = 20,
-//        ATI2N = 21,
-//        IA88 = 22,
-//        ETC2 = 23,
-//        ETC2_EAC = 24,
-//        R11_EAC = 25,
-//        RG11_EAC = 26,
-//        ATI1N = 27,
-//        BGRA8888 = 28,
-//#pragma warning restore 1591
-//    }
-//        switch (info.GLFormat)
-//    {
-//        case TextureGLFormat.DXT1: format = InternalFormat.CompressedRgbaS3tcDxt1Ext; break; 
-//        //case TextureGLFormat.DXT3: format = InternalFormat.CompressedRgbaS3tcDxt3Ext; break;
-//        case TextureGLFormat.DXT5: format = InternalFormat.CompressedRgbaS3tcDxt5Ext; break;
-//        case TextureGLFormat.ETC2: format = InternalFormat.CompressedRgb8Etc2; break;
-//        case TextureGLFormat.ETC2_EAC: format = InternalFormat.CompressedRgba8Etc2Eac; break;
-//        case TextureGLFormat.ATI1N: format = InternalFormat.CompressedRedRgtc1; break;
-//        case TextureGLFormat.ATI2N: format = InternalFormat.CompressedRgRgtc2; break;
-//        case TextureGLFormat.BC6H: format = InternalFormat.CompressedRgbBptcUnsignedFloat; break;
-//        case TextureGLFormat.BC7: format = InternalFormat.CompressedRgbaBptcUnorm; break;
-//        case TextureGLFormat.RGBA8888: format = InternalFormat.Rgba8; break;
-//        case TextureGLFormat.RGBA16161616F: format = InternalFormat.Rgba16f; break;
-//        case TextureGLFormat.I8: format = InternalFormat.Intensity8; break;
-//        default: Console.Error.WriteLine($"Don't support {info.GLFormat} but don't want to crash either. Using error texture!"); return DefaultTexture;
-//    }
-
-/// <summary>
-/// ITextureInfo
-/// </summary>
-public interface ITextureInfo
+    /// <summary>
+    /// ITextureInfo
+    /// </summary>
+    public interface ITextureInfo
     {
         byte[] this[int index] { get; set; }
         IDictionary<string, object> Data { get; }
@@ -381,13 +330,13 @@ public interface ITextureInfo
         int NumMipMaps { get; }
         void MoveToData();
     }
-    
+
     //public interface ITextureInfoLoad1 : ITextureInfo { }
 
     /// <summary>
     /// Stores information about a texture.
     /// </summary>
-    public class TextureInfo : Dictionary<string, object> //, IGetExplorerInfo
+    public class TextureInfo : Dictionary<string, object> //, IGetMetadataInfo
     {
         public int Width, Height, Depth;
         public TextureUnityFormat UnityFormat;
@@ -409,14 +358,14 @@ public interface ITextureInfo
         //    Data = data;
         //}
 
-        //List<ExplorerInfoNode> IGetExplorerInfo.GetInfoNodes(ExplorerManager resource, FileMetadata file, object tag)
-        //    => new List<ExplorerInfoNode> {
-        //    new ExplorerInfoNode(null, new ExplorerContentTab { Type = "Texture", Value = this }),
-        //    new ExplorerInfoNode("Texture", items: new List<ExplorerInfoNode> {
-        //        new ExplorerInfoNode($"Width: {Width}"),
-        //        new ExplorerInfoNode($"Height: {Height}"),
-        //        new ExplorerInfoNode($"GLFormat: {GLFormat}"),
-        //        new ExplorerInfoNode($"Mipmaps: {Mipmaps}"),
+        //List<MetadataInfo> IGetMetadataInfo.GetMetadataInfos(MetadataManager resource, FileMetadata file, object tag)
+        //    => new List<MetadataInfo> {
+        //    new MetadataInfo(null, new MetadataContent { Type = "Texture", Value = this }),
+        //    new MetadataInfo("Texture", items: new List<MetadataInfo> {
+        //        new MetadataInfo($"Width: {Width}"),
+        //        new MetadataInfo($"Height: {Height}"),
+        //        new MetadataInfo($"GLFormat: {GLFormat}"),
+        //        new MetadataInfo($"Mipmaps: {Mipmaps}"),
         //    }),
         //};
 
@@ -425,8 +374,7 @@ public interface ITextureInfo
 
         //BinaryReader GetDecompressedBuffer()
         //{
-        //    if (!IsActuallyCompressedMips)
-        //        return Reader;
+        //    if (!IsActuallyCompressedMips) return Reader;
         //    var outStream = new MemoryStream(GetDecompressedTextureAtMipLevel(MipmapLevelToExtract), false);
         //    return new BinaryReader(outStream); // TODO: dispose
         //}
@@ -434,11 +382,9 @@ public interface ITextureInfo
         //public byte[] GetDecompressedTextureAtMipLevel(int mipLevel)
         //{
         //    var uncompressedSize = CalculateBufferSizeForMipLevel(mipLevel);
-        //    if (!IsActuallyCompressedMips)
-        //        return Reader.ReadBytes(uncompressedSize);
+        //    if (!IsActuallyCompressedMips) return Reader.ReadBytes(uncompressedSize);
         //    var compressedSize = CompressedMips[mipLevel];
-        //    if (compressedSize >= uncompressedSize)
-        //        return Reader.ReadBytes(uncompressedSize);
+        //    if (compressedSize >= uncompressedSize) return Reader.ReadBytes(uncompressedSize);
         //    var input = Reader.ReadBytes(compressedSize);
         //    var output = new Span<byte>(new byte[uncompressedSize]);
         //    LZ4Codec.Decode(input, output);
@@ -464,11 +410,9 @@ public interface ITextureInfo
             return null;
             //var offset = GetDataOffsetForMip(mipLevel);
             //var dataSize = GetMipmapDataSize(Width, Height, Depth, GLFormat, mipLevel);
-            //if (CompressedSizeForMipLevel == null)
-            //    return new Span<byte>(Data, 10, 10);
+            //if (CompressedSizeForMipLevel == null) return new Span<byte>(Data, 10, 10);
             //var compressedSize = CompressedSizeForMipLevel[mipLevel];
-            //if (compressedSize >= dataSize)
-            //    return Reader.ReadBytes(dataSize);
+            //if (compressedSize >= dataSize) return Reader.ReadBytes(dataSize);
             //var input = Reader.ReadBytes(compressedSize);
             //var output = new Span<byte>(new byte[dataSize]);
             //LZ4Codec.Decode(input, output);
