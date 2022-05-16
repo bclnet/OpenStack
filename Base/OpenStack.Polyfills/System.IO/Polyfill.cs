@@ -55,12 +55,12 @@ namespace System.IO
         /// <summary>
         /// Aligns the stream to the next DWORD boundary.
         /// </summary>
-        public static void AlignBoundary(this BinaryReader source)
-        {
-            var alignDelta = source.BaseStream.Position % 4;
-            if (alignDelta != 0) source.BaseStream.Position += (int)(4 - alignDelta);
-        }
-
+        //public static void Align(this BinaryReader source)
+        //{
+        //    var alignDelta = source.BaseStream.Position % 4;
+        //    if (alignDelta != 0) source.BaseStream.Position += (int)(4 - alignDelta);
+        //}
+        public static void Align(this BinaryReader source, int align = 4) => source.BaseStream.Position = (source.BaseStream.Position + align) & ~align;
         public static long Position(this BinaryReader source) => source.BaseStream.Position;
         public static void Position(this BinaryReader source, long position) => source.BaseStream.Position = position;
         public static long Position(this BinaryReader source, long position, int align) { if (position % 4 != 0) position += 4 - (position % 4); source.BaseStream.Position = position; return position; }
@@ -76,10 +76,26 @@ namespace System.IO
         }
         public static T Peek<T>(this BinaryReader source, Func<BinaryReader, T> action, int offset = 0)
         {
-            var position = source.BaseStream.Position;
+            var origPosition = source.BaseStream.Position;
             if (offset != 0) source.BaseStream.Position += offset;
             var value = action(source);
+            source.BaseStream.Position = origPosition;
+            return value;
+        }
+
+        public static void PeekAt(this BinaryReader source, long position, Action<BinaryReader> action)
+        {
+            var origPosition = source.BaseStream.Position;
             source.BaseStream.Position = position;
+            action(source);
+            source.BaseStream.Position = origPosition;
+        }
+        public static T PeekAt<T>(this BinaryReader source, long position, Func<BinaryReader, T> action)
+        {
+            var origPosition = source.BaseStream.Position;
+            source.BaseStream.Position = position;
+            var value = action(source);
+            source.BaseStream.Position = origPosition;
             return value;
         }
 
@@ -308,7 +324,7 @@ namespace System.IO
             while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
             return Encoding.ASCII.GetString(buf.ToArray());
         }
-        public static string[] ReadZASCIIArray(this BinaryReader source, int length = int.MaxValue, MemoryStream buf = null)
+        public static List<string> ReadZASCIIList(this BinaryReader source, int length = int.MaxValue, MemoryStream buf = null)
         {
             if (buf == null) buf = new MemoryStream();
             var list = new List<string>();
@@ -319,7 +335,7 @@ namespace System.IO
                 while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
                 list.Add(Encoding.ASCII.GetString(buf.ToArray()));
             }
-            return list.ToArray();
+            return list;
         }
 
         #endregion
