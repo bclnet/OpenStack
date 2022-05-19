@@ -36,21 +36,21 @@ namespace System.IO
 
         #region BinaryReader
 
-        /// <summary>
-        /// A Compressed UInt32 can be 1, 2, or 4 bytes.<para />
-        /// If the first MSB (0x80) is 0, it is one byte.<para />
-        /// If the first MSB (0x80) is set and the second MSB (0x40) is 0, it's 2 bytes.<para />
-        /// If both (0x80) and (0x40) are set, it's 4 bytes.
-        /// </summary>
-        public static uint ReadCompressedUInt32(this BinaryReader source)
-        {
-            var b0 = source.ReadByte();
-            if ((b0 & 0x80) == 0) return b0;
-            var b1 = source.ReadByte();
-            if ((b0 & 0x40) == 0) return (uint)(((b0 & 0x7F) << 8) | b1);
-            var s = source.ReadUInt16();
-            return (uint)(((((b0 & 0x3F) << 8) | b1) << 16) | s);
-        }
+        #region Endian
+
+        public static byte[] ReadBytesE(this BinaryReader source, int count, int sizeOf, bool bigEndian = true) { var bytes = source.ReadBytes(count); if (!bigEndian) return bytes; for (var i = 0; i < bytes.Length; i += sizeOf) Array.Reverse(bytes, i, sizeOf); return bytes; }
+        public static double ReadDoubleE(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadDouble(); var bytes = source.ReadBytes(sizeof(double)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToDouble(bytes, 0); }
+        public static short ReadInt16E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadInt16(); var bytes = source.ReadBytes(sizeof(short)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToInt16(bytes, 0); }
+        public static int ReadInt32E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadInt32(); var bytes = source.ReadBytes(sizeof(int)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToInt32(bytes, 0); }
+        public static long ReadInt64E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadInt64(); var bytes = source.ReadBytes(sizeof(long)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToInt64(bytes, 0); }
+        public static float ReadSingleE(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadSingle(); var bytes = source.ReadBytes(sizeof(float)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToSingle(bytes, 0); }
+        public static ushort ReadUInt16E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadUInt16(); var bytes = source.ReadBytes(sizeof(ushort)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt16(bytes, 0); }
+        public static uint ReadUInt32E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadUInt32(); var bytes = source.ReadBytes(sizeof(uint)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt32(bytes, 0); }
+        public static ulong ReadUInt64E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadUInt64(); var bytes = source.ReadBytes(sizeof(ulong)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt64(bytes, 0); }
+
+        #endregion
+
+        #region Position
 
         /// <summary>
         /// Aligns the stream to the next DWORD boundary.
@@ -60,7 +60,8 @@ namespace System.IO
         //    var alignDelta = source.BaseStream.Position % 4;
         //    if (alignDelta != 0) source.BaseStream.Position += (int)(4 - alignDelta);
         //}
-        public static void Align(this BinaryReader source, int align = 4) => source.BaseStream.Position = (source.BaseStream.Position + align) & ~align;
+        // align to 4-byte boundary
+        public static void Align(this BinaryReader source, int align = 4) => source.BaseStream.Position = (source.BaseStream.Position + --align) & ~align;
         public static long Position(this BinaryReader source) => source.BaseStream.Position;
         public static void Position(this BinaryReader source, long position) => source.BaseStream.Position = position;
         public static long Position(this BinaryReader source, long position, int align) { if (position % 4 != 0) position += 4 - (position % 4); source.BaseStream.Position = position; return position; }
@@ -99,6 +100,10 @@ namespace System.IO
             return value;
         }
 
+        #endregion
+
+        #region Bytes
+
         public static void CopyTo(this BinaryReader source, Stream destination, bool resetPosition = true)
         {
             source.BaseStream.CopyTo(destination);
@@ -127,23 +132,39 @@ namespace System.IO
             source.Read(buffer, startIndex, (int)length);
         }
 
-        /// <summary>
-        /// First reads a UInt16. If the MSB is set, it will be masked with 0x3FFF, shifted left 2 bytes, and then OR'd with the next UInt16. The sum is then added to knownType.
-        /// </summary>
-        public static uint ReadAsDataIDOfKnownType(this BinaryReader source, uint knownType)
-        {
-            var value = source.ReadUInt16();
-            if ((value & 0x8000) != 0)
-            {
-                var lower = source.ReadUInt16();
-                var higher = (value & 0x3FFF) << 16;
-                return (uint)(knownType + (higher | lower));
-            }
-            return knownType + value;
-        }
+        public static byte[] ReadL16Bytes(this BinaryReader source) => source.ReadBytes((int)source.ReadUInt16());
+        public static byte[] ReadL32Bytes(this BinaryReader source) => source.ReadBytes((int)source.ReadUInt32());
+
+        public static byte[] ReadL16EBytes(this BinaryReader source) => source.ReadBytes((int)source.ReadUInt16E());
+        public static byte[] ReadL32EBytes(this BinaryReader source) => source.ReadBytes((int)source.ReadUInt32E());
+
+        #endregion
+
+        #region Other
+
+        public static bool ReadBoolean32(this BinaryReader source) => source.ReadUInt32() != 0;
 
         public static Guid ReadGuid(this BinaryReader source) => new Guid(source.ReadBytes(16));
-        public static byte[] ReadL32Bytes(this BinaryReader source) => source.ReadBytes((int)source.ReadUInt32());
+
+        public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf));
+
+        /// <summary>
+        /// A Compressed UInt32 can be 1, 2, or 4 bytes.<para />
+        /// If the first MSB (0x80) is 0, it is one byte.<para />
+        /// If the first MSB (0x80) is set and the second MSB (0x40) is 0, it's 2 bytes.<para />
+        /// If both (0x80) and (0x40) are set, it's 4 bytes.
+        /// </summary>
+        public static uint ReadCompressedUInt32(this BinaryReader source)
+        {
+            var b0 = source.ReadByte();
+            if ((b0 & 0x80) == 0) return b0;
+            var b1 = source.ReadByte();
+            if ((b0 & 0x40) == 0) return (uint)(((b0 & 0x7F) << 8) | b1);
+            var s = source.ReadUInt16();
+            return (uint)(((((b0 & 0x3F) << 8) | b1) << 16) | s);
+        }
+
+        #endregion
 
         #region String
 
@@ -340,19 +361,30 @@ namespace System.IO
 
         #endregion
 
-        public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf));
+        #region Array
 
         public static T[] ReadL8Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, source.ReadByte());
-        public static T[] ReadL16Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, source.ReadUInt16());
-        public static T[] ReadL32Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadUInt32());
-        public static T[] ReadC32Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadCompressedUInt32());
-        public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? UnsafeX.MarshalTArray<T>(source.ReadBytes(count * sizeOf), 0, count) : new T[0];
-
         public static T[] ReadL8Array<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadTArray(source, factory, source.ReadByte());
+
+        public static T[] ReadL16Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, source.ReadUInt16());
         public static T[] ReadL16Array<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadTArray(source, factory, source.ReadUInt16());
+        public static T[] ReadL32Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadUInt32());
         public static T[] ReadL32Array<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadTArray(source, factory, (int)source.ReadUInt32());
+        public static T[] ReadC32Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadCompressedUInt32());
         public static T[] ReadC32Array<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadTArray(source, factory, (int)source.ReadCompressedUInt32());
+        public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? UnsafeX.MarshalTArray<T>(source.ReadBytes(sizeOf * count), 0, count) : new T[0];
         public static T[] ReadTArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
+
+        public static T[] ReadL16EArray<T>(this BinaryReader source, int sizeOf, bool bigEndian = true) where T : struct => ReadTEArray<T>(source, sizeOf, source.ReadUInt16E(bigEndian), bigEndian);
+        public static T[] ReadL16EArray<T>(this BinaryReader source, Func<BinaryReader, bool, T> factory, bool bigEndian = true) => ReadTEArray(source, factory, source.ReadUInt16E(bigEndian), bigEndian);
+        public static T[] ReadL32EArray<T>(this BinaryReader source, int sizeOf, bool bigEndian = true) where T : struct => ReadTEArray<T>(source, sizeOf, (int)source.ReadUInt32E(bigEndian), bigEndian);
+        public static T[] ReadL32EArray<T>(this BinaryReader source, Func<BinaryReader, bool, T> factory, bool bigEndian = true) => ReadTEArray(source, factory, (int)source.ReadUInt32E(bigEndian), bigEndian);
+        public static T[] ReadTEArray<T>(this BinaryReader source, int sizeOf, int count, bool bigEndian = true) where T : struct => count > 0 ? UnsafeX.MarshalTArray<T>(source.ReadBytesE(sizeOf * count, sizeOf, bigEndian), 0, count) : new T[0];
+        public static T[] ReadTEArray<T>(this BinaryReader source, Func<BinaryReader, bool, T> factory, int count, bool bigEndian = true) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source, bigEndian); return list; }
+
+        #endregion
+
+        #region Many
 
         public static Dictionary<TKey, TValue> ReadL8Many<TKey, TValue>(this BinaryReader source, int keySizeOf, Func<BinaryReader, TValue> valueFactory, int offset = 0) where TKey : struct => ReadTMany<TKey, TValue>(source, keySizeOf, valueFactory, source.ReadByte(), offset);
         public static Dictionary<TKey, TValue> ReadL16Many<TKey, TValue>(this BinaryReader source, int keySizeOf, Func<BinaryReader, TValue> valueFactory, int offset = 0) where TKey : struct => ReadTMany<TKey, TValue>(source, keySizeOf, valueFactory, source.ReadUInt16(), offset);
@@ -389,6 +421,10 @@ namespace System.IO
             return set;
         }
 
+        #endregion
+
+        #region Numerics
+
         //:ref https://docs.microsoft.com/en-us/windows/win32/direct3d11/floating-point-rules#16-bit-floating-point-rules
         static float Byte2HexIntFracToFloat2(string hexString)
         {
@@ -411,9 +447,6 @@ namespace System.IO
 
         public static float ReadHalf16(this BinaryReader r)
             => Byte2HexIntFracToFloat2(r.ReadUInt16().ToString("X4")) / 127f;
-
-        public static bool ReadBool32(this BinaryReader source)
-            => source.ReadUInt32() != 0;
 
         public static Vector2 ReadVector2(this BinaryReader source)
             => new Vector2(
@@ -544,6 +577,27 @@ namespace System.IO
                 y: source.ReadHalf(),
                 z: source.ReadHalf(),
                 w: source.ReadHalf());
+
+        #endregion
+
+        #region Unknown
+
+        /// <summary>
+        /// First reads a UInt16. If the MSB is set, it will be masked with 0x3FFF, shifted left 2 bytes, and then OR'd with the next UInt16. The sum is then added to knownType.
+        /// </summary>
+        public static uint ReadAsDataIDOfKnownType(this BinaryReader source, uint knownType)
+        {
+            var value = source.ReadUInt16();
+            if ((value & 0x8000) != 0)
+            {
+                var lower = source.ReadUInt16();
+                var higher = (value & 0x3FFF) << 16;
+                return (uint)(knownType + (higher | lower));
+            }
+            return knownType + value;
+        }
+
+        #endregion
 
         #endregion
     }
