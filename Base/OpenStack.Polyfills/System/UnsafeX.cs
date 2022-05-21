@@ -7,14 +7,14 @@ using System.Text;
 
 namespace System
 {
-    public static class UnsafeX
+    public unsafe static class UnsafeX
     {
         //static UnsafeX() => Estate.Bootstrap();
 
-        [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern static unsafe IntPtr memcpy(IntPtr dest, IntPtr src, uint count);
+        [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern static IntPtr memcpy(IntPtr dest, IntPtr src, uint count);
         public static Func<IntPtr, IntPtr, uint, IntPtr> Memcpy = memcpy;
 
-        public static unsafe string ReadZASCII(byte* data, int length)
+        public static string ReadZASCII(byte* data, int length)
         {
             var i = 0;
             while (data[i] != 0 && length-- > 0) i++;
@@ -24,20 +24,20 @@ namespace System
             return Encoding.ASCII.GetString(value);
         }
 
-        public static unsafe byte[] ReadBytes(byte* data, int length)
+        public static byte[] ReadBytes(byte* data, int length)
         {
             var value = new byte[length];
             fixed (byte* p = value) for (var i = 0; i < length; i++) p[i] = data[i];
             return value;
         }
 
-        [DllImport("Kernel32")] extern static unsafe int _lread(SafeFileHandle hFile, void* lpBuffer, int wBytes);
-        public static unsafe void ReadBuffer(this FileStream stream, byte[] buf, int length)
+        [DllImport("Kernel32")] extern static int _lread(SafeFileHandle hFile, void* lpBuffer, int wBytes);
+        public static void ReadBuffer(this FileStream stream, byte[] buf, int length)
         {
             fixed (byte* pbuf = buf) _lread(stream.SafeFileHandle, pbuf, length);
         }
 
-        public static unsafe T MarshalT<T>(byte[] bytes, int length = -1)
+        public static T MarshalT<T>(byte[] bytes, int length = -1)
         {
             var size = Marshal.SizeOf(typeof(T));
             if (length > 0 && size > length) Array.Resize(ref bytes, size);
@@ -53,7 +53,7 @@ namespace System
             //}
         }
 
-        public static unsafe byte[] MarshalF<T>(T value, int length = -1)
+        public static byte[] MarshalF<T>(T value, int length = -1)
         {
             var size = Marshal.SizeOf(typeof(T));
             var bytes = new byte[size];
@@ -61,18 +61,20 @@ namespace System
             return bytes;
         }
 
-        public static void MarshalTArray<T>(FileStream stream, T[] dest, int offset, int length)
+        public static T[] MarshalTArray<T>(FileStream stream, int offset, int length)
         {
+            var dest = new T[length];
             var h = GCHandle.Alloc(dest, GCHandleType.Pinned);
 #if !MONO
-            NativeReader.Read(stream.SafeFileHandle.DangerousGetHandle() + offset, h.AddrOfPinnedObject(), length);
+            NativeFile.Read(stream.SafeFileHandle.DangerousGetHandle() + offset, h.AddrOfPinnedObject(), length);
 #else
-            NativeReader.Read(stream.Handle + offset, h.AddrOfPinnedObject(), length);
+            NativeFile.Read(stream.Handle + offset, h.AddrOfPinnedObject(), length);
 #endif
             h.Free();
+            return dest;
         }
 
-        public static unsafe T[] MarshalTArray<T>(byte[] bytes, int offset, int count)
+        public static T[] MarshalTArray<T>(byte[] bytes, int offset, int count)
         {
             var typeOfT = typeof(T);
             var isEnum = typeOfT.IsEnum;
@@ -84,6 +86,11 @@ namespace System
                 hresult.Free();
                 return isEnum ? result.Cast<T>().ToArray() : (T[])result;
             }
+        }
+
+        public static byte[] MarshalTArray<T>(T[] values, int count)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
