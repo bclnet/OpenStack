@@ -70,12 +70,14 @@ namespace System
         public static uint SwapEndian(uint value) { var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt32(bytes, 0); }
         public static int SwapEndian(int value) { var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToInt32(bytes, 0); }
         public static float SwapEndian(float value) { var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToSingle(bytes, 0); }
+        public static double SwapEndian(double value) { var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToDouble(bytes, 0); }
         public static ushort SwapEndian(ushort value) { var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt16(bytes, 0); }
         //
         public static ulong SwapEndian(ulong value, bool bigEndian) { if (!bigEndian) return value; var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt64(bytes, 0); }
         public static uint SwapEndian(uint value, bool bigEndian) { if (!bigEndian) return value; var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt32(bytes, 0); }
         public static int SwapEndian(int value, bool bigEndian) { if (!bigEndian) return value; var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToInt32(bytes, 0); }
         public static float SwapEndian(float value, bool bigEndian) { if (!bigEndian) return value; var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToSingle(bytes, 0); }
+        public static double SwapEndian(double value, bool bigEndian) { if (!bigEndian) return value; var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToDouble(bytes, 0); }
         public static ushort SwapEndian(ushort value, bool bigEndian) { if (!bigEndian) return value; var bytes = BitConverter.GetBytes(value); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt16(bytes, 0); }
         public static byte[] SwapEndian(byte[] value, int sizeOf, bool bigEndian) { if (!bigEndian) return value; for (var i = 0; i < value.Length; i += sizeOf) Array.Reverse(value, i, sizeOf); return value; }
 
