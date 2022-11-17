@@ -83,6 +83,16 @@ namespace System
 
         #endregion
 
+        public static int NextPower(int value, int power = 2)
+        {
+            var newValue = 1;
+            if ((power % 2) != 0)
+                throw new NotImplementedException();
+            var shift = power / 2;
+            while (newValue < value) newValue <<= shift;
+            return newValue;
+        }
+
         /// <summary>
         /// Extracts a range of bits from a byte array.
         /// </summary>

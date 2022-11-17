@@ -18,16 +18,15 @@ namespace OpenStack.Graphics
 
         #region Size
 
-        public static int GetMipMapTrueDataSize(this ITextureInfo source, int index)
+        public static int GetMipMapTrueDataSize(this TextureGLFormat source, ITextureInfo info, int index)
         {
-            var format = source.GLFormat;
-            var bytesPerPixel = format.GetBlockSize();
-            var currentWidth = source.Width >> index;
-            var currentHeight = source.Height >> index;
-            var currentDepth = source.Depth >> index;
+            var bytesPerPixel = source.GetBlockSize();
+            var currentWidth = info.Width >> index;
+            var currentHeight = info.Height >> index;
+            var currentDepth = info.Depth >> index;
             if (currentDepth < 1) currentDepth = 1;
-            if (format == TextureGLFormat.CompressedRgbaS3tcDxt1Ext || format == TextureGLFormat.CompressedRgbaS3tcDxt5Ext || format == TextureGLFormat.CompressedRgbBptcUnsignedFloat || format == TextureGLFormat.CompressedRgbaBptcUnorm ||
-                format == TextureGLFormat.CompressedRgb8Etc2 || format == TextureGLFormat.CompressedRgba8Etc2Eac || format == TextureGLFormat.CompressedRedRgtc1)
+            if (source == TextureGLFormat.CompressedRgbaS3tcDxt1Ext || source == TextureGLFormat.CompressedRgbaS3tcDxt5Ext || source == TextureGLFormat.CompressedRgbBptcUnsignedFloat || source == TextureGLFormat.CompressedRgbaBptcUnorm ||
+                source == TextureGLFormat.CompressedRgb8Etc2 || source == TextureGLFormat.CompressedRgba8Etc2Eac || source == TextureGLFormat.CompressedRedRgtc1)
             {
                 var misalign = currentWidth % 4;
                 if (misalign > 0) currentWidth += 4 - misalign;
@@ -86,8 +85,8 @@ namespace OpenStack.Graphics
             public int Height { get; set; }
             public int Depth { get; set; }
             public TextureFlags Flags { get; set; }
-            public TextureUnityFormat UnityFormat { get; set; }
-            public TextureGLFormat GLFormat { get; set; }
+            public object UnityFormat { get; set; }
+            public object GLFormat { get; set; }
             public int NumMipMaps { get; set; }
             public void MoveToData() { }
         }
@@ -145,6 +144,8 @@ namespace OpenStack.Graphics
         // TODO: Move? Unity?
         public static unsafe ITextureInfo FromABGR555(this ITextureInfo source, int index = 0)
         {
+            if (!(source.UnityFormat is TextureUnityFormat format))
+                throw new InvalidOperationException();
             var W = source.Width; var H = source.Height;
             var pixels = new byte[W * H * 4];
             fixed (byte* pPixels = pixels, pData = source[index])
@@ -164,13 +165,13 @@ namespace OpenStack.Graphics
                     var b = (byte)Math.Min(((d555 & 0x003E) >> 1) * 8, byte.MaxValue);      // 0000 0000 0011 1110 = 003E
                     var a = (byte)Math.Min((d555 & 0x0001) * 0x1F, byte.MaxValue);          // 0000 0000 0000 0001 = 0001
                     uint color;
-                    if (source.UnityFormat == TextureUnityFormat.RGBA32)
+                    if (format == TextureUnityFormat.RGBA32)
                         color =
                             ((uint)(a << 24) & 0xFF000000) |
                             ((uint)(b << 16) & 0x00FF0000) |
                             ((uint)(g << 8) & 0x0000FF00) |
                             ((uint)(r << 0) & 0x000000FF);
-                    else if (source.UnityFormat == TextureUnityFormat.ARGB32)
+                    else if (format == TextureUnityFormat.ARGB32)
                         color =
                             ((uint)(b << 24) & 0xFF000000) |
                             ((uint)(g << 16) & 0x00FF0000) |
@@ -187,7 +188,9 @@ namespace OpenStack.Graphics
         // TODO: Move? Unity?
         public static ITextureInfo From8BitPallet(this ITextureInfo source, byte[][] pallet, TextureUnityFormat palletFormat, int index = 0)
         {
-            if (source.UnityFormat != palletFormat)
+            if (!(source.UnityFormat is TextureUnityFormat format))
+                throw new InvalidOperationException();
+            if (format != palletFormat)
                 throw new InvalidOperationException();
             var b = new MemoryStream();
             var d = source[index];
