@@ -133,13 +133,12 @@ namespace System.IO
         //    var alignDelta = source.BaseStream.Position % 4;
         //    if (alignDelta != 0) source.BaseStream.Position += (int)(4 - alignDelta);
         //}
-        // align to 4-byte boundary
         public static void Align(this BinaryReader source, int align = 4) => source.BaseStream.Position = (source.BaseStream.Position + --align) & ~align;
         public static long Position(this BinaryReader source) => source.BaseStream.Position;
         public static void Position(this BinaryReader source, long position) => source.BaseStream.Position = position;
         public static long Position(this BinaryReader source, long position, int align) { if (position % 4 != 0) position += 4 - (position % 4); source.BaseStream.Position = position; return position; }
         public static void Seek(this BinaryReader source, long offset, SeekOrigin origin = SeekOrigin.Begin) => source.BaseStream.Seek(offset, origin);
-        public static void Skip(this BinaryReader source, long count) => source.BaseStream.Position += count; //source.BaseStream.Seek(count, SeekOrigin.Current);
+        public static void Skip(this BinaryReader source, long count) => source.BaseStream.Position += count;
 
         public static void Peek(this BinaryReader source, Action<BinaryReader> action, int offset = 0)
         {
@@ -218,6 +217,28 @@ namespace System.IO
         public static bool ReadBoolean32(this BinaryReader source) => source.ReadUInt32() != 0;
         public static Guid ReadGuid(this BinaryReader source) => new Guid(source.ReadBytes(16));
         public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf));
+
+        public static IEnumerable<long> SeekNeedles(this BinaryReader source, byte[] needle)
+        {
+            var buffer = new byte[0x100000];
+            int read, i, j = 0;
+            var position = source.BaseStream.Position;
+            while ((read = source.BaseStream.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                for (i = 0; i < read; i++)
+                    if (needle[j] == buffer[i])
+                    {
+                        j++;
+                        if (j == needle.Length)
+                        {
+                            yield return source.BaseStream.Position = position + i + 1 - needle.Length;
+                            j = 0;
+                        }
+                    }
+                    else j = 0;
+                source.BaseStream.Position = position += read;
+            }
+        }
 
         /// <summary>
         /// A Compressed UInt32 can be 1, 2, or 4 bytes.<para />
