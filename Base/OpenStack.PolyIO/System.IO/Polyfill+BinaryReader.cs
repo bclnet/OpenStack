@@ -213,7 +213,7 @@ namespace System.IO
         /// <param name="source"></param>
         /// <param name="length">Size of the String</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadString(this BinaryReader source, int length) => length != 0 ? new string (source.ReadChars(length)) : null; //: was ReadStringAsChars
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length) => length != 0 ? new string (source.ReadChars(length)) : null; //: was ReadStringAsChars
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
@@ -221,7 +221,7 @@ namespace System.IO
         /// <param name="source"></param>
         /// <param name="length">Size of the String</param>
         /// <returns></returns>
-        public static string ReadFString(this BinaryReader source, int length)
+        public static string ReadFYString(this BinaryReader source, int length)
         {
             if (length == 0) return null;
             var chars = source.ReadChars(length);
