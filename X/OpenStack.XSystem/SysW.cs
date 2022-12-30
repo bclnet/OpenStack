@@ -221,7 +221,7 @@ namespace System.NumericsX.OpenStack.System
             if (!FreeLibrary(dllHandle))
             {
                 var lastError = Marshal.GetLastWin32Error();
-                var msg = new Win32Exception(Marshal.GetLastWin32Error()).Message;
+                var msg = new Win32Exception(lastError).Message;
                 SysW.Error($"Sys_DLL_Unload: FreeLibrary failed - {msg} ({lastError})");
             }
         }
