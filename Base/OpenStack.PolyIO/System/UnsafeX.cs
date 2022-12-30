@@ -2,17 +2,27 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 
 namespace System
 {
+    [SuppressUnmanagedCodeSecurity]
     public unsafe static class UnsafeX
     {
         //static UnsafeX() => Estate.Bootstrap();
 
         [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern static IntPtr memcpy(IntPtr dest, IntPtr src, uint count);
         public static Func<IntPtr, IntPtr, uint, IntPtr> Memcpy = memcpy;
+
+        //[UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int QuickSortComparDelegate(void* a, void* b);
+        //[DllImport("msvcrt.dll", EntryPoint = "qsort", SetLastError = false)] public static unsafe extern void QuickSort(void* base0, nint n, nint size, QuickSortComparDelegate compar);
+        [DllImport("msvcrt.dll", EntryPoint = "memmove", SetLastError = false)] public static unsafe extern void MoveBlock(void* destination, void* source, uint byteCount);
+        [DllImport("msvcrt.dll", EntryPoint = "memcpy", SetLastError = false)] public static unsafe extern void CopyBlock(void* destination, void* source, uint byteCount);
+        [DllImport("msvcrt.dll", EntryPoint = "memset", SetLastError = false)] public static unsafe extern void InitBlock(void* destination, int c, uint byteCount);
+        [DllImport("msvcrt.dll", EntryPoint = "memcmp", SetLastError = false)] public static unsafe extern int CompareBlock(void* b1, void* b2, int byteCount);
 
         public static string ReadZASCII(byte* data, int length)
         {
@@ -93,35 +103,28 @@ namespace System
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Flips a portion of a 2D array vertically.
-        /// </summary>
-        /// <param name="source">A 2D array represented as a 1D row-major array.</param>
-        /// <param name="startIndex">The 1D index of the top left element in the portion of the 2D array we want to flip.</param>
-        /// <param name="rows">The number of rows in the sub-array.</param>
-        /// <param name="bytesPerRow">The number of columns in the sub-array.</param>
-        public static void Flip2DArrayVertically<T>(T[] source, int rowCount, int columnCount) => Flip2DSubArrayVertically(source, 0, rowCount, columnCount);
-        /// <summary>
-        /// Flips a portion of a 2D array vertically.
-        /// </summary>
-        /// <param name="source">A 2D array represented as a 1D row-major array.</param>
-        /// <param name="startIndex">The 1D index of the top left element in the portion of the 2D array we want to flip.</param>
-        /// <param name="rows">The number of rows in the sub-array.</param>
-        /// <param name="bytesPerRow">The number of columns in the sub-array.</param>
-        public static void Flip2DSubArrayVertically<T>(T[] source, int startIndex, int rows, int bytesPerRow)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteGenericToPtr<T>(IntPtr dest, T value, int sizeOfT) where T : struct
         {
-            Debug.Assert(startIndex >= 0 && rows >= 0 && bytesPerRow >= 0 && (startIndex + (rows * bytesPerRow)) <= source.Length);
-            var tmpRow = new T[bytesPerRow];
-            var lastRowIndex = rows - 1;
-            for (var rowIndex = 0; rowIndex < (rows / 2); rowIndex++)
-            {
-                var otherRowIndex = lastRowIndex - rowIndex;
-                var rowStartIndex = startIndex + (rowIndex * bytesPerRow);
-                var otherRowStartIndex = startIndex + (otherRowIndex * bytesPerRow);
-                Array.Copy(source, otherRowStartIndex, tmpRow, 0, bytesPerRow); // other -> tmp
-                Array.Copy(source, rowStartIndex, source, otherRowStartIndex, bytesPerRow); // row -> other
-                Array.Copy(tmpRow, 0, source, rowStartIndex, bytesPerRow); // tmp -> row
-            }
+            var bytePtr = (byte*)dest;
+
+            var valueref = __makeref(value);
+            var valuePtr = (byte*)*((IntPtr*)&valueref);
+            for (var i = 0; i < sizeOfT; ++i) bytePtr[i] = valuePtr[i];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ReadGenericFromPtr<T>(IntPtr source, int sizeOfT) where T : struct
+        {
+            var bytePtr = (byte*)source;
+
+            T result = default;
+            var resultRef = __makeref(result);
+            var resultPtr = (byte*)*((IntPtr*)&resultRef);
+
+            for (var i = 0; i < sizeOfT; ++i) resultPtr[i] = bytePtr[i];
+
+            return result;
         }
     }
 }

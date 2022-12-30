@@ -1,4 +1,4 @@
-using MathNet.Numerics.LinearAlgebra;
+//using MathNet.Numerics.LinearAlgebra;
 using System.Globalization;
 
 //:ref https://github.com/microsoft/referencesource/tree/master/System.Numerics/System/Numerics
@@ -168,11 +168,11 @@ namespace System.Numerics
             }
         }
 
-        public Matrix3x3 Inverse() => this.ToMathMatrix().Inverse().ToMatrix3x3();
-        public Matrix3x3 Conjugate() => this.ToMathMatrix().Conjugate().ToMatrix3x3();
-        public Matrix3x3 ConjugateTranspose() => this.ToMathMatrix().ConjugateTranspose().ToMatrix3x3();
-        public Matrix3x3 ConjugateTransposeThisAndMultiply(Matrix3x3 inputMatrix) => this.ToMathMatrix().ConjugateTransposeThisAndMultiply(inputMatrix.ToMathMatrix()).ToMatrix3x3();
-        public Vector3 Diagonal() => new Vector3().ToVector3(this.ToMathMatrix().Diagonal());
+        //public Matrix3x3 Inverse() => this.ToMathMatrix().Inverse().ToMatrix3x3();
+        //public Matrix3x3 Conjugate() => this.ToMathMatrix().Conjugate().ToMatrix3x3();
+        //public Matrix3x3 ConjugateTranspose() => this.ToMathMatrix().ConjugateTranspose().ToMatrix3x3();
+        //public Matrix3x3 ConjugateTransposeThisAndMultiply(Matrix3x3 inputMatrix) => this.ToMathMatrix().ConjugateTransposeThisAndMultiply(inputMatrix.ToMathMatrix()).ToMatrix3x3();
+        //public Vector3 Diagonal() => new Vector3().ToVector3(this.ToMathMatrix().Diagonal());
 
         #endregion
 

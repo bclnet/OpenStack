@@ -1,9 +1,22 @@
+using MathNet.Numerics.LinearAlgebra;
 using static OpenStack.Debug;
 
 namespace System.Numerics
 {
     public static class NumericsExtensions
     {
+        #region Matrix3x3
+
+        public static Matrix3x3 Inverse(this Matrix3x3 source) => source.ToMathMatrix().Inverse().ToMatrix3x3();
+        public static Matrix3x3 Conjugate(this Matrix3x3 source) => source.ToMathMatrix().Conjugate().ToMatrix3x3();
+        public static Matrix3x3 ConjugateTranspose(this Matrix3x3 source) => source.ToMathMatrix().ConjugateTranspose().ToMatrix3x3();
+        public static Matrix3x3 ConjugateTransposeThisAndMultiply(this Matrix3x3 source, Matrix3x3 inputMatrix) => source.ToMathMatrix().ConjugateTransposeThisAndMultiply(inputMatrix.ToMathMatrix()).ToMatrix3x3();
+        public static Vector3 Diagonal(this Matrix3x3 source) => new Vector3().ToVector3(source.ToMathMatrix().Diagonal());
+
+        #endregion
+
+        #region Log
+
         public static void LogVector3(this Vector3 s, string label = null)
         {
             Log($"*** WriteVector3 *** - {label}");
@@ -34,5 +47,7 @@ namespace System.Numerics
             Log($"{s.M41:F7}  {s.M42:F7}  {s.M43:F7}  {s.M44:F7}");
             Log();
         }
+
+        #endregion
     }
 }

@@ -11,12 +11,4 @@
     <None Remove="Data\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\OpenStack.PolyIO\OpenStack.PolyIO.csproj" />
-  </ItemGroup>
-
 </Project>

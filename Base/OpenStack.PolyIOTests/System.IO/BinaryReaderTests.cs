@@ -1,7 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
 using System.Numerics;
 
-namespace System.IO
+namespace OpenStack.PolyIOTests.System.IO
 {
     [TestClass]
     public class BinaryReaderTests

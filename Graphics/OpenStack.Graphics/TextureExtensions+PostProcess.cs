@@ -30,7 +30,7 @@ namespace OpenStack.Graphics
             {
                 var mipMapDataSize = mipMapLevelWidth * mipMapLevelHeight * bytesPerPixel;
                 // If the DDS file contains the current mipmap level, flip it vertically if necessary.
-                if (flipVertically && mipMapLevelIndex < mipmaps) UnsafeX.Flip2DSubArrayVertically(data, mipMapLevelDataOffset, mipMapLevelHeight, mipMapLevelWidth * bytesPerPixel);
+                if (flipVertically && mipMapLevelIndex < mipmaps) MathX.Flip2DSubArrayVertically(data, mipMapLevelDataOffset, mipMapLevelHeight, mipMapLevelWidth * bytesPerPixel);
                 // Break after optionally flipping the first mipmap level if the DDS texture doesn't have mipmaps.
                 if (!hasMipmaps) break;
                 // Generate the next mipmap level's data if the DDS file doesn't contain it.
