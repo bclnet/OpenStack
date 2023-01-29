@@ -213,7 +213,7 @@ namespace System.IO
         /// <param name="source"></param>
         /// <param name="length">Size of the String</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length) => length != 0 ? new string (source.ReadChars(length)) : null; //: was ReadStringAsChars
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length)) : null; //: was ReadStringAsChars
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
@@ -368,6 +368,7 @@ namespace System.IO
         public static T[] ReadC32Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadCInt32());
         public static T[] ReadC32Array<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadTArray(source, factory, (int)source.ReadCInt32());
         public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? UnsafeX.MarshalTArray<T>(source.ReadBytes(sizeOf * count), 0, count) : new T[0];
+        public static T[] ReadTArrayEach<T>(this BinaryReader source, int sizeOf, int count) where T : struct { var list = new T[count]; for (var i = 0; i < list.Length; i++) list[i] = UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf)); return list; }
         public static T[] ReadTArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
 
         public static T[] ReadL16EArray<T>(this BinaryReader source, int sizeOf, bool bigEndian = true) where T : struct => ReadTEArray<T>(source, sizeOf, source.ReadUInt16E(bigEndian), bigEndian);
