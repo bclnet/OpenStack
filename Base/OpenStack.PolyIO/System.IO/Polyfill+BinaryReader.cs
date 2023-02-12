@@ -175,8 +175,9 @@ namespace System.IO
         /// </summary>
         /// <param name="source"></param>
         /// <param name="byteLength">Size of the Length representation</param>
+        /// <param name="removeLast">Remove last character</param>
         /// <returns></returns>
-        public static string ReadLString(this BinaryReader source, int byteLength = 4) //:was ReadPString
+        public static string ReadLString(this BinaryReader source, int byteLength = 4, bool removeLastCharacter = false) //:was ReadPString
         {
             var length = byteLength switch
             {
@@ -185,7 +186,32 @@ namespace System.IO
                 4 => source.ReadInt32(),
                 _ => throw new NotSupportedException("Only Int8, Int16, and Int32 string sizes are supported"),
             };
-            return length > 0 ? new string(source.ReadChars(length)) : null;
+            if (length == 0) return null;
+            var chars = source.ReadChars(length);
+            if (removeLastCharacter) Array.Resize(ref chars, chars.Length - 1);
+            return new string(chars);
+        }
+
+        /// <summary>
+        /// Read a Length-prefixed ascii string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="byteLength">Size of the Length representation</param>
+        /// <param name="removeLast">Remove last character</param>
+        /// <returns></returns>
+        public static string ReadLAString(this BinaryReader source, int byteLength = 4, bool zstring = false)
+        {
+            var length = byteLength switch
+            {
+                1 => source.ReadByte(),
+                2 => source.ReadInt16(),
+                4 => source.ReadInt32(),
+                _ => throw new NotSupportedException("Only Int8, Int16, and Int32 string sizes are supported"),
+            };
+            if (length == 0) return null;
+            var bytes = source.ReadBytes(length);
+            if (zstring) Array.Resize(ref bytes, bytes.Length - 1);
+            return Encoding.ASCII.GetString(bytes);
         }
 
         //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8String(this BinaryReader source, Encoding encoding = null) { var length = source.ReadByte(); return length > 0 ? new string(source.ReadChars(length)) : null; }
@@ -214,6 +240,14 @@ namespace System.IO
         /// <param name="length">Size of the String</param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length)) : null; //: was ReadStringAsChars
+
+        /// <summary>
+        /// Read a Fixed-Length ascii string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="length">Size of the String</param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length)) : null;
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
@@ -300,14 +334,14 @@ namespace System.IO
             return list.ToArray();
         }
 
-        public static string ReadZASCII(this BinaryReader source, int length = int.MaxValue)
+        public static string ReadZAString(this BinaryReader source, int length = int.MaxValue)
         {
             var buf = new MemoryStream();
             byte c;
             while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
             return Encoding.ASCII.GetString(buf.ToArray());
         }
-        public static List<string> ReadZASCIIList(this BinaryReader source, int length = int.MaxValue)
+        public static List<string> ReadZAStringList(this BinaryReader source, int length = int.MaxValue)
         {
             var buf = new MemoryStream();
             var list = new List<string>();
