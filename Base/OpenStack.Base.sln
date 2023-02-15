@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.PolyfillsTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.NumericsX", "System.NumericsX\System.NumericsX.csproj", "{B5D2D18B-23E2-408D-A0F3-D5CAA9AFDA93}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.Configuration", "OpenStack.Configuration\OpenStack.Configuration.csproj", "{8C67655F-1A22-4EF0-AC3C-231AAF70D13B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{B5D2D18B-23E2-408D-A0F3-D5CAA9AFDA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5D2D18B-23E2-408D-A0F3-D5CAA9AFDA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5D2D18B-23E2-408D-A0F3-D5CAA9AFDA93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C67655F-1A22-4EF0-AC3C-231AAF70D13B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C67655F-1A22-4EF0-AC3C-231AAF70D13B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C67655F-1A22-4EF0-AC3C-231AAF70D13B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C67655F-1A22-4EF0-AC3C-231AAF70D13B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
