@@ -35,9 +35,9 @@ namespace System.IO
         //}
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Align(this BinaryReader source, int align = 4) => source.BaseStream.Position = (source.BaseStream.Position + --align) & ~align;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Position(this BinaryReader source) => source.BaseStream.Position;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Position(this BinaryReader source, long position) => source.BaseStream.Position = position;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Position(this BinaryReader source, long position, int align) { if (position % 4 != 0) position += 4 - (position % 4); source.BaseStream.Position = position; return position; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Seek(this BinaryReader source, long offset, SeekOrigin origin = SeekOrigin.Begin) => source.BaseStream.Seek(offset, origin);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Seek(this BinaryReader source, long offset) => source.BaseStream.Position = offset;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Seek(this BinaryReader source, long offset, int align) { if (offset % 4 != 0) offset += 4 - (offset % 4); source.BaseStream.Position = offset; return offset; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Seek(this BinaryReader source, long offset, SeekOrigin origin) => source.BaseStream.Seek(offset, origin);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Skip(this BinaryReader source, long count) => source.BaseStream.Position += count;
 
         public static void Peek(this BinaryReader source, Action<BinaryReader> action, int offset = 0)
@@ -175,9 +175,9 @@ namespace System.IO
         /// </summary>
         /// <param name="source"></param>
         /// <param name="byteLength">Size of the Length representation</param>
-        /// <param name="removeLast">Remove last character</param>
+        /// <param name="zstring">Remove last character</param>
         /// <returns></returns>
-        public static string ReadLString(this BinaryReader source, int byteLength = 4, bool removeLastCharacter = false) //:was ReadPString
+        public static string ReadLString(this BinaryReader source, int byteLength = 4, bool zstring = false) //:was ReadPString
         {
             var length = byteLength switch
             {
@@ -186,18 +186,19 @@ namespace System.IO
                 4 => source.ReadInt32(),
                 _ => throw new NotSupportedException("Only Int8, Int16, and Int32 string sizes are supported"),
             };
-            if (length == 0) return null;
-            var chars = source.ReadChars(length);
-            if (removeLastCharacter) Array.Resize(ref chars, chars.Length - 1);
-            return new string(chars);
+            return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8String(this BinaryReader source, bool zstring = false) { var length = source.ReadByte(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt16(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt32(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
+
 
         /// <summary>
         /// Read a Length-prefixed ascii string from the stream
         /// </summary>
         /// <param name="source"></param>
         /// <param name="byteLength">Size of the Length representation</param>
-        /// <param name="removeLast">Remove last character</param>
+        /// <param name="zstring">Remove last character</param>
         /// <returns></returns>
         public static string ReadLAString(this BinaryReader source, int byteLength = 4, bool zstring = false)
         {
@@ -208,16 +209,11 @@ namespace System.IO
                 4 => source.ReadInt32(),
                 _ => throw new NotSupportedException("Only Int8, Int16, and Int32 string sizes are supported"),
             };
-            if (length == 0) return null;
-            var bytes = source.ReadBytes(length);
-            if (zstring) Array.Resize(ref bytes, bytes.Length - 1);
-            return Encoding.ASCII.GetString(bytes);
+            return length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null;
         }
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8String(this BinaryReader source, Encoding encoding = null) { var length = source.ReadByte(); return length > 0 ? new string(source.ReadChars(length)) : null; }
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16String(this BinaryReader source, Encoding encoding = null) { var length = source.ReadInt16(); return length > 0 ? new string(source.ReadChars(length)) : null; }
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32String(this BinaryReader source, Encoding encoding = null) { var length = source.ReadInt32(); return length > 0 ? new string(source.ReadChars(length)) : null; }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLA8String(this BinaryReader source, bool zstring = false) { var length = source.ReadByte(); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLA16String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt16(); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLA32String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt32(); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null; }
 
         /// <summary>
         /// Read a NULL-Terminated string from the stream
@@ -238,16 +234,18 @@ namespace System.IO
         /// </summary>
         /// <param name="source"></param>
         /// <param name="length">Size of the String</param>
+        /// <param name="zstring">Remove last character</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length)) : null; //: was ReadStringAsChars
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length, bool zstring = false) => length != 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; //: was ReadStringAsChars
 
         /// <summary>
         /// Read a Fixed-Length ascii string from the stream
         /// </summary>
         /// <param name="source"></param>
         /// <param name="length">Size of the String</param>
+        /// <param name="zstring">Remove last character</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length)) : null;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length, bool zstring = false) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null;
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
@@ -267,7 +265,7 @@ namespace System.IO
 
         #region String : Unicode
 
-        public static string ReadC32Unicode(this BinaryReader source) //:was ReadUnicodeString
+        public static string ReadCU32String(this BinaryReader source) //:was ReadUnicodeString
         {
             var length = source.ReadCInt32();
             if (length == 0) return null;
@@ -625,6 +623,14 @@ namespace System.IO
                 return (uint)(knownType + (higher | lower));
             }
             return knownType + value;
+        }
+
+        /// <summary>
+        /// Ensures stream is complete
+        /// </summary>
+        public static void EnsureComplete(this BinaryReader source)
+        {
+            if (source.BaseStream.Length != source.BaseStream.Position) throw new Exception("Not Complete");
         }
 
         #endregion
