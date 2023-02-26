@@ -6,7 +6,7 @@ namespace System.Collections.Generic
 {
     public static class KVExtensions
     {
-        public static TValue Get<TKey, TValue>(this Dictionary<TKey, TValue> source, TKey key, TValue defaultValue)
+        public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> source, TKey key, TValue defaultValue)
             => source.TryGetValue(key, out var z) ? z : defaultValue;
 
         public static bool TryGet<T>(this IDictionary<string, object> source, string name, out T value, T defaultValue = default)
@@ -58,6 +58,9 @@ namespace System.Collections.Generic
 
         public static IDictionary<string, object>[] GetArray(this IDictionary<string, object> source, string name)
             => source.TryGetValue(name, out var z) && z is Array v ? v.Cast<IDictionary<string, object>>().ToArray() : default;
+
+        public static T[] GetArray<T>(this IDictionary<string, object> source, string name, Func<IDictionary<string, object>, T> select)
+            => source.TryGetValue(name, out var z) && z is Array v ? v.Cast<IDictionary<string, object>>().Select(select).ToArray() : default;
 
         public static Vector3 ToVector3(this object[] source) => new Vector3(
             (float)Convert.ToDouble(source[0]),

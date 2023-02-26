@@ -3,7 +3,6 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace OpenStack.Graphics.OpenGL
 {
@@ -34,7 +33,7 @@ namespace OpenStack.Graphics.OpenGL
                     parameters.Add($"renderMode_{renderMode}", true);
 
                 call.Shader = _graphic.LoadShader(call.Shader.Name, parameters);
-                call.VertexArrayObject = _graphic.MeshBufferCache.GetVertexArrayObject(_mesh.VBIB, call.Shader, call.VertexBuffer.Id, call.IndexBuffer.Id);
+                call.VertexArrayObject = _graphic.MeshBufferCache.GetVertexArrayObject(_mesh.VBIB, call.Shader, call.VertexBuffer.Id, call.IndexBuffer.Id, call.BaseVertex);
             }
         }
 
@@ -97,7 +96,7 @@ namespace OpenStack.Graphics.OpenGL
             var indexBuffer = objectDrawCall.GetSub("m_indexBuffer");
             drawCall.IndexBuffer = (indexBuffer.GetUInt32("m_hBuffer"), indexBuffer.GetUInt32("m_nBindOffsetBytes"));
 
-            var indexElementSize = vbib.IndexBuffers[(int)drawCall.IndexBuffer.Id].Size;
+            var indexElementSize = vbib.IndexBuffers[(int)drawCall.IndexBuffer.Id].ElementSizeInBytes;
             //drawCall.BaseVertex = objectDrawCall.ToUInt32("m_nBaseVertex");
             //drawCall.VertexCount = objectDrawCall.ToUInt32("m_nVertexCount");
             drawCall.StartIndex = objectDrawCall.GetUInt32("m_nStartIndex") * indexElementSize;
@@ -116,7 +115,7 @@ namespace OpenStack.Graphics.OpenGL
             var vertexBuffer = objectDrawCall.GetArray("m_vertexBuffers").First();
             drawCall.VertexBuffer = (vertexBuffer.GetUInt32("m_hBuffer"), vertexBuffer.GetUInt32("m_nBindOffsetBytes"));
 
-            drawCall.VertexArrayObject = _graphic.MeshBufferCache.GetVertexArrayObject(vbib, drawCall.Shader, drawCall.VertexBuffer.Id, drawCall.IndexBuffer.Id);
+            drawCall.VertexArrayObject = _graphic.MeshBufferCache.GetVertexArrayObject(vbib, drawCall.Shader, drawCall.VertexBuffer.Id, drawCall.IndexBuffer.Id, drawCall.BaseVertex);
 
             return drawCall;
         }

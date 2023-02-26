@@ -54,8 +54,7 @@ namespace OpenStack.Graphics.Renderer
             SetViewport(0, 0, viewportWidth, viewportHeight);
         }
 
-        protected abstract void SetViewport(int x, int y, int width, int height);
-        //GL.Viewport(0, 0, viewportWidth, viewportHeight); //:TODO            
+        protected abstract void SetViewport(int x, int y, int width, int height); //GL.Viewport(0, 0, viewportWidth, viewportHeight); //:TODO            
 
         public void CopyFrom(Camera fromOther)
         {

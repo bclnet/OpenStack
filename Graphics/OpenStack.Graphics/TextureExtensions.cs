@@ -42,31 +42,30 @@ namespace OpenStack.Graphics
             return currentWidth * currentHeight * currentDepth * bytesPerPixel;
         }
 
-        public static int GetBlockSize(this TextureGLFormat source)
-            => source switch
-            {
-                TextureGLFormat.CompressedRgbaS3tcDxt1Ext => 8,
-                TextureGLFormat.CompressedRgbaS3tcDxt5Ext => 6,
-                TextureGLFormat.Rgba8 => 4,
-                TextureGLFormat.R16 => 2,
-                //TextureGLFormat.RG1616 => 4;
-                TextureGLFormat.Rgba16f => 8,
-                TextureGLFormat.R16f => 2,
-                //TextureGLFormat.RG1616F => 4;
-                //TextureGLFormat.RGBA16161616F => 8;
-                //TextureGLFormat.R32F => 4;
-                //TextureGLFormat.RG3232F => 8;
-                //TextureGLFormat.RGB323232F => 12;
-                //TextureGLFormat.RGBA32323232F => 16;
-                TextureGLFormat.CompressedRgbBptcUnsignedFloat => 16,
-                TextureGLFormat.CompressedRgbaBptcUnorm => 16,
-                TextureGLFormat.Intensity8 => 2,
-                TextureGLFormat.CompressedRgb8Etc2 => 8,
-                TextureGLFormat.CompressedRgba8Etc2Eac => 16,
-                //TextureGLFormat.BGRA8888 => 4;
-                TextureGLFormat.CompressedRedRgtc1 => 8,
-                _ => 1,
-            };
+        public static int GetBlockSize(this TextureGLFormat source) => source switch
+        {
+            TextureGLFormat.CompressedRgbaS3tcDxt1Ext => 8,
+            TextureGLFormat.CompressedRgbaS3tcDxt5Ext => 6,
+            TextureGLFormat.Rgba8 => 4,
+            TextureGLFormat.R16 => 2,
+            //TextureGLFormat.RG1616 => 4;
+            TextureGLFormat.Rgba16f => 8,
+            TextureGLFormat.R16f => 2,
+            //TextureGLFormat.RG1616F => 4;
+            //TextureGLFormat.RGBA16161616F => 8;
+            //TextureGLFormat.R32F => 4;
+            //TextureGLFormat.RG3232F => 8;
+            //TextureGLFormat.RGB323232F => 12;
+            //TextureGLFormat.RGBA32323232F => 16;
+            TextureGLFormat.CompressedRgbBptcUnsignedFloat => 16,
+            TextureGLFormat.CompressedRgbaBptcUnorm => 16,
+            TextureGLFormat.Intensity8 => 2,
+            TextureGLFormat.CompressedRgb8Etc2 => 8,
+            TextureGLFormat.CompressedRgba8Etc2Eac => 16,
+            //TextureGLFormat.BGRA8888 => 4;
+            TextureGLFormat.CompressedRedRgtc1 => 8,
+            _ => 1,
+        };
 
         #endregion
 

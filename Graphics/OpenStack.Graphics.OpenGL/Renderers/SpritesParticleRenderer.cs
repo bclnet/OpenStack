@@ -34,9 +34,17 @@ namespace OpenStack.Graphics.OpenGL.Renderers
             // The same quad is reused for all particles
             _quadVao = SetupQuadBuffer();
 
-            if (keyValues.ContainsKey("m_hTexture"))
+            string textureName = null;
+            if (keyValues.ContainsKey("m_hTexture")) textureName = keyValues.Get<string>("m_hTexture");
+            else if (keyValues.ContainsKey("m_vecTexturesInput"))
             {
-                var texture = graphic.LoadTexture(keyValues.Get<string>("m_hTexture"), out var info);
+                var textures = keyValues.GetArray("m_vecTexturesInput");
+                if (textures.Length > 0) textureName = textures[0].Get<string>("m_hTexture");
+            }
+
+            if (textureName != null)
+            {
+                var texture = graphic.LoadTexture(textureName, out var info);
                 _texture = texture;
                 _textureSequences = info?.Get<TextureSequences>("sequences");
             }
@@ -150,11 +158,13 @@ namespace OpenStack.Graphics.OpenGL.Renderers
                     var frame = particleTime * sequence.FramesPerSecond * _animationRate;
 
                     var currentFrame = sequence.Frames[(int)Math.Floor(frame) % sequence.Frames.Count];
+                    var currentImage = currentFrame.Images[0]; // TODO: Support more than one image per frame?
 
                     // Lerp frame coords and size
                     var subFrameTime = frame % 1.0f;
-                    var offset = (currentFrame.StartMins * (1 - subFrameTime)) + (currentFrame.EndMins * subFrameTime);
-                    var scale = ((currentFrame.StartMaxs - currentFrame.StartMins) * (1 - subFrameTime)) + ((currentFrame.EndMaxs - currentFrame.EndMins) * subFrameTime);
+                    var offset = (currentImage.CroppedMin * (1 - subFrameTime)) + (currentImage.UncroppedMin * subFrameTime);
+                    var scale = ((currentImage.CroppedMax - currentImage.CroppedMin) * (1 - subFrameTime)) +
+                        ((currentImage.UncroppedMax - currentImage.UncroppedMin) * subFrameTime);
 
                     _rawVertices[quadStart + (VertexSize * 0) + 7] = offset.X + (scale.X * 0);
                     _rawVertices[quadStart + (VertexSize * 0) + 8] = offset.Y + (scale.Y * 1);

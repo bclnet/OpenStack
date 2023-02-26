@@ -7,7 +7,7 @@ namespace OpenStack.Graphics.Renderer
     {
         public int PrimitiveType { get; set; } //: PrimitiveType
         public Shader Shader { get; set; }
-        //public uint BaseVertex { get; set; }
+        public uint BaseVertex { get; set; }
         //public uint VertexCount { get; set; }
         public uint StartIndex { get; set; }
         public int IndexCount { get; set; }

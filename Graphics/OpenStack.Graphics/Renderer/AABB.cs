@@ -2,16 +2,13 @@ using System.Numerics;
 
 namespace OpenStack.Graphics.Renderer
 {
+    //was:Render/AABB
     public struct AABB
     {
         public Vector3 Min;
         public Vector3 Max;
-
-        public Vector3 Size
-            => Max - Min;
-
-        public Vector3 Center
-            => (Min + Max) * 0.5f;
+        public Vector3 Size => Max - Min;
+        public Vector3 Center => (Min + Max) * 0.5f;
 
         public AABB(Vector3 min, Vector3 max)
         {
@@ -72,7 +69,6 @@ namespace OpenStack.Graphics.Renderer
             return new AABB(new Vector3(min.X, min.Y, min.Z), new Vector3(max.X, max.Y, max.Z));
         }
 
-        public override string ToString() =>
-            $"AABB [({Min.X},{Min.Y},{Min.Z}) -> ({Max.X},{Max.Y},{Max.Z}))";
+        public override string ToString() => $"AABB [({Min.X},{Min.Y},{Min.Z}) -> ({Max.X},{Max.Y},{Max.Z}))";
     }
 }

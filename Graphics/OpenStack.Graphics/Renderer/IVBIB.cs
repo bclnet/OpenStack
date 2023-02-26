@@ -7,7 +7,7 @@ namespace OpenStack.Graphics.Renderer
     /// </summary>
     public interface IVBIB
     {
-        List<VertexBuffer> VertexBuffers { get; }
-        List<IndexBuffer> IndexBuffers { get; }
+        List<OnDiskBufferData> VertexBuffers { get; }
+        List<OnDiskBufferData> IndexBuffers { get; }
     }
 }
