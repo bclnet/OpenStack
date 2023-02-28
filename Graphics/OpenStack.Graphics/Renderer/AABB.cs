@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
     //was:Render/AABB
     public struct AABB

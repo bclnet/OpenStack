@@ -22,7 +22,7 @@ namespace OpenStack.Graphics
         /// or
         /// data - Invalid DDS DXTn texture. Unable to read
         /// </exception>
-        public static TextureInfo ReadQuickDds(this TextureInfo source, BinaryReader r, int length, TextureUnityFormat format)
+        public static EmptyTexture ReadQuickDds(this EmptyTexture source, BinaryReader r, int length, TextureUnityFormat format)
         {
             if (format != TextureUnityFormat.DXT1 && format != TextureUnityFormat.DXT5) throw new ArgumentOutOfRangeException(nameof(format), "Invalid TextureFormat. Only DXT1 and DXT5 formats are supported by this method.");
             var data = r.ReadBytes(length);
@@ -45,7 +45,7 @@ namespace OpenStack.Graphics
         /// <param name="flipVertically">if set to <c>true</c> [flip vertically].</param>
         /// <returns></returns>
         /// <exception cref="FileFormatException">Invalid DDS file magic: \"{magic}\".</exception>
-        public unsafe static TextureInfo ReadDds(this TextureInfo source, BinaryReader r, bool flipVertically = false)
+        public unsafe static EmptyTexture ReadDds(this EmptyTexture source, BinaryReader r, bool flipVertically = false)
         {
             // Check the magic string.
             var magic = r.ReadUInt32();

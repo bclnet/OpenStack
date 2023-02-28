@@ -39,7 +39,7 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Seek(this BinaryReader source, long offset, int align) { if (offset % align != 0) offset += align - (offset % align); source.BaseStream.Position = offset; return offset; }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Seek(this BinaryReader source, long offset, SeekOrigin origin) => source.BaseStream.Seek(offset, origin);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Skip(this BinaryReader source, long count) => source.BaseStream.Position += count;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Skip(this BinaryReader source, long count, int align) { if (offset % align != 0) offset += align - (offset % align); source.BaseStream.Position = offset; return offset; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Skip(this BinaryReader source, long count, int align) { var offset = source.BaseStream.Position + count; if (offset % align != 0) offset += align - (offset % align); source.BaseStream.Position = offset; }
 
         public static void Peek(this BinaryReader source, Action<BinaryReader> action, int offset = 0)
         {

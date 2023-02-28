@@ -1,8 +1,8 @@
 #version 330
 
-#include "animation.incl";
+#include "animation.incl"
 
-in vec3 vPOSITION;
+layout (location = 0) in vec3 vPOSITION;
 in vec2 vTEXCOORD;
 
 out vec3 vFragPosition;
@@ -15,8 +15,8 @@ uniform mat4 transform;
 void main()
 {
     vec4 fragPosition = transform * getSkinMatrix() * vec4(vPOSITION, 1.0);
-	gl_Position = uProjectionViewMatrix * fragPosition;
-	vFragPosition = fragPosition.xyz / fragPosition.w;
+    gl_Position = uProjectionViewMatrix * fragPosition;
+    vFragPosition = fragPosition.xyz / fragPosition.w;
 
-	vTexCoordOut = vTEXCOORD;
+    vTexCoordOut = vTEXCOORD;
 }

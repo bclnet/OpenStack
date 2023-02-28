@@ -1,4 +1,4 @@
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
     public enum RenderPass
     {

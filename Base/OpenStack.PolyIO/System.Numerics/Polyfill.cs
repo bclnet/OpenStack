@@ -19,12 +19,30 @@ namespace System.Numerics
 
     public static class Polyfill
     {
-        public static Vector3 ParseVector(string input)
+        public static Vector3 ParseVector3(string input)
         {
+            if (string.IsNullOrEmpty(input)) return default;
             var split = input.Split(' ');
             return split.Length == 3
                 ? new Vector3(float.Parse(split[0], CultureInfo.InvariantCulture), float.Parse(split[1], CultureInfo.InvariantCulture), float.Parse(split[2], CultureInfo.InvariantCulture))
                 : default;
+        }
+
+        public static Matrix4x4 ConvertToTransformationMatrix(string scale, string position, string angles)
+            => scale == null || position == null || angles == null
+                ? default
+                : ConvertToTransformationMatrix(ParseVector3(scale), ParseVector3(position), ParseVector3(angles));
+
+        public static Matrix4x4 ConvertToTransformationMatrix(Vector3 scale, Vector3 position, Vector3 pitchYawRoll)
+        {
+            var scaleMatrix = Matrix4x4.CreateScale(scale);
+            var positionMatrix = Matrix4x4.CreateTranslation(position);
+            var rollMatrix = Matrix4x4.CreateRotationX(pitchYawRoll.Z * ((float)Math.PI / 180f)); // Roll
+            var pitchMatrix = Matrix4x4.CreateRotationY(pitchYawRoll.X * ((float)Math.PI / 180f)); // Pitch
+            var yawMatrix = Matrix4x4.CreateRotationZ(pitchYawRoll.Y * ((float)Math.PI / 180f)); // Yaw
+
+            var rotationMatrix = rollMatrix * pitchMatrix * yawMatrix;
+            return scaleMatrix * rotationMatrix * positionMatrix;
         }
 
         //:ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm

@@ -1,8 +1,8 @@
-using OpenStack.Graphics.Renderer.Animation;
+using OpenStack.Graphics.Renderer1.Animations;
 using System;
 using System.Numerics;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
     //was:Render/AnimationController
     public class AnimationController
@@ -14,7 +14,7 @@ namespace OpenStack.Graphics.Renderer
         bool shouldUpdate;
 
         public IAnimation ActiveAnimation => activeAnimation;
-        public bool IsPaused { get; set; }
+        public bool IsPaused;
         public int Frame
         {
             get => activeAnimation != null && activeAnimation.FrameCount != 0
@@ -32,8 +32,7 @@ namespace OpenStack.Graphics.Renderer
             }
         }
 
-        public AnimationController(ISkeleton skeleton)
-            => frameCache = new FrameCache(skeleton);
+        public AnimationController(ISkeleton skeleton) => frameCache = new FrameCache(skeleton);
 
         public bool Update(float timeStep)
         {

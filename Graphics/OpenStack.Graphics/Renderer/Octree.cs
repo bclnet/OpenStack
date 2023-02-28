@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
+    //was:Render/Octree
     public class Octree<T> where T : class
     {
         const int MaximumElementsBeforeSubdivide = 4;
@@ -44,7 +45,6 @@ namespace OpenStack.Graphics.Renderer
                 foreach (var element in Elements)
                 {
                     var movedDown = false;
-
                     foreach (var child in Children)
                         if (child.Region.Contains(element.BoundingBox))
                         {
@@ -52,11 +52,9 @@ namespace OpenStack.Graphics.Renderer
                             movedDown = true;
                             break;
                         }
-
                     if (!movedDown)
                         remainingElements.Add(element);
                 }
-
                 Elements = remainingElements;
             }
 
@@ -71,15 +69,12 @@ namespace OpenStack.Graphics.Renderer
 
             public void Insert(Element element)
             {
-                if (!HasChildren && HasElements && Region.Size.X > MinimumNodeSize && Elements.Count >= MaximumElementsBeforeSubdivide)
-                    Subdivide();
+                if (!HasChildren && HasElements && Region.Size.X > MinimumNodeSize && Elements.Count >= MaximumElementsBeforeSubdivide) Subdivide();
 
                 var inserted = false;
-
                 if (HasChildren)
                 {
                     var elementBB = element.BoundingBox;
-
                     foreach (var child in Children)
                         if (child.Region.Contains(elementBB))
                         {
@@ -88,12 +83,9 @@ namespace OpenStack.Graphics.Renderer
                             break;
                         }
                 }
-
                 if (!inserted)
                 {
-                    if (Elements == null)
-                        Elements = new List<Element>();
-
+                    Elements ??= new List<Element>();
                     Elements.Add(element);
                 }
             }
@@ -101,14 +93,10 @@ namespace OpenStack.Graphics.Renderer
             public (Node Node, int Index) Find(T clientObject, AABB bounds)
             {
                 if (HasElements)
-                    for (var i = 0; i < Elements.Count; ++i)
-                        if (Elements[i].ClientObject == clientObject)
-                            return (this, i);
+                    for (var i = 0; i < Elements.Count; ++i) if (Elements[i].ClientObject == clientObject) return (this, i);
 
                 if (HasChildren)
-                    foreach (var child in Children)
-                        if (child.Region.Contains(bounds))
-                            return child.Find(clientObject, bounds);
+                    foreach (var child in Children) if (child.Region.Contains(bounds)) return child.Find(clientObject, bounds);
 
                 return (null, -1);
             }
@@ -122,27 +110,19 @@ namespace OpenStack.Graphics.Renderer
             public void Query(AABB boundingBox, List<T> results)
             {
                 if (HasElements)
-                    foreach (var element in Elements)
-                        if (element.BoundingBox.Intersects(boundingBox))
-                            results.Add(element.ClientObject);
+                    foreach (var element in Elements) if (element.BoundingBox.Intersects(boundingBox)) results.Add(element.ClientObject);
 
                 if (HasChildren)
-                    foreach (var child in Children)
-                        if (child.Region.Intersects(boundingBox))
-                            child.Query(boundingBox, results);
+                    foreach (var child in Children) if (child.Region.Intersects(boundingBox)) child.Query(boundingBox, results);
             }
 
             public void Query(Frustum frustum, List<T> results)
             {
                 if (HasElements)
-                    foreach (var element in Elements)
-                        if (frustum.Intersects(element.BoundingBox))
-                            results.Add(element.ClientObject);
+                    foreach (var element in Elements) if (frustum.Intersects(element.BoundingBox)) results.Add(element.ClientObject);
 
                 if (HasChildren)
-                    foreach (var child in Children)
-                        if (frustum.Intersects(child.Region))
-                            child.Query(frustum, results);
+                    foreach (var child in Children) if (frustum.Intersects(child.Region)) child.Query(frustum, results);
             }
         }
 
@@ -158,16 +138,14 @@ namespace OpenStack.Graphics.Renderer
 
         public void Insert(T obj, AABB bounds)
         {
-            if (obj == null)
-                throw new ArgumentNullException(nameof(obj));
+            if (obj == null) throw new ArgumentNullException(nameof(obj));
 
             Root.Insert(new Element { ClientObject = obj, BoundingBox = bounds });
         }
 
         public void Remove(T obj, AABB bounds)
         {
-            if (obj == null)
-                throw new ArgumentNullException(nameof(obj));
+            if (obj == null) throw new ArgumentNullException(nameof(obj));
 
             var (node, index) = Root.Find(obj, bounds);
             node?.Elements.RemoveAt(index);
@@ -175,16 +153,14 @@ namespace OpenStack.Graphics.Renderer
 
         public void Update(T obj, AABB oldBounds, AABB newBounds)
         {
-            if (obj == null)
-                throw new ArgumentNullException(nameof(obj));
+            if (obj == null) throw new ArgumentNullException(nameof(obj));
 
             var (node, index) = Root.Find(obj, oldBounds);
             if (node != null)
             {
                 // Locate the closest ancestor that the new bounds fit inside
                 var ancestor = node;
-                while (ancestor.Parent != null && !ancestor.Region.Contains(newBounds))
-                    ancestor = ancestor.Parent;
+                while (ancestor.Parent != null && !ancestor.Region.Contains(newBounds)) ancestor = ancestor.Parent;
 
                 // Still fits in same node?
                 if (ancestor == node)

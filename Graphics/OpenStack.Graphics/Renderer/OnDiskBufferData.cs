@@ -1,7 +1,7 @@
 using OpenStack.Graphics.DirectX;
 using System.Collections.Generic;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
     public struct OnDiskBufferData
     {

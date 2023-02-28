@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
     public class Shader
     {

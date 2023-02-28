@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
+    //was:Render/Frustum
     public class Frustum
     {
         Vector4[] Planes = new Vector4[6];

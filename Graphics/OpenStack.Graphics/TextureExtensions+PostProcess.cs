@@ -13,7 +13,7 @@ namespace OpenStack.Graphics
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="flipVertically">if set to <c>true</c> [flip vertically].</param>
-        public static void PostProcess(this TextureInfo source, bool flipVertically)
+        public static void PostProcess(this EmptyTexture source, bool flipVertically)
         {
             Debug.Assert(source.Width > 0 && source.Height > 0 && source.BytesPerPixel > 0 && source.Mipmaps > 0 && source.Data != null);
             // Flip mip-maps if necessary and generate missing mip-map levels.
@@ -34,7 +34,7 @@ namespace OpenStack.Graphics
                 // Break after optionally flipping the first mipmap level if the DDS texture doesn't have mipmaps.
                 if (!hasMipmaps) break;
                 // Generate the next mipmap level's data if the DDS file doesn't contain it.
-                if (mipMapLevelIndex + 1 >= mipmaps) TextureInfo.Downscale4Component32BitPixelsX2(data, mipMapLevelDataOffset, mipMapLevelHeight, mipMapLevelWidth, data, mipMapLevelDataOffset + mipMapDataSize);
+                if (mipMapLevelIndex + 1 >= mipmaps) EmptyTexture.Downscale4Component32BitPixelsX2(data, mipMapLevelDataOffset, mipMapLevelHeight, mipMapLevelWidth, data, mipMapLevelDataOffset + mipMapDataSize);
                 // Switch to the next mipmap level.
                 mipMapLevelIndex++;
                 mipMapLevelWidth = mipMapLevelWidth > 1 ? (mipMapLevelWidth / 2) : mipMapLevelWidth;

@@ -18,7 +18,7 @@ namespace OpenStack.Graphics
 
         #region Size
 
-        public static int GetMipMapTrueDataSize(this TextureGLFormat source, ITextureInfo info, int index)
+        public static int GetMipMapTrueDataSize(this TextureGLFormat source, ITexture info, int index)
         {
             var bytesPerPixel = source.GetBlockSize();
             var currentWidth = info.Width >> index;
@@ -71,10 +71,10 @@ namespace OpenStack.Graphics
 
         #region TextureOpaque
 
-        class TextureOpaque : ITextureInfo
+        class TextureOpaque : ITexture
         {
             internal byte[][] Bytes;
-            byte[] ITextureInfo.this[int index]
+            byte[] ITexture.this[int index]
             {
                 get => Bytes[index];
                 set => Bytes[index] = value;
@@ -90,7 +90,7 @@ namespace OpenStack.Graphics
             public void MoveToData() { }
         }
 
-        public static ITextureInfo DecodeOpaque(byte[] opaque)
+        public static ITexture DecodeOpaque(byte[] opaque)
         {
             using (var s = new MemoryStream(opaque))
             using (var r = new BinaryReader(s))
@@ -115,7 +115,7 @@ namespace OpenStack.Graphics
             }
         }
 
-        public static byte[] EncodeOpaque(this ITextureInfo source)
+        public static byte[] EncodeOpaque(this ITexture source)
         {
             using (var s = new MemoryStream())
             using (var r = new BinaryWriter(s))
@@ -141,7 +141,7 @@ namespace OpenStack.Graphics
         #region Color Shift
 
         // TODO: Move? Unity?
-        public static unsafe ITextureInfo FromABGR555(this ITextureInfo source, int index = 0)
+        public static unsafe ITexture FromABGR555(this ITexture source, int index = 0)
         {
             if (!(source.UnityFormat is TextureUnityFormat format))
                 throw new InvalidOperationException();
@@ -185,7 +185,7 @@ namespace OpenStack.Graphics
         }
 
         // TODO: Move? Unity?
-        public static ITextureInfo From8BitPallet(this ITextureInfo source, byte[][] pallet, TextureUnityFormat palletFormat, int index = 0)
+        public static ITexture From8BitPallet(this ITexture source, byte[][] pallet, TextureUnityFormat palletFormat, int index = 0)
         {
             if (!(source.UnityFormat is TextureUnityFormat format))
                 throw new InvalidOperationException();

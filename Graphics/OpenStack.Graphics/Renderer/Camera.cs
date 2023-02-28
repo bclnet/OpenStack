@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
 
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
+    //was:Render/Camera
     public abstract class Camera
     {
         protected const float CAMERASPEED = 300f; // Per second
@@ -17,6 +18,7 @@ namespace OpenStack.Graphics.Renderer
         public Matrix4x4 CameraViewMatrix { get; private set; }
         public Matrix4x4 ViewProjectionMatrix { get; private set; }
         public Frustum ViewFrustum { get; } = new Frustum();
+        public IPickingTexture Picker { get; set; }
 
         protected Vector2 WindowSize;
         protected float AspectRatio;
@@ -52,6 +54,8 @@ namespace OpenStack.Graphics.Renderer
 
             // setup viewport
             SetViewport(0, 0, viewportWidth, viewportHeight);
+
+            Picker?.Resize(viewportWidth, viewportHeight);
         }
 
         protected abstract void SetViewport(int x, int y, int width, int height); //GL.Viewport(0, 0, viewportWidth, viewportHeight); //:TODO            

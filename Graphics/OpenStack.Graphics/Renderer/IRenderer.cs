@@ -1,5 +1,6 @@
-namespace OpenStack.Graphics.Renderer
+namespace OpenStack.Graphics.Renderer1
 {
+    //was:Render/IRenderer
     public interface IRenderer
     {
         AABB BoundingBox { get; }
