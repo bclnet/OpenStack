@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 
@@ -23,8 +25,9 @@ namespace OpenStack.Graphics.Renderer1
         protected readonly IMesh Mesh;
         protected readonly IVBIB VBIB;
 
-        public RenderableMesh(IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null)
+        public RenderableMesh(Action<RenderableMesh> action, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null)
         {
+            action(this);
             Mesh = mesh;
             VBIB = model != null ? model.RemapBoneIndices(mesh.VBIB, meshIndex) : mesh.VBIB;
             Mesh.GetBounds();

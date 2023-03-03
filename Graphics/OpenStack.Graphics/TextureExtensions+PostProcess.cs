@@ -34,7 +34,7 @@ namespace OpenStack.Graphics
                 // Break after optionally flipping the first mipmap level if the DDS texture doesn't have mipmaps.
                 if (!hasMipmaps) break;
                 // Generate the next mipmap level's data if the DDS file doesn't contain it.
-                if (mipMapLevelIndex + 1 >= mipmaps) EmptyTexture.Downscale4Component32BitPixelsX2(data, mipMapLevelDataOffset, mipMapLevelHeight, mipMapLevelWidth, data, mipMapLevelDataOffset + mipMapDataSize);
+                if (mipMapLevelIndex + 1 >= mipmaps) TextureHelper.Downscale4Component32BitPixelsX2(data, mipMapLevelDataOffset, mipMapLevelHeight, mipMapLevelWidth, data, mipMapLevelDataOffset + mipMapDataSize);
                 // Switch to the next mipmap level.
                 mipMapLevelIndex++;
                 mipMapLevelWidth = mipMapLevelWidth > 1 ? (mipMapLevelWidth / 2) : mipMapLevelWidth;

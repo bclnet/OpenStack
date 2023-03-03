@@ -2,6 +2,7 @@ using OpenStack.Graphics.Renderer1;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace OpenStack.Graphics.OpenGL.Renderer1
@@ -9,10 +10,9 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
     //was:Render/RenderableMesh
     public class GLRenderableMesh : RenderableMesh
     {
-        readonly IOpenGLGraphic Graphic;
+        IOpenGLGraphic Graphic;
 
-        public GLRenderableMesh(IOpenGLGraphic graphic, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : base(mesh, meshIndex, skinMaterials, model)
-            => Graphic = graphic;
+        public GLRenderableMesh(IOpenGLGraphic graphic, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : base(t => ((GLRenderableMesh)t).Graphic = graphic, mesh, meshIndex, skinMaterials, model) { }
 
         public override void SetRenderMode(string renderMode)
         {
@@ -45,7 +45,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
                     var materialName = objectDrawCall.Get<string>("m_material") ?? objectDrawCall.Get<string>("m_pMaterial");
                     if (skinMaterials != null && skinMaterials.ContainsKey(materialName)) materialName = skinMaterials[materialName];
 
-                    var material = Graphic.MaterialManager.LoadMaterial(materialName, out var _);
+                    var material = Graphic.MaterialManager.LoadMaterial($"{materialName}_c", out var _);
                     var isOverlay = material.Material is IParamMaterial z && z.IntParams.ContainsKey("F_OVERLAY");
 
                     // Ignore overlays for now

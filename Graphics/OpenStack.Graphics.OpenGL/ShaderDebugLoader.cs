@@ -16,10 +16,12 @@ namespace OpenStack.Graphics.OpenGL
                 case "plane": return "plane";
                 case "vrf.error": return "error";
                 case "vrf.grid": return "debug_grid";
+                case "vrf.picking": return "picking";
                 case "vrf.particle.sprite": return "particle_sprite";
                 case "vrf.particle.trail": return "particle_trail";
-                case "vr_unlit.vfx":
-                case "vr_black_unlit.vfx": return "vr_unlit";
+                case "tools_sprite.vfx": return "sprite";
+                case "vr_unlit.vfx": return "vr_unlit";
+                case "vr_black_unlit.vfx": return "vr_black_unlit";
                 case "water_dota.vfx": return "water";
                 case "hero.vfx":
                 case "hero_underlords.vfx": return "dota_hero";

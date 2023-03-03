@@ -246,7 +246,7 @@ namespace OpenStack.Graphics.DirectX
                     else if (ddspf.dwBBitMask == 0x000000FF && ddspf.dwGBitMask == 0x0000FF00 && ddspf.dwRBitMask == 0x00FF0000 && ddspf.dwABitMask == 0xFF000000) source.UnityFormat = TextureUnityFormat.BGRA32;
                     else if (ddspf.dwABitMask == 0x000000FF && ddspf.dwRBitMask == 0x0000FF00 && ddspf.dwGBitMask == 0x00FF0000 && ddspf.dwBBitMask == 0xFF000000) source.UnityFormat = TextureUnityFormat.ARGB32;
                     else throw new NotImplementedException("Unsupported DDS file pixel format.");
-                    source.Data = new byte[!hasMipmaps ? (int)(dwPitchOrLinearSize * dwHeight) : EmptyTexture.GetMipmapDataSize(source.Width, source.Height, source.BytesPerPixel)];
+                    source.Data = new byte[!hasMipmaps ? (int)(dwPitchOrLinearSize * dwHeight) : TextureHelper.GetMipmapDataSize(source.Width, source.Height, source.BytesPerPixel)];
                     r.ReadToEnd(source.Data);
                 }
             }
@@ -452,7 +452,7 @@ namespace OpenStack.Graphics.DirectX
             var alphaFlag = pixelFormat.dwFlags.HasFlag(DDPF.ALPHAPIXELS);
             var containsAlpha = alphaFlag || (pixelFormat.dwRGBBitCount == 32 && pixelFormat.dwABitMask != 0);
             using var r = new BinaryReader(new MemoryStream(compressedData));
-            var argb = new byte[EmptyTexture.GetMipmapDataSize((int)width, (int)height, 4)];
+            var argb = new byte[TextureHelper.GetMipmapDataSize((int)width, (int)height, 4)];
             var mipMapWidth = (int)width;
             var mipMapHeight = (int)height;
             var baseARGBIndex = 0;
