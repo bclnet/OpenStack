@@ -12,8 +12,6 @@ namespace System
     [SuppressUnmanagedCodeSecurity]
     public unsafe static class UnsafeX
     {
-        //static UnsafeX() => Estate.Bootstrap();
-
         [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern static IntPtr memcpy(IntPtr dest, IntPtr src, uint count);
         public static Func<IntPtr, IntPtr, uint, IntPtr> Memcpy = memcpy;
 
