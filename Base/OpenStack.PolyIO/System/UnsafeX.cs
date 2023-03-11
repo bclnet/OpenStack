@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32.SafeHandles;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -12,15 +11,28 @@ namespace System
     [SuppressUnmanagedCodeSecurity]
     public unsafe static class UnsafeX
     {
-        [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern static IntPtr memcpy(IntPtr dest, IntPtr src, uint count);
-        public static Func<IntPtr, IntPtr, uint, IntPtr> Memcpy = memcpy;
+        [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern unsafe static void msvcrt_memcpy(void* dest, void* src, uint count);
+        [DllImport("libc.so", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern unsafe static void libc_memcpy(void* dest, void* src, uint count);
+
+        static UnsafeX()
+        {
+            var abc = Environment.OSVersion.Platform;
+            Memcpy = Environment.OSVersion.Platform switch
+            {
+                PlatformID.Win32NT => msvcrt_memcpy,
+                PlatformID.Unix => libc_memcpy,
+                _ => Unsafe.CopyBlock,
+            };
+        }
+
+        public static MemcpyDelgate Memcpy; public delegate void MemcpyDelgate(void* dest, void* src, uint count);
 
         //[UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int QuickSortComparDelegate(void* a, void* b);
         //[DllImport("msvcrt.dll", EntryPoint = "qsort", SetLastError = false)] public static unsafe extern void QuickSort(void* base0, nint n, nint size, QuickSortComparDelegate compar);
-        [DllImport("msvcrt.dll", EntryPoint = "memmove", SetLastError = false)] public static unsafe extern void MoveBlock(void* destination, void* source, uint byteCount);
-        [DllImport("msvcrt.dll", EntryPoint = "memcpy", SetLastError = false)] public static unsafe extern void CopyBlock(void* destination, void* source, uint byteCount);
-        [DllImport("msvcrt.dll", EntryPoint = "memset", SetLastError = false)] public static unsafe extern void InitBlock(void* destination, int c, uint byteCount);
-        [DllImport("msvcrt.dll", EntryPoint = "memcmp", SetLastError = false)] public static unsafe extern int CompareBlock(void* b1, void* b2, int byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memmove", SetLastError = false)] public static unsafe extern void MoveBlock(void* destination, void* source, uint byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memcpy", SetLastError = false)] public static unsafe extern void CopyBlock(void* destination, void* source, uint byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memset", SetLastError = false)] public static unsafe extern void InitBlock(void* destination, int c, uint byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memcmp", SetLastError = false)] public static unsafe extern int CompareBlock(void* b1, void* b2, int byteCount);
 
         public static string ReadZASCII(byte* data, int length)
         {
@@ -51,21 +63,22 @@ namespace System
             if (length > 0 && size > length) Array.Resize(ref bytes, size);
             fixed (byte* src = bytes) return Marshal.PtrToStructure<T>(new IntPtr(src));
             //return (T)Marshal.PtrToStructure(new IntPtr(src), typeof(T));
-            //fixed (byte* src = bytes)
-            //{
-            //    var r = default(T);
-            //    var hr = GCHandle.Alloc(r, GCHandleType.Pinned);
-            //    Memcpy(hr.AddrOfPinnedObject(), new IntPtr(src + offset), (uint)bytes.Length);
-            //    hr.Free();
-            //    return r;
-            //}
+        }
+
+        public static T MarshalTCopy<T>(byte[] bytes, int offset = 0, int length = -1)
+        {
+            var r = default(T);
+            var hr = GCHandle.Alloc(r, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) Memcpy((void*)hr.AddrOfPinnedObject(), _ + offset, (uint)bytes.Length);
+            hr.Free();
+            return r;
         }
 
         public static byte[] MarshalF<T>(T value, int length = -1)
         {
             var size = Marshal.SizeOf(typeof(T));
             var bytes = new byte[size];
-            fixed (byte* src = bytes) Marshal.StructureToPtr(value, new IntPtr(src), false);
+            fixed (byte* _ = bytes) Marshal.StructureToPtr(value, new IntPtr(_), false);
             return bytes;
         }
 
@@ -87,13 +100,10 @@ namespace System
             var typeOfT = typeof(T);
             var isEnum = typeOfT.IsEnum;
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
-            fixed (byte* src = bytes)
-            {
-                var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-                Memcpy(hresult.AddrOfPinnedObject(), new IntPtr(src + offset), (uint)bytes.Length);
-                hresult.Free();
-                return isEnum ? result.Cast<T>().ToArray() : (T[])result;
-            }
+            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _ + offset, (uint)bytes.Length);
+            hresult.Free();
+            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }
 
         public static byte[] MarshalTArray<T>(T[] values, int count)
