@@ -28,6 +28,7 @@ namespace OpenStack.Graphics
 
     public enum TextureUnityFormat : short
     {
+        Unknown = 0,
         ATC_RGB4 = -127,
         ATC_RGBA8 = -127,
         PVRTC_2BPP_RGB = -127,
@@ -105,6 +106,7 @@ namespace OpenStack.Graphics
 
     public enum TextureGLPixelFormat
     {
+        Unknown = 0,
         /// <summary>
         /// GL_UNSIGNED_SHORT = 0x1403
         /// </summary>
@@ -721,7 +723,7 @@ namespace OpenStack.Graphics
     /// </summary>
     public interface ITexture
     {
-        byte[] this[int index] { get; set; }
+        Span<byte> this[int index] { get; set; }
         IDictionary<string, object> Data { get; }
         int Width { get; }
         int Height { get; }

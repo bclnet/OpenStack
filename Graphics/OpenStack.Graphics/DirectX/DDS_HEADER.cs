@@ -1,9 +1,11 @@
-﻿using System;
+﻿using OpenStack.Graphics.Renderer1;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
 // https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-header
+// https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dx-graphics-dds-pguide
 namespace OpenStack.Graphics.DirectX
 {
     /// <summary>
@@ -215,14 +217,59 @@ namespace OpenStack.Graphics.DirectX
         /// <summary>
         /// Verifies this instance.
         /// </summary>
-        public void Verify()
+        //public void Verify()
+        //{
+        //    if (dwSize != 124) throw new FormatException($"Invalid DDS file header size: {dwSize}.");
+        //    if (!dwFlags.HasFlag(DDSD.HEIGHT | DDSD.WIDTH)) throw new FormatException($"Invalid DDS file flags: {dwFlags}.");
+        //    if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
+        //    if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
+        //    if (ddspf.dwSize != 32) throw new FormatException($"Invalid DDS file pixel format size: {ddspf.dwSize}.");
+        //}
+
+        /// <summary>
+        /// Read
+        /// </summary>
+        /// https://gist.github.com/tilkinsc/13191c0c1e5d6b25fbe79bbd2288a673
+        /// https://github.com/BinomialLLC/basis_universal/wiki/OpenGL-texture-format-enums-table
+        /// https://www.g-truc.net/post-0335.html
+        public static byte[] Read(BinaryReader r, out DDS_HEADER header, out DDS_HEADER_DXT10? headerDXT10, out (int block, object gl, object unity) format)
         {
-            if (dwSize != 124) throw new FormatException($"Invalid DDS file header size: {dwSize}.");
-            if (!dwFlags.HasFlag(DDSD.HEIGHT | DDSD.WIDTH)) throw new FormatException($"Invalid DDS file flags: {dwFlags}.");
-            if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
-            if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
-            if (ddspf.dwSize != 32) throw new FormatException($"Invalid DDS file pixel format size: {ddspf.dwSize}.");
+            var magic = r.ReadUInt32();
+            if (magic != DDS_) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
+            header = r.ReadT<DDS_HEADER>(SizeOf); //header.Verify();
+            headerDXT10 = header.ddspf.dwFourCC == DX10
+                ? r.ReadT<DDS_HEADER_DXT10>(DDS_HEADER_DXT10.SizeOf)
+                : (DDS_HEADER_DXT10?)null;
+            format = header.ddspf.dwFourCC switch
+            {
+                DXT1 => (8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1),
+                DXT3 => (16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.Unknown),
+                DXT5 => (16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5),
+                DX10 => (headerDXT10?.dxgiFormat) switch
+                {
+                    DXGI_FORMAT.BC1_UNORM => (8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC1_UNORM_SRGB => (8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC2_UNORM => (16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC2_UNORM_SRGB => (16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt1Ext, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC3_UNORM => (16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC3_UNORM_SRGB => (16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt5Ext, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC4_UNORM => (16, TextureGLFormat.CompressedRedRgtc1, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC4_SNORM => (16, TextureGLFormat.CompressedSignedRedRgtc1, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC5_UNORM => (16, TextureGLFormat.CompressedRgRgtc2, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC5_SNORM => (16, TextureGLFormat.CompressedSignedRgRgtc2, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC6H_UF16 => (16, TextureGLFormat.CompressedRgbBptcUnsignedFloat, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC6H_SF16 => (16, TextureGLFormat.CompressedRgbBptcSignedFloat, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC7_UNORM => (16, TextureGLFormat.CompressedRgbaBptcUnorm, TextureUnityFormat.Unknown),
+                    DXGI_FORMAT.BC7_UNORM_SRGB => (16, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureUnityFormat.Unknown),
+                    _ => throw new ArgumentOutOfRangeException(nameof(headerDXT10.Value.dxgiFormat), $"{headerDXT10?.dxgiFormat}"),
+                },
+                // BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
+                _ => throw new ArgumentOutOfRangeException(nameof(header.ddspf.dwFourCC), $"{header.ddspf.dwFourCC}"),
+            };
+            return r.ReadToEnd();
         }
+
+#if false
 
         /// <summary>
         /// ReadAndDecode
@@ -480,5 +527,6 @@ namespace OpenStack.Graphics.DirectX
         }
 
         #endregion
+#endif
     }
 }

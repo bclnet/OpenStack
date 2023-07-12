@@ -9,6 +9,7 @@ namespace OpenStack.Graphics
     /// </summary>
     static partial class TextureExtensions
     {
+#if false
         /// <summary>
         /// Reads the quick DDS.
         /// </summary>
@@ -36,7 +37,9 @@ namespace OpenStack.Graphics
             source.Data = fileData;
             return source;
         }
-        
+#endif
+
+#if false
         /// <summary>
         /// Loads a DDS texture from an input stream.
         /// </summary>
@@ -57,5 +60,6 @@ namespace OpenStack.Graphics
             source.PostProcess(flipVertically);
             return source;
         }
+#endif
     }
 }

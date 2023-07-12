@@ -21,10 +21,10 @@ namespace OpenStack.Graphics
         class TextureOpaque : ITexture
         {
             internal byte[][] Bytes;
-            byte[] ITexture.this[int index]
+            Span<byte> ITexture.this[int index]
             {
                 get => Bytes[index];
-                set => Bytes[index] = value;
+                set => Bytes[index] = value.ToArray();
             }
             public IDictionary<string, object> Data { get; set; }
             public int Width { get; set; }
@@ -55,28 +55,29 @@ namespace OpenStack.Graphics
                     Depth = r.ReadInt32(),
                     NumMipMaps = r.ReadByte(),
                 };
-                source.Bytes = new byte[source.NumMipMaps][];
+                var b = source.Bytes = new byte[source.NumMipMaps][];
                 for (var i = 0; i < source.NumMipMaps; i++)
-                    source.Bytes[i] = r.ReadBytes(r.ReadInt32());
+                    b[i] = r.ReadBytes(r.ReadInt32());
                 return source;
             }
         }
 
         public static byte[] EncodeOpaque(this ITexture source)
         {
+            var src = (TextureOpaque)source;
             using (var s = new MemoryStream())
             using (var r = new BinaryWriter(s))
             {
                 r.Write(Literal.IMG_);
-                r.Write((short)source.UnityFormat);
-                r.Write((short)source.GLFormat);
-                r.Write((int)source.Flags);
-                r.Write(source.Width);
-                r.Write(source.Height);
-                r.Write(source.NumMipMaps);
+                r.Write((short)src.UnityFormat);
+                r.Write((short)src.GLFormat);
+                r.Write((int)src.Flags);
+                r.Write(src.Width);
+                r.Write(src.Height);
+                r.Write(src.NumMipMaps);
                 for (var i = 0; i < source.NumMipMaps; i++)
                 {
-                    r.Write(source[0].Length); r.Write(source[0]);
+                    r.Write(src.Bytes[0].Length); r.Write(src.Bytes[0]);
                 }
                 s.Position = 0;
                 return s.ToArray();
