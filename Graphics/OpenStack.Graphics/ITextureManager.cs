@@ -7,7 +7,7 @@ namespace OpenStack.Graphics
     public interface ITextureManager<Texture>
     {
         Texture DefaultTexture { get; }
-        Texture LoadTexture(object key, out IDictionary<string, object> data);
+        Texture LoadTexture(object key, out IDictionary<string, object> data, Range? range = null);
         void PreloadTexture(string path);
         public Texture BuildSolidTexture(int width, int height, params float[] rgba);
         public Texture BuildNormalMap(Texture source, float strength);

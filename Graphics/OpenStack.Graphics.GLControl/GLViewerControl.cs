@@ -117,7 +117,7 @@ namespace OpenStack.Graphics.Controls
             Draw();
         }
 
-        protected void HandleResize()
+        protected virtual void HandleResize()
         {
             Camera.SetViewportSize((int)ActualWidth, (int)ActualHeight);
             RecalculatePositions();

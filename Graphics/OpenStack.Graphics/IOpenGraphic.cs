@@ -26,7 +26,7 @@ namespace OpenStack.Graphics
         ITextureManager<Texture> TextureManager { get; }
         IMaterialManager<Material, Texture> MaterialManager { get; }
         IShaderManager<Shader> ShaderManager { get; }
-        Texture LoadTexture(string path, out IDictionary<string, object> data);
+        Texture LoadTexture(string path, out IDictionary<string, object> data, Range? range = null);
         Object CreateObject(string path, out IDictionary<string, object> data);
         Shader LoadShader(string path, IDictionary<string, bool> args = null);
     }

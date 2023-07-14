@@ -5,6 +5,23 @@ using System.Runtime.InteropServices;
 namespace OpenStack.Graphics.DirectX
 {
     /// <summary>
+    /// FourCC
+    /// </summary>
+    public enum FourCC : uint
+    {
+        DXT1 = 0x31545844, // MAKEFOURCC("DXT1"); // DXT1
+        DXT2 = 0x32545844, // MAKEFOURCC("DXT2");
+        DXT3 = 0x33545844, // MAKEFOURCC("DXT3"); // DXT3
+        DXT4 = 0x34545844, // MAKEFOURCC("DXT4");
+        DXT5 = 0x35545844, // MAKEFOURCC("DXT5"); // DXT5
+        RXGB = 0x42475852, // MAKEFOURCC("RXGB");
+        ATI1 = 0x31495441, // MAKEFOURCC("ATI1");
+        ATI2 = 0x32495441, // MAKEFOURCC("ATI2"); // ATI2
+        A2XY = 0x59583241, // MAKEFOURCC("A2XY");
+        DX10 = 0x30315844, // MAKEFOURCC("DX10"); // DX10
+    }
+
+    /// <summary>
     /// Values which indicate what type of data is in the surface.
     /// </summary>
     [Flags]
@@ -60,7 +77,7 @@ namespace OpenStack.Graphics.DirectX
         /// Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC.
         /// </summary>
         //[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)] public byte[] dwFourCC;
-        public uint dwFourCC;
+        [MarshalAs(UnmanagedType.U4)] public FourCC dwFourCC;
         /// <summary>
         /// Number of bits in an RGB (possibly including alpha) format. Valid when dwFlags includes DDPF_RGB, DDPF_LUMINANCE, or DDPF_YUV.
         /// </summary>
