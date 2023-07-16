@@ -34,7 +34,7 @@ namespace OpenStack.Graphics
             public object UnityFormat { get; set; }
             public object GLFormat { get; set; }
             public int NumMipMaps { get; set; }
-            public void MoveToData() { }
+            public void MoveToData(out bool forward) => forward = true;
         }
 
         public static ITexture DecodeOpaque(byte[] opaque)

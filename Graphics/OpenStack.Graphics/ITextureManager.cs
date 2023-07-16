@@ -6,11 +6,12 @@ namespace OpenStack.Graphics
 {
     public interface ITextureManager<Texture>
     {
+        Texture BuildSolidTexture(int width, int height, params float[] rgba);
+        Texture BuildNormalMap(Texture source, float strength);
         Texture DefaultTexture { get; }
         Texture LoadTexture(object key, out IDictionary<string, object> data, Range? range = null);
         void PreloadTexture(string path);
-        public Texture BuildSolidTexture(int width, int height, params float[] rgba);
-        public Texture BuildNormalMap(Texture source, float strength);
+        void DeleteTexture(object key);
     }
 
     public enum TextureFlags : int
@@ -732,6 +733,6 @@ namespace OpenStack.Graphics
         object UnityFormat { get; }
         object GLFormat { get; }
         int NumMipMaps { get; }
-        void MoveToData();
+        void MoveToData(out bool high);
     }
 }
