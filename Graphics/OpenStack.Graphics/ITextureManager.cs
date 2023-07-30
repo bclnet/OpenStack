@@ -724,6 +724,7 @@ namespace OpenStack.Graphics
     /// </summary>
     public interface ITexture
     {
+        byte[] RawBytes { get; }
         Span<byte> this[int index] { get; set; }
         IDictionary<string, object> Data { get; }
         int Width { get; }
@@ -733,6 +734,6 @@ namespace OpenStack.Graphics
         object UnityFormat { get; }
         object GLFormat { get; }
         int NumMipMaps { get; }
-        void MoveToData(out bool high);
+        void MoveToData(out bool forward);
     }
 }

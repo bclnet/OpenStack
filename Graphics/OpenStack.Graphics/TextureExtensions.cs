@@ -21,6 +21,7 @@ namespace OpenStack.Graphics
         class TextureOpaque : ITexture
         {
             internal byte[][] Bytes;
+            public byte[] RawBytes { get; }
             Span<byte> ITexture.this[int index]
             {
                 get => Bytes[index];
