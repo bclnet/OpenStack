@@ -216,14 +216,15 @@ namespace OpenStack.Graphics.DirectX
         /// https://github.com/BinomialLLC/basis_universal/wiki/OpenGL-texture-format-enums-table
         /// https://www.g-truc.net/post-0335.html
         /// https://www.reedbeta.com/blog/understanding-bcn-texture-compression-formats/
-        public static byte[] Read(BinaryReader r, bool readMagic, out DDS_HEADER header, out DDS_HEADER_DXT10? headerDXT10, out (object type, int blockSize, object gl, object unity) format)
+        public static byte[] Read(BinaryReader r, bool readMagic, out DDS_HEADER header, out DDS_HEADER_DXT10? headerDXT10, out (object type, int blockSize, object gl, object vulken, object unity, object unreal) format)
         {
             if (readMagic)
             {
                 var magic = r.ReadUInt32();
                 if (magic != MAGIC) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
             }
-            header = r.ReadT<DDS_HEADER>(SizeOf); header.Verify();
+            header = r.ReadT<DDS_HEADER>(SizeOf);
+            header.Verify();
             ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
             headerDXT10 = ddspf.dwFourCC == DX10
                 ? r.ReadT<DDS_HEADER_DXT10>(DDS_HEADER_DXT10.SizeOf)
@@ -231,26 +232,26 @@ namespace OpenStack.Graphics.DirectX
             format = ddspf.dwFourCC switch
             {
                 0 => MakeFormat(ref ddspf),
-                DXT1 => (DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1),
-                DXT3 => (DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.Unknown),
-                DXT5 => (DXT5, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5),
+                DXT1 => (DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
+                DXT3 => (DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
+                DXT5 => (DXT5, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5),
                 DX10 => (headerDXT10?.dxgiFormat) switch
                 {
-                    BC1_UNORM => (BC1_UNORM, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.Unknown),
-                    BC1_UNORM_SRGB => (BC1_UNORM_SRGB, 8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.Unknown),
-                    BC2_UNORM => (BC2_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.Unknown),
-                    BC2_UNORM_SRGB => (BC2_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt1Ext, TextureUnityFormat.Unknown),
-                    BC3_UNORM => (BC3_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.Unknown),
-                    BC3_UNORM_SRGB => (BC3_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt5Ext, TextureUnityFormat.Unknown),
-                    BC4_UNORM => (BC4_UNORM, 8, TextureGLFormat.CompressedRedRgtc1, TextureUnityFormat.Unknown),
-                    BC4_SNORM => (BC4_SNORM, 8, TextureGLFormat.CompressedSignedRedRgtc1, TextureUnityFormat.Unknown),
-                    BC5_UNORM => (BC5_UNORM, 16, TextureGLFormat.CompressedRgRgtc2, TextureUnityFormat.Unknown),
-                    BC5_SNORM => (BC5_SNORM, 16, TextureGLFormat.CompressedSignedRgRgtc2, TextureUnityFormat.Unknown),
-                    BC6H_UF16 => (BC6H_UF16, 16, TextureGLFormat.CompressedRgbBptcUnsignedFloat, TextureUnityFormat.Unknown),
-                    BC6H_SF16 => (BC6H_SF16, 16, TextureGLFormat.CompressedRgbBptcSignedFloat, TextureUnityFormat.Unknown),
-                    BC7_UNORM => (BC7_UNORM, 16, TextureGLFormat.CompressedRgbaBptcUnorm, TextureUnityFormat.Unknown),
-                    BC7_UNORM_SRGB => (BC7_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureUnityFormat.Unknown),
-                    R8_UNORM => (R8_UNORM, 1, (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), TextureUnityFormat.Unknown), //: guess
+                    BC1_UNORM => (BC1_UNORM, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
+                    BC1_UNORM_SRGB => (BC1_UNORM_SRGB, 8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
+                    BC2_UNORM => (BC2_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
+                    BC2_UNORM_SRGB => (BC2_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt1Ext, TextureGLFormat.CompressedSrgbAlphaS3tcDxt1Ext, TextureUnityFormat.Unknown, TextureUnrealFormat.Unknown),
+                    BC3_UNORM => (BC3_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5),
+                    BC3_UNORM_SRGB => (BC3_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt5Ext, TextureGLFormat.CompressedSrgbAlphaS3tcDxt5Ext, TextureUnityFormat.Unknown, TextureUnrealFormat.Unknown),
+                    BC4_UNORM => (BC4_UNORM, 8, TextureGLFormat.CompressedRedRgtc1, TextureGLFormat.CompressedRedRgtc1, TextureUnityFormat.BC4, TextureUnrealFormat.BC4),
+                    BC4_SNORM => (BC4_SNORM, 8, TextureGLFormat.CompressedSignedRedRgtc1, TextureGLFormat.CompressedSignedRedRgtc1, TextureUnityFormat.BC4, TextureUnrealFormat.BC4),
+                    BC5_UNORM => (BC5_UNORM, 16, TextureGLFormat.CompressedRgRgtc2, TextureGLFormat.CompressedRgRgtc2, TextureUnityFormat.BC5, TextureUnrealFormat.BC5),
+                    BC5_SNORM => (BC5_SNORM, 16, TextureGLFormat.CompressedSignedRgRgtc2, TextureGLFormat.CompressedSignedRgRgtc2, TextureUnityFormat.BC5, TextureUnrealFormat.BC5),
+                    BC6H_UF16 => (BC6H_UF16, 16, TextureGLFormat.CompressedRgbBptcUnsignedFloat, TextureGLFormat.CompressedRgbBptcUnsignedFloat, TextureUnityFormat.BC6H, TextureUnrealFormat.BC6H),
+                    BC6H_SF16 => (BC6H_SF16, 16, TextureGLFormat.CompressedRgbBptcSignedFloat, TextureGLFormat.CompressedRgbBptcSignedFloat, TextureUnityFormat.BC6H, TextureUnrealFormat.BC6H),
+                    BC7_UNORM => (BC7_UNORM, 16, TextureGLFormat.CompressedRgbaBptcUnorm, TextureGLFormat.CompressedRgbaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7),
+                    BC7_UNORM_SRGB => (BC7_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7),
+                    R8_UNORM => (R8_UNORM, 1, (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), TextureUnityFormat.R8, TextureUnrealFormat.R8), //: guess
                     _ => throw new ArgumentOutOfRangeException(nameof(headerDXT10.Value.dxgiFormat), $"{headerDXT10?.dxgiFormat}"),
                 },
                 // BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
@@ -259,9 +260,9 @@ namespace OpenStack.Graphics.DirectX
             return r.ReadToEnd();
         }
 
-        static (object type, int blockSize, object gl, object unity) MakeFormat(ref DDS_PIXELFORMAT f)
+        static (object type, int blockSize, object gl, object vulken, object unity, object unreal) MakeFormat(ref DDS_PIXELFORMAT f)
         {
-            return ("Raw", (int)f.dwRGBBitCount >> 2, (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte), TextureUnityFormat.Unknown);
+            return ("Raw", (int)f.dwRGBBitCount >> 2, (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte), (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte), TextureUnityFormat.RGBA32, TextureUnrealFormat.R8G8B8A8);
         }
 
 #if false

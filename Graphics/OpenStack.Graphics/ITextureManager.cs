@@ -27,6 +27,9 @@ namespace OpenStack.Graphics
 #pragma warning restore 1591
     }
 
+    /// <summary>
+	/// TextureUnityFormat
+	/// </summary>
     public enum TextureUnityFormat : short
     {
         Unknown = 0,
@@ -44,6 +47,7 @@ namespace OpenStack.Graphics
         RGB565 = 7,
         R16 = 9,
         DXT1 = 10,
+        DXT3_POLYFILL = 11,
         DXT5 = 12,
         RGBA4444 = 13,
         BGRA32 = 14,
@@ -105,6 +109,192 @@ namespace OpenStack.Graphics
         ASTC_HDR_12x12 = 71
     }
 
+    /// <summary>
+	/// TextureUnrealFormat
+	/// </summary>
+	public enum TextureUnrealFormat : int
+    {
+        /// <summary/>
+        Unknown = 0,
+        /// <summary/>
+        A32B32G32R32F = 1,
+        /// <summary/>
+        B8G8R8A8 = 2,
+        /// <summary>G8 means Gray/Grey, not Green, typically actually uses a red format with replication of R to RGB<summary/>
+        G8 = 3,
+        /// <summary>G16 means Gray/Grey like G8</summary>
+        G16 = 4,
+        /// <summary/>
+        DXT1 = 5,
+        /// <summary/>
+        DXT3 = 6,
+        /// <summary/>
+        DXT5 = 7,
+        /// <summary/>
+        UYVY = 8,
+        /// <summary>16F</summary>
+        FloatRGB = 9,
+        /// <summary>16F</summary>
+        FloatRGBA = 10,
+        /// <summary/>
+        DepthStencil = 11,
+        /// <summary/>
+        ShadowDepth = 12,
+        /// <summary/>
+        R32Float = 13,
+        /// <summary/>
+        G16R16 = 14,
+        /// <summary/>
+        G16R16F = 15,
+        /// <summary/>
+        G16R16FFilter = 16,
+        /// <summary/>
+        G32R32F = 17,
+        /// <summary/>
+        A2B10G10R10 = 18,
+        /// <summary/>
+        A16B16G16R16 = 19,
+        /// <summary/>
+        D24 = 20,
+        /// <summary/>
+        R16F = 21,
+        /// <summary/>
+        R16FFilter = 22,
+        /// <summary/>
+        BC5 = 23,
+        /// <summary/>
+        V8U8 = 24,
+        /// <summary/>
+        A1 = 25,
+        /// <summary/>
+        FloatR11G11B10 = 26,
+        /// <summary/>
+        A8 = 27,
+        /// <summary/>
+        R32UInt = 28,
+        /// <summary/>
+        R32SInt = 29,
+        /// <summary/>
+        PVRTC2 = 30,
+        /// <summary/>
+        PVRTC4 = 31,
+        /// <summary/>
+        R16UInt = 32,
+        /// <summary/>
+        R16SInt = 33,
+        /// <summary/>
+        R16G16B16A16UInt = 34,
+        /// <summary/>
+        R16G16B16A16SInt = 35,
+        /// <summary/>
+        R5G6B5UNorm = 36,
+        /// <summary/>
+        R8G8B8A8 = 37,
+        /// <summary>Only used for legacy loading; do NOT us</summary>
+        A8R8G8B8 = 38,
+        /// <summary/>
+        BC4 = 39,
+        /// <summary/>
+        R8G8 = 40,
+        /// <summary>Unsupported Format</summary>
+        ATCRGB = 41,
+        /// <summary>Unsupported Format</summary>
+        ATCRGBAE = 42,
+        /// <summary/>
+        ATCRGBAI = 43,
+        /// <summary>Used for creating SRVs to alias a DepthStencil buffer to read Stencil. Don't use for creating textures</summary>
+        X24G8 = 44,
+        /// <summary>Unsupported Format</summary>
+        ETC1 = 45,
+        /// <summary/>
+        ETC2RGB = 46,
+        /// <summary/>
+        ETC2RGBA = 47,
+        /// <summary/>
+        R32G32B32A32UInt = 48,
+        /// <summary/>
+        R16G16UInt = 49,
+        /// <summary>8.00 bpp</summary>
+        ASTC4x4 = 50,
+        /// <summary>3.56 bpp</summary>
+        ASTC6x6 = 51,
+        /// <summary>2.00 bpp</summary>
+        ASTC8x8 = 52,
+        /// <summary>1.28 bpp</summary>
+        ASTC10x10 = 53,
+        /// <summary>0.89 bpp</summary>
+        ASTC12x12 = 54,
+        /// <summary/>
+        BC6H = 55,
+        /// <summary/>
+        BC7 = 56,
+        /// <summary/>
+        R8UInt = 57,
+        /// <summary/>
+        L8 = 58,
+        /// <summary/>
+        XGXR8 = 59,
+        /// <summary/>
+        R8G8B8A8UInt = 60,
+        /// <summary/>
+        R8G8B8A8SNorm = 61,
+        /// <summary/>
+        R16G16B16A16UNorm = 62,
+        /// <summary/>
+        R16G16B16A16SNorm = 63,
+        /// <summary/>
+        PLATFORMHDR0 = 64,
+        /// <summary>Reserved</summary>
+        PLATFORMHDR1 = 65,
+        /// <summary>Reserved</summary>
+        PLATFORMHDR2 = 66,
+        /// <summary/>
+        NV12 = 67,
+        /// <summary/>
+        R32G32UInt = 68,
+        /// <summary/>
+        ETC2R11EAC = 69,
+        /// <summary/>
+        ETC2RG11EAC = 70,
+        /// <summary/>
+        R8 = 71,
+        /// <summary/>
+        B5G5R5A1UNorm = 72,
+        /// <summary/>
+        ASTC4x4HDR = 73,
+        /// <summary/>
+        ASTC6x6HDR = 74,
+        /// <summary/>
+        ASTC8x8HDR = 75,
+        /// <summary/>
+        ASTC10x10HDR = 76,
+        /// <summary/>
+        ASTC12x12HDR = 77,
+        /// <summary/>
+        G16R16SNorm = 78,
+        /// <summary/>
+        R8G8UInt = 79,
+        /// <summary/>
+        R32G32B32UInt = 80,
+        /// <summary/>
+        R32G32B32SInt = 81,
+        /// <summary/>
+        R32G32B32F = 82,
+        /// <summary/>
+        R8SInt = 83,
+        /// <summary/>
+        R64UInt = 84,
+        /// <summary/>
+        R9G9B9EXP5 = 85,
+        /// <summary/>
+        P010 = 86,
+        /// <summary/>
+        MAX = 87,
+    }
+
+    /// <summary>
+	/// TextureGLPixelFormat
+	/// </summary>
     public enum TextureGLPixelFormat
     {
         Unknown = 0,
@@ -258,6 +448,9 @@ namespace OpenStack.Graphics
         BgraInteger = 0x8D9B
     }
 
+    /// <summary>
+	/// TextureGLPixelType
+	/// </summary>
     public enum TextureGLPixelType
     {
         /// <summary>
@@ -382,6 +575,9 @@ namespace OpenStack.Graphics
         Float32UnsignedInt248Rev = 0x8DAD
     }
 
+    /// <summary>
+	/// TextureGLFormat
+	/// </summary>
     public enum TextureGLFormat
     {
         /// <summary>
@@ -724,16 +920,14 @@ namespace OpenStack.Graphics
     /// </summary>
     public interface ITexture
     {
-        byte[] RawBytes { get; }
-        Span<byte> this[int index] { get; set; }
         IDictionary<string, object> Data { get; }
         int Width { get; }
         int Height { get; }
         int Depth { get; }
-        TextureFlags Flags { get; }
-        object UnityFormat { get; }
-        object GLFormat { get; }
         int NumMipMaps { get; }
-        void MoveToData(out bool forward);
+        TextureFlags Flags { get; }
+
+        byte[] Begin(int platform, out object format, out Range[] mips, out bool forward);
+        void End();
     }
 }
