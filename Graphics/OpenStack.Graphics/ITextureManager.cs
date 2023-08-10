@@ -924,10 +924,10 @@ namespace OpenStack.Graphics
         int Width { get; }
         int Height { get; }
         int Depth { get; }
-        int NumMipMaps { get; }
+        int MipMaps { get; }
         TextureFlags Flags { get; }
 
-        byte[] Begin(int platform, out object format, out Range[] mips, out bool forward);
+        byte[] Begin(int platform, out object format, out Range[] mips);
         void End();
     }
 }

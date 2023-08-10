@@ -22,6 +22,8 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
             QuadVao = SetupQuadBuffer();
         }
 
+        public bool Background;
+
         int SetupQuadBuffer()
         {
             GL.UseProgram(Shader.Program);
@@ -70,6 +72,12 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
 
         public void Render(Camera camera, RenderPass renderPass)
         {
+            if (Background)
+            {
+                GL.ClearColor(OpenTK.Color.White);
+                GL.Clear(ClearBufferMask.ColorBufferBit);
+            }
+
             GL.UseProgram(Shader.Program);
             GL.BindVertexArray(QuadVao);
             GL.EnableVertexAttribArray(0);

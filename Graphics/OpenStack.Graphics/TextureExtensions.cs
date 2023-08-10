@@ -25,14 +25,13 @@ namespace OpenStack.Graphics
             public int Width { get; set; }
             public int Height { get; set; }
             public int Depth { get; set; }
-            public int NumMipMaps { get; set; }
+            public int MipMaps { get; set; }
             public TextureFlags Flags { get; set; }
 
-            public byte[] Begin(int platform, out object format, out Range[] mips, out bool forward)
+            public byte[] Begin(int platform, out object format, out Range[] mips)
             {
                 format = null;
                 mips = null;
-                forward = true;
                 return null;
             }
             public void End() { }
@@ -50,7 +49,7 @@ namespace OpenStack.Graphics
                     Width = r.ReadInt32(),
                     Height = r.ReadInt32(),
                     Depth = r.ReadInt32(),
-                    NumMipMaps = r.ReadByte(),
+                    MipMaps = r.ReadByte(),
                     Flags = (TextureFlags)r.ReadInt32(),
                     Bytes = r.ReadBytes(r.ReadInt32()),
                 };
@@ -68,7 +67,7 @@ namespace OpenStack.Graphics
                 r.Write(src.Width);
                 r.Write(src.Height);
                 r.Write(src.Depth);
-                r.Write(src.NumMipMaps);
+                r.Write(src.MipMaps);
                 r.Write((int)src.Flags);
                 r.Write(src.Bytes.Length);
                 r.Write(src.Bytes);
