@@ -119,6 +119,24 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static Guid ReadGuid(this BinaryReader source) => new Guid(source.ReadBytes(16));
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf));
 
+        public static Guid? ReadGuid(this BinaryReader r, bool nullable = true)
+        {
+            var isNull = nullable && r.ReadInt32() == -1;
+            var c = r.ReadInt16();
+            var b = r.ReadInt16();
+            var a = r.ReadInt32();
+            var k = r.ReadByte();
+            var j = r.ReadByte();
+            var i = r.ReadByte();
+            var h = r.ReadByte();
+            var g = r.ReadByte();
+            var f = r.ReadByte();
+            var e = r.ReadByte();
+            var d = r.ReadByte();
+            if (isNull) return null;
+            return new Guid(a, b, c, d, e, f, g, h, i, j, k);
+        }
+
         public static IEnumerable<long> SeekNeedles(this BinaryReader source, byte[] needle)
         {
             var buffer = new byte[0x100000];
@@ -221,14 +239,27 @@ namespace System.IO
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static string ReadZString(this BinaryReader source) //:was ReadCString
+        public static string ReadCString(this BinaryReader source) //:was ReadCString
         {
             var length = 0;
-            while (source.ReadByte() != 0) length++;
+            var maxPosition = source.BaseStream.Length;
+            while (source.BaseStream.Position < maxPosition && source.ReadByte() != 0) length++;
             source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
             var chars = source.ReadChars(length + 1);
             return length > 0 ? new string(chars, 0, length) : null;
         }
+
+        //public static string ReadZString2(this BinaryReader source) //:was ReadCString (Dolkens)
+        //{
+        //    var length = 0;
+        //    var maxPosition = source.BaseStream.Length;
+        //    while (source.BaseStream.Position < maxPosition && source.ReadChar() != 0) length++;
+        //    var nul = source.BaseStream.Position;
+        //    source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
+        //    var chars = source.ReadChars(length + 1);
+        //    source.BaseStream.Seek(nul, SeekOrigin.Begin);
+        //    return length > 0 ? new string(chars, 0, length).Replace("\u0000", "") : null;
+        //}
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
