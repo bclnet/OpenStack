@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net.WebSockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -20,6 +21,33 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static ushort ReadUInt16E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadUInt16(); var bytes = source.ReadBytes(sizeof(ushort)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt16(bytes, 0); }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static uint ReadUInt32E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadUInt32(); var bytes = source.ReadBytes(sizeof(uint)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt32(bytes, 0); }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static ulong ReadUInt64E(this BinaryReader source, bool bigEndian = true) { if (!bigEndian) return source.ReadUInt64(); var bytes = source.ReadBytes(sizeof(ulong)); Array.Reverse(bytes, 0, bytes.Length); return BitConverter.ToUInt64(bytes, 0); }
+
+        public static byte[] ApplyEndian(byte[] source, string map)
+        {
+            var p = 0;
+            var s = map.ToCharArray();
+            for (var i = 0; i < s.Length; i++)
+                switch (s[i])
+                {
+                    case 'B': var len = s[++i] - '0'; Array.Reverse(source, p, len); p += len; break;
+                    default: throw new ArgumentOutOfRangeException(nameof(s), $"{s[i]}");
+                }
+            return source;
+        }
+
+        public static byte[] ApplyEndianMany(byte[] source, int count, string map)
+        {
+            var p = 0;
+            var s = map.ToCharArray();
+            for (var c = 0; c < count; c++)
+                for (var i = 0; i < s.Length; i++)
+                    switch (s[i])
+                    {
+                        case 'B': var len = s[++i] - '0'; Array.Reverse(source, p, len); p += len; break;
+                        default: throw new ArgumentOutOfRangeException(nameof(s), $"{s[i]}");
+                    }
+            return source;
+        }
 
         #endregion
 
@@ -113,11 +141,17 @@ namespace System.IO
 
         #endregion
 
+        #region Struct
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadTE<T>(this BinaryReader source, int sizeOf, string map) where T : struct => UnsafeX.MarshalT<T>(ApplyEndian(source.ReadBytes(sizeOf), map));
+
+        #endregion
+
         #region Other
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBoolean32(this BinaryReader source) => source.ReadUInt32() != 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static Guid ReadGuid(this BinaryReader source) => new Guid(source.ReadBytes(16));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf));
 
         public static Guid? ReadGuid(this BinaryReader r, bool nullable = true)
         {
@@ -432,6 +466,7 @@ namespace System.IO
         public static T[] ReadC32Array<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadCInt32());
         public static T[] ReadC32Array<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadTArray(source, factory, (int)source.ReadCInt32());
         public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? UnsafeX.MarshalTArray<T>(source.ReadBytes(sizeOf * count), 0, count) : new T[0];
+        public static T[] ReadTArrayE<T>(this BinaryReader source, int sizeOf, int count, string map) where T : struct => count > 0 ? UnsafeX.MarshalTArray<T>(ApplyEndianMany(source.ReadBytes(sizeOf * count), count, map), 0, count) : new T[0];
         public static T[] ReadTArrayEach<T>(this BinaryReader source, int sizeOf, int count) where T : struct { var list = new T[count]; for (var i = 0; i < list.Length; i++) list[i] = UnsafeX.MarshalT<T>(source.ReadBytes(sizeOf)); return list; }
         public static T[] ReadTArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
 
