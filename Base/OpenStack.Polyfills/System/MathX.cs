@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace System
 {
@@ -14,6 +15,8 @@ namespace System
         public const float PiOver3 = 1.047198f;
         public const float PiOver4 = 0.7853982f;
         public const float PiOver6 = 0.5235988f;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static int Align(int ptr, int align) => (ptr + align - 1) & ~(align - 1);
 
         #region Safe
 
