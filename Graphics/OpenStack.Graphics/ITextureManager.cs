@@ -930,4 +930,14 @@ namespace OpenStack.Graphics
         byte[] Begin(int platform, out object format, out Range[] mips);
         void End();
     }
+
+    /// <summary>
+    /// ITextureMultiple
+    /// </summary>
+    public interface ITextureMultiple
+    {
+        int Fps { get; }
+        int FrameMaxIndex { get; }
+        void FrameSelect(int index);
+    }
 }
