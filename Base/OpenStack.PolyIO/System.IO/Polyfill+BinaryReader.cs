@@ -71,33 +71,33 @@ namespace System.IO
 
         public static void Peek(this BinaryReader source, Action<BinaryReader> action, int offset = 0)
         {
-            var position = source.BaseStream.Position;
+            var pos = source.BaseStream.Position;
             if (offset != 0) source.BaseStream.Position += offset;
             action(source);
-            source.BaseStream.Position = position;
+            source.BaseStream.Position = pos;
         }
         public static T Peek<T>(this BinaryReader source, Func<BinaryReader, T> action, int offset = 0)
         {
-            var origPosition = source.BaseStream.Position;
+            var pos = source.BaseStream.Position;
             if (offset != 0) source.BaseStream.Position += offset;
             var value = action(source);
-            source.BaseStream.Position = origPosition;
+            source.BaseStream.Position = pos;
             return value;
         }
 
         public static void PeekAt(this BinaryReader source, long position, Action<BinaryReader> action)
         {
-            var origPosition = source.BaseStream.Position;
+            var pos = source.BaseStream.Position;
             source.BaseStream.Position = position;
             action(source);
-            source.BaseStream.Position = origPosition;
+            source.BaseStream.Position = pos;
         }
         public static T PeekAt<T>(this BinaryReader source, long position, Func<BinaryReader, T> action)
         {
-            var origPosition = source.BaseStream.Position;
+            var pos = source.BaseStream.Position;
             source.BaseStream.Position = position;
             var value = action(source);
-            source.BaseStream.Position = origPosition;
+            source.BaseStream.Position = pos;
             return value;
         }
 
