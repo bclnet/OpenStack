@@ -245,7 +245,6 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt16(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt32(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
 
-
         /// <summary>
         /// Read a Length-prefixed ascii string from the stream
         /// </summary>
