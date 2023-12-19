@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Net.WebSockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -62,7 +61,7 @@ namespace System.IO
         //    if (alignDelta != 0) source.BaseStream.Position += (int)(4 - alignDelta);
         //}
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Align(this BinaryReader source, int align = 4) => source.BaseStream.Position = (source.BaseStream.Position + --align) & ~align;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Position(this BinaryReader source) => source.BaseStream.Position;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Tell(this BinaryReader source) => source.BaseStream.Position;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Seek(this BinaryReader source, long offset) => source.BaseStream.Position = offset;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Seek(this BinaryReader source, long offset, int align) { if (offset % align != 0) offset += align - (offset % align); source.BaseStream.Position = offset; return offset; }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void Seek(this BinaryReader source, long offset, SeekOrigin origin) => source.BaseStream.Seek(offset, origin);
