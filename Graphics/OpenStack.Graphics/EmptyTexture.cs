@@ -7,7 +7,7 @@ namespace OpenStack.Graphics
     /// <summary>
     /// Stores information about a texture.
     /// </summary>
-    public class EmptyTexture : Dictionary<string, object> //, IGetMetadataInfo
+    public class EmptyTexture : Dictionary<string, object> //, IGetMetaInfo
     {
         public int Width, Height, Depth;
         public object UnityFormat;
