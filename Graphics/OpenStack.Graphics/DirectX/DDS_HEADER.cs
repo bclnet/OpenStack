@@ -201,12 +201,12 @@ namespace OpenStack.Graphics.DirectX
         /// <summary>
         /// Verifies this instance.
         /// </summary>
-        public void Verify()
+        public readonly void Verify()
         {
             if (dwSize != 124) throw new FormatException($"Invalid DDS file header size: {dwSize}.");
-            if (!dwFlags.HasFlag(DDSD.HEIGHT | DDSD.WIDTH)) throw new FormatException($"Invalid DDS file flags: {dwFlags}.");
-            if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
-            if (ddspf.dwSize != 32) throw new FormatException($"Invalid DDS file pixel format size: {ddspf.dwSize}.");
+            else if (!dwFlags.HasFlag(DDSD.HEIGHT | DDSD.WIDTH)) throw new FormatException($"Invalid DDS file flags: {dwFlags}.");
+            else if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
+            else if (ddspf.dwSize != 32) throw new FormatException($"Invalid DDS file pixel format size: {ddspf.dwSize}.");
         }
 
         /// <summary>
@@ -262,7 +262,11 @@ namespace OpenStack.Graphics.DirectX
 
         static (object type, int blockSize, object gl, object vulken, object unity, object unreal) MakeFormat(ref DDS_PIXELFORMAT f)
         {
-            return ("Raw", (int)f.dwRGBBitCount >> 2, (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte), (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte), TextureUnityFormat.RGBA32, TextureUnrealFormat.R8G8B8A8);
+            return ("Raw", (int)f.dwRGBBitCount >> 2, 
+                (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte),
+                (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte),
+                TextureUnityFormat.RGBA32,
+                TextureUnrealFormat.R8G8B8A8);
         }
 
 #if false
