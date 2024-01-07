@@ -84,22 +84,21 @@ class Octree:
             self.children = None
 
         def query(self, source: AABB | Frustum, results: list[Any]) -> None:
-            if isinstance(source, AABB):
-                boundingBox = AABB(source)
-                if self.hasElements:
-                    for element in Elements:
-                        if element.boundingBox.intersects(boundingBox): results.append(element.clientObject)
-                if self.hasChildren:
-                    for child in self.children:
-                        if child.region.intersects(boundingBox): child.query(boundingBox, results)
-            elif isinstance(source, Frustum):
-                frustum = Frustum(source)
-                if self.hasElements:
-                    for element in self.elements:
-                        if frustum.intersects(element.boundingBox): results.append(element.clientObject)
-                if self.hasChildren:
-                    for child in self.children:
-                        if frustum.intersects(child.region): child.query(frustum, results)
+            match source:
+                case boundingBox if isinstance(source, AABB):
+                    if self.hasElements:
+                        for element in Elements:
+                            if element.boundingBox.intersects(boundingBox): results.append(element.clientObject)
+                    if self.hasChildren:
+                        for child in self.children:
+                            if child.region.intersects(boundingBox): child.query(boundingBox, results)
+                case frustum if isinstance(source, Frustum):
+                    if self.hasElements:
+                        for element in self.elements:
+                            if frustum.intersects(element.boundingBox): results.append(element.clientObject)
+                    if self.hasChildren:
+                        for child in self.children:
+                            if frustum.intersects(child.region): child.query(frustum, results)
 
     root: Node
 

@@ -74,28 +74,28 @@ class Scene:
         blendedDrawCalls = []
         looseNodes = []
         for node in allNodes:
-            if isinstance(node, IMeshCollection):
-                for mesh in node.renderableMeshes:
-                    for call in mesh.drawCallsOpaque:
-                        opaqueDrawCalls.append(MeshBatchRequest(
-                            transform = node.transform,
-                            mesh = mesh,
-                            call = call,
-                            distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
-                            nodeId = node.id,
-                            meshId = mesh.meshIndex
-                            ))
-
-                    for call in mesh.drawCallsBlended:
-                        blendedDrawCalls.append(MeshBatchRequest(
-                            transform = node.transform,
-                            mesh = mesh,
-                            call = call,
-                            distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
-                            nodeId = node.id,
-                            meshId = mesh.meshIndex
-                            ))
-            else: looseNodes.append(node)
+            match node:
+                case s if isinstance(node, IMeshCollection):
+                    for mesh in s.renderableMeshes:
+                        for call in mesh.drawCallsOpaque:
+                            opaqueDrawCalls.append(MeshBatchRequest(
+                                transform = node.transform,
+                                mesh = mesh,
+                                call = call,
+                                distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
+                                nodeId = node.id,
+                                meshId = mesh.meshIndex
+                                ))
+                        for call in mesh.drawCallsBlended:
+                            blendedDrawCalls.append(MeshBatchRequest(
+                                transform = node.transform,
+                                mesh = mesh,
+                                call = call,
+                                distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
+                                nodeId = node.id,
+                                meshId = mesh.meshIndex
+                                ))
+                case _: looseNodes.append(node)
 
         # Sort loose nodes by distance from camera
         looseNodes.sort(key=lambda a, b: \

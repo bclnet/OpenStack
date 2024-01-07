@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace OpenStack.Graphics.OpenGL.Renderer1
 {
-    public class PickingTexture : IDisposable, IPickingTexture
+    public class GLPickingTexture : IDisposable, IPickingTexture
     {
         public class PickingRequest
         {
@@ -59,7 +59,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         int colorHandle;
         int depthHandle;
 
-        public PickingTexture(IOpenGLGraphic graphic, EventHandler<PickingResponse> onPicked)
+        public GLPickingTexture(IOpenGLGraphic graphic, EventHandler<PickingResponse> onPicked)
         {
             Shader = graphic.LoadShader("vrf.picking", new Dictionary<string, bool>());
             DebugShader = graphic.LoadShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
@@ -118,10 +118,8 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         {
             this.width = width;
             this.height = height;
-
             GL.BindTexture(TextureTarget.Texture2D, colorHandle);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32ui, width, height, 0, PixelFormat.RgbaInteger, PixelType.UnsignedInt, IntPtr.Zero);
-
             GL.BindTexture(TextureTarget.Texture2D, depthHandle);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
         }
@@ -130,16 +128,12 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         {
             GL.Flush();
             GL.Finish();
-
             GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, fboHandle);
             GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
-
             var pixelInfo = new PixelInfo();
             GL.ReadPixels(width, this.height - height, 1, 1, PixelFormat.RgbaInteger, PixelType.UnsignedInt, ref pixelInfo);
-
             GL.ReadBuffer(ReadBufferMode.None);
             GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
-
             return pixelInfo;
         }
 

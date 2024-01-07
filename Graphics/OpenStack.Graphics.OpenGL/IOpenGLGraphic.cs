@@ -7,7 +7,7 @@ namespace OpenStack
     public interface IOpenGLGraphic : IOpenGraphic<object, GLRenderMaterial, int, Shader>
     {
         // cache
-        public GpuMeshBufferCache MeshBufferCache { get; }
+        public GLMeshBufferCache MeshBufferCache { get; }
         public QuadIndexBuffer QuadIndices { get; }
     }
 }

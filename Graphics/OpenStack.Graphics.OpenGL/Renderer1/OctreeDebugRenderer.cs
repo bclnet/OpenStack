@@ -102,8 +102,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         {
             if (renderPass == RenderPass.Translucent || renderPass == RenderPass.Both)
             {
-                if (_dynamic)
-                    Rebuild();
+                if (_dynamic) Rebuild();
 
                 GL.Enable(EnableCap.Blend);
                 GL.Enable(EnableCap.DepthTest);

@@ -79,14 +79,15 @@ class AABB:
     def __str__(self): return f'AABB [({self.min.X},{self.min.Y},{self.min.Z}) -> ({self.max.X},{self.max.Y},{self.max.Z}))'
     
     def contains(self, point: np.ndarray | AABB) -> bool:
-        if isinstance(point, np.ndarray):
-            return point.X >= self.min.X and point.X < self.max.X and \
-                point.Y >= self.min.Y and point.Y < self.max.Y and \
-                point.Z >= self.min.Z and point.Z < self.max.Z
-        elif isinstance(point, AABB):
-            return other.min.X >= self.min.X and other.max.X <= self.max.X and \
-            other.min.Y >= self.min.Y and other.max.Y <= self.max.Y and \
-            other.min.Z >= self.min.Z and other.max.Z <= self.max.Z
+        match point:
+            case p if isinstance(point, np.ndarray):
+                return p.X >= self.min.X and p.X < self.max.X and \
+                    p.Y >= self.min.Y and p.Y < self.max.Y and \
+                    p.Z >= self.min.Z and p.Z < self.max.Z
+            case o if isinstance(point, AABB):
+                return o.min.X >= self.min.X and o.max.X <= self.max.X and \
+                    o.min.Y >= self.min.Y and o.max.Y <= self.max.Y and \
+                    o.min.Z >= self.min.Z and o.max.Z <= self.max.Z
     
     def intersects(self, other: AABB) -> bool:
         return other.max.X >= self.min.X and other.min.X < self.max.X and \
@@ -194,17 +195,17 @@ class RenderMaterial:
     _isRenderBackfaces: bool
     def __init__(self, material: IMaterial):
         self.material = material
-        if isinstance(material, IFixedMaterial):
-            pass
-        elif isinstance(material, IParamMaterial):
-            p = material
-            # FIX: Valve specific
-            if 'F_ALPHA_TEST' in p.intParams and p.intParams['F_ALPHA_TEST'] == 1 and 'g_flAlphaTestReference' in p.floatParams: self._alphaTestReference = p.floatParams['g_flAlphaTestReference']
-            self.isToolsMaterial = 'tools.toolsmaterial' in p.intAttributes
-            self.isBlended = ('F_TRANSLUCENT' in p.intParams and p.IntParams['F_TRANSLUCENT'] == 1) or 'mapbuilder.water' in p.intAttributes or material.shaderName == 'vr_glass.vfx' or material.shaderName == 'tools_sprite.vfx'
-            self._isAdditiveBlend = 'F_ADDITIVE_BLEND' in p.intParams and p.intParams['F_ADDITIVE_BLEND'] == 1
-            self._isRenderBackfaces = 'F_RENDER_BACKFACES' in p.intParams and p.intParams['F_RENDER_BACKFACES'] == 1
-        else: raise Exception(f'Unknown {material}')
+        match material:
+            case s if isinstance(material, IFixedMaterial):
+                pass
+            case p if isinstance(material, IParamMaterial):
+                # FIX: Valve specific
+                if 'F_ALPHA_TEST' in p.intParams and p.intParams['F_ALPHA_TEST'] == 1 and 'g_flAlphaTestReference' in p.floatParams: self._alphaTestReference = p.floatParams['g_flAlphaTestReference']
+                self.isToolsMaterial = 'tools.toolsmaterial' in p.intAttributes
+                self.isBlended = ('F_TRANSLUCENT' in p.intParams and p.IntParams['F_TRANSLUCENT'] == 1) or 'mapbuilder.water' in p.intAttributes or material.shaderName == 'vr_glass.vfx' or material.shaderName == 'tools_sprite.vfx'
+                self._isAdditiveBlend = 'F_ADDITIVE_BLEND' in p.intParams and p.intParams['F_ADDITIVE_BLEND'] == 1
+                self._isRenderBackfaces = 'F_RENDER_BACKFACES' in p.intParams and p.intParams['F_RENDER_BACKFACES'] == 1
+            case _: raise Exception(f'Unknown {material}')
     def render(shader: Shader) -> None: pass
     def postRender() -> None: pass
 
@@ -237,9 +238,10 @@ class DrawCall:
         if 'm_bUseCompressedNormalTangent' in drawCall: return bool(drawCall['m_bUseCompressedNormalTangent'])
         if 'm_nFlags' not in drawCall: return False
         flags = drawCall['m_nFlags']
-        if isinstance(flags, str): return 'MESH_DRAW_FLAGS_USE_COMPRESSED_NORMAL_TANGENT' in flags.upper()
-        elif isinstance(flags, int): return flags & RenderMeshDrawPrimitiveFlags.UseCompressedNormalTangent != 0
-        else: False
+        match flags:
+            case s if isinstance(flags, str): return 'MESH_DRAW_FLAGS_USE_COMPRESSED_NORMAL_TANGENT' in s.upper()
+            case i if isinstance(flags, int): return i & RenderMeshDrawPrimitiveFlags.UseCompressedNormalTangent != 0
+            case _: False
 
 # RenderableMesh
 class RenderableMesh:

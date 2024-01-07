@@ -7,26 +7,26 @@ using System.Collections.Generic;
 namespace OpenStack.Graphics.OpenGL.Renderer1
 {
     //was:Render/GPUMeshBufferCache
-    public class GpuMeshBufferCache
+    public class GLMeshBufferCache
     {
-        Dictionary<IVBIB, GpuMeshBuffers> _gpuBuffers = new Dictionary<IVBIB, GpuMeshBuffers>();
+        Dictionary<IVBIB, GLMeshBuffers> _gpuBuffers = new Dictionary<IVBIB, GLMeshBuffers>();
         Dictionary<VAOKey, uint> _vertexArrayObjects = new Dictionary<VAOKey, uint>();
 
         struct VAOKey
         {
-            public GpuMeshBuffers VBIB;
+            public GLMeshBuffers VBIB;
             public Shader Shader;
             public uint VertexIndex;
             public uint IndexIndex;
             public uint BaseVertex;
         }
 
-        public GpuMeshBuffers GetVertexIndexBuffers(IVBIB vbib)
+        public GLMeshBuffers GetVertexIndexBuffers(IVBIB vbib)
         {
             if (_gpuBuffers.TryGetValue(vbib, out var gpuVbib)) return gpuVbib;
             else
             {
-                var newGpuVbib = new GpuMeshBuffers(vbib);
+                var newGpuVbib = new GLMeshBuffers(vbib);
                 _gpuBuffers.Add(vbib, newGpuVbib);
                 return newGpuVbib;
             }

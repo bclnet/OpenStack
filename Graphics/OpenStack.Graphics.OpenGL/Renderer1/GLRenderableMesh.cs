@@ -16,8 +16,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
 
         public override void SetRenderMode(string renderMode)
         {
-            var drawCalls = DrawCallsOpaque.Union(DrawCallsBlended);
-            foreach (var call in drawCalls)
+            foreach (var call in DrawCallsOpaque.Union(DrawCallsBlended))
             {
                 // Recycle old shader parameters that are not render modes since we are scrapping those anyway
                 var parameters = call.Shader.Parameters

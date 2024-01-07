@@ -5,7 +5,7 @@ using System;
 namespace OpenStack.Graphics.OpenGL.Renderer1
 {
     //was:Render/GPUMeshBuffers
-    public class GpuMeshBuffers
+    public class GLMeshBuffers
     {
         public struct Buffer
         {
@@ -18,7 +18,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         public Buffer[] VertexBuffers { get; private set; }
         public Buffer[] IndexBuffers { get; private set; }
 
-        public GpuMeshBuffers(IVBIB vbib)
+        public GLMeshBuffers(IVBIB vbib)
         {
             VertexBuffers = new Buffer[vbib.VertexBuffers.Count];
             IndexBuffers = new Buffer[vbib.IndexBuffers.Count];
