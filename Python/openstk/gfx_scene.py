@@ -1,0 +1,154 @@
+import numpy as np
+from typing import Any
+from openstk.gfx import IOpenGraphic
+from openstk.gfx_render import AABB, Frustum, RenderPass, Shader
+
+class Octree: pass
+class Camera: pass
+class SceneNode: pass
+
+# Scene
+class Scene:
+    class UpdateContext:
+        timestep: float
+        def __init__(self, timestep: float):
+            self.timestep = timestep
+
+    class RenderContext:
+        camera: Camera
+        lightPosition: np.ndarray
+        renderPass: RenderPass
+        replacementShader: Shader
+        showDebug: bool
+
+    mainCamera: Camera
+    lightPosition: np.ndarray
+    graphic: IOpenGraphic
+    staticOctree: Octree
+    dynamicOctree: Octree
+    showDebug: bool
+    
+    @property
+    def allNodes() -> list[SceneNode]: return self.staticNodes + self.dynamicNodes
+
+    staticNodes: list[SceneNode] = []
+    dynamicNodes: list[SceneNode] = []
+    meshBatchRenderer: Any
+
+    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: Any, sizeHint: float = 32768):
+        self.graphic = graphic or _throw('Null')
+        self.meshBatchRenderer = meshBatchRenderer or _throw('Null')
+        self.staticOctree = Octree(sizeHint)
+        self.dynamicOctree = Octree(sizeHint)
+
+    def add(node: SceneNode, dynamic: bool) -> None:
+        if dynamic:
+            self.dynamicNodes.append(node)
+            self.dynamicOctree.insert(node, node.boundingBox)
+            node.id = self.dynamicNodes.count * 2 - 1
+        else:
+            self.staticNodes.append(node)
+            self.staticOctree.insert(node, node.boundingBox)
+            node.id = self.staticNodes.count * 2
+
+    def find(id: int) -> SceneNode:
+        if id == 0: return None
+        elif id % 2 == 1:
+            index = (id + 1) / 2 - 1
+            return None if index >= self.dynamicNodes.count else self.dynamicNodes[index]
+        else:
+            index = id / 2 - 1
+            return None if index >= self.staticNodes.Count else self.StaticNodes[index]
+
+    def update(timestep: float) -> None:
+        updateContext = UpdateContext(timestep)
+        for node in self.StaticNodes: node.update(updateContext)
+        for node in self.DynamicNodes: oldBox = node.boundingBox; node.update(updateContext); self.dynamicOctree.update(node, oldBox, node.boundingBox)
+
+    def renderWithCamera(camera: Camera, cullFrustum: Frustum = None):
+        allNodes = self.staticOctree.query(cullFrustum or camera.viewFrustum)
+        allNodes.addRange(self.dynamicOctree.query(cullFrustum or camera.viewFrustum))
+
+        # Collect mesh calls
+        opaqueDrawCalls = []
+        blendedDrawCalls = []
+        looseNodes = []
+        for node in allNodes:
+            if isinstance(node, IMeshCollection):
+                for mesh in node.renderableMeshes:
+                    for call in mesh.drawCallsOpaque:
+                        opaqueDrawCalls.append(MeshBatchRequest(
+                            transform = node.transform,
+                            mesh = mesh,
+                            call = call,
+                            distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
+                            nodeId = node.id,
+                            meshId = mesh.meshIndex
+                            ))
+
+                    for call in mesh.drawCallsBlended:
+                        blendedDrawCalls.append(MeshBatchRequest(
+                            transform = node.transform,
+                            mesh = mesh,
+                            call = call,
+                            distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
+                            nodeId = node.id,
+                            meshId = mesh.meshIndex
+                            ))
+            else: looseNodes.append(node)
+
+        # Sort loose nodes by distance from camera
+        looseNodes.sort(key=lambda a, b: \
+            (b.boundingBox.center - camera.location).lengthSquared().CompareTo((a.boundingBox.center - camera.location).lengthSquared()))
+
+        # Opaque render pass
+        renderContext = RenderContext(
+            camera = camera,
+            lightPosition = LightPosition,
+            renderPass = RenderPass.Opaque,
+            showDebug = ShowDebug
+            )
+
+        # Blended render pass, back to front for loose nodes
+        if camera.p:
+            if camera.picker.isActive: camera.picker.render(); renderContext.replacementShader = camera.picker.shader
+            elif camera.picker.debug: renderContext.replacementShader = camera.picker.debugShader
+        meshBatchRenderer(opaqueDrawCalls, renderContext)
+        for node in looseNodes: node.render(renderContext)
+        if camera.picker and camera.picker.isActive:
+            camera.picker.finish()
+            renderWithCamera(camera, cullFrustum)
+
+    def setEnabledLayers(self, layers: dict[str, object]) -> None:
+        for renderer in self.allNodes: renderer.layerEnabled = renderer.layerName in layers
+        self.staticOctree.clear()
+        self.dynamicOctree.clear()
+        for node in self.staticNodes:
+            if node.layerEnabled: self.staticOctree.insert(node, node.boundingBox)
+        for node in self.dynamicNodes:
+            if node.layerEnabled: self.dynamicOctree.insert(node, node.boundingBox)
+
+# SceneNode
+class SceneNode:
+    _transform: np.matrix
+    @property
+    def transform(self) -> np.matrix: return self._transform
+    @transform.setter
+    def setTransform(self, value: np.matrix) -> None: self._transform = value; self.boundingBox = self._localBoundingBox.transform(_transform)
+    layerName: str
+    layerEnabled: bool = True
+    boundingBox: AABB
+    _localBoundingBox: AABB
+    @property
+    def localBoundingBox(self) -> AABB: return self._localBoundingBox
+    @localBoundingBox.setter
+    def setLocalBoundingBox(self, value: AABB) -> None: self._localBoundingBox = value; self.boundingBox = self._localBoundingBox.transform(_transform)
+    name: str
+    id: int
+    scene: Scene
+    def __init__(self, scene: Scene):
+        self.scene = scene
+    def update(self, context: Scene.UpdateContext) -> None: pass
+    def render(self, context: Scene.RenderContext) -> None: pass
+    def getSupportedRenderModes(self) -> list[str]: return []
+    def setRenderMode(self, mode: str) -> None: pass

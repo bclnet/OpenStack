@@ -10,7 +10,7 @@ namespace OpenStack.Graphics.Renderer1
         public Matrix4x4 Transform
         {
             get => _transform;
-            set { _transform = value; BoundingBox = LocalBoundingBox.Transform(_transform); }
+            set { _transform = value; BoundingBox = _localBoundingBox.Transform(_transform); }
         }
 
         public string LayerName { get; set; }

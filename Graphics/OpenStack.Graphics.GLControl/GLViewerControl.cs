@@ -140,8 +140,7 @@ namespace OpenStack.Graphics.Controls
             Console.WriteLine($"GLSL version: {GL.GetString(StringName.ShadingLanguageVersion)}");
 
             var extensions = new HashSet<string>();
-            var count = GL.GetInteger(GetPName.NumExtensions);
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < GL.GetInteger(GetPName.NumExtensions); i++)
             {
                 var extension = GL.GetString(StringNameIndexed.Extensions, i);
                 if (!extensions.Contains(extension)) extensions.Add(extension);

@@ -9,7 +9,7 @@ namespace OpenStack.Graphics.Renderer1
         protected const float CAMERASPEED = 300f; // Per second
         protected const float FOV = MathX.PiOver4;
 
-        public Vector3 Location { get; protected set; }
+        public Vector3 Location { get; protected set; } = new Vector3(1);
         public float Pitch { get; protected set; }
         public float Yaw { get; protected set; }
         public float Scale { get; protected set; } = 1.0f;
@@ -24,10 +24,7 @@ namespace OpenStack.Graphics.Renderer1
         protected float AspectRatio;
 
         public Camera()
-        {
-            Location = new Vector3(1);
-            LookAt(new Vector3(0));
-        }
+            => LookAt(new Vector3(0));
 
         protected void RecalculateMatrices()
         {
@@ -116,7 +113,7 @@ namespace OpenStack.Graphics.Renderer1
         }
 
         public abstract void Tick(float deltaTime);
-        
+
         // Prevent camera from going upside-down
         protected void ClampRotation()
         {

@@ -31,15 +31,15 @@ namespace OpenStack.Graphics.Renderer1
                 var subregionSize = Region.Size * 0.5f;
                 var center = Region.Min + subregionSize;
 
-                Children = new Node[8];
-                Children[0] = new Node(this, Region.Min, subregionSize);
-                Children[1] = new Node(this, new Vector3(center.X, Region.Min.Y, Region.Min.Z), subregionSize);
-                Children[2] = new Node(this, new Vector3(Region.Min.X, center.Y, Region.Min.Z), subregionSize);
-                Children[3] = new Node(this, new Vector3(center.X, center.Y, Region.Min.Z), subregionSize);
-                Children[4] = new Node(this, new Vector3(Region.Min.X, Region.Min.Y, center.Z), subregionSize);
-                Children[5] = new Node(this, new Vector3(center.X, Region.Min.Y, center.Z), subregionSize);
-                Children[6] = new Node(this, new Vector3(Region.Min.X, center.Y, center.Z), subregionSize);
-                Children[7] = new Node(this, new Vector3(center.X, center.Y, center.Z), subregionSize);
+                Children = new Node[] {
+                    new Node(this, Region.Min, subregionSize),
+                    new Node(this, new Vector3(center.X, Region.Min.Y, Region.Min.Z), subregionSize),
+                    new Node(this, new Vector3(Region.Min.X, center.Y, Region.Min.Z), subregionSize),
+                    new Node(this, new Vector3(center.X, center.Y, Region.Min.Z), subregionSize),
+                    new Node(this, new Vector3(Region.Min.X, Region.Min.Y, center.Z), subregionSize),
+                    new Node(this, new Vector3(center.X, Region.Min.Y, center.Z), subregionSize),
+                    new Node(this, new Vector3(Region.Min.X, center.Y, center.Z), subregionSize),
+                    new Node(this, new Vector3(center.X, center.Y, center.Z), subregionSize)};
 
                 var remainingElements = new List<Element>();
                 foreach (var element in Elements)

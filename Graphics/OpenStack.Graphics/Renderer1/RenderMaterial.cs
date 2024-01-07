@@ -24,6 +24,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
                 case IFixedMaterial p:
                     break;
                 case IParamMaterial p:
+                    // # FIX: Valve specific
                     if (p.IntParams.ContainsKey("F_ALPHA_TEST") && p.IntParams["F_ALPHA_TEST"] == 1 && p.FloatParams.ContainsKey("g_flAlphaTestReference")) AlphaTestReference = p.FloatParams["g_flAlphaTestReference"];
                     IsToolsMaterial = p.IntAttributes.ContainsKey("tools.toolsmaterial");
                     IsBlended = (p.IntParams.ContainsKey("F_TRANSLUCENT") && p.IntParams["F_TRANSLUCENT"] == 1) || p.IntAttributes.ContainsKey("mapbuilder.water") || material.ShaderName == "vr_glass.vfx" || material.ShaderName == "tools_sprite.vfx";

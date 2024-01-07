@@ -3,6 +3,8 @@ from typing import List, Any
 from struct import unpack
 from io import BytesIO
 
+moduleRoot = 'gamespecs'
+
 # finds a type
 @staticmethod
 def findType(klass):
@@ -10,16 +12,20 @@ def findType(klass):
     klass, modulePath = klass.rsplit(',', 1)
     try:
         _, className = klass.rsplit('.', 1)
-        module = import_module(moduleName := f"game_specs.{modulePath.strip().replace('.', '_')}")
+        module = import_module(moduleName := f"{moduleRoot}.{modulePath.strip().replace('.', '_')}")
         return getattr(module, className)
     except (ImportError, AttributeError) as e:
         raise ImportError(klass)
-        #moduleName, className 
 
 class Reader:
-    def __init__(self, f): self.f = f
+    def __init__(self, f): self.f = f; self.__update()
     def __enter__(self): return self
     def __exit__(self, type, value, traceback): self.f.close()
+    def __update(self):
+        f = self.f
+        pos = f.tell()
+        self.length = f.seek(0, os.SEEK_END)
+        f.seek(pos, os.SEEK_SET)
 
     # primatives
     def readDouble(self): return float.from_bytes(self.f.read(8), 'little')
@@ -35,10 +41,7 @@ class Reader:
 
     # normal
     def read(self, size: int): return self.f.read(size)
-    def length(self):
-        f = self.f
-        pos = f.tell(); length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
-        return length
+    def length(self): return self.length
 
     # endian
     def readDoubleE(self, bigEndian: bool = True): return float.from_bytes(self.f.read(8), 'big' if bigEndian else 'little')
@@ -61,6 +64,9 @@ class Reader:
         value = action(self)
         f.seek(pos)
         return value
+
+    # bytes
+    def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
 
     # struct (https://docs.python.org/3/library/struct.html)
     def readT(self, cls: Any) -> Any:
