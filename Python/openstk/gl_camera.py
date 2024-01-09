@@ -4,18 +4,18 @@ from openstk.gfx_render import Camera
 
 # GLCamera
 class GLCamera(Camera):
-    def _setViewport(x: int, y: int, width: int, height: int) -> None:
+    def setViewport(x: int, y: int, width: int, height: int) -> None:
         return gl.glViewport(0, 0, width, height)
 
 # GLDebugCamera
 class GLDebugCamera(GLCamera):
-    mouseOverRenderArea: bool # Set from outside this class by forms code
-    mouseDragging: bool
-    mouseDelta: np.ndarray
-    mousePreviousPosition: np.ndarray
-    keyboardState: object #KeyboardState
-    mouseState: object #MouseState
-    scrollWheelDelta: int
+    mouseOverRenderArea: bool = False # Set from outside this class by forms code
+    mouseDragging: bool = False
+    mouseDelta: np.ndarray = None
+    mousePreviousPosition: np.ndarray = None
+    keyboardState: object = None #KeyboardState
+    mouseState: object = None #MouseState
+    scrollWheelDelta: int = 0
 
     def tick(self, deltaTime: float) -> None:
         if not self.mouseOverRenderArea: return
