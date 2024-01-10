@@ -243,7 +243,7 @@ class GLRenderMaterial(RenderMaterial):
                     if uniformLocation > -1: gl.glUniform1(uniformLocation, param.value)
                 for param in p.vectorParams:
                     uniformLocation = shader.getUniformLocation(param.key)
-                    if uniformLocation > -1: gl.glUniform4(uniformLocation, np.array([param.value.X, param.value.Y, param.value.Z, param.value.W]))
+                    if uniformLocation > -1: gl.glUniform4(uniformLocation, np.array([param.value[0], param.value[1], param.value[2], param.value[3]]))
         alphaReference = shader.getUniformLocation('g_flAlphaTestReference')
         if alphaReference > -1: gl.glUniform1(alphaReference, alphaTestReference)
         if self.isBlended:

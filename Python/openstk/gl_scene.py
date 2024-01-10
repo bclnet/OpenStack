@@ -43,26 +43,26 @@ class OctreeDebugRenderer:
         gl.glBindVertexArray(0)
 
     def addLine(self, vertices: list[float], from_: np.ndarray, to: np.ndarray, r: float, g: float, b: float, a: float) -> None:
-        vertices.append(from_.X); vertices.append(from_.Y); vertices.append(from_.Z)
+        vertices.append(from_[0]); vertices.append(from_[1]); vertices.append(from_[2])
         vertices.append(r); vertices.append(g); vertices.append(b); vertices.append(a)
-        vertices.append(to.X); vertices.append(to.Y); vertices.append(to.Z)
+        vertices.append(to[0]); vertices.append(to[1]); vertices.append(to[2])
         vertices.append(r); vertices.append(g); vertices.append(b); vertices.append(a)
 
     def addBox(self, vertices: list[float], box: AABB, r: float, g: float, b: float, a: float) -> None:
-        self.addLine(vertices, np.array([box.Min.X, box.Min.Y, box.Min.Z]), np.array([box.Max.X, box.Min.Y, box.Min.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max.X, box.Min.Y, box.Min.Z]), np.array([box.Max.X, box.Max.Y, box.Min.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max.X, box.Max.Y, box.Min.Z]), np.array([box.Min.X, box.Max.Y, box.Min.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Min.X, box.Max.Y, box.Min.Z]), np.array([box.Min.X, box.Min.Y, box.Min.Z]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Min[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Min[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Min[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Min[2]]), r, g, b, a)
 
-        self.addLine(vertices, np.array([box.Min.X, box.Min.Y, box.Max.Z]), np.array([box.Max.X, box.Min.Y, box.Max.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max.X, box.Min.Y, box.Max.Z]), np.array([box.Max.X, box.Max.Y, box.Max.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max.X, box.Max.Y, box.Max.Z]), np.array([box.Min.X, box.Max.Y, box.Max.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Min.X, box.Max.Y, box.Max.Z]), np.array([box.Min.X, box.Min.Y, box.Max.Z]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Min[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Max[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Max[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Min[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
 
-        self.addLine(vertices, np.array([box.Min.X, box.Min.Y, box.Min.Z]), np.array([box.Min.X, box.Min.Y, box.Max.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max.X, box.Min.Y, box.Min.Z]), np.array([box.Max.X, box.Min.Y, box.Max.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max.X, box.Max.Y, box.Min.Z]), np.array([box.Max.X, box.Max.Y, box.Max.Z]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Min.X, box.Max.Y, box.Min.Z]), np.array([box.Min.X, box.Max.Y, box.Max.Z]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self.addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
 
     def _addOctreeNode(vertices: list[float], node: Octree.Node, depth: int) -> None:
         self.addBox(vertices, node.region, 1., 1., 1., 1. if node.hasElements else 0.1)

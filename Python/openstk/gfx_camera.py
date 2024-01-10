@@ -1,8 +1,8 @@
-import numpy as np
+import math, numpy as np
 from openstk.gfx_render import Frustum, IPickingTexture
+from .util import _np_normalize, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
 
 PiOver2 = 1.570796
-CAMERASPEED = 300 # Per second
 FOV = 0.7853982 # MathX.PiOver4
 
 class Camera: pass
@@ -13,11 +13,11 @@ class Camera:
     pitch: float
     yaw: float
     scale: float = 1.
-    projectionMatrix: np.matrix
+    projectionMatrix: np.matrix = np.zeros(4)
     cameraViewMatrix: np.matrix
     viewProjectionMatrix: np.matrix
     viewFrustum: Frustum = Frustum()
-    picker: IPickingTexture
+    picker: IPickingTexture = None
     _windowSize: np.ndarray
     _aspectRatio: float
 
@@ -25,7 +25,7 @@ class Camera:
         self.lookAt(np.zeros(3))
 
     def _recalculateMatrices(self) -> None:
-        self.cameraViewMatrix = Matrix4x4.createScale(self.scale) * Matrix4x4.createLookAt(self.location, self.location + self.getForwardVector(), Vector3.UnitZ)
+        self.cameraViewMatrix = _np_createScale4x4(self.scale) * _np_createLookAt4x4(self.location, self.location + self._getForwardVector(), np.array([0., 0., 1.]))
         self.viewProjectionMatrix = self.cameraViewMatrix * self.projectionMatrix
         self.viewFrustum.update(self.viewProjectionMatrix)
 
@@ -39,16 +39,15 @@ class Camera:
         self._windowSize = np.array([viewportWidth, viewportHeight])
 
         # calculate projection matrix
-        self.projectionMatrix = Matrix4x4.createPerspectiveFieldOfView(FOV, self._aspectRatio, 1., 40000.)
-
-        self.recalculateMatrices()
+        self.projectionMatrix = _np_createPerspectiveFieldOfView4x4(FOV, self._aspectRatio, 1., 40000.)
+        self._recalculateMatrices()
 
         # setup viewport
         self.setViewport(0, 0, viewportWidth, viewportHeight)
 
         if self.picker: self.picker.resize(viewportWidth, viewportHeight)
 
-    def setViewport(self, x: int, y: int, width: int, height: int) -> None: pass
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None: pass # abstract to OpenGL gl.glViewport()
 
     def copyFrom(self, fromOther: Camera) -> None:
         self._aspectRatio = fromOther._aspectRatio
@@ -72,19 +71,19 @@ class Camera:
         self._recalculateMatrices()
 
     def lookAt(self, target: np.ndarray) -> None:
-        dir = Vector3.normalize(target - self.location)
-        self.yaw = math.atan2(dir.Y, dir.X)
-        self.pitch = math.Asin(dir.Z)
-        self.clampRotation()
-        self.recalculateMatrices()
+        dir = _np_normalize(target - self.location)
+        self.yaw = math.atan2(dir[1], dir[0])
+        self.pitch = math.asin(dir[2])
+        self._clampRotation()
+        self._recalculateMatrices()
 
     def setFromTransformMatrix(self, matrix: np.matrix) -> None:
         self.location = matrix.translation
 
         # extract view direction from view matrix and use it to calculate pitch and yaw
-        dir = Vector3(matrix[0,0], matrix[0,1], matrix[0,2])
-        self.yaw = math.atan2(dir.Y, dir.X)
-        self.pitch = math.asin(dir.Z)
+        dir = np.ndarray([matrix[0,0], matrix[0,1], matrix[0,2]])
+        self.yaw = math.atan2(dir[1], dir[0])
+        self.pitch = math.asin(dir[2])
 
         self.recalculateMatrices()
 

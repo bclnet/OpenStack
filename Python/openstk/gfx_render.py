@@ -3,6 +3,7 @@ from typing import Any
 from enum import Enum, Flag
 from openstk.util import _throw
 from openstk.gfx import IMaterial, IModel
+from .util import _np_normalize
 
 class AABB: pass
 class Camera: pass
@@ -76,26 +77,26 @@ class AABB:
     #     self.min = Vector3(min_x, min_y, min_z)
     #     self.max = Vector3(max_x, max_y, max_z)
 
-    def __str__(self): return f'AABB [({self.min.X},{self.min.Y},{self.min.Z}) -> ({self.max.X},{self.max.Y},{self.max.Z}))'
+    def __str__(self): return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
     
     def contains(self, point: np.ndarray | AABB) -> bool:
         match point:
             case p if isinstance(point, np.ndarray):
-                return p.X >= self.min.X and p.X < self.max.X and \
-                    p.Y >= self.min.Y and p.Y < self.max.Y and \
-                    p.Z >= self.min.Z and p.Z < self.max.Z
+                return p[0] >= self.min[0] and p[0] < self.max[0] and \
+                    p[1] >= self.min[1] and p[1] < self.max[1] and \
+                    p[2] >= self.min[2] and p[2] < self.max[2]
             case o if isinstance(point, AABB):
-                return o.min.X >= self.min.X and o.max.X <= self.max.X and \
-                    o.min.Y >= self.min.Y and o.max.Y <= self.max.Y and \
-                    o.min.Z >= self.min.Z and o.max.Z <= self.max.Z
+                return o.min[0] >= self.min[0] and o.max[0] <= self.max[0] and \
+                    o.min[1] >= self.min[1] and o.max[1] <= self.max[1] and \
+                    o.min[2] >= self.min[2] and o.max[2] <= self.max[2]
     
     def intersects(self, other: AABB) -> bool:
-        return other.max.X >= self.min.X and other.min.X < self.max.X and \
-            other.max.Y >= self.min.Y and other.min.Y < self.max.Y and \
-            other.max.Z >= self.min.Z and other.min.Z < self.max.Z
+        return other.max[0] >= self.min[0] and other.min[0] < self.max[0] and \
+            other.max[1] >= self.min[1] and other.min[1] < self.max[1] and \
+            other.max[2] >= self.min[2] and other.min[2] < self.max[2]
     
     def union(self, other: AABB) -> AABB:
-        return AABB(Vector3.min(self.min, other.min), Vector3.max(self.max, other.max))
+        return AABB(np.min(self.min, other.min), np.max(self.max, other.max))
     
     def translate(self, offset: np.ndarray) -> AABB:
         return AABB(self.min + offset, self.max + offset)
@@ -105,25 +106,25 @@ class AABB:
     # and only use this at the last step.
     def transform(transform: np.matrix) -> AABB:
         points = [
-            Vector4.Transform(Vector4(Min.X, Min.Y, Min.Z, 1.), transform),
-            Vector4.Transform(Vector4(Max.X, Min.Y, Min.Z, 1.), transform),
-            Vector4.Transform(Vector4(Max.X, Max.Y, Min.Z, 1.), transform),
-            Vector4.Transform(Vector4(Min.X, Max.Y, Min.Z, 1.), transform),
-            Vector4.Transform(Vector4(Min.X, Max.Y, Max.Z, 1.), transform),
-            Vector4.Transform(Vector4(Min.X, Min.Y, Max.Z, 1.), transform),
-            Vector4.Transform(Vector4(Max.X, Min.Y, Max.Z, 1.), transform),
-            Vector4.Transform(Vector4(Max.X, Max.Y, Max.Z, 1.), transform)
+            Vector4.Transform(Vector4(Min[0], Min[1], Min[2], 1.), transform),
+            Vector4.Transform(Vector4(Max[0], Min[1], Min[2], 1.), transform),
+            Vector4.Transform(Vector4(Max[0], Max[1], Min[2], 1.), transform),
+            Vector4.Transform(Vector4(Min[0], Max[1], Min[2], 1.), transform),
+            Vector4.Transform(Vector4(Min[0], Max[1], Max[2], 1.), transform),
+            Vector4.Transform(Vector4(Min[0], Min[1], Max[2], 1.), transform),
+            Vector4.Transform(Vector4(Max[0], Min[1], Max[2], 1.), transform),
+            Vector4.Transform(Vector4(Max[0], Max[1], Max[2], 1.), transform)
             ]
         min = points[0]
         max = points[0]
         for i in range(1, points.Length):
-            min = Vector4.Min(min, points[i])
-            max = Vector4.Max(max, points[i])
-        return AABB(Vector3(min.X, min.Y, min.Z), Vector3(max.X, max.Y, max.Z))
+            min = np.min(min, points[i])
+            max = np.max(max, points[i])
+        return AABB(Vector3(min[0], min[1], min[2]), Vector3(max[0], max[1], max[2]))
 
 # Frustum
 class Frustum:
-   planes: list[np.ndarray] = []*6
+   planes: list[np.ndarray] = [None]*6
 
    @staticmethod
    def createEmpty() -> Frustum:
@@ -131,36 +132,36 @@ class Frustum:
       return r
 
    def update(self, viewProjectionMatrix: np.matrix) -> None:
-      self.planes[0] = numpy.linalg.norm(np.array(
+      self.planes[0] = _np_normalize(np.array([
          viewProjectionMatrix[0,3] + viewProjectionMatrix[0,0],
          viewProjectionMatrix[1,3] + viewProjectionMatrix[1,0],
          viewProjectionMatrix[2,3] + viewProjectionMatrix[2,0],
-         viewProjectionMatrix[3,3] + viewProjectionMatrix[3,0]))
-      self.planes[1] = numpy.linalg.norm(np.array(
+         viewProjectionMatrix[3,3] + viewProjectionMatrix[3,0]]))
+      self.planes[1] = _np_normalize(np.array([
          viewProjectionMatrix[0,3] - viewProjectionMatrix[0,0],
          viewProjectionMatrix[1,3] - viewProjectionMatrix[1,0],
          viewProjectionMatrix[2,3] - viewProjectionMatrix[2,0],
-         viewProjectionMatrix[3,3] - viewProjectionMatrix[3,0]))
-      self.planes[2] = numpy.linalg.norm(np.array(
+         viewProjectionMatrix[3,3] - viewProjectionMatrix[3,0]]))
+      self.planes[2] = _np_normalize(np.array([
          viewProjectionMatrix[0,3] - viewProjectionMatrix[0,1],
          viewProjectionMatrix[1,3] - viewProjectionMatrix[1,1],
          viewProjectionMatrix[2,3] - viewProjectionMatrix[2,1],
-         viewProjectionMatrix[3,3] - viewProjectionMatrix[3,1]))
-      self.planes[3] = numpy.linalg.norm(np.array(
+         viewProjectionMatrix[3,3] - viewProjectionMatrix[3,1]]))
+      self.planes[3] = _np_normalize(np.array([
          viewProjectionMatrix[0,3] + viewProjectionMatrix[0,1],
          viewProjectionMatrix[1,3] + viewProjectionMatrix[1,1],
          viewProjectionMatrix[2,3] + viewProjectionMatrix[2,1],
-         viewProjectionMatrix[3,3] + viewProjectionMatrix[3,1]))
-      self.planes[4] = numpy.linalg.norm(np.array(
+         viewProjectionMatrix[3,3] + viewProjectionMatrix[3,1]]))
+      self.planes[4] = _np_normalize(np.array([
          viewProjectionMatrix[0,2],
          viewProjectionMatrix[1,2],
          viewProjectionMatrix[2,2],
-         viewProjectionMatrix[3,2]))
-      self.planes[5] = numpy.linalg.norm(np.array(
-         viewProjectionMatrix[0,3] - viewProjectionMatrix.M13,
-         viewProjectionMatrix[1,3] - viewProjectionMatrix.M23,
-         viewProjectionMatrix[2,3] - viewProjectionMatrix.M33,
-         viewProjectionMatrix[3,3] - viewProjectionMatrix.M43))
+         viewProjectionMatrix[3,2]]))
+      self.planes[5] = _np_normalize(np.array([
+         viewProjectionMatrix[0,3] - viewProjectionMatrix[0,2],
+         viewProjectionMatrix[1,3] - viewProjectionMatrix[1,2],
+         viewProjectionMatrix[2,3] - viewProjectionMatrix[2,2],
+         viewProjectionMatrix[3,3] - viewProjectionMatrix[3,2]]))
 
    def clone() -> Frustum:
       rv = Frustum()
@@ -170,10 +171,10 @@ class Frustum:
    def intersects(box: AABB) -> bool:
       for i in range(self.planes.length):
          closest = np.array(
-            box.min.X if self.planes[i].X < 0 else box.max.X,
-            box.min.Y if self.planes[i].Y < 0 else box.max.Y,
-            box.min.Z if self.planes[i].Z < 0 else box.max.Z)
-         if Vector3.Dot(np.array(self.planes[i].X, self.planes[i].Y, self.planes[i].Z), closest) + self.planes[i].W < 0: return False
+            box.min[0] if self.planes[i][0] < 0 else box.max[0],
+            box.min[1] if self.planes[i][1] < 0 else box.max[1],
+            box.min[2] if self.planes[i][2] < 0 else box.max[2])
+         if Vector3.Dot(np.array(self.planes[i][0], self.planes[i][1], self.planes[i][2]), closest) + self.planes[i][3] < 0: return False
       return True
 
 # IMesh

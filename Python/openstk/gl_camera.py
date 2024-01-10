@@ -1,10 +1,12 @@
-import numpy as np
+import math, numpy as np
 from OpenGL import GL as gl
-from openstk.gfx_render import Camera
+from openstk.gfx_camera import Camera
+
+CAMERASPEED = 300 # Per second
 
 # GLCamera
 class GLCamera(Camera):
-    def setViewport(x: int, y: int, width: int, height: int) -> None:
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None:
         return gl.glViewport(0, 0, width, height)
 
 # GLDebugCamera
@@ -19,13 +21,14 @@ class GLDebugCamera(GLCamera):
 
     def tick(self, deltaTime: float) -> None:
         if not self.mouseOverRenderArea: return
+
         # Use the keyboard state to update position
         self.handleInputTick(deltaTime)
         # Full width of the screen is a 1 PI (180deg)
-        self.yaw -= math.PI * self.mouseDelta.X / self.windowSize.X
-        self.pitch -= math.PI / self._aspectRatio * self.mouseDelta.Y / self.windowSize.Y
-        self.clampRotation()
-        self.recalculateMatrices()
+        self.yaw -= math.pi * self.mouseDelta[0] / self.windowSize[0]
+        self.pitch -= math.pi / self._aspectRatio * self.mouseDelta[1] / self.windowSize[1]
+        self._clampRotation()
+        self._recalculateMatrices()
 
     def handleInput(self, mouseState: object, keyboardState: object): # MouseState, KeyboardState
         self.scrollWheelDelta += mouseState.scrollWheelValue - self.mouseState.scrollWheelValue
@@ -33,17 +36,17 @@ class GLDebugCamera(GLCamera):
         self.keyboardState = keyboardState
         if self.mouseOverRenderArea or mouseState.leftButton == ButtonState.Released:
             self.mouseDragging = False
-            self.mouseDelta = default
+            self.mouseDelta = 0
             if not self.mouseOverRenderArea: return
 
         # drag
         if mouseState.leftButton == ButtonState.Pressed:
             if not self.mouseDragging:
                 self.mouseDragging = True
-                self.mousePreviousPosition = np.array([mouseState.X, mouseState.Y])
-            mouseNewCoords = np.array([mouseState.X, mouseState.Y])
-            self.mouseDelta.X = mouseNewCoords.X - self.mousePreviousPosition.X
-            self.mouseDelta.Y = mouseNewCoords.Y - self.mousePreviousPosition.Y
+                self.mousePreviousPosition = np.array([mouseState[0], mouseState[1]])
+            mouseNewCoords = np.array([mouseState[0], mouseState[1]])
+            self.mouseDelta[0] = mouseNewCoords[0] - self.mousePreviousPosition[0]
+            self.mouseDelta[1] = mouseNewCoords[1] - self.mousePreviousPosition[1]
             self.mousePreviousPosition = mouseNewCoords
 
     def handleInputTick(self, deltaTime: float):
@@ -53,11 +56,11 @@ class GLDebugCamera(GLCamera):
         if self.keyboardState.IsKeyDown(Key.ShiftLeft): speed *= 2
         elif self.keyboardState.IsKeyDown(Key.F): speed *= 10
 
-        if self.keyboardState.IsKeyDown(Key.W): self.location += self._getForwardVector() * speed
+        if self.keyboardState.IsKeyDown(Key[3]): self.location += self._getForwardVector() * speed
         if self.keyboardState.IsKeyDown(Key.S): self.location -= self._getForwardVector() * speed
         if self.keyboardState.IsKeyDown(Key.D): self.location += self._getRightVector() * speed
         if self.keyboardState.IsKeyDown(Key.A): self.location -= self._getRightVector() * speed
-        if self.keyboardState.IsKeyDown(Key.Z): self.location += np.array([0., 0., -speed])
+        if self.keyboardState.IsKeyDown(Key[2]): self.location += np.array([0., 0., -speed])
         if self.keyboardState.IsKeyDown(Key.Q): self.location += np.array([0., 0., speed])
 
         # scroll

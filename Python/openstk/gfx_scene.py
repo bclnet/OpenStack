@@ -33,13 +33,13 @@ class Octree:
             center = self.region.min + subregionSize
             self.Children = [
                 Node(self, self.region.min, subregionSize),
-                Node(self, np.array([center.X, self.region.Min.Y, self.region.Min.Z]), subregionSize),
-                Node(self, np.array([self.region.Min.X, center.Y, self.region.Min.Z]), subregionSize),
-                Node(self, np.array([center.X, center.Y, self.region.Min.Z]), subregionSize),
-                Node(self, np.array([self.region.Min.X, self.region.Min.Y, center.Z]), subregionSize),
-                Node(self, np.array([center.X, self.region.Min.Y, center.Z]), subregionSize),
-                Node(self, np.array([self.region.Min.X, center.Y, center.Z]), subregionSize),
-                Node(self, np.array([center.X, center.Y, center.Z]), subregionSize)
+                Node(self, np.array([center[0], self.region.Min[1], self.region.Min[2]]), subregionSize),
+                Node(self, np.array([self.region.Min[0], center[1], self.region.Min[2]]), subregionSize),
+                Node(self, np.array([center[0], center[1], self.region.Min[2]]), subregionSize),
+                Node(self, np.array([self.region.Min[0], self.region.Min[1], center[2]]), subregionSize),
+                Node(self, np.array([center[0], self.region.Min[1], center[2]]), subregionSize),
+                Node(self, np.array([self.region.Min[0], center[1], center[2]]), subregionSize),
+                Node(self, np.array([center[0], center[1], center[2]]), subregionSize)
                 ]
             remainingElements = []
             for element in self.elements:
@@ -59,7 +59,7 @@ class Octree:
         def hasElements(self) -> bool: return self.elements and self.elements.Count > 0
 
         def insert(self, element: Element):
-            if not self.hasChildren and self.hasElements and self.region.size.X > MinimumNodeSize and self.elements.count >= MaximumElementsBeforeSubdivide: self.subdivide()
+            if not self.hasChildren and self.hasElements and self.region.size[0] > MinimumNodeSize and self.elements.count >= MaximumElementsBeforeSubdivide: self.subdivide()
             inserted = False
             if self.hasChildren:
                 elementBB = element.boundingBox
