@@ -2,13 +2,19 @@ import numpy as np
 from typing import Any
 from enum import Enum, Flag
 from openstk.util import _throw
-from openstk.gfx import IMaterial, IModel
 from .util import _np_normalize
 
-class AABB: pass
+# typedefs
 class Camera: pass
+class IMaterial: pass
+class IModel: pass
+
+# forwards
+class AABB: pass
 class Frustum: pass
 class IVBIB: pass
+class Attribute: pass
+class RenderSlotType: pass
 
 # Shader
 class Shader:
@@ -36,26 +42,26 @@ class IPickingTexture:
     def resize(width: int, height: int) -> None: pass
     def finish() -> None: pass
 
-class OnDiskBufferData: pass
-
 # OnDiskBufferData
 class OnDiskBufferData:
+    elementCount: int
+    elementSizeInBytes : int # stride for vertices. Type for indices
+    attributes: list[Attribute] # Vertex attribs. Empty for index buffers
+    data: bytes
+
     class RenderSlotType(Enum):
         RENDER_SLOT_INVALID = -1
         RENDER_SLOT_PER_VERTEX = 0
         RENDER_SLOT_PER_INSTANCE = 1
+
     class Attribute:
         semanticName: str
         semanticIndex: int
         format: Any
         offset: int
         slot: int
-        slotType: int # RenderSlotType
+        slotType: RenderSlotType
         instanceStepRate: int
-    elementCount: int
-    elementSizeInBytes : int # stride for vertices. Type for indices
-    attributes: list[Attribute] # Vertex attribs. Empty for index buffers
-    data: bytes
 
 # IVBIB
 class IVBIB:
@@ -77,7 +83,8 @@ class AABB:
     #     self.min = Vector3(min_x, min_y, min_z)
     #     self.max = Vector3(max_x, max_y, max_z)
 
-    def __str__(self): return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
+    def __str__(self):
+        return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
     
     def contains(self, point: np.ndarray | AABB) -> bool:
         match point:
@@ -194,6 +201,7 @@ class RenderMaterial:
     _alphaTestReference: float
     _isAdditiveBlend: bool
     _isRenderBackfaces: bool
+
     def __init__(self, material: IMaterial):
         self.material = material
         match material:
@@ -212,17 +220,6 @@ class RenderMaterial:
 
 # DrawCall
 class DrawCall:
-    class RenderMeshDrawPrimitiveFlags(Flag):
-        None_ = 0x0
-        UseShadowFastPath = 0x1
-        UseCompressedNormalTangent = 0x2
-        IsOccluder = 0x4
-        InputLayoutIsNotMatchedToMaterial = 0x8
-        HasBakedLightingFromVertexStream = 0x10
-        HasBakedLightingFromLightmap = 0x20
-        CanBatchWithDynamicShaderConstants = 0x40
-        DrawLast = 0x80
-        HasPerInstanceBakedLightingData = 0x100
     primitiveType: int
     shader: Shader
     baseVertex: int
@@ -234,6 +231,19 @@ class DrawCall:
     vertexBuffer: (int, int)
     indexType: int
     indexBuffer: (int, int)
+
+    class RenderMeshDrawPrimitiveFlags(Flag):
+        None_ = 0x0
+        UseShadowFastPath = 0x1
+        UseCompressedNormalTangent = 0x2
+        IsOccluder = 0x4
+        InputLayoutIsNotMatchedToMaterial = 0x8
+        HasBakedLightingFromVertexStream = 0x10
+        HasBakedLightingFromLightmap = 0x20
+        CanBatchWithDynamicShaderConstants = 0x40
+        DrawLast = 0x80
+        HasPerInstanceBakedLightingData = 0x100
+
     @staticmethod
     def isCompressedNormalTangent(drawCall: dict[str, object]) -> bool:
         if 'm_bUseCompressedNormalTangent' in drawCall: return bool(drawCall['m_bUseCompressedNormalTangent'])
@@ -257,6 +267,7 @@ class RenderableMesh:
     meshIndex: int
     _mesh: IMesh
     _vbib: IVBIB
+
     def __init__(self, action: Any, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
         action(self)
         self._mesh = mesh

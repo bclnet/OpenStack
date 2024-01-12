@@ -1,18 +1,25 @@
 import numpy as np
 from typing import Any
-from openstk.gfx import IOpenGraphic
-from openstk.gfx_render import AABB, Frustum, RenderPass, Shader
+from openstk.gfx_render import AABB, RenderPass
 
 MaximumElementsBeforeSubdivide = 4
 MinimumNodeSize = 64.0
 
+# typedefs
+class IOpenGraphic: pass
+class Frustum: pass
+class Shader: pass
+class Camera: pass
+
+# forwards
 class Node: pass
 class Element: pass
-class Camera: pass
 class SceneNode: pass
 
 # Octree
 class Octree:
+    root: Node
+
     class Element:
         clientObject: Any
         boundingBox: AABB
@@ -55,6 +62,7 @@ class Octree:
 
         @property
         def hasChildren(self) -> bool: return self.children
+
         @property
         def hasElements(self) -> bool: return self.elements and self.elements.Count > 0
 
@@ -102,8 +110,6 @@ class Octree:
                         for child in self.children:
                             if frustum.intersects(child.region): child.query(frustum, results)
 
-    root: Node
-
     def __init__(self, size: float):
         if size <= 0: raise Exception('size')
         self.root = Node(None, np.array([v := -size * 0.5, v, v]), np.array([v := size, v, v]))
@@ -149,21 +155,8 @@ class Octree:
         self.root.query(source, results)
         return results
 
-
 # Scene
 class Scene:
-    class UpdateContext:
-        timestep: float
-        def __init__(self, timestep: float):
-            self.timestep = timestep
-
-    class RenderContext:
-        camera: Camera
-        lightPosition: np.ndarray
-        renderPass: RenderPass
-        replacementShader: Shader
-        showDebug: bool
-
     mainCamera: Camera
     lightPosition: np.ndarray
     graphic: IOpenGraphic
@@ -177,6 +170,18 @@ class Scene:
     staticNodes: list[SceneNode] = []
     dynamicNodes: list[SceneNode] = []
     meshBatchRenderer: Any
+
+    class UpdateContext:
+        timestep: float
+        def __init__(self, timestep: float):
+            self.timestep = timestep
+
+    class RenderContext:
+        camera: Camera
+        lightPosition: np.ndarray
+        renderPass: RenderPass
+        replacementShader: Shader
+        showDebug: bool
 
     def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: Any, sizeHint: float = 32768):
         self.graphic = graphic or _throw('Null')
@@ -289,8 +294,8 @@ class SceneNode:
     name: str
     id: int
     scene: Scene
-    def __init__(self, scene: Scene):
-        self.scene = scene
+    
+    def __init__(self, scene: Scene): self.scene = scene
     def update(self, context: Scene.UpdateContext) -> None: pass
     def render(self, context: Scene.RenderContext) -> None: pass
     def getSupportedRenderModes(self) -> list[str]: return []

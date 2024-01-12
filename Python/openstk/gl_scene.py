@@ -1,10 +1,14 @@
 import numpy as np
 from typing import Any
 from OpenGL import GL as gl
-# from enum import Enum
 from openstk.gl import IOpenGLGraphic
-from openstk.gfx_octree import Octree
-from openstk.gfx_render import Camera, Shader, AABB, RenderPass
+from openstk.gfx_render import RenderPass
+from openstk.gfx_scene import Octree
+
+# typedefs
+class Camera: pass
+class Shader: pass
+class AABB: pass
 
 STRIDE = 4 * 7
 
@@ -38,7 +42,7 @@ class OctreeDebugRenderer:
 
         colorAttributeLocation = gl.glGetAttribLocation(self._shader.program, 'aVertexColor')
         gl.glEnableVertexAttribArray(colorAttributeLocation)
-        gl.glVertexAttribPointer(colorAttributeLocation, 4, gl.GL_FLOAT, False, STRIDE, sizeof(float) * 3);
+        gl.glVertexAttribPointer(colorAttributeLocation, 4, gl.GL_FLOAT, False, STRIDE, sizeof(float) * 3)
 
         gl.glBindVertexArray(0)
 

@@ -2,26 +2,37 @@ import numpy as np
 from typing import Any
 from OpenGL import GL as gl
 from enum import Enum
-from openstk.gfx_render import Camera, Shader, DrawCall, IVBIB, IMaterial, IMesh, IModel, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
+from openstk.gfx_render import DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
 from openstk.gfx_scene import Scene
 
+# typedefs
+class Camera: pass
+class Shader: pass
+class IVBIB: pass
+class IMaterial: pass
+class IMesh: pass
+class IModel: pass
+
+# forwards
 class IOpenGLGraphic: pass
-class PickingIntent: pass #?
-class PixelInfo: pass #?
+class PickingIntent: pass
+class PixelInfo: pass
 
 # GLMeshBuffers
 class GLMeshBuffers:
+    vertexBuffers: list[bytes]
+    indexBuffers: list[bytes]
+
     class Buffer:
         handle: int
         size: int
-    vertexBuffers: list[bytes]
-    indexBuffers: list[bytes]
+
     def __init__(self, vbib: IVBIB):
         self.vertexBuffers = [] * vbib.vertexBuffers.Count
         self.indexBuffers = [] * vbib.indexBuffers.Count
         for i in range(vbib.vertexBuffers.count):
             self.vertexBuffers[i].handle = gl.glGenBuffer()
-            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, VertexBuffers[i].Handle);
+            gl.glBindBuffer(gl.GL_ARRAY_BUFFER, VertexBuffers[i].Handle)
             gl.glBufferData(gl.GL_ARRAY_BUFFER, vbib.VertexBuffers[i].ElementCount * vbib.vertexBuffers[i].elementSizeInBytes, vbib.vertexBuffers[i].data, gl.GL_STATIC_DRAW)
             vertexBuffers[i].size = gl.glGetBufferParameter(gl.GL_ARRAY_BUFFER, gl.GL_BUFFER_SIZE)
         for i in range(vbib.indexBuffers.count):
@@ -39,13 +50,13 @@ class GLMeshBufferCache:
         vertexIndex: int
         indexIndex: int
         baseVertex: int
+
     def getVertexIndexBuffers(vbib: IVBIB) -> GLMeshBuffers:
         if vbib in self._gpuBuffers: return self._gpuBuffers[vbib]
         else:
             newGpuVbib = GLMeshBuffers(vbib)
             self._gpuBuffers.append(vbib, newGpuVbib)
             return newGpuVbib
-
 
 # MeshBatchRenderer
 class MeshBatchRenderer:
@@ -118,6 +129,7 @@ class MeshBatchRenderer:
 # QuadIndexBuffer
 class QuadIndexBuffer:
     glHandle: int
+
     def __init__(self, size: int):
         self.glHandle = gl.glGenBuffer()
         gl.glBindBuffer(gl.GL_ELEMENT_ARRAY_BUFFER, self.glHandle)
@@ -137,9 +149,11 @@ class GLPickingTexture(IPickingTexture):
         objectId: int
         meshId: int
         unused2: int
+
     class PickingIntent(Enum):
         Select = 1,
         Open = 2
+
     class PickingRequest:
         activeNextFrame: bool
         cursorPositionX: int
@@ -150,14 +164,17 @@ class GLPickingTexture(IPickingTexture):
             self.cursorPositionX = x
             self.cursorPositionY = y
             self.intent = intent
+
     class PickingResponse:
         intent: PickingIntent
         pixelInfo: PixelInfo
+        
     def __init__(self, graphic: IOpenGLGraphic, onPicked: Any):
         self.shader = graphic.loadShader('vrf.picking', {})
         self.debugShader = graphic.loadShader('vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
         self.setup()
+
     def setup(self) -> None:
         fboHandle = gl.glGenFramebuffer()
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, fboHandle)
@@ -225,6 +242,7 @@ class GLPickingTexture(IPickingTexture):
 class GLRenderMaterial(RenderMaterial):
     def __init__(self, material: IMaterial):
         super().__init__(material)
+
     def render(self, shader: Shader) -> None:
         # Start at 1, texture unit 0 is reserved for the animation texture
         textureUnit = 1
@@ -251,6 +269,7 @@ class GLRenderMaterial(RenderMaterial):
             gl.glEnable(gl.GL_BLEND)
             gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE if self.isAdditiveBlend else gl.GL_ONE_MINUS_SRC_ALPHA)
         if self.isRenderBackfaces: gl.glDisable(gl.GL_CULL_FACE)
+
     def postRender(self) -> None:
         if self.isBlended: gl.glDepthMask(True); gl.glDisable(gl.GL_BLEND)
         if self.isRenderBackfaces: gl.glEnable(gl.GL_CULL_FACE)

@@ -2,6 +2,7 @@ import os
 from typing import Any
 from enum import Enum, Flag
 
+# TextureFlags
 class TextureFlags(Flag):
     SUGGEST_CLAMPS = 0x00000001
     SUGGEST_CLAMPT = 0x00000002

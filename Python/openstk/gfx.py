@@ -1,10 +1,7 @@
 import numpy as np
 from typing import Any
-from enum import Enum, Flag
-from openstk.util import _throw
 
-# ---- GFX ----
-
+# typedefs
 class IVBIB: pass
 class Object: pass
 class Material: pass
@@ -45,12 +42,14 @@ class IMaterialManager:
     def loadMaterial(key: object) -> (Material, dict[str, object]): pass
     def preloadMaterial(path: str) -> None: pass
 
+# IMaterial
 class IMaterial:
     name: str
     shaderName: str
     data: dict[str, object]
     def getShaderArgs() -> dict[str, bool]: pass
 
+# IFixedMaterial
 class IFixedMaterial(IMaterial):
     mainFilePath: str
     darkFilePath: str
@@ -65,6 +64,7 @@ class IFixedMaterial(IMaterial):
     alphaCutoff: float
     zwrite: bool
 
+# IParamMaterial
 class IParamMaterial(IMaterial):
     intParams: dict[str, int]
     floatParams: dict[str, float]
@@ -78,7 +78,8 @@ class IOpenGraphic:
     def preloadTexture(texturePath: str): pass
     def preloadObject(filePath: str): pass
 
-class IOpenGraphicT(IOpenGraphic):
+# IOpenGraphicAny
+class IOpenGraphicAny(IOpenGraphic):
     def textureManager() -> ITextureManager: pass
     def materialManager() -> IMaterialManager: pass
     def shaderManager() -> IShaderManager: pass
@@ -88,4 +89,4 @@ class IOpenGraphicT(IOpenGraphic):
 
 # PlatformStats:
 class PlatformStats:
-    maxTextureMaxAnisotropy = 0
+    maxTextureMaxAnisotropy: int = 0

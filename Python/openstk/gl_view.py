@@ -11,6 +11,7 @@ from openstk.gl_camera import GLDebugCamera
 # https://forum.qt.io/topic/137468/a-few-basic-changes-in-pyqt6-and-pyside6-regarding-shader-based-opengl-graphics
 # https://github.com/8Observer8/falling-collada-cube-bullet-physics-opengl33-pyqt6/blob/master/main.py
 
+# OpenGLView
 class OpenGLView(QOpenGLWidget):
     def __init__(self):
         super().__init__()
