@@ -16,7 +16,7 @@ class OpenGLView(QOpenGLWidget):
     def __init__(self):
         super().__init__()
         self.camera = GLDebugCamera()
-        self.paints = []
+        # self.paints = []
 
     def checkGL(self):
         print(f'OpenGL version: {gl.glGetString(gl.GL_VERSION).decode()}');
@@ -63,14 +63,12 @@ class OpenGLView(QOpenGLWidget):
         gl.glClearColor(0.2, 0.3, 0.3, 1.)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
-        for paint in self.paints:
-            paint(frameTime, self.camera)
-
+        # for paint in self.paints:
+        #     paint(frameTime, self.camera)
         # self.update()
 
     def _handleResize(self, width: int, height: int):
         self.camera.setViewportSize(width, height)
         self._recalculatePositions()
 
-    def _recalculatePositions(self):
-        pass
+    def _recalculatePositions(self): pass
