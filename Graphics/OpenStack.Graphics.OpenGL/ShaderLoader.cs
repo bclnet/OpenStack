@@ -18,15 +18,15 @@ namespace OpenStack.Graphics.OpenGL
         readonly Dictionary<uint, Shader> CachedShaders = new Dictionary<uint, Shader>();
         readonly Dictionary<string, List<string>> ShaderDefines = new Dictionary<string, List<string>>();
 
-        uint CalculateShaderCacheHash(string shaderFileName, IDictionary<string, bool> arguments)
+        uint CalculateShaderCacheHash(string shaderFileName, IDictionary<string, bool> args)
         {
             var b = new StringBuilder();
             b.AppendLine(shaderFileName);
-            var parameters = ShaderDefines[shaderFileName].Intersect(arguments.Keys);
+            var parameters = ShaderDefines[shaderFileName].Intersect(args.Keys);
             foreach (var key in parameters)
             {
                 b.AppendLine(key);
-                b.AppendLine(arguments[key] ? "t" : "f");
+                b.AppendLine(args[key] ? "t" : "f");
             }
             return MurmurHash2.Hash(b.ToString(), ShaderSeed);
         }
@@ -36,14 +36,14 @@ namespace OpenStack.Graphics.OpenGL
 
         protected abstract string GetShaderSource(string shaderName);
 
-        public Shader LoadShader(string shaderName, IDictionary<string, bool> arguments)
+        public Shader LoadShader(string shaderName, IDictionary<string, bool> args)
         {
             var shaderFileName = GetShaderFileByName(shaderName);
 
 #if !DEBUG_SHADERS || !DEBUG
             if (ShaderDefines.ContainsKey(shaderFileName))
             {
-                var shaderCacheHash = CalculateShaderCacheHash(shaderFileName, arguments);
+                var shaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
                 if (CachedShaders.TryGetValue(shaderCacheHash, out var cachedShader)) return cachedShader;
             }
 #endif
@@ -54,7 +54,7 @@ namespace OpenStack.Graphics.OpenGL
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             {
                 var shaderSource = GetShaderSource($"{shaderFileName}.vert");
-                GL.ShaderSource(vertexShader, PreprocessVertexShader(shaderSource, arguments));
+                GL.ShaderSource(vertexShader, PreprocessVertexShader(shaderSource, args));
                 // Find defines supported from source
                 defines.AddRange(FindDefines(shaderSource));
             }
@@ -70,7 +70,7 @@ namespace OpenStack.Graphics.OpenGL
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             {
                 var shaderSource = GetShaderSource($"{shaderFileName}.frag");
-                GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, arguments));
+                GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
                 // Find render modes supported from source, take union to avoid duplicates
                 defines = defines.Union(FindDefines(shaderSource)).ToList();
             }
@@ -82,16 +82,16 @@ namespace OpenStack.Graphics.OpenGL
                 throw new Exception($"Error setting up Fragment Shader \"{shaderName}\": {fsInfo}");
             }
 
-            const string renderMode = "renderMode_";
+            const string RenderMode = "renderMode_";
             var renderModes = defines
-                .Where(k => k.StartsWith(renderMode))
-                .Select(k => k.Substring(renderMode.Length))
+                .Where(k => k.StartsWith(RenderMode))
+                .Select(k => k[RenderMode.Length..])
                 .ToList();
 
             var shader = new Shader(GL.GetUniformLocation)
             {
                 Name = shaderName,
-                Parameters = arguments,
+                Parameters = args,
                 Program = GL.CreateProgram(),
                 RenderModes = renderModes,
             };
@@ -103,7 +103,7 @@ namespace OpenStack.Graphics.OpenGL
             if (linkStatus != 1)
             {
                 GL.GetProgramInfoLog(shader.Program, out var linkInfo);
-                throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus}");
+                throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus})");
             }
 
             GL.DetachShader(shader.Program, vertexShader);
@@ -113,14 +113,14 @@ namespace OpenStack.Graphics.OpenGL
 
 #if !DEBUG_SHADERS || !DEBUG
             ShaderDefines[shaderFileName] = defines;
-            var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, arguments);
+            var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
             CachedShaders[newShaderCacheHash] = shader;
-            Console.WriteLine($"Shader {newShaderCacheHash} ({shaderName}) ({string.Join(", ", arguments.Keys)}) compiled and linked succesfully");
+            Console.WriteLine($"Shader {newShaderCacheHash} ({shaderName}) ({string.Join(", ", args.Keys)}) compiled and linked succesfully");
 #endif
             return shader;
         }
 
-        public Shader LoadPlaneShader(string shaderName, IDictionary<string, bool> arguments)
+        public Shader LoadPlaneShader(string shaderName, IDictionary<string, bool> args)
         {
             var shaderFileName = GetShaderFileByName(shaderName);
 
@@ -142,7 +142,7 @@ namespace OpenStack.Graphics.OpenGL
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             {
                 var shaderSource = GetShaderSource($"{shaderFileName}.frag");
-                GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, arguments));
+                GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
             }
             GL.CompileShader(fragmentShader);
             GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out shaderStatus);
@@ -176,23 +176,23 @@ namespace OpenStack.Graphics.OpenGL
         }
 
         // Preprocess a vertex shader's source to include the #version plus #defines for parameters
-        string PreprocessVertexShader(string source, IDictionary<string, bool> arguments)
+        string PreprocessVertexShader(string source, IDictionary<string, bool> args)
         {
             // Update parameter defines
-            var paramSource = UpdateDefines(source, arguments);
+            var paramSource = UpdateDefines(source, args);
             // Inject code into shader based on #includes
             var includedSource = ResolveIncludes(paramSource);
             return includedSource;
         }
 
         // Update default defines with possible overrides from the model
-        static string UpdateDefines(string source, IDictionary<string, bool> arguments)
+        static string UpdateDefines(string source, IDictionary<string, bool> args)
         {
             // Find all #define param_(paramName) (paramValue) using regex
             var defines = Regex.Matches(source, @"#define param_(\S*?) (\S*?)\s*?\n");
             foreach (Match define in defines)
                 // Check if this parameter is in the arguments
-                if (arguments.TryGetValue(define.Groups[1].Value, out var value))
+                if (args.TryGetValue(define.Groups[1].Value, out var value))
                 {
                     // Overwrite default value
                     var index = define.Groups[2].Index;

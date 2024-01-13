@@ -205,7 +205,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
         {
             foreach (var childName in childNames)
             {
-                var childSystem = _graphic.LoadFileObjectAsync<IParticleSystem>(childName).Result;
+                var childSystem = _graphic.LoadFileObject<IParticleSystem>(childName).Result;
                 _childParticleRenderers.Add(new ParticleRenderer(_graphic as IOpenGLGraphic, childSystem, _systemRenderState.GetControlPoint(0)));
             }
         }

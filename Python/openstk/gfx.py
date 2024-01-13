@@ -8,6 +8,11 @@ class Material: pass
 class Texture: pass
 class Shader: pass
 
+# IObjectManager
+class IObjectManager:
+    def createObject(path: str) -> (Object, dict[str, object]): pass
+    def preloadObject(path: str) -> None: pass
+
 # IModel
 class IModel:
     data: dict[str, object]
@@ -80,9 +85,10 @@ class IOpenGraphic:
 
 # IOpenGraphicAny
 class IOpenGraphicAny(IOpenGraphic):
-    def textureManager() -> ITextureManager: pass
-    def materialManager() -> IMaterialManager: pass
-    def shaderManager() -> IShaderManager: pass
+    textureManager: ITextureManager
+    materialManager: IMaterialManager
+    objectManager: IObjectManager
+    shaderManager: IShaderManager
     def loadTexture(path: str, range: range = None) -> (Texture, dict[str, object]): pass
     def createObject(path: str) -> (Object, dict[str, object]): pass
     def loadShader(path: str, args: dict[str, bool] = None) -> Shader: pass

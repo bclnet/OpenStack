@@ -13,7 +13,7 @@ namespace OpenStack.Graphics
     public interface IOpenGraphic
     {
         //object Source { get; }
-        Task<T> LoadFileObjectAsync<T>(string path);
+        Task<T> LoadFileObject<T>(string path);
         void PreloadTexture(string texturePath);
         void PreloadObject(string filePath);
     }
@@ -25,6 +25,7 @@ namespace OpenStack.Graphics
     {
         ITextureManager<Texture> TextureManager { get; }
         IMaterialManager<Material, Texture> MaterialManager { get; }
+        IObjectManager<Object, Material, Texture> ObjectManager { get; }
         IShaderManager<Shader> ShaderManager { get; }
         Texture LoadTexture(string path, out IDictionary<string, object> data, Range? range = null);
         Object CreateObject(string path, out IDictionary<string, object> data);
