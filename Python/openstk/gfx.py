@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Any
 
 # typedefs
 class IVBIB: pass
@@ -37,7 +36,7 @@ class ITextureManager:
     defaultTexture: Texture
     def buildSolidTexture(width: int, height: int, rgba: list[float]) -> Texture: pass
     def buildNormalMap(source: Texture, strength: float) -> Texture: pass
-    def loadTexture(key: object, range: object = None) -> (Texture, dict[str, object]): pass
+    def loadTexture(key: object, rng: range = None) -> (Texture, dict[str, object]): pass
     def preloadTexture(path: str) -> None: pass
     def deleteTexture(key: object) -> None: pass
 
@@ -89,7 +88,7 @@ class IOpenGraphicAny(IOpenGraphic):
     materialManager: IMaterialManager
     objectManager: IObjectManager
     shaderManager: IShaderManager
-    def loadTexture(path: str, range: range = None) -> (Texture, dict[str, object]): pass
+    def loadTexture(path: str, rng: range = None) -> (Texture, dict[str, object]): pass
     def createObject(path: str) -> (Object, dict[str, object]): pass
     def loadShader(path: str, args: dict[str, bool] = None) -> Shader: pass
 

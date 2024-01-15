@@ -1,5 +1,4 @@
 import os
-from typing import Any
 from enum import Enum, Flag
 
 # TextureFlags
@@ -500,12 +499,12 @@ class TextureGLFormat(Enum):
 
 # ITexture
 class ITexture:
-    def data(self) -> dict[str, object]: pass
-    def width(self) -> int: pass
-    def height(self) -> int: pass
-    def depth(self) -> int: pass
-    def mipMaps(self) -> int: pass
-    def flags(self) -> TextureFlags: pass
+    data: dict[str, object]
+    width: int
+    height: int
+    depth: int
+    mipMaps: int
+    flags: TextureFlags
     def begin(self, platform: int) -> (bytes, object, list[object]): pass
     def end(self) -> None: pass
 

@@ -1,5 +1,4 @@
 import os, types
-from typing import List, Any
 from struct import unpack
 from io import BytesIO
 
@@ -17,6 +16,11 @@ def findType(klass):
     except (ImportError, AttributeError) as e:
         raise ImportError(klass)
 
+# IDisposable
+class IDisposable:
+    def dispose(self): pass
+
+# Reader
 class Reader:
     def __init__(self, f): self.f = f; self.__update()
     def __enter__(self): return self
@@ -69,7 +73,7 @@ class Reader:
     def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
 
     # struct (https://docs.python.org/3/library/struct.html)
-    def readT(self, cls: Any) -> Any:
+    def readT(self, cls: object) -> object:
         if isinstance(cls, types.LambdaType): return cls(self)
         pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size)))
 
@@ -94,4 +98,4 @@ class Reader:
     def readL32Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(4), 'little')).decode('ascii' if not encoding else encoding)
 
     # array
-    def readTArray(self, cls: Any, count: int) -> List[Any]: return [self.readT(cls) for x in range(count)]
+    def readTArray(self, cls: object, count: int) -> list[object]: return [self.readT(cls) for x in range(count)]

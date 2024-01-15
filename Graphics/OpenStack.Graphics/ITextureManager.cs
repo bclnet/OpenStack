@@ -9,7 +9,7 @@ namespace OpenStack.Graphics
         Texture BuildSolidTexture(int width, int height, params float[] rgba);
         Texture BuildNormalMap(Texture source, float strength);
         Texture DefaultTexture { get; }
-        Texture LoadTexture(object key, out IDictionary<string, object> data, Range? range = null);
+        Texture LoadTexture(object key, out IDictionary<string, object> data, Range? rng = null);
         void PreloadTexture(string path);
         void DeleteTexture(object key);
     }

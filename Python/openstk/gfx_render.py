@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Any
+from typing import Callable
 from enum import Enum, Flag
 from openstk.util import _throw
 from .util import _np_normalize
@@ -18,18 +18,24 @@ class RenderSlotType: pass
 
 # Shader
 class Shader:
-    _getUniformLocation: Any
-    def __init__(self, getUniformLocation: Any):
-        self._getUniformLocation = getUniformLocation or _throw('Null')
+    _getUniformLocation: Callable
+    _uniforms: dict[str, int] = {}
     name: str
     program: int
     parameters: dict[str, bool]
     renderModes: list[str]
-    uniforms: dict[str, int] = {}
+
+    def __init__(self, getUniformLocation: Callable, name: str = None, program: int = None, parameters: dict[str, bool] = None, renderModes: list[str] = None):
+        self._getUniformLocation = getUniformLocation or _throw('Null')
+        self.name = name
+        self.program = program
+        self.parameters = parameters
+        self.renderModes = renderModes
+    
     def getUniformLocation(self, name: str) -> int:
-        if name in self.uniforms: return self.uniforms[name]
+        if name in self._uniforms: return self._uniforms[name]
         value = self._getUniformLocation(self.program, name)
-        self.uniforms[name] = value
+        self._uniforms[name] = value
         return value
 
 # IPickingTexture
@@ -57,7 +63,7 @@ class OnDiskBufferData:
     class Attribute:
         semanticName: str
         semanticIndex: int
-        format: Any
+        format: Callable
         offset: int
         slot: int
         slotType: RenderSlotType
@@ -79,9 +85,6 @@ class AABB:
     def __init__(self, min: np.ndarray, max: np.ndarray):
         self.min = min
         self.max = max
-    # def __init__(self):
-    #     self.min = Vector3(min_x, min_y, min_z)
-    #     self.max = Vector3(max_x, max_y, max_z)
 
     def __str__(self):
         return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
@@ -111,7 +114,7 @@ class AABB:
     # Note: Since we're dealing with AABBs here, the resulting AABB is likely to be bigger than the original if rotation
     # and whatnot is involved. This problem compounds with multiple transformations. Therefore, endeavour to premultiply matrices
     # and only use this at the last step.
-    def transform(transform: np.matrix) -> AABB:
+    def transform(transform: np.ndarray) -> AABB:
         points = [
             Vector4.Transform(Vector4(Min[0], Min[1], Min[2], 1.), transform),
             Vector4.Transform(Vector4(Max[0], Min[1], Min[2], 1.), transform),
@@ -138,7 +141,7 @@ class Frustum:
       r = Frustum()
       return r
 
-   def update(self, viewProjectionMatrix: np.matrix) -> None:
+   def update(self, viewProjectionMatrix: np.ndarray) -> None:
       self.planes[0] = _np_normalize(np.array([
          viewProjectionMatrix[0,3] + viewProjectionMatrix[0,0],
          viewProjectionMatrix[1,3] + viewProjectionMatrix[1,0],
@@ -268,7 +271,7 @@ class RenderableMesh:
     _mesh: IMesh
     _vbib: IVBIB
 
-    def __init__(self, action: Any, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
+    def __init__(self, action: Callable, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
         action(self)
         self._mesh = mesh
         self._vbib = model.remapBoneIndices(mesh.vbib, meshIndex) if model else mesh.vbib
@@ -287,7 +290,7 @@ class RenderableMesh:
 
 # MeshBatchRequest
 class MeshBatchRequest:
-    transform: np.matrix
+    transform: np.ndarray
     mesh: RenderableMesh
     call: DrawCall
     distanceFromCamera: float

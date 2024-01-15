@@ -1,5 +1,4 @@
 import os
-from typing import Any
 from enum import Enum, Flag
 from openstk.poly import Reader
 from openstk.gfx_texture import TextureGLFormat, TextureUnityFormat, TextureUnrealFormat

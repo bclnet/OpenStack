@@ -1,6 +1,5 @@
 import numpy as np
-from typing import Any
-from OpenGL import GL as gl
+from OpenGL.GL import *
 from openstk.gl import IOpenGLGraphic
 from openstk.gfx_render import RenderPass
 from openstk.gfx_scene import Octree
@@ -26,25 +25,25 @@ class OctreeDebugRenderer:
         self._dynamic = dynamic
 
         self._shader = graphic.loadShader('vrf.grid')
-        gl.glUseProgram(_shader.program)
+        glUseProgram(_shader.program)
 
-        self._vboHandle = gl.glGenBuffer()
+        self._vboHandle = glGenBuffer()
         if not dynamic:
             self.rebuild()
 
-        self._vaoHandle = gl.glGenVertexArray()
-        gl.bindVertexArray(_vaoHandle)
-        gl.bindBuffer(gl.GL_ARRAY_BUFFER, _vboHandle)
+        self._vaoHandle = glGenVertexArray()
+        bindVertexArray(_vaoHandle)
+        bindBuffer(GL_ARRAY_BUFFER, _vboHandle)
 
-        positionAttributeLocation = gl.glGetAttribLocation(self._shader.program, 'aVertexPosition')
-        gl.glEnableVertexAttribArray(positionAttributeLocation)
-        gl.glVertexAttribPointer(positionAttributeLocation, 3, gl.GL_FLOAT, False, STRIDE, 0)
+        positionAttributeLocation = glGetAttribLocation(self._shader.program, 'aVertexPosition')
+        glEnableVertexAttribArray(positionAttributeLocation)
+        glVertexAttribPointer(positionAttributeLocation, 3, GL_FLOAT, False, STRIDE, 0)
 
-        colorAttributeLocation = gl.glGetAttribLocation(self._shader.program, 'aVertexColor')
-        gl.glEnableVertexAttribArray(colorAttributeLocation)
-        gl.glVertexAttribPointer(colorAttributeLocation, 4, gl.GL_FLOAT, False, STRIDE, sizeof(float) * 3)
+        colorAttributeLocation = glGetAttribLocation(self._shader.program, 'aVertexColor')
+        glEnableVertexAttribArray(colorAttributeLocation)
+        glVertexAttribPointer(colorAttributeLocation, 4, GL_FLOAT, False, STRIDE, sizeof(float) * 3)
 
-        gl.glBindVertexArray(0)
+        glBindVertexArray(0)
 
     def addLine(self, vertices: list[float], from_: np.ndarray, to: np.ndarray, r: float, g: float, b: float, a: float) -> None:
         vertices.append(from_[0]); vertices.append(from_[1]); vertices.append(from_[2])
@@ -82,26 +81,26 @@ class OctreeDebugRenderer:
         vertices = []
         self.addOctreeNode(vertices, _octree.root, 0)
         self._vertexCount = vertices.Count / 7
-        gl.glBindBuffer(gl.GL_ARRAY_BUFFER, _vboHandle)
-        gl.glBufferData(gl.GL_ARRAY_BUFFER, vertices.count * 4, vertices, gl.GL_DYNAMIC_DRAW if _dynamic else gl.GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, _vboHandle)
+        glBufferData(GL_ARRAY_BUFFER, vertices.count * 4, vertices, GL_DYNAMIC_DRAW if _dynamic else GL_STATIC_DRAW)
 
     def render(self, camera: Camera, renderPass: RenderPass):
         if renderPass == RenderPass.Translucent or renderPass == RenderPass.Both:
             if _dynamic: self.rebuild()
 
-            gl.glEnable(gl.GL_BLEND)
-            gl.glEnable(gl.GL_DEPTH_TEST)
-            gl.glDepthMask(False)
-            gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-            gl.glUseProgram(self._shader.program)
+            glEnable(GL_BLEND)
+            glEnable(GL_DEPTH_TEST)
+            glDepthMask(False)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            glUseProgram(self._shader.program)
 
             projectionViewMatrix = camera.viewProjectionMatrix
-            gl.glUniformMatrix4(_shader.getUniformLocation('uProjectionViewMatrix'), False, self.projectionViewMatrix)
+            glUniformMatrix4(_shader.getUniformLocation('uProjectionViewMatrix'), False, self.projectionViewMatrix)
 
-            gl.glBindVertexArray(_vaoHandle)
-            gl.glDrawArrays(gl.GL_LINES, 0, _vertexCount)
-            gl.glBindVertexArray(0)
-            gl.glUseProgram(0)
-            gl.glDepthMask(True)
-            gl.glDisable(gl.GL_BLEND)
-            gl.glDisable(gl.GL_DEPTH_TEST)
+            glBindVertexArray(_vaoHandle)
+            glDrawArrays(GL_LINES, 0, _vertexCount)
+            glBindVertexArray(0)
+            glUseProgram(0)
+            glDepthMask(True)
+            glDisable(GL_BLEND)
+            glDisable(GL_DEPTH_TEST)

@@ -11,18 +11,18 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
         readonly int Texture;
         readonly Shader Shader;
         readonly int QuadVao;
+        public bool Background;
 
         public AABB BoundingBox => new AABB(-1, -1, -1, 1, 1, 1);
 
-        public TextureRenderer(IOpenGLGraphic graphic, int texture)
+        public TextureRenderer(IOpenGLGraphic graphic, int texture, bool background = false)
         {
             Graphic = graphic;
             Texture = texture;
             Shader = Graphic.ShaderManager.LoadPlaneShader("plane");
             QuadVao = SetupQuadBuffer();
+            Background = background;
         }
-
-        public bool Background;
 
         int SetupQuadBuffer()
         {
@@ -37,11 +37,11 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
 
             var vertices = new[]
             {
-                // position     ; normal        ; texcoord  ; tangent
-                -1f, -1f, +0f,  +0f, +0f, 1f,   +0f, +1f,   +1f, +0f, +0f,
-                -1f, +1f, +0f,  +0f, +0f, 1f,   +0f, +0f,   +1f, +0f, +0f,
-                +1f, -1f, +0f,  +0f, +0f, 1f,   +1f, +1f,   +1f, +0f, +0f,
-                +1f, +1f, +0f,  +0f, +0f, 1f,   +1f, +0f,   +1f, +0f, +0f,
+                // position     :normal        :texcoord  :tangent
+                -1f, -1f, +0f,  +0f, +0f, 1f,  +0f, +1f,  +1f, +0f, +0f,
+                -1f, +1f, +0f,  +0f, +0f, 1f,  +0f, +0f,  +1f, +0f, +0f,
+                +1f, -1f, +0f,  +0f, +0f, 1f,  +1f, +1f,  +1f, +0f, +0f,
+                +1f, +1f, +0f,  +0f, +0f, 1f,  +1f, +0f,  +1f, +0f, +0f,
             };
 
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
@@ -60,8 +60,11 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
             foreach (var (Name, Size) in attributes)
             {
                 var attributeLocation = GL.GetAttribLocation(Shader.Program, Name);
-                GL.EnableVertexAttribArray(attributeLocation);
-                GL.VertexAttribPointer(attributeLocation, Size, VertexAttribPointerType.Float, false, stride, offset);
+                if (attributeLocation > -1)
+                {
+                    GL.EnableVertexAttribArray(attributeLocation);
+                    GL.VertexAttribPointer(attributeLocation, Size, VertexAttribPointerType.Float, false, stride, offset);
+                }
                 offset += sizeof(float) * Size;
             }
 

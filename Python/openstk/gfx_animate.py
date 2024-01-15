@@ -1,9 +1,8 @@
-import numpy as np
-import quaternion
-from typing import Any
+import quaternion, numpy as np
+from typing import Callable
 from enum import Enum
-# from openstk.gfx_render import Frustum
 
+# forwards
 class Bone: pass
 class FrameCache: pass
 
@@ -15,8 +14,8 @@ class Bone:
     name: str
     position: np.ndarray
     angle: quaternion.quaternion
-    bindPose: np.matrix
-    inverseBindPose: np.matrix
+    bindPose: np.ndarray
+    inverseBindPose: np.ndarray
 
     def __init__(self, index: int, name: str, position: np.ndarray, rotation: quaternion.quaternion):
         self.index = index
@@ -56,7 +55,7 @@ class Frame:
     bones: list[FrameBone]
 
     def __init__(self, skeleton: ISkeleton):
-        self.bones = []*[skeleton.bones.length]
+        self.bones = [None]*[skeleton.bones.length]
         self.clear(skeleton)
 
     def setAttribute(bone: int, attribute: ChannelAttribute, data: np.ndarray | quaternion.quaternion | float) -> None:
@@ -92,16 +91,17 @@ class IAnimation:
     fps: float
     frameCount: int
     def decodeFrame(index: int, outFrame: Frame) -> None: pass
-    def getAnimationMatrices(frameCache: FrameCache, index: int | float, skeleton: ISkeleton) -> np.matrix: pass
+    def getAnimationMatrices(frameCache: FrameCache, index: int | float, skeleton: ISkeleton) -> np.ndarray: pass
 
 # FrameCache
 class FrameCache:
     @staticmethod
-    def frameFactory() -> Any: lambda skeleton: Frame(skeleton)
+    def frameFactory() -> object: lambda skeleton: Frame(skeleton)
     previousFrame: (int, Frame)
     nextFrame: (int, Frame)
     interpolatedFrame: Frame
     skeleton: ISkeleton
+
     def __init__(self, skeleton: ISkeleton):
         self.previousFrame = (-1, frameFactory(skeleton))
         self.nextFrame = (-1, frameFactory(skeleton))
@@ -131,7 +131,7 @@ class FrameCache:
 # AnimationController
 class AnimationController:
     frameCache: FrameCache
-    updateHandler: Any = lambda a, b: None
+    updateHandler: Callable = lambda a, b: None
     activeAnimation: IAnimation
     time: float
     shouldUpdate: bool
@@ -171,8 +171,8 @@ class AnimationController:
         self.isPaused = True
         self.frame = 0 if not self.activeAnimation else activeAnimation.frameCount - 1
 
-    def getAnimationMatrices(self, skeleton: ISkeleton) -> np.matrix:
+    def getAnimationMatrices(self, skeleton: ISkeleton) -> np.ndarray:
         return activeAnimation.getAnimationMatrices(self.frameCache, self.frame, skeleton) if self.isPaused else \
             activeAnimation.getAnimationMatrices(self.frameCache, self.time, skeleton)
 
-    def registerUpdateHandler(self, handler: Any) -> None: self.updateHandler = handler
+    def registerUpdateHandler(self, handler: Callable) -> None: self.updateHandler = handler

@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Any
 from openstk.gfx_render import AABB, RenderPass
 
 MaximumElementsBeforeSubdivide = 4
@@ -21,7 +20,7 @@ class Octree:
     root: Node
 
     class Element:
-        clientObject: Any
+        clientObject: object
         boundingBox: AABB
 
     class Node:
@@ -80,7 +79,7 @@ class Octree:
                 if self.elements == null: self.elements = []
                 elements.append(element)
         
-        def find(self, clientObject: Any, bounds: AABB) -> (Node, int):
+        def find(self, clientObject: object, bounds: AABB) -> (Node, int):
             if self.hasElements:
                 for i in self.elements.count:
                     if self.elements[i].clientObject == clientObject: return (self, i)
@@ -93,7 +92,7 @@ class Octree:
             self.elements = None
             self.children = None
 
-        def query(self, source: AABB | Frustum, results: list[Any]) -> None:
+        def query(self, source: AABB | Frustum, results: list[object]) -> None:
             match source:
                 case boundingBox if isinstance(source, AABB):
                     if self.hasElements:
@@ -114,16 +113,16 @@ class Octree:
         if size <= 0: raise Exception('size')
         self.root = Node(None, np.array([v := -size * 0.5, v, v]), np.array([v := size, v, v]))
 
-    def insert(self, obj: Any, bounds: AABB) -> None:
+    def insert(self, obj: object, bounds: AABB) -> None:
         if not obj: raise Exception('obj')
         self.root.insert(Element(clientObject = obj, boundingBox = bounds))
 
-    def remove(self, obj: Any, bounds: AABB) -> None:
+    def remove(self, obj: object, bounds: AABB) -> None:
         if not obj: raise Exception('obj')
         node, index = self.root.find(obj, bounds)
         if node: node.elements.removeAt(index)
 
-    def update(self, obj: Any, oldBounds: AABB, newBounds: AABB) -> None:
+    def update(self, obj: object, oldBounds: AABB, newBounds: AABB) -> None:
         if not obj: raise Exception('obj')
 
         node, index = self.root.find(obj, oldBounds)
@@ -150,7 +149,7 @@ class Octree:
 
     def clear(self) -> None: self.root.clear()
 
-    def query(self, source: AABB | Frustum) -> list[Any]:
+    def query(self, source: AABB | Frustum) -> list[object]:
         results = []
         self.root.query(source, results)
         return results
@@ -169,7 +168,7 @@ class Scene:
 
     staticNodes: list[SceneNode] = []
     dynamicNodes: list[SceneNode] = []
-    meshBatchRenderer: Any
+    meshBatchRenderer: object
 
     class UpdateContext:
         timestep: float
@@ -183,7 +182,7 @@ class Scene:
         replacementShader: Shader
         showDebug: bool
 
-    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: Any, sizeHint: float = 32768):
+    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: object, sizeHint: float = 32768):
         self.graphic = graphic or _throw('Null')
         self.meshBatchRenderer = meshBatchRenderer or _throw('Null')
         self.staticOctree = Octree(sizeHint)
@@ -246,7 +245,7 @@ class Scene:
                 case _: looseNodes.append(node)
 
         # Sort loose nodes by distance from camera
-        looseNodes.sort(key=lambda a, b: \
+        looseNodes.sort(key = lambda a, b: \
             (b.boundingBox.center - camera.location).lengthSquared().CompareTo((a.boundingBox.center - camera.location).lengthSquared()))
 
         # Opaque render pass
@@ -278,11 +277,11 @@ class Scene:
 
 # SceneNode
 class SceneNode:
-    _transform: np.matrix
+    _transform: np.ndarray
     @property
-    def transform(self) -> np.matrix: return self._transform
+    def transform(self) -> np.ndarray: return self._transform
     @transform.setter
-    def setTransform(self, value: np.matrix) -> None: self._transform = value; self.boundingBox = self._localBoundingBox.transform(_transform)
+    def setTransform(self, value: np.ndarray) -> None: self._transform = value; self.boundingBox = self._localBoundingBox.transform(_transform)
     layerName: str
     layerEnabled: bool = True
     boundingBox: AABB

@@ -13,45 +13,45 @@ class Camera:
     pitch: float
     yaw: float
     scale: float = 1.
-    projectionMatrix: np.matrix = np.zeros(4)
-    cameraViewMatrix: np.matrix
-    viewProjectionMatrix: np.matrix
+    projectionMatrix: np.ndarray = np.zeros(4)
+    cameraViewMatrix: np.ndarray
+    viewProjectionMatrix: np.ndarray
     viewFrustum: Frustum = Frustum()
     picker: IPickingTexture = None
-    _windowSize: np.ndarray
-    _aspectRatio: float
+    windowSize: np.ndarray
+    aspectRatio: float
 
     def __init__(self):
         self.lookAt(np.zeros(3))
 
-    def _recalculateMatrices(self) -> None:
-        self.cameraViewMatrix = _np_createScale4x4(self.scale) * _np_createLookAt4x4(self.location, self.location + self._getForwardVector(), np.array([0., 0., 1.]))
+    def recalculateMatrices(self) -> None:
+        self.cameraViewMatrix = _np_createScale4x4(self.scale) * _np_createLookAt4x4(self.location, self.location + self.getForwardVector(), np.array([0., 0., 1.]))
         self.viewProjectionMatrix = self.cameraViewMatrix * self.projectionMatrix
         self.viewFrustum.update(self.viewProjectionMatrix)
 
-    def _getForwardVector(self) -> np.ndarray: return np.array([(math.cos(self.yaw) * math.cos(self.pitch)), (math.sin(self.yaw) * math.cos(self.pitch)), math.sin(self.pitch)])
+    def getForwardVector(self) -> np.ndarray: return np.array([(math.cos(self.yaw) * math.cos(self.pitch)), (math.sin(self.yaw) * math.cos(self.pitch)), math.sin(self.pitch)])
 
-    def _getRightVector(self) -> np.ndarray: return np.array([math.cos(self.yaw - PiOver2), math.sin(self.yaw - PiOver2), 0.])
+    def getRightVector(self) -> np.ndarray: return np.array([math.cos(self.yaw - PiOver2), math.sin(self.yaw - PiOver2), 0.])
 
     def setViewportSize(self, viewportWidth: int, viewportHeight: int):
         # store window size and aspect ratio
-        self._aspectRatio = viewportWidth / viewportHeight
-        self._windowSize = np.array([viewportWidth, viewportHeight])
+        self.aspectRatio = viewportWidth / viewportHeight
+        self.windowSize = np.array([viewportWidth, viewportHeight])
 
         # calculate projection matrix
-        self.projectionMatrix = _np_createPerspectiveFieldOfView4x4(FOV, self._aspectRatio, 1., 40000.)
-        self._recalculateMatrices()
+        self.projectionMatrix = _np_createPerspectiveFieldOfView4x4(FOV, self.aspectRatio, 1., 40000.)
+        self.recalculateMatrices()
 
         # setup viewport
         self.setViewport(0, 0, viewportWidth, viewportHeight)
 
         if self.picker: self.picker.resize(viewportWidth, viewportHeight)
 
-    def setViewport(self, x: int, y: int, width: int, height: int) -> None: pass # abstract to OpenGL gl.glViewport()
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None: pass
 
     def copyFrom(self, fromOther: Camera) -> None:
-        self._aspectRatio = fromOther._aspectRatio
-        self._windowSize = fromOther._windowSize
+        self.aspectRatio = fromOther.aspectRatio
+        self.windowSize = fromOther.windowSize
         self.location = fromOther.location
         self.pitch = fromOther.pitch
         self.yaw = fromOther.yaw
@@ -62,22 +62,22 @@ class Camera:
     
     def setLocation(self, location: np.ndarray) -> None:
         self.location = location
-        self._recalculateMatrices()
+        self.recalculateMatrices()
 
     def setLocationPitchYaw(self, location: np.ndarray, pitch: float, yaw: float) -> None:
         self.location = location
         self.pitch = pitch
         self.yaw = yaw
-        self._recalculateMatrices()
+        self.recalculateMatrices()
 
     def lookAt(self, target: np.ndarray) -> None:
         dir = _np_normalize(target - self.location)
         self.yaw = math.atan2(dir[1], dir[0])
         self.pitch = math.asin(dir[2])
-        self._clampRotation()
-        self._recalculateMatrices()
+        self.clampRotation()
+        self.recalculateMatrices()
 
-    def setFromTransformMatrix(self, matrix: np.matrix) -> None:
+    def setFromTransformMatrix(self, matrix: np.ndarray) -> None:
         self.location = matrix.translation
 
         # extract view direction from view matrix and use it to calculate pitch and yaw
@@ -94,6 +94,6 @@ class Camera:
     def tick(self, deltaTime: float) -> None: pass
 
     # prevent camera from going upside-down
-    def _clampRotation(self) -> None:
+    def clampRotation(self) -> None:
         if self.pitch >= PiOver2: self.pitch = PiOver2 - 0.001
         elif self.pitch <= -PiOver2: self.pitch = -PiOver2 + 0.001

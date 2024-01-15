@@ -1,10 +1,7 @@
-import re
-import math, numpy as np
+import re, math, numpy as np
 from importlib import resources
-from OpenGL import GL as gl
-
-# typedef
-class Shader: pass
+from OpenGL.GL import *
+from openstk.gfx_render import Shader
 
 ShaderSeed = 0x13141516
 RenderMode = 'renderMode_'; RenderModeLength = len(RenderMode)
@@ -32,62 +29,111 @@ class ShaderLoader:
     def loadShader(self, shaderName: str, args: dict[str, bool]) -> Shader:
         shaderFileName = self.getShaderFileByName(shaderName)
         
-        if shaderFileName in self._shaderDefines:
-            shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
-            if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
+        # cache
+        # if shaderFileName in self._shaderDefines:
+        #     shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+        #     if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
 
+        # build
         defines = []
 
         # vertex shader
-        vertexShader = gl.glCreateShader(gl.GL_VERTEX_SHADER)
-        shaderSource = self.getShaderSource(f'{shaderFileName}.vert')
-        gl.glShaderSource(vertexShader, self.preprocessVertexShader(shaderSource, args))
-        # find defines supported from source
-        defines += self.findDefines(shaderSource)
-        gl.glCompileShader(vertexShader)
-        gl.glGetShader(vertexShader, ShaderParameter.CompileStatus, shaderStatus)
+        vertexShader = glCreateShader(GL_VERTEX_SHADER)
+        if True:
+            shaderSource = self.getShaderSource(f'{shaderFileName}.vert')
+            glShaderSource(vertexShader, self.preprocessVertexShader(shaderSource, args))
+            # find defines supported from source
+            defines += self.findDefines(shaderSource)
+        glCompileShader(vertexShader)
+        shaderStatus = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
         if shaderStatus != 1:
-            gl.glGetShaderInfoLog(vertexShader, vsInfo)
+            vsInfo = glGetShaderInfoLog(vertexShader)
             raise Exception(f'Error setting up Vertex Shader "{shaderName}": {vsInfo}')
 
         # fragment shader
-        fragmentShader = gl.glCreateShader(gl.GL_FRAGMENT_SHADER)
-        shaderSource = self.getShaderSource(f'{shaderFileName}.frag')
-        gl.glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
-        # find render modes supported from source, take union to avoid duplicates
-        defines += self.findDefines(shaderSource)
-        gl.glCompileShader(fragmentShader)
-        gl.glGetShader(fragmentShader, ShaderParameter.CompileStatus, shaderStatus)
+        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
+        if True:
+            shaderSource = self.getShaderSource(f'{shaderFileName}.frag')
+            glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
+            # find render modes supported from source, take union to avoid duplicates
+            defines += self.findDefines(shaderSource)
+        glCompileShader(fragmentShader)
+        shaderStatus = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
         if shaderStatus != 1:
-            gl.glGetShaderInfoLog(fragmentShader, fsInfo)
+            fsInfo = glGetShaderInfoLog(fragmentShader)
             raise Exception(f'Error setting up Fragment Shader "{shaderName}": {fsInfo}')
 
         renderModes = [k[RenderModeLength] for k in defines if k.startswith(RenderMode)]
 
-        shader = Shader(gl.glGetUniformLocation,
+        shader = Shader(glGetUniformLocation,
             name = shaderName,
             parameters = args,
-            program = gl.glCreateProgram(),
+            program = glCreateProgram(),
             renderModes = renderModes
             )
-        gl.glAttachShader(shader.program, vertexShader)
-        gl.glAttachShader(shader.program, fragmentShader)
-        gl.glLinkProgram(shader.program)
-        gl.glValidateProgram(shader.program)
-        gl.glGetProgram(shader.program, GetProgramParameterName.linkStatus, linkStatus)
+        glAttachShader(shader.program, vertexShader)
+        glAttachShader(shader.program, fragmentShader)
+        glLinkProgram(shader.program)
+        glValidateProgram(shader.program)
+        linkStatus = glGetProgramiv(shader.program, GL_LINK_STATUS)
         if linkStatus != 1:
-            gl.glGetProgramInfoLog(shader.program, linkInfo)
+            linkInfo = glGetProgramInfoLog(shader.program)
             raise Exception(f'Error linking shaders: {linkInfo} (link status = {linkStatus})')
 
-        gl.glDetachShader(shader.program, vertexShader)
-        gl.glDeleteShader(vertexShader)
-        gl.glDetachShader(shader.program, fragmentShader)
-        gl.glDeleteShader(fragmentShader)
+        glDetachShader(shader.program, vertexShader)
+        glDeleteShader(vertexShader)
+        glDetachShader(shader.program, fragmentShader)
+        glDeleteShader(fragmentShader)
 
         self._shaderDefines[shaderFileName] = defines
         newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
         self._cachedShaders[newShaderCacheHash] = shader
         print(f'Shader {newShaderCacheHash} ({shaderName}) ({', '.join(args.Keys)}) compiled and linked succesfully')
+        return shader
+
+    def loadPlaneShader(self, shaderName: str, args: dict[str, bool]) -> Shader:
+        shaderFileName = self.getShaderFileByName(shaderName)
+
+        # vertex shader
+        vertexShader = glCreateShader(GL_VERTEX_SHADER)
+        if True:
+            shaderSource = self.getShaderSource('plane.vert')
+            glShaderSource(vertexShader, shaderSource)
+        glCompileShader(vertexShader)
+        shaderStatus = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
+        if shaderStatus != 1:
+            vsInfo = glGetShaderInfoLog(vertexShader)
+            raise Exception(f'Error setting up Vertex Shader "{shaderName}": {vsInfo}')
+
+        # fragment shader
+        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
+        if True:
+            shaderSource = self.getShaderSource(f'{shaderFileName}.frag')
+            glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
+        glCompileShader(fragmentShader)
+        shaderStatus = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
+        if shaderStatus != 1:
+            fsInfo = glGetShaderInfoLog(fragmentShader)
+            raise Exception(f'Error setting up Fragment Shader "{shaderName}": {fsInfo}')
+
+        shader = Shader(glGetUniformLocation,
+            name = shaderName,
+            program = glCreateProgram()
+            )
+
+        glAttachShader(shader.program, vertexShader)
+        glAttachShader(shader.program, fragmentShader)
+        glLinkProgram(shader.program)
+        glValidateProgram(shader.program)
+        linkStatus = glGetProgramiv(shader.program, GL_LINK_STATUS)
+        if linkStatus != 1:
+            linkInfo = glGetProgramInfoLog(shader.program)
+            raise Exception(f'Error linking shaders: {linkInfo} (link status = {linkStatus})')
+
+        glDetachShader(shader.program, vertexShader)
+        glDeleteShader(vertexShader)
+        glDetachShader(shader.program, fragmentShader)
+        glDeleteShader(fragmentShader)
         return shader
 
     # Preprocess a vertex shader's source to include the #version plus #defines for parameters
