@@ -240,9 +240,9 @@ namespace System.IO
             };
             return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8String(this BinaryReader source, bool zstring = false) { var length = source.ReadByte(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt16(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32String(this BinaryReader source, bool zstring = false) { var length = source.ReadInt32(); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8String(this BinaryReader source, int maxLength = 0, bool zstring = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16String(this BinaryReader source, int maxLength = 0, bool zstring = false) { var length = source.ReadUInt16(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32String(this BinaryReader source, int maxLength = 0, bool zstring = false) { var length = (int)source.ReadUInt32(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
 
         /// <summary>
         /// Read a Length-prefixed ascii string from the stream
