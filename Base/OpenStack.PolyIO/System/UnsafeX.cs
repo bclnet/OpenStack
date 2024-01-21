@@ -13,26 +13,35 @@ namespace System
     {
         [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern unsafe static void msvcrt_memcpy(void* dest, void* src, uint count);
         [DllImport("libc.so", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern unsafe static void libc_memcpy(void* dest, void* src, uint count);
-
-        static UnsafeX()
+        public delegate void MemcpyDelgate(void* dest, void* src, uint count);
+        public static MemcpyDelgate Memcpy = Environment.OSVersion.Platform switch
         {
-            var abc = Environment.OSVersion.Platform;
-            Memcpy = Environment.OSVersion.Platform switch
-            {
-                PlatformID.Win32NT => msvcrt_memcpy,
-                PlatformID.Unix => libc_memcpy,
-                _ => Unsafe.CopyBlock,
-            };
+            PlatformID.Win32NT => msvcrt_memcpy,
+            PlatformID.Unix => libc_memcpy,
+            _ => Unsafe.CopyBlock,
+        };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe static T MarshalT<T>(byte[] bytes)
+        {
+            fixed (byte* src = bytes) return Marshal.PtrToStructure<T>(new IntPtr(src));
         }
 
-        public static MemcpyDelgate Memcpy; public delegate void MemcpyDelgate(void* dest, void* src, uint count);
-
-        //[UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int QuickSortComparDelegate(void* a, void* b);
-        //[DllImport("msvcrt.dll", EntryPoint = "qsort", SetLastError = false)] public static unsafe extern void QuickSort(void* base0, nint n, nint size, QuickSortComparDelegate compar);
-        //[DllImport("msvcrt.dll", EntryPoint = "memmove", SetLastError = false)] public static unsafe extern void MoveBlock(void* destination, void* source, uint byteCount);
-        //[DllImport("msvcrt.dll", EntryPoint = "memcpy", SetLastError = false)] public static unsafe extern void CopyBlock(void* destination, void* source, uint byteCount);
-        //[DllImport("msvcrt.dll", EntryPoint = "memset", SetLastError = false)] public static unsafe extern void InitBlock(void* destination, int c, uint byteCount);
-        //[DllImport("msvcrt.dll", EntryPoint = "memcmp", SetLastError = false)] public static unsafe extern int CompareBlock(void* b1, void* b2, int byteCount);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe static T[] MarshalTArray<T>(byte[] bytes, int count)
+        {
+            var typeOfT = typeof(T);
+            var isEnum = typeOfT.IsEnum;
+            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) UnsafeX.Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            hresult.Free();
+            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
+        }
+        public static byte[] MarshalTArray<T>(T[] values, int count)
+        {
+            throw new NotImplementedException();
+        }
 
         public static string ReadZASCII(byte* data, int length)
         {
@@ -51,88 +60,95 @@ namespace System
             return value;
         }
 
-        [DllImport("Kernel32")] extern static int _lread(SafeFileHandle hFile, void* lpBuffer, int wBytes);
-        public static void ReadBuffer(this FileStream stream, byte[] buf, int length)
-        {
-            fixed (byte* pbuf = buf) _lread(stream.SafeFileHandle, pbuf, length);
-        }
+        //[UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int QuickSortComparDelegate(void* a, void* b);
+        //[DllImport("msvcrt.dll", EntryPoint = "qsort", SetLastError = false)] public static unsafe extern void QuickSort(void* base0, nint n, nint size, QuickSortComparDelegate compar);
+        //[DllImport("msvcrt.dll", EntryPoint = "memmove", SetLastError = false)] public static unsafe extern void MoveBlock(void* destination, void* source, uint byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memcpy", SetLastError = false)] public static unsafe extern void CopyBlock(void* destination, void* source, uint byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memset", SetLastError = false)] public static unsafe extern void InitBlock(void* destination, int c, uint byteCount);
+        //[DllImport("msvcrt.dll", EntryPoint = "memcmp", SetLastError = false)] public static unsafe extern int CompareBlock(void* b1, void* b2, int byteCount);
 
-        public static T MarshalT<T>(byte[] bytes, int length = -1)
-        {
-            var size = Marshal.SizeOf(typeof(T));
-            if (length > 0 && size > length) Array.Resize(ref bytes, size);
-            fixed (byte* src = bytes) return Marshal.PtrToStructure<T>(new IntPtr(src));
-            //return (T)Marshal.PtrToStructure(new IntPtr(src), typeof(T));
-        }
+        //[DllImport("Kernel32")] extern static int _lread(SafeFileHandle hFile, void* lpBuffer, int wBytes);
+        //public static void ReadBuffer(this FileStream stream, byte[] buf, int length)
+        //{
+        //    fixed (byte* pbuf = buf) _lread(stream.SafeFileHandle, pbuf, length);
+        //}
 
-        public static T MarshalTCopy<T>(byte[] bytes, int offset = 0, int length = -1)
-        {
-            var r = default(T);
-            var hr = GCHandle.Alloc(r, GCHandleType.Pinned);
-            fixed (byte* _ = bytes) Memcpy((void*)hr.AddrOfPinnedObject(), _ + offset, (uint)bytes.Length);
-            hr.Free();
-            return r;
-        }
+        //public static T MarshalT<T>(byte[] bytes, int length = -1)
+        //{
+        //    var size = Marshal.SizeOf(typeof(T));
+        //    if (length > 0 && size > length) Array.Resize(ref bytes, size);
+        //    fixed (byte* src = bytes) return Marshal.PtrToStructure<T>(new IntPtr(src));
+        //    //return (T)Marshal.PtrToStructure(new IntPtr(src), typeof(T));
+        //}
 
-        public static byte[] MarshalF<T>(T value, int length = -1)
-        {
-            var size = Marshal.SizeOf(typeof(T));
-            var bytes = new byte[size];
-            fixed (byte* _ = bytes) Marshal.StructureToPtr(value, new IntPtr(_), false);
-            return bytes;
-        }
+        //public static T MarshalTCopy<T>(byte[] bytes, int offset = 0, int length = -1)
+        //{
+        //    var r = default(T);
+        //    var hr = GCHandle.Alloc(r, GCHandleType.Pinned);
+        //    fixed (byte* _ = bytes) Memcpy((void*)hr.AddrOfPinnedObject(), _ + offset, (uint)bytes.Length);
+        //    hr.Free();
+        //    return r;
+        //}
 
-        public static T[] MarshalTArray<T>(FileStream stream, int offset, int length)
-        {
-            var dest = new T[length];
-            var h = GCHandle.Alloc(dest, GCHandleType.Pinned);
-#if !MONO
-            NativeFile.Read(stream.SafeFileHandle.DangerousGetHandle() + offset, h.AddrOfPinnedObject(), length);
-#else
-            NativeFile.Read(stream.Handle + offset, h.AddrOfPinnedObject(), length);
-#endif
-            h.Free();
-            return dest;
-        }
+        //public static byte[] MarshalF<T>(T value, int length = -1)
+        //{
+        //    var size = Marshal.SizeOf(typeof(T));
+        //    var bytes = new byte[size];
+        //    fixed (byte* _ = bytes) Marshal.StructureToPtr(value, new IntPtr(_), false);
+        //    return bytes;
+        //}
 
-        public static T[] MarshalTArray<T>(byte[] bytes, int offset, int count)
-        {
-            var typeOfT = typeof(T);
-            var isEnum = typeOfT.IsEnum;
-            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
-            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _ + offset, (uint)bytes.Length);
-            hresult.Free();
-            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
-        }
+        //        public static T[] MarshalTArray<T>(FileStream stream, int offset, int length)
+        //        {
+        //            var dest = new T[length];
+        //            var h = GCHandle.Alloc(dest, GCHandleType.Pinned);
+        //#if !MONO
+        //            NativeFile.Read(stream.SafeFileHandle.DangerousGetHandle() + offset, h.AddrOfPinnedObject(), length);
+        //#else
+        //            NativeFile.Read(stream.Handle + offset, h.AddrOfPinnedObject(), length);
+        //#endif
+        //            h.Free();
+        //            return dest;
+        //        }
 
-        public static byte[] MarshalTArray<T>(T[] values, int count)
-        {
-            throw new NotImplementedException();
-        }
+        //public static T[] MarshalTArray<T>(byte[] bytes, int offset, int count)
+        //{
+        //    var typeOfT = typeof(T);
+        //    var isEnum = typeOfT.IsEnum;
+        //    var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+        //    var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+        //    fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _ + offset, (uint)bytes.Length);
+        //    hresult.Free();
+        //    return isEnum ? result.Cast<T>().ToArray() : (T[])result;
+        //}
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteGenericToPtr<T>(IntPtr dest, T value, int sizeOfT) where T : struct
-        {
-            var bytePtr = (byte*)dest;
+        //public static byte[] MarshalTArray<T>(T[] values, int count)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-            var valueref = __makeref(value);
-            var valuePtr = (byte*)*((IntPtr*)&valueref);
-            for (var i = 0; i < sizeOfT; ++i) bytePtr[i] = valuePtr[i];
-        }
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public static void WriteGenericToPtr<T>(IntPtr dest, T value, int sizeOfT) where T : struct
+        //{
+        //    var bytePtr = (byte*)dest;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ReadGenericFromPtr<T>(IntPtr source, int sizeOfT) where T : struct
-        {
-            var bytePtr = (byte*)source;
+        //    var valueref = __makeref(value);
+        //    var valuePtr = (byte*)*((IntPtr*)&valueref);
+        //    for (var i = 0; i < sizeOfT; ++i) bytePtr[i] = valuePtr[i];
+        //}
 
-            T result = default;
-            var resultRef = __makeref(result);
-            var resultPtr = (byte*)*((IntPtr*)&resultRef);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public static T ReadGenericFromPtr<T>(IntPtr source, int sizeOfT) where T : struct
+        //{
+        //    var bytePtr = (byte*)source;
 
-            for (var i = 0; i < sizeOfT; ++i) resultPtr[i] = bytePtr[i];
+        //    T result = default;
+        //    var resultRef = __makeref(result);
+        //    var resultPtr = (byte*)*((IntPtr*)&resultRef);
 
-            return result;
-        }
+        //    for (var i = 0; i < sizeOfT; ++i) resultPtr[i] = bytePtr[i];
+
+        //    return result;
+        //}
     }
 }

@@ -130,14 +130,19 @@ namespace OpenStack.Graphics.DirectX
     [StructLayout(LayoutKind.Sequential, Pack = 0x1)]
     public unsafe struct DDS_HEADER
     {
-        public const uint MAGIC = 0x20534444; // "DDS "
         //public static uint MAKEFOURCC(string text) => ((uint)(byte)(text[0]) | ((uint)(byte)(text[1]) << 8) | ((uint)(byte)(text[2]) << 16 | ((uint)(byte)(text[3]) << 24)));
-
         /// <summary>
-        /// The size of
+        /// Struct
+        /// </summary>
+        public static (string, int) Struct = ($"<7I44s{"8I"}5I", SizeOf);
+        /// <summary>
+        /// MAGIC
+        /// </summary>
+        public const uint MAGIC = 0x20534444; // "DDS "
+        /// <summary>
+        /// Struct
         /// </summary>
         public const int SizeOf = 124;
-
         /// <summary>
         /// Size of structure. This member must be set to 124.
         /// </summary>
@@ -223,11 +228,11 @@ namespace OpenStack.Graphics.DirectX
                 var magic = r.ReadUInt32();
                 if (magic != MAGIC) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
             }
-            header = r.ReadT<DDS_HEADER>(SizeOf);
+            header = r.ReadS<DDS_HEADER>(Struct);
             header.Verify();
             ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
             headerDXT10 = ddspf.dwFourCC == DX10
-                ? r.ReadT<DDS_HEADER_DXT10>(DDS_HEADER_DXT10.SizeOf)
+                ? r.ReadS<DDS_HEADER_DXT10>(DDS_HEADER_DXT10.Struct)
                 : (DDS_HEADER_DXT10?)null;
             format = ddspf.dwFourCC switch
             {
@@ -262,7 +267,7 @@ namespace OpenStack.Graphics.DirectX
 
         static (object type, int blockSize, object gl, object vulken, object unity, object unreal) MakeFormat(ref DDS_PIXELFORMAT f)
         {
-            return ("Raw", (int)f.dwRGBBitCount >> 2, 
+            return ("Raw", (int)f.dwRGBBitCount >> 2,
                 (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte),
                 (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte),
                 TextureUnityFormat.RGBA32,

@@ -1,4 +1,5 @@
-import os, types
+import os, types, numpy as np
+from typing import Callable
 from struct import unpack
 from io import BytesIO
 
@@ -31,7 +32,14 @@ class Reader:
         self.length = f.seek(0, os.SEEK_END)
         f.seek(pos, os.SEEK_SET)
 
-    # primatives
+    # base
+    def read(self, size: int): return self.f.read(size)
+    def length(self): return self.length
+    def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
+    def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
+
+
+    # primatives : normal
     def readDouble(self): return float.from_bytes(self.f.read(8), 'little')
     def readSByte(self): return int.from_bytes(self.f.read(1), 'little', signed=True)
     def readInt16(self): return int.from_bytes(self.f.read(2), 'little', signed=True)
@@ -43,39 +51,38 @@ class Reader:
     def readUInt32(self): return int.from_bytes(self.f.read(4), 'little', signed=False)
     def readUInt64(self): return int.from_bytes(self.f.read(8), 'little', signed=False)
 
-    # normal
-    def read(self, size: int): return self.f.read(size)
-    def length(self): return self.length
+    # primatives : endian
+    def readDoubleE(self, endian: bool = True): return float.from_bytes(self.f.read(8), 'big' if endian else 'little')
+    def readInt16E(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
+    def readInt32E(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
+    def readInt64E(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
+    def readSingleE(self, endian: bool = True): return float.from_bytes(self.f.read(4), 'big' if endian else 'little')
+    def readUInt16E(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
+    def readUInt32E(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
+    def readUInt64E(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
 
-    # endian
-    def readDoubleE(self, bigEndian: bool = True): return float.from_bytes(self.f.read(8), 'big' if bigEndian else 'little')
-    def readInt16E(self, bigEndian: bool = True): return int.from_bytes(self.f.read(2), 'big' if bigEndian else 'little', signed=True)
-    def readInt32E(self, bigEndian: bool = True): return int.from_bytes(self.f.read(4), 'big' if bigEndian else 'little', signed=True)
-    def readInt64E(self, bigEndian: bool = True): return int.from_bytes(self.f.read(8), 'big' if bigEndian else 'little', signed=True)
-    def readSingleE(self, bigEndian: bool = True): return float.from_bytes(self.f.read(4), 'big' if bigEndian else 'little')
-    def readUInt16E(self, bigEndian: bool = True): return int.from_bytes(self.f.read(2), 'big' if bigEndian else 'little', signed=False)
-    def readUInt32E(self, bigEndian: bool = True): return int.from_bytes(self.f.read(4), 'big' if bigEndian else 'little', signed=False)
-    def readUInt64E(self, bigEndian: bool = True): return int.from_bytes(self.f.read(8), 'big' if bigEndian else 'little', signed=False)
+    # primatives : specialized
+    def readBool32(self): return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
+    def readGuid(self): return self.f.read(16)
+    def readCInt32(self): raise NotImplementedError()
+
 
     # position
+    def align(self, align: int = 4): align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
     def tell(self): return self.f.tell()
-    def seek(self, pos: int): return self.f.seek(pos, os.SEEK_SET)
-    def skip(self, pos: int): return self.f.seek(pos, os.SEEK_CUR)
-    def peek(self, action, offset: int = 0):
+    def seek(self, offset: int): self.f.seek(offset, os.SEEK_SET); return self
+    def seekAndAlign(self, offset: int, align: int = 4): self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_SET); return self
+    def skip(self, count: int): self.f.seek(count, os.SEEK_CUR); return self
+    def skipAndAlign(self, count: int, align: int = 4): offset = self.f.tell() + count; self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_CUR); return self
+    def end(self, offset: int): self.f.seek(offset, os.SEEK_END); return self
+    def peek(self, action, offset: int = 0, origin: int = os.SEEK_CUR):
         f = self.f
         pos = f.tell()
-        if offset != 0: f.seek(offset, os.SEEK_CUR)
+        f.seek(offset, origin)
         value = action(self)
         f.seek(pos)
         return value
 
-    # bytes
-    def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
-
-    # struct (https://docs.python.org/3/library/struct.html)
-    def readT(self, cls: object) -> object:
-        if isinstance(cls, types.LambdaType): return cls(self)
-        pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size)))
 
     # string : chars
     def readCString(self) -> str:
@@ -85,7 +92,6 @@ class Reader:
         f.seek(0 - length - 1, os.SEEK_CUR)
         chars = f.read(length + 1)
         return chars.decode('utf-8') if length > 0 else None
-        
     def readFString(self, length: int, zstring: bool = False) -> str: return self.f.read(length)[:length - 1 if zstring else length].decode('ascii') if length != 0 else None
     def readZAString(self, length: int = 65535) -> str:
         f = self.f; buf = BytesIO()
@@ -97,5 +103,72 @@ class Reader:
     def readL16Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(2), 'little')).decode('ascii' if not encoding else encoding)
     def readL32Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(4), 'little')).decode('ascii' if not encoding else encoding)
 
-    # array
-    def readTArray(self, cls: object, count: int) -> list[object]: return [self.readT(cls) for x in range(count)]
+    
+    # struct : single  - https://docs.python.org/3/library/struct.html 
+    def readF(self, cls: object, factory: Callable) -> object: return factory(self)
+    def readS(self, cls: object) -> object: pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size)))
+    def readS2(self, cls: object, sizeOf: int) -> object: pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size)))
+    def readT(self, cls: object, sizeOf: int) -> object: return unpack(cls, self.f.read(size))[0]
+
+    # struct : array - factory
+    def readL8FArray(self, cls: object, factory: Callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readByte())
+    def readL16FArray(self, cls: object, factory: Callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readUInt16E(endian))
+    def readL32FArray(self, cls: object, factory: Callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readUInt32E(endian))
+    def readC32FArray(self, cls: object, factory: Callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readCInt32E(endian))
+    def readFArray(self, cls: object, factory: Callable, count: int) -> list[object]: return [self.readF(cls, factory) for x in range(count)] if count else []
+
+    # struct : array - struct
+    def readL8SArray(self, cls: object, endian: bool = False) -> list[object]: return self.readSArray(cls, source.readByte())
+    def readL16SArray(self, cls: object, endian: bool = False) -> list[object]: return self.readSArray(cls, source.readUInt16E(endian))
+    def readL32SArray(self, cls: object, endian: bool = False) -> list[object]: return self.readSArray(cls, source.readUInt32E(endian))
+    def readC32SArray(self, cls: object, endian: bool = False) -> list[object]: return self.readSArray(cls, source.readCInt32E(endian))
+    def readSArray(self, cls: object, count: int) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
+
+    # struct : array - type
+    def readL8TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, source.readByte())
+    def readL16TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, source.readUInt16(endian))
+    def readL32TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, source.readUInt32(endian))
+    def readC32TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, source.readCInt32(endian))
+    def readTArray(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for x in range(count)] if count else []
+
+    # struct : each
+    def readSEach(self, cls: object, count: int) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
+    def readTEach(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for x in range(count)] if count else []
+    
+    # struct : many - factory
+    def readL8FMany(self, clsKey: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, source.readByte())
+    def readL16FMany(self, clsKey: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, source.readUInt16(endian))
+    def readL32FMany(self, clsKey: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, source.readUInt32(endian))
+    def readC32FMany(self, clsKey: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, source.readCInt32(endian))
+    def readFMany(self, clsKey: object, keyFactory: Callable, valueFactory: Callable) -> dict[object, object]: return {keyFactory(self):valueFactory(self) for x in range(count)} if count else {}
+
+    # struct : many - struct
+    def readL8SMany(self, clsKey: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, source.readByte())
+    def readL16SMany(self, clsKey: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, source.readUInt16(endian))
+    def readL32SMany(self, clsKey: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, source.readUInt32(endian))
+    def readC32SMany(self, clsKey: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, source.readCInt32(endian))
+    def readSMany(self, clsKey: object, valueFactory: Callable) -> dict[object, object]: return {self.readS(clsKey):valueFactory(self) for x in range(count)} if count else {}
+    
+    # struct : many - type
+    def readL8TMany(self, clsKey: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, source.readByte())
+    def readL16TMany(self, clsKey: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, source.readUInt16(endian))
+    def readL32TMany(self, clsKey: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, source.readUInt32(endian))
+    def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, source.readCInt32(endian))
+    def readTMany(self, clsKey: object, sizeOf: int, valueFactory: Callable) -> dict[object, object]: return {self.readT(clsKey, sizeOf):valueFactory(self) for x in range(count)} if count else {}
+
+    # numerics
+    def readHalf(self) -> float: raise NotImplementedError()
+    def readHalf16(self) -> float: raise NotImplementedError()
+    def readVector2(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle()])
+    def readHalfVector2(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf()])
+    def readVector3(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle(), self.readSingle()])
+    def readHalfVector3(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf(), self.readHalf()])
+    def readHalf16Vector3(self) -> np.ndarray: return np.array([self.readHalf16(), self.readHalf16(), self.readHalf16()])
+    def readVector4(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()])
+    def readHalfVector4(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf()])
+    def readMatrix3x3(self) -> np.ndarray: return np.array([
+        [self.readSingle(), self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle(), self.readSingle()]
+        ])
+    

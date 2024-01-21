@@ -61,7 +61,7 @@ class D3D10_RESOURCE_DIMENSION(Enum):
 
 # DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata.
 class DDS_HEADER_DXT10:
-    struct = (f'<5I', 124)
+    struct = (f'<5I', 20)
     def __init__(self, tuple):
         ddspf = self.ddspf = DDS_PIXELFORMAT()
         self.dxgiFormat, \
@@ -166,7 +166,7 @@ class DDS_HEADER:
         if readMagic:
             magic = r.readUInt32()
             if magic != DDS_HEADER.MAGIC: raise Exception(f'Invalid DDS file magic: "{magic}".')
-        header = r.readT(DDS_HEADER)
+        header = r.readS(DDS_HEADER)
         header._verify()
         ddspf = header.ddspf
         headerDXT10 = r.ReadT(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None

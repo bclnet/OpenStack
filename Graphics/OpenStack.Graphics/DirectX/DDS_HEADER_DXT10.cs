@@ -46,9 +46,9 @@ namespace OpenStack.Graphics.DirectX
     public struct DDS_HEADER_DXT10
     {
         /// <summary>
-        /// The size of
+        /// Struct
         /// </summary>
-        public const int SizeOf = 20;
+        public static (string, int) Struct = ($"<5I", 20);
 
         /// <summary>
         /// The surface pixel format (see DXGI_FORMAT).
