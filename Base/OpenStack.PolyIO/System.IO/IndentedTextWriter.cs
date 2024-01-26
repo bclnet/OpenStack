@@ -20,8 +20,7 @@ namespace System.IO
         /// <summary>
         /// Initializes a new instance of the <see cref="IndentedTextWriter"/> class.
         /// </summary>
-        public IndentedTextWriter()
-            : base(CultureInfo.InvariantCulture)
+        public IndentedTextWriter() : base(CultureInfo.InvariantCulture)
         {
             _writer = new StringWriter(CultureInfo.InvariantCulture);
             indentLevel = 0;

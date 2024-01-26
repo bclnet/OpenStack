@@ -34,6 +34,8 @@ namespace System.IO
         //    source.Read(buffer, startIndex, (int)length);
         //}
 
+        public static StreamReader ToStream(this BinaryReader source) => new StreamReader(source.BaseStream);
+
         #endregion
 
         #region Primitives
