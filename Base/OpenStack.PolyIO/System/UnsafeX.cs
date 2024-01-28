@@ -24,7 +24,7 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe static T MarshalT<T>(byte[] bytes)
         {
-            fixed (byte* src = bytes) return Marshal.PtrToStructure<T>(new IntPtr(src));
+            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>(new IntPtr(_));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,7 +34,7 @@ namespace System
             var isEnum = typeOfT.IsEnum;
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
             var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-            fixed (byte* _ = bytes) UnsafeX.Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
             hresult.Free();
             return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }
@@ -43,7 +43,7 @@ namespace System
             throw new NotImplementedException();
         }
 
-        public static string ReadZASCII(byte* data, int length)
+        public static string FixedAString(byte* data, int length)
         {
             var i = 0;
             while (data[i] != 0 && length-- > 0) i++;
@@ -53,10 +53,10 @@ namespace System
             return Encoding.ASCII.GetString(value);
         }
 
-        public static byte[] ReadBytes(byte* data, int length)
+        public static T[] FixedTArray<T>(T* data, int length)
         {
-            var value = new byte[length];
-            fixed (byte* p = value) for (var i = 0; i < length; i++) p[i] = data[i];
+            var value = new T[length];
+            fixed (T* p = value) for (var i = 0; i < length; i++) p[i] = data[i];
             return value;
         }
 
