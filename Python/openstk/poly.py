@@ -37,7 +37,7 @@ class Reader:
     def length(self): return self.length
     def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
     def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
-
+    def readLine(self) -> str: return self.f.readline().decode('utf-8')
 
     # primatives : normal
     def readDouble(self): return float.from_bytes(self.f.read(8), 'little')
@@ -52,14 +52,24 @@ class Reader:
     def readUInt64(self): return int.from_bytes(self.f.read(8), 'little', signed=False)
 
     # primatives : endian
-    def readDoubleE(self, endian: bool = True): return float.from_bytes(self.f.read(8), 'big' if endian else 'little')
-    def readInt16E(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
-    def readInt32E(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
-    def readInt64E(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
-    def readSingleE(self, endian: bool = True): return float.from_bytes(self.f.read(4), 'big' if endian else 'little')
-    def readUInt16E(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
-    def readUInt32E(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
-    def readUInt64E(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
+    def readDoubleE(self): return float.from_bytes(self.f.read(8), 'big')
+    def readInt16E(self): return int.from_bytes(self.f.read(2), 'big', signed=True)
+    def readInt32E(self): return int.from_bytes(self.f.read(4), 'big', signed=True)
+    def readInt64E(self): return int.from_bytes(self.f.read(8), 'big', signed=True)
+    def readSingleE(self): return float.from_bytes(self.f.read(4), 'big')
+    def readUInt16E(self): return int.from_bytes(self.f.read(2), 'big', signed=False)
+    def readUInt32E(self): return int.from_bytes(self.f.read(4), 'big', signed=False)
+    def readUInt64E(self): return int.from_bytes(self.f.read(8), 'big', signed=False)
+
+    # primatives : endianX
+    def readDoubleX(self, endian: bool = True): return float.from_bytes(self.f.read(8), 'big' if endian else 'little')
+    def readInt16X(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
+    def readInt32X(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
+    def readInt64X(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
+    def readSingleX(self, endian: bool = True): return float.from_bytes(self.f.read(4), 'big' if endian else 'little')
+    def readUInt16X(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
+    def readUInt32X(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
+    def readUInt64X(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
 
     # primatives : specialized
     def readBool32(self): return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
