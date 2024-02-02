@@ -390,6 +390,8 @@ namespace System.IO
 
         #region Struct
 
+        //var abc = MemoryMarshal.Cast<byte, ushort>(data);
+
         static byte[] ApplyStruct(byte[] source, string map, int count = 1)
         {
             const string StructMap = "cxbhiq"; const int StructMapIdx = 2;
