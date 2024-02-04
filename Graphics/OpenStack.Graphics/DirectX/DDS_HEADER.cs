@@ -228,11 +228,11 @@ namespace OpenStack.Graphics.DirectX
                 var magic = r.ReadUInt32();
                 if (magic != MAGIC) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
             }
-            header = r.ReadS<DDS_HEADER>(Struct);
+            header = r.ReadS<DDS_HEADER>();
             header.Verify();
             ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
             headerDXT10 = ddspf.dwFourCC == DX10
-                ? r.ReadS<DDS_HEADER_DXT10>(DDS_HEADER_DXT10.Struct)
+                ? r.ReadS<DDS_HEADER_DXT10>()
                 : (DDS_HEADER_DXT10?)null;
             format = ddspf.dwFourCC switch
             {

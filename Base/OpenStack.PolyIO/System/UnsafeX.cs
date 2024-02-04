@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32.SafeHandles;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -21,15 +22,56 @@ namespace System
             _ => Unsafe.CopyBlock,
         };
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe static T MarshalT<T>(byte[] bytes)
+        public static byte[] MarshalSApply(byte[] source, string map, int count = 1)
         {
-            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>(new IntPtr(_));
+            const string StructMap = "cxbhiq"; const int StructMapIdx = 2;
+            if (map[0] == '<') return source;
+            var s = map.ToCharArray();
+            char c;
+            int p = 0, cnt = 0, size;
+            for (var k = 0; k < count; k++)
+                for (var i = 1; i < s.Length; i++)
+                {
+                    c = s[i];
+                    if (char.IsDigit(c)) { cnt = cnt * 10 + c - '0'; continue; }
+                    else if (cnt == 0) cnt = 1;
+                    size = (int)Math.Pow(2, StructMap.IndexOf(c) - StructMapIdx);
+                    if (size <= 0) p += cnt;
+                    else for (var j = 0; j < cnt; j++) { Array.Reverse(source, p, size); p += size; }
+                    cnt = 0;
+                }
+            return source;
+        }
+
+        public class Shape<T>
+        {
+            static (string map, int sizeOf) GetValue()
+                => ((string, int))
+                (typeof(T).GetField("Struct", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                ?? throw new Exception($"{typeof(T).Name} needs a Struct field"))
+                .GetValue(null);
+            public static readonly (string map, int sizeOf) Struct = GetValue();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe static T[] MarshalTArray<T>(byte[] bytes, int count)
+        public static T MarshalT<T>(byte[] bytes) where T : struct
         {
+            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T MarshalS<T>(Func<int, byte[]> bytesFunc) where T : struct
+        {
+            var (map, sizeOf) = Shape<T>.Struct;
+            var bytes = MarshalSApply(bytesFunc(sizeOf), map);
+            //return MemoryMarshal.Cast<byte, T>(bytes)[0];
+            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] MarshalTArray<T>(byte[] bytes, int count) where T : struct
+        {
+            //return MemoryMarshal.Cast<byte, T>(bytes).ToArray();
             var typeOfT = typeof(T);
             var isEnum = typeOfT.IsEnum;
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
@@ -38,7 +80,22 @@ namespace System
             hresult.Free();
             return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }
-        public static byte[] MarshalTArray<T>(T[] values, int count)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count) where T : struct
+        {
+            var (map, sizeOf) = Shape<T>.Struct;
+            var bytes = MarshalSApply(bytesFunc(sizeOf), map);
+            var typeOfT = typeof(T);
+            var isEnum = typeOfT.IsEnum;
+            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            hresult.Free();
+            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
+        }
+
+        public static byte[] MarshalTArray<T>(T[] values, int count) where T : struct
         {
             throw new NotImplementedException();
         }
