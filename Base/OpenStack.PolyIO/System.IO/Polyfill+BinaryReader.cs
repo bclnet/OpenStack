@@ -289,14 +289,14 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadUInt32(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadC32YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadCInt32(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
 
-        public static string ReadZPaddedString(this BinaryReader source, int length, Encoding encoding = null)
+        public static string ReadZString(this BinaryReader source, int length, Encoding encoding = null)
         {
             var buf = source.ReadBytes(length);
             int i;
             for (i = buf.Length - 1; i >= 0 && buf[i] == 0; i--) { }
             return (encoding ?? Encoding.ASCII).GetString(buf, 0, i + 1);
         }
-        public static string ReadZTermatedString(this BinaryReader source, int length, Encoding encoding = null)
+        public static string ReadCString(this BinaryReader source, int length, Encoding encoding = null)
         {
             var buf = source.ReadBytes(length);
             int i;
@@ -318,7 +318,7 @@ namespace System.IO
             return encoding.GetString(s.ToArray());
         }
 
-        public static string[] ReadZStringArray(this BinaryReader source, int count, StringBuilder buf = null)
+        public static string[] ReadCStringArray(this BinaryReader source, int count, StringBuilder buf = null)
         {
             if (buf == null) buf = new StringBuilder();
             var list = new List<string>();
