@@ -35,7 +35,7 @@ namespace System
                     c = s[i];
                     if (char.IsDigit(c)) { cnt = cnt * 10 + c - '0'; continue; }
                     else if (cnt == 0) cnt = 1;
-                    size = (int)Math.Pow(2, StructMap.IndexOf(c) - StructMapIdx);
+                    size = (int)Math.Pow(2, StructMap.IndexOf(char.ToLower(c)) - StructMapIdx);
                     if (size <= 0) p += cnt;
                     else for (var j = 0; j < cnt; j++) { Array.Reverse(source, p, size); p += size; }
                     cnt = 0;

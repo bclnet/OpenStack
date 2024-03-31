@@ -28,6 +28,7 @@ namespace OpenStack.Graphics
             public int MipMaps { get; set; }
             public TextureFlags Flags { get; set; }
 
+            public void Select(int id) { }
             public byte[] Begin(int platform, out object format, out Range[] mips)
             {
                 format = null;

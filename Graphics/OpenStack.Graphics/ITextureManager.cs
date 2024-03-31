@@ -927,6 +927,7 @@ namespace OpenStack.Graphics
         int MipMaps { get; }
         TextureFlags Flags { get; }
 
+        void Select(int id);
         byte[] Begin(int platform, out object format, out Range[] mips);
         void End();
     }
