@@ -3,7 +3,7 @@ from typing import Callable
 from struct import unpack
 from io import BytesIO
 
-moduleRoot = 'gamespecs'
+moduleRoot = 'gamex'
 
 # finds a type
 @staticmethod
