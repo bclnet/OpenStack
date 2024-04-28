@@ -60,6 +60,14 @@ namespace System
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] MarshalT<T>(T value, int sizeOf) where T : struct
+        {
+            var bytes = new byte[sizeOf];
+            fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
+            return bytes;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T MarshalS<T>(Func<int, byte[]> bytesFunc) where T : struct
         {
             var (map, sizeOf) = Shape<T>.Struct;
@@ -67,6 +75,13 @@ namespace System
             //return MemoryMarshal.Cast<byte, T>(bytes)[0];
             fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] MarshalS<T>(T value, Func<int, byte[]> bytesFunc) where T : struct
+        {
+            return null;
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] MarshalTArray<T>(byte[] bytes, int count) where T : struct
