@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace System.Collections.Generic
 {
@@ -39,7 +40,22 @@ namespace System.Collections.Generic
             finally { Release(item); }
         }
 
+        public Task ActionAsync(Action<T> action)
+        {
+            var item = Get();
+            try { action(item); }
+            finally { Release(item); }
+            return Task.CompletedTask;
+        }
+
         public TResult Func<TResult>(Func<T, TResult> action)
+        {
+            var item = Get();
+            try { return action(item); }
+            finally { Release(item); }
+        }
+
+        public Task<TResult> FuncAsync<TResult>(Func<T, Task<TResult>> action)
         {
             var item = Get();
             try { return action(item); }
