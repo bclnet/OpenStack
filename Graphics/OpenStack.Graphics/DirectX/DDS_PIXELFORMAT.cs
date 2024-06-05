@@ -60,7 +60,7 @@ namespace OpenStack.Graphics.DirectX
     /// <summary>
     /// Surface pixel format.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 0x1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct DDS_PIXELFORMAT
     {
         public const int SizeOf = 32;

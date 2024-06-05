@@ -42,7 +42,7 @@ namespace OpenStack.Graphics.DirectX
     /// <summary>
     /// DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 0x1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct DDS_HEADER_DXT10
     {
         /// <summary>

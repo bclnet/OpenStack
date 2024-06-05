@@ -127,7 +127,7 @@ namespace OpenStack.Graphics.DirectX
     /// <summary>
     /// Describes a DDS file header.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 0x1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public unsafe struct DDS_HEADER
     {
         //public static uint MAKEFOURCC(string text) => ((uint)(byte)(text[0]) | ((uint)(byte)(text[1]) << 8) | ((uint)(byte)(text[2]) << 16 | ((uint)(byte)(text[3]) << 24)));
