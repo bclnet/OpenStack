@@ -12,9 +12,6 @@ namespace System.IO
 {
     public static partial class Polyfill
     {
-        // USE THIS?
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadBytesE(this BinaryReader source, int count, int sizeOf, bool endian = true) { var bytes = source.ReadBytes(count); if (!endian) return bytes; for (var i = 0; i < bytes.Length; i += sizeOf) Array.Reverse(bytes, i, sizeOf); return bytes; }
-
         #region Base
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -399,21 +396,21 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => MarshalT<T>(source.ReadBytes(sizeOf));
 
         // Struct : Array - Factory
-        public static T[] ReadL8FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, source.ReadByte());
+        public static T[] ReadL8FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory) => source.ReadFArray(factory, source.ReadByte());
         public static T[] ReadL16FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, source.ReadUInt16X(endian));
         public static T[] ReadL32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, (int)source.ReadUInt32X(endian));
         public static T[] ReadC32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, (int)source.ReadCInt32X(endian));
         public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
 
         // Struct : Array - Struct
-        public static T[] ReadL8SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>(source.ReadByte());
+        public static T[] ReadL8SArray<T>(this BinaryReader source) where T : struct => source.ReadSArray<T>(source.ReadByte());
         public static T[] ReadL16SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>(source.ReadUInt16X(endian));
         public static T[] ReadL32SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadUInt32X(endian));
         public static T[] ReadC32SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadCInt32X(endian));
         public static T[] ReadSArray<T>(this BinaryReader source, int count) where T : struct => count > 0 ? MarshalSArray<T>(sizeOf => source.ReadBytes(sizeOf * count), count) : new T[0];
 
         // Struct : Array - Type
-        public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadByte());
+        public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadByte());
         public static T[] ReadL16TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadUInt16X(endian));
         public static T[] ReadL32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadUInt32X(endian));
         public static T[] ReadC32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadCInt32X(endian));
