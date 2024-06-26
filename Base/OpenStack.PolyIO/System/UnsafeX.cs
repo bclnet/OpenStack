@@ -82,7 +82,6 @@ namespace System
             return null;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] MarshalTArray<T>(byte[] bytes, int count) where T : struct
         {
@@ -130,6 +129,24 @@ namespace System
             var value = new T[length];
             fixed (T* p = value) for (var i = 0; i < length; i++) p[i] = data[i];
             return value;
+        }
+
+        public static int Atoi(string data)
+        {
+            int n = 0; bool neg = false;
+            fixed (char* _ = data)
+            {
+                var s = _;
+                var send = s + data.Length;
+                while (s != send && char.IsWhiteSpace(*s)) s++;
+                switch (*s)
+                {
+                    case '-': neg = true; s++; break;
+                    case '+': s++; break;
+                }
+                while (s != send && char.IsDigit(*s)) n = 10 * n - (*s++ - '0');
+                return neg ? n : -n;
+            }
         }
 
         //[UnmanagedFunctionPointer(CallingConvention.Cdecl)] public delegate int QuickSortComparDelegate(void* a, void* b);
