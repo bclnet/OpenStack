@@ -9,7 +9,7 @@ class Shader: pass
 
 # IObjectManager
 class IObjectManager:
-    def createObject(path: str) -> (Object, dict[str, object]): pass
+    def createObject(path: str) -> (Object, Object): pass
     def preloadObject(path: str) -> None: pass
 
 # IModel
@@ -36,7 +36,7 @@ class ITextureManager:
     defaultTexture: Texture
     def buildSolidTexture(width: int, height: int, rgba: list[float]) -> Texture: pass
     def buildNormalMap(source: Texture, strength: float) -> Texture: pass
-    def loadTexture(key: object, rng: range = None) -> (Texture, dict[str, object]): pass
+    def loadTexture(key: object, rng: range = None) -> (Texture, Object): pass
     def preloadTexture(path: str) -> None: pass
     def deleteTexture(key: object) -> None: pass
 

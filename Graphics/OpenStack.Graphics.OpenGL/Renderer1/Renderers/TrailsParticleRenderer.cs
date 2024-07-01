@@ -43,9 +43,10 @@ namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
 
             if (textureName != null)
             {
-                var texture = graphic.LoadTexture(textureName, out var info);
+                var texture = graphic.LoadTexture(textureName, out var tag);
                 _texture = texture;
-                _textureSequences = info?.Get<TextureSequences>("sequences");
+                if (tag is IDictionary<string, object> info)
+                    _textureSequences = info.Get<TextureSequences>("sequences");
             }
             else _texture = graphic.TextureManager.DefaultTexture;
 

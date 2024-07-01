@@ -21,7 +21,7 @@ namespace OpenStack.Graphics
         class TextureOpaque : ITexture
         {
             internal byte[] Bytes;
-            public IDictionary<string, object> Data { get; set; }
+            public IDictionary<string, object> Data2 { get; set; }
             public int Width { get; set; }
             public int Height { get; set; }
             public int Depth { get; set; }

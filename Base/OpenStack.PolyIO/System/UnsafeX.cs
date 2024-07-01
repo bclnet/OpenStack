@@ -1,7 +1,6 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -12,6 +11,26 @@ namespace System
     [SuppressUnmanagedCodeSecurity]
     public unsafe static class UnsafeX
     {
+        //static UnsafeX()
+        //{
+        //    var dynamicMethod = new DynamicMethod("Memset", MethodAttributes.Public | MethodAttributes.Static, CallingConventions.Standard, null, new[] { typeof(IntPtr), typeof(byte), typeof(int) }, typeof(UnsafeX), true);
+        //    var b = dynamicMethod.GetILGenerator();
+        //    b.Emit(OpCodes.Ldarg_0);
+        //    b.Emit(OpCodes.Ldarg_1);
+        //    b.Emit(OpCodes.Ldarg_2);
+        //    b.Emit(OpCodes.Initblk);
+        //    b.Emit(OpCodes.Ret);
+        //    MemsetDelegate = (Action<IntPtr, byte, int>)dynamicMethod.CreateDelegate(typeof(Action<IntPtr, byte, int>));
+        //}
+
+        //static Action<IntPtr, byte, int> MemsetDelegate;
+        //public static void Memset(byte[] array, byte what, int length)
+        //{
+        //    var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
+        //    MemsetDelegate(gcHandle.AddrOfPinnedObject(), what, length);
+        //    gcHandle.Free();
+        //}
+
         [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern unsafe static void msvcrt_memcpy(void* dest, void* src, uint count);
         [DllImport("libc.so", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] extern unsafe static void libc_memcpy(void* dest, void* src, uint count);
         public delegate void MemcpyDelgate(void* dest, void* src, uint count);
@@ -43,14 +62,14 @@ namespace System
             return source;
         }
 
-        public class Shape<T>
+        public static class Shape<T>
         {
+            public static readonly (string map, int sizeOf) Struct = GetValue();
             static (string map, int sizeOf) GetValue()
                 => ((string, int))
                 (typeof(T).GetField("Struct", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 ?? throw new Exception($"{typeof(T).Name} needs a Struct field"))
                 .GetValue(null);
-            public static readonly (string map, int sizeOf) Struct = GetValue();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,9 +90,9 @@ namespace System
         public static T MarshalS<T>(Func<int, byte[]> bytesFunc) where T : struct
         {
             var (map, sizeOf) = Shape<T>.Struct;
-            var bytes = MarshalSApply(bytesFunc(sizeOf), map);
-            //return MemoryMarshal.Cast<byte, T>(bytes)[0];
-            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
+            byte[] bytes = bytesFunc(sizeOf), bytes2 = map[0] == '<' ? bytes : MarshalSApply(bytes, map);
+            fixed (byte* _ = bytes2) return Marshal.PtrToStructure<T>((IntPtr)_);
+            //return MemoryMarshal.Cast<byte, T>(bytes2)[0];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -99,12 +118,12 @@ namespace System
         public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count) where T : struct
         {
             var (map, sizeOf) = Shape<T>.Struct;
-            var bytes = MarshalSApply(bytesFunc(sizeOf), map);
+            byte[] bytes = bytesFunc(sizeOf), bytes2 = map[0] == '<' ? bytes : MarshalSApply(bytes, map);
             var typeOfT = typeof(T);
             var isEnum = typeOfT.IsEnum;
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
             var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            fixed (byte* _ = bytes2) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes2.Length);
             hresult.Free();
             return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }

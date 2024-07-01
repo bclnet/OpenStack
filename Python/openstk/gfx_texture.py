@@ -499,7 +499,6 @@ class TextureGLFormat(Enum):
 
 # ITexture
 class ITexture:
-    data: dict[str, object]
     width: int
     height: int
     depth: int
