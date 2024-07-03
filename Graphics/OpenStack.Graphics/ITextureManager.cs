@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace OpenStack.Graphics
 {
@@ -926,9 +924,26 @@ namespace OpenStack.Graphics
         int MipMaps { get; }
         TextureFlags Flags { get; }
 
-        void Select(int id);
         byte[] Begin(int platform, out object format, out Range[] mips);
         void End();
+    }
+
+    /// <summary>
+    /// ITexture
+    /// </summary>
+    public interface ITextureSelect : ITexture
+    {
+        void Select(int id);
+    }
+
+    /// <summary>
+    /// ITexture
+    /// </summary>
+    public interface ITextureVideo : ITexture
+    {
+        int Fps { get; }
+        bool HasFrames { get; }
+        bool DecodeFrame();
     }
 
     /// <summary>

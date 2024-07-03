@@ -1,5 +1,4 @@
-﻿using OpenStack.Graphics.OpenGL;
-using OpenStack.Graphics.OpenGL.Renderer1;
+﻿using OpenStack.Graphics.OpenGL.Renderer1;
 using OpenStack.Graphics.Renderer1;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -35,7 +34,17 @@ namespace OpenStack.Graphics.Controls
             if (ShowConsole && !IsInDesignMode) ConsoleManager.Show();
         }
 
-        void OnTimerElapsed(object sender, EventArgs e) => Update();
+        public virtual void OnTick(int elapsedMs) { }
+
+        long _lastElapsedMs;
+        void OnTick(object sender, EventArgs e)
+        {
+            var elapsedMs = (int)(_stopwatch.ElapsedMilliseconds - _lastElapsedMs);
+            if (elapsedMs < 0) return;
+            OnTick(elapsedMs);
+            _lastElapsedMs = elapsedMs;
+            Update();
+        }
 
         //void SetFps(double fps) => Console.WriteLine($"FPS: {Math.Round(fps)}");
 
@@ -60,8 +69,9 @@ namespace OpenStack.Graphics.Controls
         {
             base.AttachHandle(hwnd);
             IsVisibleChanged += OnIsVisibleChanged;
-            _timer.Tick += OnTimerElapsed;
+            _timer.Tick += OnTick;
             _timer.Start();
+            OnTick(0);
             if (!HasValidContext) return;
 
             MakeCurrent();
@@ -79,7 +89,7 @@ namespace OpenStack.Graphics.Controls
         protected override void DestroyHandle(HandleRef hwnd)
         {
             IsVisibleChanged -= OnIsVisibleChanged;
-            _timer.Tick -= OnTimerElapsed;
+            _timer.Tick -= OnTick;
             _timer.Stop();
             base.DestroyHandle(hwnd);
         }
@@ -90,7 +100,7 @@ namespace OpenStack.Graphics.Controls
             else base.OnRender(drawingContext);
         }
 
-        void Draw()
+        protected void Draw()
         {
             if (Visibility != Visibility.Visible) return;
 

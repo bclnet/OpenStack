@@ -21,14 +21,12 @@ namespace OpenStack.Graphics
         class TextureOpaque : ITexture
         {
             internal byte[] Bytes;
-            public IDictionary<string, object> Data2 { get; set; }
             public int Width { get; set; }
             public int Height { get; set; }
             public int Depth { get; set; }
             public int MipMaps { get; set; }
             public TextureFlags Flags { get; set; }
 
-            public void Select(int id) { }
             public byte[] Begin(int platform, out object format, out Range[] mips)
             {
                 format = null;
