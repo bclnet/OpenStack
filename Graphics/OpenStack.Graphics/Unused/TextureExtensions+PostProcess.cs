@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using System.Diagnostics;
 
 namespace OpenStack.Graphics
@@ -44,3 +45,4 @@ namespace OpenStack.Graphics
         }
     }
 }
+#endif

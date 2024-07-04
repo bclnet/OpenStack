@@ -180,80 +180,6 @@ class TextureUnrealFormat(Enum):
     P010 = 86
     MAX = 87
 
-# TextureGLPixelFormat
-class TextureGLPixelFormat(Enum):
-    Unknown = 0
-    UnsignedShort = 0x1403 # GL_UNSIGNED_SHORT = 0x1403
-    UnsignedInt = 0x1405 # GL_UNSIGNED_INT = 0x1405
-    ColorIndex = 0x1900 # GL_COLOR_INDEX = 0x1900
-    StencilIndex = 0x1901 # GL_STENCIL_INDEX = 0x1901
-    DepthComponent = 0x1902 # GL_DEPTH_COMPONENT = 0x1902
-    Red = 0x1903 # GL_RED = 0x1903
-    RedExt = 0x1903 # GL_RED_EXT = 0x1903
-    Green = 0x1904 # GL_GREEN = 0x1904
-    Blue = 0x1905 # GL_BLUE = 0x1905
-    Alpha = 0x1906 # GL_ALPHA = 0x1906
-    Rgb = 0x1907 # GL_RGB = 0x1907
-    Rgba = 0x1908 # GL_RGBA = 0x1908
-    Luminance = 0x1909 # GL_LUMINANCE = 0x1909
-    LuminanceAlpha = 0x190A # GL_LUMINANCE_ALPHA = 0x190A
-    AbgrExt = 0x8000 # GL_ABGR_EXT = 0x8000
-    CmykExt = 0x800C # GL_CMYK_EXT = 0x800C
-    CmykaExt = 0x800D # GL_CMYKA_EXT = 0x800D
-    Bgr = 0x80E0 # GL_BGR = 0x80E0
-    Bgra = 0x80E1 # GL_BGRA = 0x80E1
-    Ycrcb422Sgix = 0x81BB # GL_YCRCB_422_SGIX = 0x81BB
-    Ycrcb444Sgix = 0x81BC # GL_YCRCB_444_SGIX = 0x81BC
-    Rg = 0x8227 # GL_RG = 0x8227
-    RgInteger = 0x8228 # GL_RG_INTEGER = 0x8228
-    R5G6B5IccSgix = 0x8466 # GL_R5_G6_B5_ICC_SGIX = 0x8466
-    R5G6B5A8IccSgix = 0x8467 # GL_R5_G6_B5_A8_ICC_SGIX = 0x8467
-    Alpha16IccSgix = 0x8468 # GL_ALPHA16_ICC_SGIX = 0x8468
-    Luminance16IccSgix = 0x8469 # GL_LUMINANCE16_ICC_SGIX = 0x8469
-    Luminance16Alpha8IccSgix = 0x846B # GL_LUMINANCE16_ALPHA8_ICC_SGIX = 0x846B
-    DepthStencil = 0x84F9 # GL_DEPTH_STENCIL = 0x84F9
-    RedInteger = 0x8D94 # GL_RED_INTEGER = 0x8D94
-    GreenInteger = 0x8D95 # GL_GREEN_INTEGER = 0x8D95 
-    BlueInteger = 0x8D96 # GL_BLUE_INTEGER = 0x8D96
-    AlphaInteger = 0x8D97 # GL_ALPHA_INTEGER = 0x8D97
-    RgbInteger = 0x8D98 # GL_RGB_INTEGER = 0x8D98
-    RgbaInteger = 0x8D99 # GL_RGBA_INTEGER = 0x8D99
-    BgrInteger = 0x8D9A # GL_BGR_INTEGER = 0x8D9A
-    BgraInteger = 0x8D9B # GL_BGRA_INTEGER = 0x8D9B 
-
-# TextureGLPixelType
-class TextureGLPixelType(Enum):
-    Byte = 0x1400 # GL_BYTE = 0x1400
-    UnsignedByte = 0x1401 # GL_UNSIGNED_BYTE = 0x1401
-    Short = 0x1402 # GL_SHORT = 0x1402
-    UnsignedShort = 0x1403 # GL_UNSIGNED_SHORT = 0x1403
-    Int = 0x1404 # GL_INT = 0x1404
-    UnsignedInt = 0x1405 # GL_UNSIGNED_INT = 0x1405
-    Float = 0x1406 # GL_FLOAT = 0x1406
-    HalfFloat = 0x140B # GL_HALF_FLOAT = 0x140B
-    Bitmap = 0x1A00 # GL_BITMAP = 0x1A00
-    UnsignedByte332 = 0x8032 # GL_UNSIGNED_BYTE_3_3_2 = 0x8032
-    UnsignedByte332Ext = 0x8032 # GL_UNSIGNED_BYTE_3_3_2_EXT = 0x8032
-    UnsignedShort4444 = 0x8033 # GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033
-    UnsignedShort4444Ext = 0x8033 # GL_UNSIGNED_SHORT_4_4_4_4_EXT = 0x8033
-    UnsignedShort5551 = 0x8034 # GL_UNSIGNED_SHORT_5_5_5_1 = 0x8034
-    UnsignedShort5551Ext = 0x8034 # GL_UNSIGNED_SHORT_5_5_5_1_EXT = 0x8034
-    UnsignedInt8888 = 0x8035 # GL_UNSIGNED_INT_8_8_8_8 = 0x8035
-    UnsignedInt8888Ext = 0x8035 # GL_UNSIGNED_INT_8_8_8_8_EXT = 0x8035
-    UnsignedInt1010102 = 0x8036 # GL_UNSIGNED_INT_10_10_10_2 = 0x8036
-    UnsignedInt1010102Ext = 0x8036 # GL_UNSIGNED_INT_10_10_10_2_EXT = 0x8036
-    UnsignedByte233Reversed = 0x8362 # GL_UNSIGNED_BYTE_2_3_3_REVERSED = 0x8362
-    UnsignedShort565 = 0x8363 # GL_UNSIGNED_SHORT_5_6_5 = 0x8363
-    UnsignedShort565Reversed = 0x8364 # GL_UNSIGNED_SHORT_5_6_5_REVERSED = 0x8364
-    UnsignedShort4444Reversed = 0x8365 # GL_UNSIGNED_SHORT_4_4_4_4_REVERSED = 0x8365
-    UnsignedShort1555Reversed = 0x8366 # GL_UNSIGNED_SHORT_1_5_5_5_REVERSED = 0x8366
-    UnsignedInt8888Reversed = 0x8367 # GL_UNSIGNED_INT_8_8_8_8_REVERSED = 0x8367
-    UnsignedInt2101010Reversed = 0x8368 # GL_UNSIGNED_INT_2_10_10_10_REVERSED = 0x8368
-    UnsignedInt248 = 0x84FA # GL_UNSIGNED_INT_24_8 = 0x84FA
-    UnsignedInt10F11F11FRev = 0x8C3B # GL_UNSIGNED_INT_10F_11F_11F_REV = 0x8C3B
-    UnsignedInt5999Rev = 0x8C3E # GL_UNSIGNED_INT_5_9_9_9_REV = 0x8C3E
-    Float32UnsignedInt248Rev = 0x8DAD # GL_FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8DAD
-
 # TextureGLFormat
 class TextureGLFormat(Enum):
     DepthComponent = 0x1902 # GL_DEPTH_COMPONENT = 0x1902
@@ -497,6 +423,80 @@ class TextureGLFormat(Enum):
     CompressedRgba8Etc2Eac = 0x9278 # GL_COMPRESSED_RGBA8_ETC2_EAC = 0x9278 (compress only)
     CompressedSrgb8Alpha8Etc2Eac = 0x9279 # GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC = 0x9279 (compress only)
 
+# TextureGLPixelFormat
+class TextureGLPixelFormat(Enum):
+    Unknown = 0
+    UnsignedShort = 0x1403 # GL_UNSIGNED_SHORT = 0x1403
+    UnsignedInt = 0x1405 # GL_UNSIGNED_INT = 0x1405
+    ColorIndex = 0x1900 # GL_COLOR_INDEX = 0x1900
+    StencilIndex = 0x1901 # GL_STENCIL_INDEX = 0x1901
+    DepthComponent = 0x1902 # GL_DEPTH_COMPONENT = 0x1902
+    Red = 0x1903 # GL_RED = 0x1903
+    RedExt = 0x1903 # GL_RED_EXT = 0x1903
+    Green = 0x1904 # GL_GREEN = 0x1904
+    Blue = 0x1905 # GL_BLUE = 0x1905
+    Alpha = 0x1906 # GL_ALPHA = 0x1906
+    Rgb = 0x1907 # GL_RGB = 0x1907
+    Rgba = 0x1908 # GL_RGBA = 0x1908
+    Luminance = 0x1909 # GL_LUMINANCE = 0x1909
+    LuminanceAlpha = 0x190A # GL_LUMINANCE_ALPHA = 0x190A
+    AbgrExt = 0x8000 # GL_ABGR_EXT = 0x8000
+    CmykExt = 0x800C # GL_CMYK_EXT = 0x800C
+    CmykaExt = 0x800D # GL_CMYKA_EXT = 0x800D
+    Bgr = 0x80E0 # GL_BGR = 0x80E0
+    Bgra = 0x80E1 # GL_BGRA = 0x80E1
+    Ycrcb422Sgix = 0x81BB # GL_YCRCB_422_SGIX = 0x81BB
+    Ycrcb444Sgix = 0x81BC # GL_YCRCB_444_SGIX = 0x81BC
+    Rg = 0x8227 # GL_RG = 0x8227
+    RgInteger = 0x8228 # GL_RG_INTEGER = 0x8228
+    R5G6B5IccSgix = 0x8466 # GL_R5_G6_B5_ICC_SGIX = 0x8466
+    R5G6B5A8IccSgix = 0x8467 # GL_R5_G6_B5_A8_ICC_SGIX = 0x8467
+    Alpha16IccSgix = 0x8468 # GL_ALPHA16_ICC_SGIX = 0x8468
+    Luminance16IccSgix = 0x8469 # GL_LUMINANCE16_ICC_SGIX = 0x8469
+    Luminance16Alpha8IccSgix = 0x846B # GL_LUMINANCE16_ALPHA8_ICC_SGIX = 0x846B
+    DepthStencil = 0x84F9 # GL_DEPTH_STENCIL = 0x84F9
+    RedInteger = 0x8D94 # GL_RED_INTEGER = 0x8D94
+    GreenInteger = 0x8D95 # GL_GREEN_INTEGER = 0x8D95 
+    BlueInteger = 0x8D96 # GL_BLUE_INTEGER = 0x8D96
+    AlphaInteger = 0x8D97 # GL_ALPHA_INTEGER = 0x8D97
+    RgbInteger = 0x8D98 # GL_RGB_INTEGER = 0x8D98
+    RgbaInteger = 0x8D99 # GL_RGBA_INTEGER = 0x8D99
+    BgrInteger = 0x8D9A # GL_BGR_INTEGER = 0x8D9A
+    BgraInteger = 0x8D9B # GL_BGRA_INTEGER = 0x8D9B 
+
+# TextureGLPixelType
+class TextureGLPixelType(Enum):
+    Byte = 0x1400 # GL_BYTE = 0x1400
+    UnsignedByte = 0x1401 # GL_UNSIGNED_BYTE = 0x1401
+    Short = 0x1402 # GL_SHORT = 0x1402
+    UnsignedShort = 0x1403 # GL_UNSIGNED_SHORT = 0x1403
+    Int = 0x1404 # GL_INT = 0x1404
+    UnsignedInt = 0x1405 # GL_UNSIGNED_INT = 0x1405
+    Float = 0x1406 # GL_FLOAT = 0x1406
+    HalfFloat = 0x140B # GL_HALF_FLOAT = 0x140B
+    Bitmap = 0x1A00 # GL_BITMAP = 0x1A00
+    UnsignedByte332 = 0x8032 # GL_UNSIGNED_BYTE_3_3_2 = 0x8032
+    UnsignedByte332Ext = 0x8032 # GL_UNSIGNED_BYTE_3_3_2_EXT = 0x8032
+    UnsignedShort4444 = 0x8033 # GL_UNSIGNED_SHORT_4_4_4_4 = 0x8033
+    UnsignedShort4444Ext = 0x8033 # GL_UNSIGNED_SHORT_4_4_4_4_EXT = 0x8033
+    UnsignedShort5551 = 0x8034 # GL_UNSIGNED_SHORT_5_5_5_1 = 0x8034
+    UnsignedShort5551Ext = 0x8034 # GL_UNSIGNED_SHORT_5_5_5_1_EXT = 0x8034
+    UnsignedInt8888 = 0x8035 # GL_UNSIGNED_INT_8_8_8_8 = 0x8035
+    UnsignedInt8888Ext = 0x8035 # GL_UNSIGNED_INT_8_8_8_8_EXT = 0x8035
+    UnsignedInt1010102 = 0x8036 # GL_UNSIGNED_INT_10_10_10_2 = 0x8036
+    UnsignedInt1010102Ext = 0x8036 # GL_UNSIGNED_INT_10_10_10_2_EXT = 0x8036
+    UnsignedByte233Reversed = 0x8362 # GL_UNSIGNED_BYTE_2_3_3_REVERSED = 0x8362
+    UnsignedShort565 = 0x8363 # GL_UNSIGNED_SHORT_5_6_5 = 0x8363
+    UnsignedShort565Reversed = 0x8364 # GL_UNSIGNED_SHORT_5_6_5_REVERSED = 0x8364
+    UnsignedShort4444Reversed = 0x8365 # GL_UNSIGNED_SHORT_4_4_4_4_REVERSED = 0x8365
+    UnsignedShort1555Reversed = 0x8366 # GL_UNSIGNED_SHORT_1_5_5_5_REVERSED = 0x8366
+    UnsignedInt8888Reversed = 0x8367 # GL_UNSIGNED_INT_8_8_8_8_REVERSED = 0x8367
+    UnsignedInt2101010Reversed = 0x8368 # GL_UNSIGNED_INT_2_10_10_10_REVERSED = 0x8368
+    UnsignedInt248 = 0x84FA # GL_UNSIGNED_INT_24_8 = 0x84FA
+    UnsignedInt10F11F11FRev = 0x8C3B # GL_UNSIGNED_INT_10F_11F_11F_REV = 0x8C3B
+    UnsignedInt5999Rev = 0x8C3E # GL_UNSIGNED_INT_5_9_9_9_REV = 0x8C3E
+    Float32UnsignedInt248Rev = 0x8DAD # GL_FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8DAD
+
 # ITexture
 class ITexture:
     width: int
@@ -507,8 +507,18 @@ class ITexture:
     def begin(self, platform: int) -> (bytes, object, list[object]): pass
     def end(self) -> None: pass
 
+# ITextureSelect
+class ITextureSelect(ITexture):
+    def select(self, platform: int) -> None: pass
+
+# ITextureVideo
+class ITextureVideo(ITexture):
+    fps: int
+    hasFrames: bool
+    def decodeFrame(self) -> bool: pass
+
 # ITextureMultiple
 class ITextureMultiple:
     fps: int
     frameMaxIndex: int
-    def frameSelect(index: int) -> None: pass
+    def frameSelect(self, index: int) -> None: pass

@@ -1,6 +1,7 @@
+#if false
 using System.IO;
 
-namespace OpenStack.Graphics.DirectX
+namespace OpenStack.Graphics.DirectX_
 {
     public static class DxtUtil
     {
@@ -201,3 +202,4 @@ namespace OpenStack.Graphics.DirectX
         }
     }
 }
+#endif

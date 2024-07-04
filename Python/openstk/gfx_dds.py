@@ -3,9 +3,11 @@ from enum import Enum, Flag
 from openstk.poly import Reader
 from openstk.gfx_texture import TextureGLFormat, TextureUnityFormat, TextureUnrealFormat
 
+# forwards
 class DDS_HEADER: pass
 
 #region DDS_PIXELFORMAT
+# https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-pixelformat
 
 # FourCC
 class FourCC(Enum):
@@ -20,30 +22,32 @@ class FourCC(Enum):
     A2XY = 0x59583241       # A2XY
     DX10 = 0x30315844       # DX10
 
-# Values which indicate what type of data is in the surface.
+# Values which indicate what type of data is in the surface
 class DDPF(Flag):
-    ALPHAPIXELS = 0x00000001    # Texture contains alpha data; dwRGBAlphaBitMask contains valid data.
+    ALPHAPIXELS = 0x00000001    # Texture contains alpha data; dwRGBAlphaBitMask contains valid data
     ALPHA = 0x00000002          # Used in some older DDS files for alpha channel only uncompressed data (dwRGBBitCount contains the alpha channel bitcount; dwABitMask contains valid data)
-    FOURCC = 0x00000004         # Texture contains compressed RGB data; dwFourCC contains valid data.
-    RGB = 0x00000040            # Texture contains uncompressed RGB data; dwRGBBitCount and the RGB masks (dwRBitMask, dwGBitMask, dwBBitMask) contain valid data.
+    FOURCC = 0x00000004         # Texture contains compressed RGB data; dwFourCC contains valid data
+    RGB = 0x00000040            # Texture contains uncompressed RGB data; dwRGBBitCount and the RGB masks (dwRBitMask, dwGBitMask, dwBBitMask) contain valid data
     YUV = 0x00000200            # Used in some older DDS files for YUV uncompressed data (dwRGBBitCount contains the YUV bit count; dwRBitMask contains the Y mask, dwGBitMask contains the U mask, dwBBitMask contains the V mask)
-    LUMINANCE = 0x00020000      # Used in some older DDS files for single channel color uncompressed data (dwRGBBitCount contains the luminance channel bit count; dwRBitMask contains the channel mask). Can be combined with DDPF_ALPHAPIXELS for a two channel DDS file.
+    LUMINANCE = 0x00020000      # Used in some older DDS files for single channel color uncompressed data (dwRGBBitCount contains the luminance channel bit count; dwRBitMask contains the channel mask). Can be combined with DDPF_ALPHAPIXELS for a two channel DDS file
     NORMAL = 0x80000000         # The normal
 
 # Surface pixel format.
 class DDS_PIXELFORMAT:
-    dwSize:int              # Structure size; set to 32 (bytes).
-    dwFlags:DDPF            # Values which indicate what type of data is in the surface.
-    dwFourCC:FourCC         # Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC.
-    dwRGBBitCount:int       # Number of bits in an RGB (possibly including alpha) format. Valid when dwFlags includes DDPF_RGB, DDPF_LUMINANCE, or DDPF_YUV.
-    dwRBitMask:int          # Red (or lumiannce or Y) mask for reading color data. For instance, given the A8R8G8B8 format, the red mask would be 0x00ff0000.
-    dwGBitMask:int          # Green (or U) mask for reading color data. For instance, given the A8R8G8B8 format, the green mask would be 0x0000ff00.
-    dwBBitMask:int          # Blue (or V) mask for reading color data. For instance, given the A8R8G8B8 format, the blue mask would be 0x000000ff.
-    dwABitMask:int          # Alpha mask for reading alpha data. dwFlags must include DDPF_ALPHAPIXELS or DDPF_ALPHA. For instance, given the A8R8G8B8 format, the alpha mask would be 0xff000000.
+    dwSize:int              # Structure size; set to 32 (bytes)
+    dwFlags:DDPF            # Values which indicate what type of data is in the surface
+    dwFourCC:FourCC         # Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC
+    dwRGBBitCount:int       # Number of bits in an RGB (possibly including alpha) format. Valid when dwFlags includes DDPF_RGB, DDPF_LUMINANCE, or DDPF_YUV
+    dwRBitMask:int          # Red (or lumiannce or Y) mask for reading color data. For instance, given the A8R8G8B8 format, the red mask would be 0x00ff0000
+    dwGBitMask:int          # Green (or U) mask for reading color data. For instance, given the A8R8G8B8 format, the green mask would be 0x0000ff00
+    dwBBitMask:int          # Blue (or V) mask for reading color data. For instance, given the A8R8G8B8 format, the blue mask would be 0x000000ff
+    dwABitMask:int          # Alpha mask for reading alpha data. dwFlags must include DDPF_ALPHAPIXELS or DDPF_ALPHA. For instance, given the A8R8G8B8 format, the alpha mask would be 0xff000000
 
 #endregion
 
 #region DDS_HEADER_DXT10
+# https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-header-dxt10
+# https://docs.microsoft.com/en-us/windows/win32/api/d3d10/ne-d3d10-d3d10_resource_dimension
 
 class DDS_ALPHA_MODE(Enum):
     ALPHA_MODE_UNKNOWN = 0
@@ -53,22 +57,22 @@ class DDS_ALPHA_MODE(Enum):
     ALPHA_MODE_CUSTOM = 4
 
 class D3D10_RESOURCE_DIMENSION(Enum):
-    UNKNOWN = 0         # Resource is of unknown type.
-    BUFFER = 1          # Resource is a buffer.
-    TEXTURE1D = 2       # Resource is a 1D texture. The dwWidth member of DDS_HEADER specifies the size of the texture. Typically, you set the dwHeight member of DDS_HEADER to 1; you also must set the DDSD_HEIGHT flag in the dwFlags member of DDS_HEADER.
-    TEXTURE2D = 3       # Resource is a 2D texture with an area specified by the dwWidth and dwHeight members of DDS_HEADER. You can also use this type to identify a cube-map texture. For more information about how to identify a cube-map texture, see miscFlag and arraySize members.
-    TEXTURE3D = 4       # Resource is a 3D texture with a volume specified by the dwWidth, dwHeight, and dwDepth members of DDS_HEADER. You also must set the DDSD_DEPTH flag in the dwFlags member of DDS_HEADER.
+    UNKNOWN = 0         # Resource is of unknown type
+    BUFFER = 1          # Resource is a buffer
+    TEXTURE1D = 2       # Resource is a 1D texture. The dwWidth member of DDS_HEADER specifies the size of the texture. Typically, you set the dwHeight member of DDS_HEADER to 1; you also must set the DDSD_HEIGHT flag in the dwFlags member of DDS_HEADER
+    TEXTURE2D = 3       # Resource is a 2D texture with an area specified by the dwWidth and dwHeight members of DDS_HEADER. You can also use this type to identify a cube-map texture. For more information about how to identify a cube-map texture, see miscFlag and arraySize members
+    TEXTURE3D = 4       # Resource is a 3D texture with a volume specified by the dwWidth, dwHeight, and dwDepth members of DDS_HEADER. You also must set the DDSD_DEPTH flag in the dwFlags member of DDS_HEADER
 
-# DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata.
+# DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata
 class DDS_HEADER_DXT10:
     struct = (f'<5I', 20)
     def __init__(self, tuple):
-        ddspf = self.ddspf = DDS_PIXELFORMAT()
         self.dxgiFormat, \
         self.resourceDimension, \
         self.miscFlag, \
         self.arraySize, \
         self.miscFlags2 = tuple
+        # remap
         self.dxgiFormat = DXGI_FORMAT(self.dxgiFormat)
         self.resourceDimension = D3D10_RESOURCE_DIMENSION(self.resourceDimension)
         self.dwCaps2 = DDSCAPS2(self.dwCaps2)
@@ -76,42 +80,44 @@ class DDS_HEADER_DXT10:
 #endregion
 
 #region DDS_HEADER
+# https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-header
+# https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dx-graphics-dds-pguide
 
-# Flags to indicate which members contain valid data.
+# Flags to indicate which members contain valid data
 class DDSD(Flag):
-    CAPS = 0x00000001           # Required in every .dds file.
-    HEIGHT = 0x00000002         # Required in every .dds file.
-    WIDTH = 0x00000004          # Required in every .dds file.
-    PITCH = 0x00000008          # Required when pitch is provided for an uncompressed texture.
-    PIXELFORMAT = 0x00001000    # Required in every .dds file.
-    MIPMAPCOUNT = 0x00020000    # Required in a mipmapped texture.
-    LINEARSIZE = 0x00080000     # Required when pitch is provided for a compressed texture.
-    DEPTH = 0x00800000          # Required in a depth texture.
+    CAPS = 0x00000001           # Required in every .dds file
+    HEIGHT = 0x00000002         # Required in every .dds file
+    WIDTH = 0x00000004          # Required in every .dds file
+    PITCH = 0x00000008          # Required when pitch is provided for an uncompressed texture
+    PIXELFORMAT = 0x00001000    # Required in every .dds file
+    MIPMAPCOUNT = 0x00020000    # Required in a mipmapped texture
+    LINEARSIZE = 0x00080000     # Required when pitch is provided for a compressed texture
+    DEPTH = 0x00800000          # Required in a depth texture
     HEADER_FLAGS_TEXTURE = CAPS | HEIGHT | WIDTH | PIXELFORMAT
     HEADER_FLAGS_MIPMAP = MIPMAPCOUNT
     HEADER_FLAGS_VOLUME = DEPTH
     HEADER_FLAGS_PITCH = PITCH
     HEADER_FLAGS_LINEARSIZE = LINEARSIZE
 
-# Specifies the complexity of the surfaces stored.
+# Specifies the complexity of the surfaces stored
 class DDSCAPS(Flag):
-    COMPLEX = 0x00000008        # Optional; must be used on any file that contains more than one surface (a mipmap, a cubic environment map, or mipmapped volume texture).
+    COMPLEX = 0x00000008        # Optional; must be used on any file that contains more than one surface (a mipmap, a cubic environment map, or mipmapped volume texture)
     TEXTURE = 0x00001000        # Required
-    MIPMAP = 0x00400000         # Optional; should be used for a mipmap.
+    MIPMAP = 0x00400000         # Optional; should be used for a mipmap
     SURFACE_FLAGS_MIPMAP = COMPLEX | MIPMAP
     SURFACE_FLAGS_TEXTURE = TEXTURE
     SURFACE_FLAGS_CUBEMAP = COMPLEX
 
-# Additional detail about the surfaces stored.
+# Additional detail about the surfaces stored
 class DDSCAPS2(Flag):
-    CUBEMAP = 0x00000200            # Required for a cube map.
-    CUBEMAPPOSITIVEX = 0x00000400   # Required when these surfaces are stored in a cube map.
-    CUBEMAPNEGATIVEX = 0x00000800   # Required when these surfaces are stored in a cube map.
-    CUBEMAPPOSITIVEY = 0x00001000   # Required when these surfaces are stored in a cube map.
-    CUBEMAPNEGATIVEY = 0x00002000   # Required when these surfaces are stored in a cube map.
-    CUBEMAPPOSITIVEZ = 0x00004000   # Required when these surfaces are stored in a cube map.
-    CUBEMAPNEGATIVEZ = 0x00008000   # Required when these surfaces are stored in a cube map.
-    VOLUME = 0x00200000             # Required for a volume texture.
+    CUBEMAP = 0x00000200            # Required for a cube map
+    CUBEMAPPOSITIVEX = 0x00000400   # Required when these surfaces are stored in a cube map
+    CUBEMAPNEGATIVEX = 0x00000800   # Required when these surfaces are stored in a cube map
+    CUBEMAPPOSITIVEY = 0x00001000   # Required when these surfaces are stored in a cube map
+    CUBEMAPNEGATIVEY = 0x00002000   # Required when these surfaces are stored in a cube map
+    CUBEMAPPOSITIVEZ = 0x00004000   # Required when these surfaces are stored in a cube map
+    CUBEMAPNEGATIVEZ = 0x00008000   # Required when these surfaces are stored in a cube map
+    VOLUME = 0x00200000             # Required for a volume texture
     CUBEMAP_POSITIVEX = CUBEMAP | CUBEMAPPOSITIVEX
     CUBEMAP_NEGATIVEX = CUBEMAP | CUBEMAPNEGATIVEX
     CUBEMAP_POSITIVEY = CUBEMAP | CUBEMAPPOSITIVEY
@@ -121,9 +127,9 @@ class DDSCAPS2(Flag):
     CUBEMAP_ALLFACES = CUBEMAPPOSITIVEX | CUBEMAPNEGATIVEX | CUBEMAPPOSITIVEY | CUBEMAPNEGATIVEY | CUBEMAPPOSITIVEZ | CUBEMAPNEGATIVEZ
     FLAGS_VOLUME = VOLUME
 
-# Describes a DDS file header.
+# Describes a DDS file header
 class DDS_HEADER:
-    MAGIC = 0x20534444
+    MAGIC = 0x20534444 # DDS_
     struct = (f'<7I44s{"8I"}5I', 124)
     def __init__(self, tuple):
         ddspf = self.ddspf = DDS_PIXELFORMAT()
@@ -148,6 +154,7 @@ class DDS_HEADER:
         self.dwCaps3, \
         self.dwCaps4, \
         self.dwReserved2 = tuple
+        # remap
         self.dwFlags = DDSD(self.dwFlags)
         ddspf.dwFlags = DDPF(ddspf.dwFlags)
         ddspf.dwFourCC = FourCC(ddspf.dwFourCC)
@@ -155,7 +162,7 @@ class DDS_HEADER:
         self.dwCaps2 = DDSCAPS2(self.dwCaps2)
 
     # Verifies this instance
-    def _verify(self):
+    def verify(self):
         if self.dwSize != 124: raise Exception(f'Invalid DDS file header size: {dwSize}.')
         elif not self.dwFlags & (DDSD.HEIGHT | DDSD.WIDTH): raise Exception(f'Invalid DDS file flags: {dwFlags}.')
         elif not self.dwCaps & DDSCAPS.TEXTURE: raise Exception(f'Invalid DDS file caps: {dwCaps}.')
@@ -167,7 +174,7 @@ class DDS_HEADER:
             magic = r.readUInt32()
             if magic != DDS_HEADER.MAGIC: raise Exception(f'Invalid DDS file magic: "{magic}".')
         header = r.readS(DDS_HEADER)
-        header._verify()
+        header.verify()
         ddspf = header.ddspf
         headerDXT10 = r.ReadT(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None
         match ddspf.dwFourCC:
@@ -193,6 +200,7 @@ class DDS_HEADER:
                     case DXGI_FORMAT.BC7_UNORM_SRGB: format = (BC7_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7)
                     case DXGI_FORMAT.R8_UNORM: format = (R8_UNORM, 1, (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), TextureUnityFormat.R8, TextureUnrealFormat.R8)
                     case _: raise Exception(f'Unknown dxgiFormat: 0x{ddspf.dxgiFormat:x}')
+            # BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
             case _: raise Exception(f'Unknown dwFourCC: 0x{ddspf.dwFourCC:x}')
         return r.readToEnd(), header, headerDXT10, format
 
@@ -204,11 +212,16 @@ class DDS_HEADER:
             TextureUnityFormat.RGBA32, \
             TextureUnrealFormat.R8G8B8A8)
 
+    @staticmethod
+    def convertDxt3ToDtx5(data: bytes, width: int, height: int, mipMaps: int) -> None:
+        raise Exception('Not Implemented')
+
 #endregion
 
-#region DIGI_FORMAT
+#region DXGI_FORMAT
+# https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 
-# DirectX Graphics Infrastructure formats.
+# DirectX Graphics Infrastructure formats
 class DXGI_FORMAT(Enum):
     UNKNOWN = 0 # The format is not known.
     R32G32B32A32_TYPELESS = 1 # A four-component, 128-bit typeless format that supports 32 bits per channel including alpha.

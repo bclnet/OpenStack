@@ -1,5 +1,4 @@
 ﻿using OpenStack.Graphics.OpenGL.Renderer1;
-using OpenStack.Graphics.Renderer1;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;

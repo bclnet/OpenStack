@@ -1,4 +1,3 @@
-using OpenStack.Graphics.Renderer1;
 using OpenTK.Graphics.OpenGL;
 
 namespace OpenStack.Graphics.OpenGL.Renderer1

@@ -1,7 +1,9 @@
-﻿using OpenStack.Graphics.Algorithms;
+﻿#if false
+using OpenStack.Graphics.Algorithms;
+using OpenStack.Graphics.DirectX;
 using System;
 
-namespace OpenStack.Graphics.DirectX
+namespace OpenStack.Graphics.DirectX_
 {
     /// <summary>
     /// DirectXExtensions
@@ -27,6 +29,6 @@ namespace OpenStack.Graphics.DirectX
             }
             return result;
         }
-
     }
 }
+#endif

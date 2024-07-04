@@ -2,7 +2,7 @@ import numpy as np
 from typing import Callable
 from enum import Enum, Flag
 from openstk.util import _throw
-from .util import _np_normalize
+from util import _np_normalize
 
 # typedefs
 class Camera: pass
@@ -63,7 +63,7 @@ class OnDiskBufferData:
     class Attribute:
         semanticName: str
         semanticIndex: int
-        format: Callable
+        format: int
         offset: int
         slot: int
         slotType: RenderSlotType
@@ -73,21 +73,24 @@ class OnDiskBufferData:
 class IVBIB:
     vertexBuffers: list[OnDiskBufferData]
     indexBuffers: list[OnDiskBufferData]
-    def remapBoneIndices(remapTable: list[int]) -> IVBIB: pass
+    def remapBoneIndices(self, remapTable: list[int]) -> IVBIB: pass
 
 # AABB
 class AABB:
     min: np.ndarray
     max: np.ndarray
+    @property
     def size(self) -> np.ndarray: return self.max - self.min
+    @property
     def center(self) -> np.ndarray: return (self.min + self.max) * 0.5
+    def __str__(self): return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
 
     def __init__(self, min: np.ndarray, max: np.ndarray):
         self.min = min
         self.max = max
-
-    def __str__(self):
-        return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
+    def __init__(self, min: np.ndarray, max: np.ndarray):
+        self.min = np.array([minX, minY, minZ])
+        self.max = np.array([maxX, maxY, maxZ])
     
     def contains(self, point: np.ndarray | AABB) -> bool:
         match point:
@@ -99,6 +102,7 @@ class AABB:
                 return o.min[0] >= self.min[0] and o.max[0] <= self.max[0] and \
                     o.min[1] >= self.min[1] and o.max[1] <= self.max[1] and \
                     o.min[2] >= self.min[2] and o.max[2] <= self.max[2]
+            case _: raise Exception(f'Unknown {point}')
     
     def intersects(self, other: AABB) -> bool:
         return other.max[0] >= self.min[0] and other.min[0] < self.max[0] and \
@@ -114,17 +118,16 @@ class AABB:
     # Note: Since we're dealing with AABBs here, the resulting AABB is likely to be bigger than the original if rotation
     # and whatnot is involved. This problem compounds with multiple transformations. Therefore, endeavour to premultiply matrices
     # and only use this at the last step.
-    def transform(transform: np.ndarray) -> AABB:
+    def transform(self, transform: np.ndarray) -> AABB:
         points = [
-            Vector4.Transform(Vector4(Min[0], Min[1], Min[2], 1.), transform),
-            Vector4.Transform(Vector4(Max[0], Min[1], Min[2], 1.), transform),
-            Vector4.Transform(Vector4(Max[0], Max[1], Min[2], 1.), transform),
-            Vector4.Transform(Vector4(Min[0], Max[1], Min[2], 1.), transform),
-            Vector4.Transform(Vector4(Min[0], Max[1], Max[2], 1.), transform),
-            Vector4.Transform(Vector4(Min[0], Min[1], Max[2], 1.), transform),
-            Vector4.Transform(Vector4(Max[0], Min[1], Max[2], 1.), transform),
-            Vector4.Transform(Vector4(Max[0], Max[1], Max[2], 1.), transform)
-            ]
+            Vector4.Transform(Vector4(self.min[0], self.min[1], self.min[2], 1.), transform),
+            Vector4.Transform(Vector4(self.max[0], self.min[1], self.min[2], 1.), transform),
+            Vector4.Transform(Vector4(self.max[0], self.max[1], self.min[2], 1.), transform),
+            Vector4.Transform(Vector4(self.min[0], self.max[1], self.min[2], 1.), transform),
+            Vector4.Transform(Vector4(self.min[0], self.max[1], self.max[2], 1.), transform),
+            Vector4.Transform(Vector4(self.min[0], self.min[1], self.max[2], 1.), transform),
+            Vector4.Transform(Vector4(self.max[0], self.min[1], self.max[2], 1.), transform),
+            Vector4.Transform(Vector4(self.max[0], self.max[1], self.max[2], 1.), transform)]
         min = points[0]
         max = points[0]
         for i in range(1, points.Length):
@@ -137,9 +140,7 @@ class Frustum:
    planes: list[np.ndarray] = [None]*6
 
    @staticmethod
-   def createEmpty() -> Frustum:
-      r = Frustum()
-      return r
+   def createEmpty() -> Frustum: f = Frustum; f.planes = []; return f
 
    def update(self, viewProjectionMatrix: np.ndarray) -> None:
       self.planes[0] = _np_normalize(np.array([
@@ -173,12 +174,12 @@ class Frustum:
          viewProjectionMatrix[2,3] - viewProjectionMatrix[2,2],
          viewProjectionMatrix[3,3] - viewProjectionMatrix[3,2]]))
 
-   def clone() -> Frustum:
-      rv = Frustum()
-      self.planes.copyTo(rv.planes, 0)
-      return rv
+   def clone(self) -> Frustum:
+      r = Frustum()
+      self.planes.copyTo(r.planes, 0)
+      return r
 
-   def intersects(box: AABB) -> bool:
+   def intersects(self, box: AABB) -> bool:
       for i in range(self.planes.length):
          closest = np.array(
             box.min[0] if self.planes[i][0] < 0 else box.max[0],
@@ -191,9 +192,9 @@ class Frustum:
 class IMesh:
     data: dict[str, object]
     vbib: IVBIB
-    def getBounds() -> None: pass
     minBounds: np.ndarray
     maxBounds: np.ndarray
+    def getBounds(self) -> None: pass
 
 # RenderMaterial
 class RenderMaterial:
@@ -201,33 +202,37 @@ class RenderMaterial:
     textures: dict[str, int] = {}
     isBlended: bool
     isToolsMaterial: bool
-    _alphaTestReference: float
-    _isAdditiveBlend: bool
-    _isRenderBackfaces: bool
+    alphaTestReference: float
+    isAdditiveBlend: bool
+    isRenderBackfaces: bool
 
     def __init__(self, material: IMaterial):
         self.material = material
         match material:
-            case s if isinstance(material, IFixedMaterial):
-                pass
+            case s if isinstance(material, IFixedMaterial): pass
             case p if isinstance(material, IParamMaterial):
-                # FIX: Valve specific
-                if 'F_ALPHA_TEST' in p.intParams and p.intParams['F_ALPHA_TEST'] == 1 and 'g_flAlphaTestReference' in p.floatParams: self._alphaTestReference = p.floatParams['g_flAlphaTestReference']
+                # TODO: Fixed with interface
+                if 'F_ALPHA_TEST' in p.intParams and p.intParams['F_ALPHA_TEST'] == 1 and 'g_flAlphaTestReference' in p.floatParams: self.alphaTestReference = p.floatParams['g_flAlphaTestReference']
                 self.isToolsMaterial = 'tools.toolsmaterial' in p.intAttributes
                 self.isBlended = ('F_TRANSLUCENT' in p.intParams and p.IntParams['F_TRANSLUCENT'] == 1) or 'mapbuilder.water' in p.intAttributes or material.shaderName == 'vr_glass.vfx' or material.shaderName == 'tools_sprite.vfx'
-                self._isAdditiveBlend = 'F_ADDITIVE_BLEND' in p.intParams and p.intParams['F_ADDITIVE_BLEND'] == 1
-                self._isRenderBackfaces = 'F_RENDER_BACKFACES' in p.intParams and p.intParams['F_RENDER_BACKFACES'] == 1
+                self.isAdditiveBlend = 'F_ADDITIVE_BLEND' in p.intParams and p.intParams['F_ADDITIVE_BLEND'] == 1
+                self.isRenderBackfaces = 'F_RENDER_BACKFACES' in p.intParams and p.intParams['F_RENDER_BACKFACES'] == 1
             case _: raise Exception(f'Unknown {material}')
-    def render(shader: Shader) -> None: pass
-    def postRender() -> None: pass
+    def render(self, shader: Shader) -> None: pass
+    def postRender(self) -> None: pass
 
 # DrawCall
 class DrawCall:
     primitiveType: int
     shader: Shader
     baseVertex: int
+    # vertexCount: int
     startIndex: int
     indexCount: int
+    # instanceIndex: int
+    # instanceCount: int
+    # uvDensity: float
+    # flags: str
     tintColor: np.ndarray
     material: RenderMaterial
     vertexArrayObject: int
@@ -268,25 +273,25 @@ class RenderableMesh:
     animationTextureSize: int
     time: float = 0.
     meshIndex: int
-    _mesh: IMesh
-    _vbib: IVBIB
+    mesh: IMesh
+    vbib: IVBIB
 
     def __init__(self, action: Callable, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
         action(self)
-        self._mesh = mesh
-        self._vbib = model.remapBoneIndices(mesh.vbib, meshIndex) if model else mesh.vbib
+        self.mesh = mesh
+        self.vbib = model.remapBoneIndices(mesh.vbib, meshIndex) if model else mesh.vbib
         mesh.getBounds()
         self.boundingBox = AABB(mesh.minBounds, mesh.maxBounds)
         self.meshIndex = meshIndex
-        self._configureDrawCalls(skinMaterials, True)
-    def getSupportedRenderModes() -> list[str]: return None #self.drawCallsAll.SelectMany(drawCall => drawCall.Shader.RenderModes).Distinct()
+        self.configureDrawCalls(skinMaterials, True)
+    def getSupportedRenderModes() -> list[str]: return list(set(t for s in self.drawCallsAll for t in s.shader.renderModes))
     def setRenderMode(renderMode: str) -> None: pass
     def setAnimationTexture(texture: int, animationTextureSize: int) -> None:
         self.animationTexture = texture
         self.animationTextureSize = animationTextureSize
     def update(timeStep: float) -> None: self.time += timeStep
-    def setSkin(skinMaterials: dict[str, str]) -> None: self._configureDrawCalls(skinMaterials, False)
-    def  _configureDrawCalls(skinMaterials: dict[str, str], firstSetup: bool) -> None: pass
+    def setSkin(skinMaterials: dict[str, str]) -> None: self.configureDrawCalls(skinMaterials, False)
+    def configureDrawCalls(skinMaterials: dict[str, str], firstSetup: bool) -> None: pass
 
 # MeshBatchRequest
 class MeshBatchRequest:
@@ -306,8 +311,8 @@ class RenderPass(Enum):
 # IRenderer
 class IRenderer:
     boundingBox: AABB
-    def render(camera: Camera, renderPass: RenderPass) -> None: pass
-    def update(frameTime: float) -> None: pass
+    def render(self, camera: Camera, renderPass: RenderPass) -> None: pass
+    def update(self, frameTime: float) -> None: pass
 
 # IMeshCollection
 class IMeshCollection:

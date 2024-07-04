@@ -2,7 +2,6 @@ using OpenStack.Graphics.ParticleSystem;
 using OpenStack.Graphics.ParticleSystem.Emitters;
 using OpenStack.Graphics.ParticleSystem.Initializers;
 using OpenStack.Graphics.ParticleSystem.Operators;
-using OpenStack.Graphics.Renderer1;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,5 @@
-﻿namespace OpenStack.Graphics
+﻿#if false
+namespace OpenStack.Graphics
 {
     public static class GXColorExtensions
     {
@@ -17,3 +18,4 @@
         #endregion
     }
 }
+#endif

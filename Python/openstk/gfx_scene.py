@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Callable
 from openstk.gfx_render import AABB, RenderPass
 
 MaximumElementsBeforeSubdivide = 4
@@ -45,8 +46,7 @@ class Octree:
                 Node(self, np.array([self.region.Min[0], self.region.Min[1], center[2]]), subregionSize),
                 Node(self, np.array([center[0], self.region.Min[1], center[2]]), subregionSize),
                 Node(self, np.array([self.region.Min[0], center[1], center[2]]), subregionSize),
-                Node(self, np.array([center[0], center[1], center[2]]), subregionSize)
-                ]
+                Node(self, np.array([center[0], center[1], center[2]]), subregionSize)]
             remainingElements = []
             for element in self.elements:
                 movedDown = False
@@ -76,7 +76,7 @@ class Octree:
                         child.insert(element)
                         break
             if not inserted:
-                if self.elements == null: self.elements = []
+                if self.elements == None: self.elements = []
                 elements.append(element)
         
         def find(self, clientObject: object, bounds: AABB) -> (Node, int):
@@ -96,7 +96,7 @@ class Octree:
             match source:
                 case boundingBox if isinstance(source, AABB):
                     if self.hasElements:
-                        for element in Elements:
+                        for element in self.elements:
                             if element.boundingBox.intersects(boundingBox): results.append(element.clientObject)
                     if self.hasChildren:
                         for child in self.children:
@@ -124,7 +124,6 @@ class Octree:
 
     def update(self, obj: object, oldBounds: AABB, newBounds: AABB) -> None:
         if not obj: raise Exception('obj')
-
         node, index = self.root.find(obj, oldBounds)
         if node:
             # Locate the closest ancestor that the new bounds fit inside
@@ -182,7 +181,7 @@ class Scene:
         replacementShader: Shader
         showDebug: bool
 
-    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: object, sizeHint: float = 32768):
+    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: Callable, sizeHint: float = 32768):
         self.graphic = graphic or _throw('Null')
         self.meshBatchRenderer = meshBatchRenderer or _throw('Null')
         self.staticOctree = Octree(sizeHint)
@@ -221,28 +220,25 @@ class Scene:
         blendedDrawCalls = []
         looseNodes = []
         for node in allNodes:
-            match node:
-                case s if isinstance(node, IMeshCollection):
-                    for mesh in s.renderableMeshes:
-                        for call in mesh.drawCallsOpaque:
-                            opaqueDrawCalls.append(MeshBatchRequest(
-                                transform = node.transform,
-                                mesh = mesh,
-                                call = call,
-                                distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
-                                nodeId = node.id,
-                                meshId = mesh.meshIndex
-                                ))
-                        for call in mesh.drawCallsBlended:
-                            blendedDrawCalls.append(MeshBatchRequest(
-                                transform = node.transform,
-                                mesh = mesh,
-                                call = call,
-                                distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
-                                nodeId = node.id,
-                                meshId = mesh.meshIndex
-                                ))
-                case _: looseNodes.append(node)
+            if isinstance(node, IMeshCollection):
+                for mesh in node.renderableMeshes:
+                    for call in mesh.drawCallsOpaque:
+                        opaqueDrawCalls.append(MeshBatchRequest(
+                            transform = node.transform,
+                            mesh = mesh,
+                            call = call,
+                            distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
+                            nodeId = node.id,
+                            meshId = mesh.meshIndex))
+                    for call in mesh.drawCallsBlended:
+                        blendedDrawCalls.append(MeshBatchRequest(
+                            transform = node.transform,
+                            mesh = mesh,
+                            call = call,
+                            distanceFromCamera = (node.boundingBox.center - camera.location).lengthSquared(),
+                            nodeId = node.id,
+                            meshId = mesh.meshIndex))
+            else: looseNodes.append(node)
 
         # Sort loose nodes by distance from camera
         looseNodes.sort(key = lambda a, b: \
@@ -251,20 +247,19 @@ class Scene:
         # Opaque render pass
         renderContext = RenderContext(
             camera = camera,
-            lightPosition = LightPosition,
+            lightPosition = self.lightPosition,
             renderPass = RenderPass.Opaque,
-            showDebug = ShowDebug
-            )
+            showDebug = self.showDebug)
 
         # Blended render pass, back to front for loose nodes
-        if camera.p:
+        if camera.picker:
             if camera.picker.isActive: camera.picker.render(); renderContext.replacementShader = camera.picker.shader
             elif camera.picker.debug: renderContext.replacementShader = camera.picker.debugShader
         meshBatchRenderer(opaqueDrawCalls, renderContext)
         for node in looseNodes: node.render(renderContext)
         if camera.picker and camera.picker.isActive:
             camera.picker.finish()
-            renderWithCamera(camera, cullFrustum)
+            self.renderWithCamera(camera, cullFrustum)
 
     def setEnabledLayers(self, layers: dict[str, object]) -> None:
         for renderer in self.allNodes: renderer.layerEnabled = renderer.layerName in layers
@@ -278,6 +273,7 @@ class Scene:
 # SceneNode
 class SceneNode:
     _transform: np.ndarray
+    _localBoundingBox: AABB
     @property
     def transform(self) -> np.ndarray: return self._transform
     @transform.setter
@@ -285,7 +281,6 @@ class SceneNode:
     layerName: str
     layerEnabled: bool = True
     boundingBox: AABB
-    _localBoundingBox: AABB
     @property
     def localBoundingBox(self) -> AABB: return self._localBoundingBox
     @localBoundingBox.setter

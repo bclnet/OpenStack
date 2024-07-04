@@ -1,9 +1,5 @@
-﻿using OpenStack.Graphics.Renderer1;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
+﻿using System;
 using System.IO;
-using static OpenStack.Graphics.GXColor;
 
 namespace OpenStack.Graphics
 {

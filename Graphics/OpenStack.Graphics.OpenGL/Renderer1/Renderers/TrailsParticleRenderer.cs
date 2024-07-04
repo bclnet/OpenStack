@@ -1,5 +1,4 @@
 using OpenStack.Graphics.ParticleSystem;
-using OpenStack.Graphics.Renderer1;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;

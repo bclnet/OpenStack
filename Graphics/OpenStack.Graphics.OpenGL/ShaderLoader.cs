@@ -1,6 +1,5 @@
 //#define DEBUG_SHADERS
 using OpenStack.Graphics.Algorithms;
-using OpenStack.Graphics.Renderer1;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;

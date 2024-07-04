@@ -1,27 +1,27 @@
-using System;
+﻿using System;
 using System.Numerics;
 
-namespace OpenStack.Graphics.Renderer1
+namespace OpenStack.Graphics
 {
-    //was:Render/Camera
+    /// <summary>
+    /// Camera
+    /// </summary>
     public abstract class Camera
     {
         protected const float CAMERASPEED = 300f; // Per second
         protected const float FOV = MathX.PiOver4;
 
-        public Vector3 Location { get; protected set; } = new Vector3(1);
-        public float Pitch { get; protected set; }
-        public float Yaw { get; protected set; }
-        public float Scale { get; protected set; } = 1.0f;
-
-        Matrix4x4 ProjectionMatrix;
-        public Matrix4x4 CameraViewMatrix { get; private set; }
-        public Matrix4x4 ViewProjectionMatrix { get; private set; }
-        public Frustum ViewFrustum { get; } = new Frustum();
-        public IPickingTexture Picker { get; set; }
-
-        protected Vector2 WindowSize;
-        protected float AspectRatio;
+        public Vector3 Location = new Vector3(1);
+        public float Pitch;
+        public float Yaw;
+        public float Scale = 1.0f;
+        public Matrix4x4 ProjectionMatrix;
+        public Matrix4x4 CameraViewMatrix;
+        public Matrix4x4 ViewProjectionMatrix;
+        public Frustum ViewFrustum = new Frustum();
+        public IPickingTexture Picker;
+        public Vector2 WindowSize;
+        public float AspectRatio;
 
         public Camera()
             => LookAt(new Vector3(0));
@@ -89,7 +89,6 @@ namespace OpenStack.Graphics.Renderer1
             var dir = Vector3.Normalize(target - Location);
             Yaw = (float)Math.Atan2(dir.Y, dir.X);
             Pitch = (float)Math.Asin(dir.Z);
-
             ClampRotation();
             RecalculateMatrices();
         }
@@ -97,12 +96,10 @@ namespace OpenStack.Graphics.Renderer1
         public void SetFromTransformMatrix(Matrix4x4 matrix)
         {
             Location = matrix.Translation;
-
             // Extract view direction from view matrix and use it to calculate pitch and yaw
             var dir = new Vector3(matrix.M11, matrix.M12, matrix.M13);
             Yaw = (float)Math.Atan2(dir.Y, dir.X);
             Pitch = (float)Math.Asin(dir.Z);
-
             RecalculateMatrices();
         }
 

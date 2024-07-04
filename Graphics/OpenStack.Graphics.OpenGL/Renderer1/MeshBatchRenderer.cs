@@ -1,4 +1,3 @@
-using OpenStack.Graphics.Renderer1;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -6,7 +5,6 @@ using System.Linq;
 
 namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
 {
-    //was:Render/MeshBatchRenderer
     public static class MeshBatchRenderer
     {
         public static void Render(List<MeshBatchRequest> requests, Scene.RenderContext context)

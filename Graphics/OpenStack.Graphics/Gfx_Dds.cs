@@ -1,9 +1,476 @@
+﻿using System;
+using System.Runtime.InteropServices;
+using static OpenStack.Graphics.DirectX.FourCC;
+using static OpenStack.Graphics.DirectX.DXGI_FORMAT;
+using System.IO;
+using System.Runtime.CompilerServices;
+
 namespace OpenStack.Graphics.DirectX
 {
+    #region DDS_PIXELFORMAT
+    // https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-pixelformat
+
     /// <summary>
-    /// DirectX Graphics Infrastructure formats.
+    /// FourCC
     /// </summary>
+    public enum FourCC : uint
+    {
+        DXT1 = 0x31545844, // DXT1
+        DXT2 = 0x32545844, // DXT2
+        DXT3 = 0x33545844, // DXT3
+        DXT4 = 0x34545844, // DXT4
+        DXT5 = 0x35545844, // DXT5
+        RXGB = 0x42475852, // RXGB
+        ATI1 = 0x31495441, // ATI1
+        ATI2 = 0x32495441, // ATI2
+        A2XY = 0x59583241, // A2XY
+        DX10 = 0x30315844, // DX10
+    }
+
+    /// <summary>
+    /// Values which indicate what type of data is in the surface
+    /// </summary>
+    [Flags]
+    public enum DDPF : uint
+    {
+        /// <summary>
+        /// Texture contains alpha data; dwRGBAlphaBitMask contains valid data
+        /// </summary>
+        ALPHAPIXELS = 0x00000001,
+        /// <summary>
+        /// Used in some older DDS files for alpha channel only uncompressed data (dwRGBBitCount contains the alpha channel bitcount; dwABitMask contains valid data)
+        /// </summary>
+        ALPHA = 0x00000002,
+        /// <summary>
+        /// Texture contains compressed RGB data; dwFourCC contains valid data
+        /// </summary>
+        FOURCC = 0x00000004,
+        /// <summary>
+        /// Texture contains uncompressed RGB data; dwRGBBitCount and the RGB masks (dwRBitMask, dwGBitMask, dwBBitMask) contain valid data
+        /// </summary>
+        RGB = 0x00000040,
+        /// <summary>
+        /// Used in some older DDS files for YUV uncompressed data (dwRGBBitCount contains the YUV bit count; dwRBitMask contains the Y mask, dwGBitMask contains the U mask, dwBBitMask contains the V mask)
+        /// </summary>
+        YUV = 0x00000200,
+        /// <summary>
+        /// Used in some older DDS files for single channel color uncompressed data (dwRGBBitCount contains the luminance channel bit count; dwRBitMask contains the channel mask). Can be combined with DDPF_ALPHAPIXELS for a two channel DDS file
+        /// </summary>
+        LUMINANCE = 0x00020000,
+        /// <summary>
+        /// The normal
+        /// </summary>
+        NORMAL = 0x80000000,
+    }
+
+    /// <summary>
+    /// Surface pixel format.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct DDS_PIXELFORMAT
+    {
+        public const int SizeOf = 32;
+        /// <summary>
+        /// Structure size; set to 32 (bytes)
+        /// </summary>
+        public uint dwSize;
+        /// <summary>
+        /// Values which indicate what type of data is in the surface
+        /// </summary>
+        [MarshalAs(UnmanagedType.U4)] public DDPF dwFlags;
+        /// <summary>
+        /// Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC
+        /// </summary>
+        [MarshalAs(UnmanagedType.U4)] public FourCC dwFourCC;
+        /// <summary>
+        /// Number of bits in an RGB (possibly including alpha) format. Valid when dwFlags includes DDPF_RGB, DDPF_LUMINANCE, or DDPF_YUV
+        /// </summary>
+        public uint dwRGBBitCount;
+        /// <summary>
+        /// Red (or lumiannce or Y) mask for reading color data. For instance, given the A8R8G8B8 format, the red mask would be 0x00ff0000
+        /// </summary>
+        public uint dwRBitMask;
+        /// <summary>
+        /// Green (or U) mask for reading color data. For instance, given the A8R8G8B8 format, the green mask would be 0x0000ff00
+        /// </summary>
+        public uint dwGBitMask;
+        /// <summary>
+        /// Blue (or V) mask for reading color data. For instance, given the A8R8G8B8 format, the blue mask would be 0x000000ff
+        /// </summary>
+        public uint dwBBitMask;
+        /// <summary>
+        /// Alpha mask for reading alpha data. dwFlags must include DDPF_ALPHAPIXELS or DDPF_ALPHA. For instance, given the A8R8G8B8 format, the alpha mask would be 0xff000000
+        /// </summary>
+        public uint dwABitMask;
+    }
+
+    #endregion
+
+    #region DDS_HEADER_DXT10
+    // https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-header-dxt10
+    // https://docs.microsoft.com/en-us/windows/win32/api/d3d10/ne-d3d10-d3d10_resource_dimension
+
+    public enum DDS_ALPHA_MODE : uint
+    {
+        ALPHA_MODE_UNKNOWN = 0,
+        ALPHA_MODE_STRAIGHT = 1,
+        ALPHA_MODE_PREMULTIPLIED = 2,
+        ALPHA_MODE_OPAQUE = 3,
+        ALPHA_MODE_CUSTOM = 4,
+    }
+
+    [Flags]
+    public enum D3D10_RESOURCE_DIMENSION : uint
+    {
+        /// <summary>
+        /// Resource is of unknown type
+        /// </summary>
+        UNKNOWN = 0,
+        /// <summary>
+        /// Resource is a buffer
+        /// </summary>
+        BUFFER = 1,
+        /// <summary>
+        /// Resource is a 1D texture. The dwWidth member of DDS_HEADER specifies the size of the texture. Typically, you set the dwHeight member of DDS_HEADER to 1; you also must set the DDSD_HEIGHT flag in the dwFlags member of DDS_HEADER
+        /// </summary>
+        TEXTURE1D = 2,
+        /// <summary>
+        /// Resource is a 2D texture with an area specified by the dwWidth and dwHeight members of DDS_HEADER. You can also use this type to identify a cube-map texture. For more information about how to identify a cube-map texture, see miscFlag and arraySize members
+        /// </summary>
+        TEXTURE2D = 3,
+        /// <summary>
+        /// Resource is a 3D texture with a volume specified by the dwWidth, dwHeight, and dwDepth members of DDS_HEADER. You also must set the DDSD_DEPTH flag in the dwFlags member of DDS_HEADER
+        /// </summary>
+        TEXTURE3D = 4,
+    }
+
+    /// <summary>
+    /// DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct DDS_HEADER_DXT10
+    {
+        /// <summary>
+        /// Struct
+        /// </summary>
+        public static (string, int) Struct = ($"<5I", 20);
+
+        /// <summary>
+        /// The surface pixel format (see DXGI_FORMAT)
+        /// </summary>
+        [MarshalAs(UnmanagedType.I4)] public DXGI_FORMAT dxgiFormat;
+        /// <summary>
+        /// Identifies the type of resource. The following values for this member are a subset of the values in the D3D10_RESOURCE_DIMENSION or D3D11_RESOURCE_DIMENSION enumeration
+        /// </summary>
+        [MarshalAs(UnmanagedType.U4)] public D3D10_RESOURCE_DIMENSION resourceDimension;
+        /// <summary>
+        /// Identifies other, less common options for resources. The following value for this member is a subset of the values in the D3D10_RESOURCE_MISC_FLAG or D3D11_RESOURCE_MISC_FLAG enumeration
+        /// </summary>
+        public uint miscFlag;
+        /// <summary>
+        /// The number of elements in the array
+        /// </summary>
+        public uint arraySize;
+        /// <summary>
+        /// Contains additional metadata (formerly was reserved). The lower 3 bits indicate the alpha mode of the associated resource. The upper 29 bits are reserved and are typically 0
+        /// </summary>
+        public uint miscFlags2; // see DDS_MISC_FLAGS2
+    }
+
+    #endregion
+
+    #region DDS_HEADER
+    // https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-header
+    // https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dx-graphics-dds-pguide
+
+    /// <summary>
+    /// Flags to indicate which members contain valid data
+    /// </summary>
+    [Flags]
+    public enum DDSD : uint
+    {
+        /// <summary>
+        /// Required in every .dds file
+        /// </summary>
+        CAPS = 0x00000001,
+        /// <summary>
+        /// Required in every .dds file
+        /// </summary>
+        HEIGHT = 0x00000002,
+        /// <summary>
+        /// Required in every .dds file
+        /// </summary>
+        WIDTH = 0x00000004,
+        /// <summary>
+        /// Required when pitch is provided for an uncompressed texture
+        /// </summary>
+        PITCH = 0x00000008,
+        /// <summary>
+        /// Required in every .dds file
+        /// </summary>
+        PIXELFORMAT = 0x00001000,
+        /// <summary>
+        /// Required in a mipmapped texture
+        /// </summary>
+        MIPMAPCOUNT = 0x00020000,
+        /// <summary>
+        /// Required when pitch is provided for a compressed texture
+        /// </summary>
+        LINEARSIZE = 0x00080000,
+        /// <summary>
+        /// Required in a depth texture
+        /// </summary>
+        DEPTH = 0x00800000,
+        HEADER_FLAGS_TEXTURE = CAPS | HEIGHT | WIDTH | PIXELFORMAT,
+        HEADER_FLAGS_MIPMAP = MIPMAPCOUNT,
+        HEADER_FLAGS_VOLUME = DEPTH,
+        HEADER_FLAGS_PITCH = PITCH,
+        HEADER_FLAGS_LINEARSIZE = LINEARSIZE,
+    }
+
+    /// <summary>
+    /// Specifies the complexity of the surfaces stored
+    /// </summary>
+    [Flags]
+    public enum DDSCAPS : uint
+    {
+        /// <summary>
+        /// Optional; must be used on any file that contains more than one surface (a mipmap, a cubic environment map, or mipmapped volume texture)
+        /// </summary>
+        COMPLEX = 0x00000008,
+        /// <summary>
+        /// Required
+        /// </summary>
+        TEXTURE = 0x00001000,
+        /// <summary>
+        /// Optional; should be used for a mipmap
+        /// </summary>
+        MIPMAP = 0x00400000,
+        SURFACE_FLAGS_MIPMAP = COMPLEX | MIPMAP,
+        SURFACE_FLAGS_TEXTURE = TEXTURE,
+        SURFACE_FLAGS_CUBEMAP = COMPLEX,
+    }
+
+    /// <summary>
+    /// Additional detail about the surfaces stored
+    /// </summary>
+    [Flags]
+    public enum DDSCAPS2 : uint
+    {
+        /// <summary>
+        /// Required for a cube map
+        /// </summary>
+        CUBEMAP = 0x00000200,
+        /// <summary>
+        /// Required when these surfaces are stored in a cube map.
+        /// </summary>
+        CUBEMAPPOSITIVEX = 0x00000400,
+        /// <summary>
+        /// Required when these surfaces are stored in a cube map
+        /// </summary>
+        CUBEMAPNEGATIVEX = 0x00000800,
+        /// <summary>
+        /// Required when these surfaces are stored in a cube map
+        /// </summary>
+        CUBEMAPPOSITIVEY = 0x00001000,
+        /// <summary>
+        /// Required when these surfaces are stored in a cube map
+        /// </summary>
+        CUBEMAPNEGATIVEY = 0x00002000,
+        /// <summary>
+        /// Required when these surfaces are stored in a cube map
+        /// </summary>
+        CUBEMAPPOSITIVEZ = 0x00004000,
+        /// <summary>
+        /// Required when these surfaces are stored in a cube map
+        /// </summary>
+        CUBEMAPNEGATIVEZ = 0x00008000,
+        /// <summary>
+        /// Required for a volume texture
+        /// </summary>
+        VOLUME = 0x00200000,
+        CUBEMAP_POSITIVEX = CUBEMAP | CUBEMAPPOSITIVEX,
+        CUBEMAP_NEGATIVEX = CUBEMAP | CUBEMAPNEGATIVEX,
+        CUBEMAP_POSITIVEY = CUBEMAP | CUBEMAPPOSITIVEY,
+        CUBEMAP_NEGATIVEY = CUBEMAP | CUBEMAPNEGATIVEY,
+        CUBEMAP_POSITIVEZ = CUBEMAP | CUBEMAPPOSITIVEZ,
+        CUBEMAP_NEGATIVEZ = CUBEMAP | CUBEMAPNEGATIVEZ,
+        CUBEMAP_ALLFACES = CUBEMAPPOSITIVEX | CUBEMAPNEGATIVEX | CUBEMAPPOSITIVEY | CUBEMAPNEGATIVEY | CUBEMAPPOSITIVEZ | CUBEMAPNEGATIVEZ,
+        FLAGS_VOLUME = VOLUME,
+    }
+
+    /// <summary>
+    /// Describes a DDS file header
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public unsafe struct DDS_HEADER
+    {
+        /// <summary>
+        /// Struct
+        /// </summary>
+        public static (string, int) Struct = ($"<7I44s{"8I"}5I", SizeOf);
+        /// <summary>
+        /// MAGIC
+        /// </summary>
+        public const uint MAGIC = 0x20534444; // DDS_
+        /// <summary>
+        /// Struct
+        /// </summary>
+        public const int SizeOf = 124;
+        /// <summary>
+        /// Size of structure. This member must be set to 124
+        /// </summary>
+        /// <value>
+        /// The size of the dw
+        /// </value>
+        public uint dwSize;
+        /// <summary>
+        /// Flags to indicate which members contain valid data
+        /// </summary>
+        [MarshalAs(UnmanagedType.U4)] public DDSD dwFlags;
+        /// <summary>
+        /// Surface height (in pixels)
+        /// </summary>
+        public uint dwHeight;
+        /// <summary>
+        /// Surface width (in pixels)
+        /// </summary>
+        public uint dwWidth;
+        /// <summary>
+        /// The pitch or number of bytes per scan line in an uncompressed texture; the total number of bytes in the top level texture for a compressed texture. For information about how to compute the pitch, see the DDS File Layout section of the Programming Guide for DDS
+        /// </summary>
+        public uint dwPitchOrLinearSize;
+        /// <summary>
+        /// Depth of a volume texture (in pixels), otherwise unused
+        /// </summary>
+        public uint dwDepth; // only if DDS_HEADER_FLAGS_VOLUME is set in flags
+        /// <summary>
+        /// Number of mipmap levels, otherwise unused
+        /// </summary>
+        public uint dwMipMapCount;
+        /// <summary>
+        /// Unused
+        /// </summary>
+        public fixed uint dwReserved1[11];
+        /// <summary>
+        /// The pixel format (see DDS_PIXELFORMAT)
+        /// </summary>
+        public DDS_PIXELFORMAT ddspf;
+        /// <summary>
+        /// Specifies the complexity of the surfaces stored
+        /// </summary>
+        [MarshalAs(UnmanagedType.U4)] public DDSCAPS dwCaps;
+        /// <summary>
+        /// Additional detail about the surfaces stored
+        /// </summary>
+        [MarshalAs(UnmanagedType.U4)] public DDSCAPS2 dwCaps2;
+        /// <summary>
+        /// The dw caps3
+        /// </summary>
+        public uint dwCaps3;
+        /// <summary>
+        /// The dw caps4
+        /// </summary>
+        public uint dwCaps4;
+        /// <summary>
+        /// The dw reserved2
+        /// </summary>
+        public uint dwReserved2;
+
+        /// <summary>
+        /// Verifies this instance
+        /// </summary>
+        public readonly void Verify()
+        {
+            if (dwSize != 124) throw new FormatException($"Invalid DDS file header size: {dwSize}.");
+            else if (!dwFlags.HasFlag(DDSD.HEIGHT | DDSD.WIDTH)) throw new FormatException($"Invalid DDS file flags: {dwFlags}.");
+            else if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
+            else if (ddspf.dwSize != 32) throw new FormatException($"Invalid DDS file pixel format size: {ddspf.dwSize}.");
+        }
+
+        /// <summary>
+        /// Read
+        /// </summary>
+        /// https://gist.github.com/tilkinsc/13191c0c1e5d6b25fbe79bbd2288a673
+        /// https://github.com/BinomialLLC/basis_universal/wiki/OpenGL-texture-format-enums-table
+        /// https://www.g-truc.net/post-0335.html
+        /// https://www.reedbeta.com/blog/understanding-bcn-texture-compression-formats/
+        public static byte[] Read(BinaryReader r, bool readMagic, out DDS_HEADER header, out DDS_HEADER_DXT10? headerDXT10, out (object type, int blockSize, object gl, object vulken, object unity, object unreal) format)
+        {
+            if (readMagic)
+            {
+                var magic = r.ReadUInt32();
+                if (magic != MAGIC) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
+            }
+            header = r.ReadS<DDS_HEADER>();
+            header.Verify();
+            ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
+            headerDXT10 = ddspf.dwFourCC == DX10 ? r.ReadS<DDS_HEADER_DXT10>() : default;
+            format = ddspf.dwFourCC switch
+            {
+                0 => MakeFormat(ref ddspf),
+                DXT1 => (DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
+                DXT3 => (DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
+                DXT5 => (DXT5, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5),
+                DX10 => (headerDXT10?.dxgiFormat) switch
+                {
+                    BC1_UNORM => (BC1_UNORM, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
+                    BC1_UNORM_SRGB => (BC1_UNORM_SRGB, 8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
+                    BC2_UNORM => (BC2_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
+                    BC2_UNORM_SRGB => (BC2_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt1Ext, TextureGLFormat.CompressedSrgbAlphaS3tcDxt1Ext, TextureUnityFormat.Unknown, TextureUnrealFormat.Unknown),
+                    BC3_UNORM => (BC3_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5),
+                    BC3_UNORM_SRGB => (BC3_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaS3tcDxt5Ext, TextureGLFormat.CompressedSrgbAlphaS3tcDxt5Ext, TextureUnityFormat.Unknown, TextureUnrealFormat.Unknown),
+                    BC4_UNORM => (BC4_UNORM, 8, TextureGLFormat.CompressedRedRgtc1, TextureGLFormat.CompressedRedRgtc1, TextureUnityFormat.BC4, TextureUnrealFormat.BC4),
+                    BC4_SNORM => (BC4_SNORM, 8, TextureGLFormat.CompressedSignedRedRgtc1, TextureGLFormat.CompressedSignedRedRgtc1, TextureUnityFormat.BC4, TextureUnrealFormat.BC4),
+                    BC5_UNORM => (BC5_UNORM, 16, TextureGLFormat.CompressedRgRgtc2, TextureGLFormat.CompressedRgRgtc2, TextureUnityFormat.BC5, TextureUnrealFormat.BC5),
+                    BC5_SNORM => (BC5_SNORM, 16, TextureGLFormat.CompressedSignedRgRgtc2, TextureGLFormat.CompressedSignedRgRgtc2, TextureUnityFormat.BC5, TextureUnrealFormat.BC5),
+                    BC6H_UF16 => (BC6H_UF16, 16, TextureGLFormat.CompressedRgbBptcUnsignedFloat, TextureGLFormat.CompressedRgbBptcUnsignedFloat, TextureUnityFormat.BC6H, TextureUnrealFormat.BC6H),
+                    BC6H_SF16 => (BC6H_SF16, 16, TextureGLFormat.CompressedRgbBptcSignedFloat, TextureGLFormat.CompressedRgbBptcSignedFloat, TextureUnityFormat.BC6H, TextureUnrealFormat.BC6H),
+                    BC7_UNORM => (BC7_UNORM, 16, TextureGLFormat.CompressedRgbaBptcUnorm, TextureGLFormat.CompressedRgbaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7),
+                    BC7_UNORM_SRGB => (BC7_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7),
+                    R8_UNORM => (R8_UNORM, 1, (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), TextureUnityFormat.R8, TextureUnrealFormat.R8), //: guess
+                    _ => throw new ArgumentOutOfRangeException(nameof(headerDXT10.Value.dxgiFormat), $"{headerDXT10?.dxgiFormat}"),
+                },
+                // BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
+                _ => throw new ArgumentOutOfRangeException(nameof(ddspf.dwFourCC), $"{ddspf.dwFourCC}"),
+            };
+            return r.ReadToEnd();
+        }
+
+        static (object type, int blockSize, object gl, object vulken, object unity, object unreal) MakeFormat(ref DDS_PIXELFORMAT f) =>
+            ("Raw", (int)f.dwRGBBitCount >> 2,
+            (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte),
+            (TextureGLFormat.Rgba, TextureGLPixelFormat.Rgba, TextureGLPixelType.Byte),
+            TextureUnityFormat.RGBA32,
+            TextureUnrealFormat.R8G8B8A8);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void ConvertDxt3BlockToDtx5Block(byte* p)
+        {
+            byte a0 = p[0], a1 = p[1], a2 = p[1], a3 = p[1], a4 = p[1], a5 = p[1], a6 = p[1], a7 = p[1];
+        }
+
+        public static void ConvertDxt3ToDtx5(byte[] data, int width, int height, int mipMaps)
+        {
+            fixed (byte* data_ = data)
+            {
+                var p = data_;
+                var count = ((width + 3) / 4) * ((height + 3) / 4);
+                while (count-- != 0) ConvertDxt3BlockToDtx5Block(p += 16);
+                //int blockCountX = (width + 3) / 4, blockCountY = (height + 3) / 4;
+                //for (var y = 0; y < blockCountY; y++) for (var x = 0; x < blockCountX; x++) ConvertDxt3BlockToDtx5Block(p += 16);
+            }
+        }
+    }
+
+    #endregion
+
+    #region DXGI_FORMAT
     // https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
+
+    /// <summary>
+    /// DirectX Graphics Infrastructure formats
+    /// </summary>
     public enum DXGI_FORMAT : uint
     {
 #pragma warning disable 1591
@@ -497,4 +964,6 @@ namespace OpenStack.Graphics.DirectX
         SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE = 134,
 #pragma warning restore 1591
     }
+
+    #endregion
 }

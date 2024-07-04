@@ -9,13 +9,13 @@ class Shader: pass
 
 # IObjectManager
 class IObjectManager:
-    def createObject(path: str) -> (Object, Object): pass
-    def preloadObject(path: str) -> None: pass
+    def createObject(self, path: str) -> (Object, Object): pass
+    def preloadObject(self, path: str) -> None: pass
 
 # IModel
 class IModel:
     data: dict[str, object]
-    def remapBoneIndices(vbib: IVBIB, meshIndex: int) -> IVBIB: pass
+    def remapBoneIndices(self, vbib: IVBIB, meshIndex: int) -> IVBIB: pass
 
 # IParticleSystem
 class IParticleSystem:
@@ -24,34 +24,35 @@ class IParticleSystem:
     operators: list[dict[str, object]]
     initializers: list[dict[str, object]]
     emitters: list[dict[str, object]]
-    def getChildParticleNames(enabledOnly: bool = False) -> list[str]: pass
+    def getChildParticleNames(self, enabledOnly: bool = False) -> list[str]: pass
 
 # IShaderManager
 class IShaderManager:
-    def loadShader(path: str, args: dict[str: bool] = None): pass
-    def loadPlaneShader(path: str, args: dict[str: bool] = None): pass
+    def loadShader(self, path: str, args: dict[str: bool] = None): pass
+    def loadPlaneShader(self, path: str, args: dict[str: bool] = None): pass
 
 # ITextureManager:
 class ITextureManager:
     defaultTexture: Texture
-    def buildSolidTexture(width: int, height: int, rgba: list[float]) -> Texture: pass
-    def buildNormalMap(source: Texture, strength: float) -> Texture: pass
-    def loadTexture(key: object, rng: range = None) -> (Texture, Object): pass
-    def preloadTexture(path: str) -> None: pass
-    def deleteTexture(key: object) -> None: pass
+    def buildSolidTexture(self, width: int, height: int, rgba: list[float]) -> Texture: pass
+    def buildNormalMap(self, source: Texture, strength: float) -> Texture: pass
+    def loadTexture(self, key: object, level: range = None) -> (Texture, Object): pass
+    def preloadTexture(self, path: str) -> None: pass
+    def deleteTexture(self, key: object) -> None: pass
 
 # IMaterialManager
 class IMaterialManager:
-    def textureManager() -> ITextureManager: pass
-    def loadMaterial(key: object) -> (Material, dict[str, object]): pass
-    def preloadMaterial(path: str) -> None: pass
+    #TODO: field?
+    def textureManager(self) -> ITextureManager: pass
+    def loadMaterial(self, key: object) -> (Material, dict[str, object]): pass
+    def preloadMaterial(self, path: str) -> None: pass
 
 # IMaterial
 class IMaterial:
     name: str
     shaderName: str
     data: dict[str, object]
-    def getShaderArgs() -> dict[str, bool]: pass
+    def getShaderArgs(self) -> dict[str, bool]: pass
 
 # IFixedMaterial
 class IFixedMaterial(IMaterial):
@@ -78,9 +79,9 @@ class IParamMaterial(IMaterial):
 
 # IOpenGraphic:
 class IOpenGraphic:
-    def loadFileObject(path: str): pass
-    def preloadTexture(texturePath: str): pass
-    def preloadObject(filePath: str): pass
+    def loadFileObject(self, path: str): pass
+    def preloadTexture(self, texturePath: str): pass
+    def preloadObject(self, filePath: str): pass
 
 # IOpenGraphicAny
 class IOpenGraphicAny(IOpenGraphic):
@@ -88,9 +89,9 @@ class IOpenGraphicAny(IOpenGraphic):
     materialManager: IMaterialManager
     objectManager: IObjectManager
     shaderManager: IShaderManager
-    def loadTexture(path: str, rng: range = None) -> (Texture, dict[str, object]): pass
-    def createObject(path: str) -> (Object, dict[str, object]): pass
-    def loadShader(path: str, args: dict[str, bool] = None) -> Shader: pass
+    def loadTexture(self, path: str, level: range = None) -> (Texture, dict[str, object]): pass
+    def createObject(self, path: str) -> (Object, dict[str, object]): pass
+    def loadShader(self, path: str, args: dict[str, bool] = None) -> Shader: pass
 
 # PlatformStats:
 class PlatformStats:
