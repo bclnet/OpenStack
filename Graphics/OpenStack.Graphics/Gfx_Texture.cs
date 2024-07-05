@@ -917,7 +917,7 @@ namespace OpenStack.Graphics
         int Depth { get; }
         int MipMaps { get; }
         TextureFlags Flags { get; }
-        byte[] Begin(int platform, out object format, out Range[] spans);
+        (byte[] bytes, object format, Range[] spans) Begin(int platform);
         void End();
     }
 

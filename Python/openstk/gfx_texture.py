@@ -504,7 +504,7 @@ class ITexture:
     depth: int
     mipMaps: int
     flags: TextureFlags
-    def begin(self, platform: int) -> (bytes, object, list[object]): pass
+    def begin(self, platform: int) -> (bytes, object, list[range]): pass
     def end(self) -> None: pass
 
 # ITextureSelect
