@@ -1,12 +1,17 @@
-using OpenTK.Graphics.OpenGL;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using OpenTK.Graphics.OpenGL;
 
-namespace OpenStack.Graphics.OpenGL.Renderer1
+namespace OpenStack.Graphics.OpenGL
 {
+    /// <summary>
+    /// OctreeDebugRenderer
+    /// </summary>
     public class OctreeDebugRenderer<T> where T : class
     {
+        const int STRIDE = sizeof(float) * 7;
+
         readonly Shader _shader;
         readonly Octree<T> _octree;
         readonly int _vaoHandle;
@@ -30,14 +35,13 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
             GL.BindVertexArray(_vaoHandle);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vboHandle);
 
-            const int stride = sizeof(float) * 7;
             var positionAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexPosition");
             GL.EnableVertexAttribArray(positionAttributeLocation);
-            GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, stride, 0);
+            GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, STRIDE, 0);
 
             var colorAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexColor");
             GL.EnableVertexAttribArray(colorAttributeLocation);
-            GL.VertexAttribPointer(colorAttributeLocation, 4, VertexAttribPointerType.Float, false, stride, sizeof(float) * 3);
+            GL.VertexAttribPointer(colorAttributeLocation, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3);
 
             GL.BindVertexArray(0);
         }
@@ -71,17 +75,14 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         void AddOctreeNode(List<float> vertices, Octree<T>.Node node, int depth)
         {
             AddBox(vertices, node.Region, 1.0f, 1.0f, 1.0f, node.HasElements ? 1.0f : 0.1f);
-
             if (node.HasElements)
                 foreach (var element in node.Elements)
                 {
                     var shading = Math.Min(1.0f, depth * 0.1f);
                     AddBox(vertices, element.BoundingBox, 1.0f, shading, 0.0f, 1.0f);
-
                     // AddLine(vertices, element.BoundingBox.Min, node.Region.Min, 1.0f, shading, 0.0f, 0.5f);
                     // AddLine(vertices, element.BoundingBox.Max, node.Region.Max, 1.0f, shading, 0.0f, 0.5f);
                 }
-
             if (node.HasChildren)
                 foreach (var child in node.Children)
                     AddOctreeNode(vertices, child, depth + 1);

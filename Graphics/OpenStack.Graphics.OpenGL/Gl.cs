@@ -1,11 +1,12 @@
-﻿using OpenStack.Graphics.OpenGL.Renderer1;
-
-namespace OpenStack.Graphics
+﻿namespace OpenStack.Graphics.OpenGL
 {
-    //public interface IOpenGLGraphic : IOpenGraphicAny<object, GLRenderMaterial, int, Shader>
-    //{
-    //    // cache
-    //    public GLMeshBufferCache MeshBufferCache { get; }
-    //    public QuadIndexBuffer QuadIndices { get; }
-    //}
+    /// <summary>
+    /// IOpenGLGraphic
+    /// </summary>
+    public interface IOpenGLGraphic : IOpenGraphicAny<object, GLRenderMaterial, int, Shader>
+    {
+        // cache
+        public GLMeshBufferCache MeshBufferCache { get; }
+        public QuadIndexBuffer QuadIndices { get; }
+    }
 }

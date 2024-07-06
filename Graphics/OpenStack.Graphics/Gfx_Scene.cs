@@ -205,12 +205,10 @@ namespace OpenStack.Graphics
         public Octree<SceneNode> StaticOctree;
         public Octree<SceneNode> DynamicOctree;
         public bool ShowDebug;
-
         public IEnumerable<SceneNode> AllNodes => StaticNodes.Concat(DynamicNodes);
-
-        readonly List<SceneNode> StaticNodes = new List<SceneNode>();
-        readonly List<SceneNode> DynamicNodes = new List<SceneNode>();
-        readonly Action<List<MeshBatchRequest>, RenderContext> MeshBatchRenderer;
+        List<SceneNode> StaticNodes = new List<SceneNode>();
+        List<SceneNode> DynamicNodes = new List<SceneNode>();
+        Action<List<MeshBatchRequest>, RenderContext> MeshBatchRenderer;
 
         public class UpdateContext
         {

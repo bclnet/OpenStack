@@ -30,9 +30,9 @@ class ShaderLoader:
         shaderFileName = self.getShaderFileByName(shaderName)
         
         # cache
-        # if shaderFileName in self._shaderDefines:
-        #     shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
-        #     if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
+        if shaderFileName in self._shaderDefines:
+            shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+            if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
 
         # build
         defines = []
@@ -63,14 +63,15 @@ class ShaderLoader:
             fsInfo = glGetShaderInfoLog(fragmentShader)
             raise Exception(f'Error setting up Fragment Shader "{shaderName}": {fsInfo}')
 
+        # render modes
         renderModes = [k[RenderModeLength] for k in defines if k.startswith(RenderMode)]
 
+        # build shader
         shader = Shader(glGetUniformLocation,
             name = shaderName,
             parameters = args,
             program = glCreateProgram(),
-            renderModes = renderModes
-            )
+            renderModes = renderModes)
         glAttachShader(shader.program, vertexShader)
         glAttachShader(shader.program, fragmentShader)
         glLinkProgram(shader.program)
@@ -79,16 +80,17 @@ class ShaderLoader:
         if linkStatus != 1:
             linkInfo = glGetProgramInfoLog(shader.program)
             raise Exception(f'Error linking shaders: {linkInfo} (link status = {linkStatus})')
-
         glDetachShader(shader.program, vertexShader)
         glDeleteShader(vertexShader)
         glDetachShader(shader.program, fragmentShader)
         glDeleteShader(fragmentShader)
 
-        self._shaderDefines[shaderFileName] = defines
-        newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
-        self._cachedShaders[newShaderCacheHash] = shader
-        print(f'Shader {newShaderCacheHash} ({shaderName}) ({', '.join(args.Keys)}) compiled and linked succesfully')
+        # cache shader
+        if False:
+            self._shaderDefines[shaderFileName] = defines
+            newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+            self._cachedShaders[newShaderCacheHash] = shader
+            print(f'Shader {newShaderCacheHash} ({shaderName}) ({', '.join(args.Keys)}) compiled and linked succesfully')
         return shader
 
     def loadPlaneShader(self, shaderName: str, args: dict[str, bool]) -> Shader:
@@ -116,11 +118,10 @@ class ShaderLoader:
             fsInfo = glGetShaderInfoLog(fragmentShader)
             raise Exception(f'Error setting up Fragment Shader "{shaderName}": {fsInfo}')
 
+        # build shader
         shader = Shader(glGetUniformLocation,
             name = shaderName,
-            program = glCreateProgram()
-            )
-
+            program = glCreateProgram())
         glAttachShader(shader.program, vertexShader)
         glAttachShader(shader.program, fragmentShader)
         glLinkProgram(shader.program)
@@ -129,7 +130,6 @@ class ShaderLoader:
         if linkStatus != 1:
             linkInfo = glGetProgramInfoLog(shader.program)
             raise Exception(f'Error linking shaders: {linkInfo} (link status = {linkStatus})')
-
         glDetachShader(shader.program, vertexShader)
         glDeleteShader(vertexShader)
         glDetachShader(shader.program, fragmentShader)
@@ -138,21 +138,17 @@ class ShaderLoader:
 
     # Preprocess a vertex shader's source to include the #version plus #defines for parameters
     def preprocessVertexShader(self, source: str, args: dict[str, bool]) -> str:
-        # Update parameter defines
-        paramSource = self.updateDefines(source, args)
-        # Inject code into shader based on #includes
-        includedSource = self.resolveIncludes(paramSource)
-        return includedSource
+        return self.resolveIncludes(self.updateDefines(source, args))
 
     # Update default defines with possible overrides from the model
     @staticmethod
     def updateDefines(source: str, args: dict[str, bool]) -> str:
-        # Find all #define param_(paramName) (paramValue) using regex
+        # find all #define param_(paramName) (paramValue) using regex
         defines = re.compile('#define param_(\\S*?) (\\S*?)\\s*?\\n').finditer(source)
         for define in defines:
-            # Check if this parameter is in the arguments
+            # check if this parameter is in the arguments
             if (key := define[1]) in args:
-                # Overwrite default value
+                # overwrite default value
                 start, end = define.span(2)
                 source = source[:start] + ('1' if args[key] else '0') + source[end:]
         return source
@@ -161,12 +157,12 @@ class ShaderLoader:
     def resolveIncludes(self, source: str) -> str:
         includes = re.compile('#include "([^"]*?)";?\\s*\\n').finditer(source)
         for define in includes:
-            # Read included code
+            # read included code
             includedCode = self.getShaderSource(define[1])
-            # Recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
+            # recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
             includedCode = self.resolveIncludes(includedCode)
             if not includedCode.endswith('\n'): includedCode += '\n'
-            # Replace the include with the code
+            # replace the include with the code
             start, end = define.span(0)
             source = source.replace(source[start:end], includedCode)
         return source

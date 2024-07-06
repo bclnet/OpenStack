@@ -22,16 +22,16 @@ class GLDebugCamera(GLCamera):
     def tick(self, deltaTime: float) -> None:
         # if not self.mouseOverRenderArea: return
 
-        # Use the keyboard state to update position
-        # self.handleInputTick(deltaTime)
+        # use the keyboard state to update position
+        # self._handleInputTick(deltaTime)
 
-        # Full width of the screen is a 1 PI (180deg)
+        # full width of the screen is a 1 PI (180deg)
         self.yaw -= math.pi * self.mouseDelta[0] / self.windowSize[0]
         self.pitch -= math.pi / self.aspectRatio * self.mouseDelta[1] / self.windowSize[1]
         self.clampRotation()
         self.recalculateMatrices()
 
-    def handleInput(self, mouseState: object, keyboardState: object): # MouseState, KeyboardState
+    def handleInput(self, mouseState: object, keyboardState: object) -> None: # MouseState, KeyboardState
         self.scrollWheelDelta += mouseState.scrollWheelValue - self.mouseState.scrollWheelValue
         self.mouseState = mouseState
         self.keyboardState = keyboardState
@@ -42,15 +42,13 @@ class GLDebugCamera(GLCamera):
 
         # drag
         if mouseState.leftButton == ButtonState.Pressed:
-            if not self.mouseDragging:
-                self.mouseDragging = True
-                self.mousePreviousPosition = np.array([mouseState[0], mouseState[1]])
+            if not self.mouseDragging: self.mouseDragging = True; self.mousePreviousPosition = np.array([mouseState[0], mouseState[1]])
             mouseNewCoords = np.array([mouseState[0], mouseState[1]])
             self.mouseDelta[0] = mouseNewCoords[0] - self.mousePreviousPosition[0]
             self.mouseDelta[1] = mouseNewCoords[1] - self.mousePreviousPosition[1]
             self.mousePreviousPosition = mouseNewCoords
 
-    def handleInputTick(self, deltaTime: float):
+    def _handleInputTick(self, deltaTime: float):
         speed = CAMERASPEED * deltaTime
 
         # double speed if shift is pressed
@@ -65,6 +63,4 @@ class GLDebugCamera(GLCamera):
         if self.keyboardState.IsKeyDown(Key.Q): self.location += np.array([0., 0., speed])
 
         # scroll
-        if self.scrollWheelDelta:
-            self.location += self.getForwardVector() * self.scrollWheelDelta * speed
-            self.scrollWheelDelta = 0
+        if self.scrollWheelDelta: self.location += self.getForwardVector() * self.scrollWheelDelta * speed; self.scrollWheelDelta = 0

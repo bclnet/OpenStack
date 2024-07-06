@@ -1,18 +1,28 @@
+﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
 using System.Numerics;
 
-namespace OpenStack.Graphics.OpenGL.Renderer1
+namespace OpenStack.Graphics.OpenGL
 {
+    /// <summary>
+    /// GLCamera
+    /// </summary>
+    public abstract class GLCamera : Camera
+    {
+        protected override void SetViewport(int x, int y, int width, int height)
+            => GL.Viewport(0, 0, width, height);
+    }
+
+    /// <summary>
+    /// GLDebugCamera
+    /// </summary>
     public class GLDebugCamera : GLCamera
     {
-        public bool MouseOverRenderArea { get; set; } // Set from outside this class by forms code
-
+        public bool MouseOverRenderArea; // Set from outside this class by forms code
         bool MouseDragging;
-
         Vector2 MouseDelta;
         Vector2 MousePreviousPosition;
-
         KeyboardState KeyboardState;
         MouseState MouseState;
         int ScrollWheelDelta;
@@ -21,15 +31,13 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         {
             if (!MouseOverRenderArea) return;
 
-            // Use the keyboard state to update position
+            // use the keyboard state to update position
             HandleInputTick(deltaTime);
 
-            // Full width of the screen is a 1 PI (180deg)
+            // full width of the screen is a 1 PI (180deg)
             Yaw -= (float)Math.PI * MouseDelta.X / WindowSize.X;
             Pitch -= (float)Math.PI / AspectRatio * MouseDelta.Y / WindowSize.Y;
-
             ClampRotation();
-
             RecalculateMatrices();
         }
 
@@ -48,17 +56,10 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
             // drag
             if (mouseState.LeftButton == ButtonState.Pressed)
             {
-                if (!MouseDragging)
-                {
-                    MouseDragging = true;
-                    MousePreviousPosition = new Vector2(mouseState.X, mouseState.Y);
-                }
-
+                if (!MouseDragging) { MouseDragging = true; MousePreviousPosition = new Vector2(mouseState.X, mouseState.Y); }
                 var mouseNewCoords = new Vector2(mouseState.X, mouseState.Y);
-
                 MouseDelta.X = mouseNewCoords.X - MousePreviousPosition.X;
                 MouseDelta.Y = mouseNewCoords.Y - MousePreviousPosition.Y;
-
                 MousePreviousPosition = mouseNewCoords;
             }
         }
@@ -67,7 +68,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
         {
             var speed = CAMERASPEED * deltaTime;
 
-            // Double speed if shift is pressed
+            // double speed if shift is pressed
             if (KeyboardState.IsKeyDown(Key.ShiftLeft)) speed *= 2;
             else if (KeyboardState.IsKeyDown(Key.F)) speed *= 10;
 
@@ -79,11 +80,7 @@ namespace OpenStack.Graphics.OpenGL.Renderer1
             if (KeyboardState.IsKeyDown(Key.Q)) Location += new Vector3(0, 0, speed);
 
             // scroll
-            if (ScrollWheelDelta != 0)
-            {
-                Location += GetForwardVector() * ScrollWheelDelta * speed;
-                ScrollWheelDelta = 0;
-            }
+            if (ScrollWheelDelta != 0) { Location += GetForwardVector() * ScrollWheelDelta * speed; ScrollWheelDelta = 0; }
         }
     }
 }

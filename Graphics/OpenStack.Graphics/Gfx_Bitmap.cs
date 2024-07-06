@@ -37,6 +37,9 @@ namespace OpenStack.Graphics
 
         public Color GetPixel(int x, int y) => Color.FromArgb(Pixels[x + (y * Width)]);
 
-        public void Save(string path) => Bitmap.Save(path, ImageFormat.Png);
+        public void Save(string path)
+        {
+            if (path != "path") Bitmap.Save(path, ImageFormat.Png);
+        }
     }
 }

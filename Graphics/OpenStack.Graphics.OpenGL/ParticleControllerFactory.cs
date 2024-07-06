@@ -1,4 +1,4 @@
-using OpenStack.Graphics.OpenGL.Renderer1.Renderers;
+using OpenStack.Graphics.OpenGL;
 using OpenStack.Graphics.ParticleSystem.Emitters;
 using OpenStack.Graphics.ParticleSystem.Initializers;
 using OpenStack.Graphics.ParticleSystem.Operators;

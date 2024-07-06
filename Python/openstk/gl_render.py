@@ -17,6 +17,7 @@ class IModel: pass
 class IOpenGLGraphic: pass
 class PickingIntent: pass
 class PixelInfo: pass
+class VAOKey: pass
 
 # GLMeshBuffers
 class GLMeshBuffers:
@@ -43,29 +44,78 @@ class GLMeshBuffers:
 
 # GLMeshBufferCache
 class GLMeshBufferCache:
+    _gpuBuffers: dict[IVBIB, GLMeshBuffers] = {}
+    _vertexArrayObjects: dict[VAOKey, int] = {}
+
     class VAOKey:
         vbib: GLMeshBuffers
         shader: Shader
         vertexIndex: int
         indexIndex: int
         baseVertex: int
-
+    
     def getVertexIndexBuffers(vbib: IVBIB) -> GLMeshBuffers:
+        # cache
         if vbib in self._gpuBuffers: return self._gpuBuffers[vbib]
-        else:
-            newGpuVbib = GLMeshBuffers(vbib)
-            self._gpuBuffers.append(vbib, newGpuVbib)
-            return newGpuVbib
+        # build
+        newGpuVbib = GLMeshBuffers(vbib)
+        self._gpuBuffers.append(vbib, newGpuVbib)
+        return newGpuVbib
+
+    def getVertexArrayObject(vbib: IVBIB, shader: Shader, vtxIndex: int, idxIndex: int, baseVertex: int) -> int:
+        gpuVbib = getVertexIndexBuffers(vbib)
+        vaoKey = VAOKey(
+            vbib = gpuVbib,
+            shader = shader,
+            vertexIndex = vtxIndex,
+            indexIndex = idxIndex,
+            baseVertex = baseVertex)
+        # cache
+        if vaoKey in self._vertexArrayObjects: return self._vertexArrayObjects[vaoKey]
+        # build
+        newVaoHandle = glGenVertexArrays(1)
+        glBindVertexArray(newVaoHandle)
+        glBindBuffer(GL_ARRAY_BUFFER, gpuVbib.vertexBuffers[vtxIndex].handle)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuVbib.indexBuffers[idxIndex].handle)
+        curVertexBuffer = vbib.vertexBuffers[vtxIndex]
+        texCoordNum = 0
+        colorNum = 0
+        for attribute in curVertexBuffer.attributes:
+            attributeName = f'v{attribute.SemanticName}'
+            if attribute.SemanticName == 'TEXCOORD' and (texCoordNum := texCoordNum + 1) > 0: attributeName += texCoordNum
+            elif attribute.SemanticName == 'COLOR' and (colorNum := colorNum + 1) > 0: attributeName += colorNum
+            bindVertexAttrib(attribute, attributeName, shader.Program, curVertexBuffer.elementSizeInBytes, baseVertex)
+        glBindVertexArray(0)
+        _vertexArrayObjects.append(vaoKey, newVaoHandle)
+        return newVaoHandle
+
+    @staticmethod
+    def bindVertexAttrib(attribute: object, attributeName: str, shaderProgram: int, stride: int, baseVertex: int) -> None:
+        attributeLocation = glGetAttribLocation(shaderProgram, attributeName)
+        if attributeLocation == -1: return; # ignore this attribute if it is not found in the shader
+        glEnableVertexAttribArray(attributeLocation)
+        match attribute.Format:
+            case DXGI_FORMAT.R32G32B32_FLOAT: glVertexAttribPointer(attributeLocation, 3, GL_FLOAT, false, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R8G8B8A8_UNORM: glVertexAttribPointer(attributeLocation, 4, GL_UNSIGNED_BYTE, false, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R32G32_FLOAT: glVertexAttribPointer(attributeLocation, 2, GL_FLOAT, false, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R16G16_FLOAT: glVertexAttribPointer(attributeLocation, 2, GL_HALF_FLOAT, false, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R32G32B32A32_FLOAT: glVertexAttribPointer(attributeLocation, 4, GL_FLOAT, false, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R8G8B8A8_UINT: glVertexAttribPointer(attributeLocation, 4, GL_UNSIGNED_BYTE, false, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R16G16_SINT: glVertexAttribIPointer(attributeLocation, 2, GL_SHORT, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R16G16B16A16_SINT: glVertexAttribIPointer(attributeLocation, 4, GL_SHORT, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R16G16_SNORM: glVertexAttribPointer(attributeLocation, 2, GL_SHORT, true, stride, baseVertex + attribute.offset)
+            case DXGI_FORMAT.R16G16_UNORM: glVertexAttribPointer(attributeLocation, 2, GL_UNSIGNED_SHORT, true, stride, baseVertex + attribute.offset)
+            case _: raise Exception(f'Unknown attribute format {attribute.Format}')
 
 # MeshBatchRenderer
 class MeshBatchRenderer:
     @staticmethod
     def render(requests: list[MeshBatchRequest], context: Scene.RenderContext) -> None:
-            # Opaque: Grouped by material
+            # opaque: grouped by material
             if context.renderPass == RenderPass.Both or context.renderPass == RenderPass.Opaque: self.drawBatch(requests, context)
-            # Blended: In reverse order
+            # blended: in reverse order
             if context.renderPass == RenderPass.Both or context.enderPass == renderPass.Translucent:
-                holder = [MeshBatchRequest()] # Holds the one request we render at a time
+                holder = [MeshBatchRequest()] # holds the one request we render at a time
                 requests.sort(lambda a, b: -a.distanceFromCamera.compareTo(b.distanceFromCamera))
                 for request in requests: holder[0] = request; self.drawBatch(holder, context)
 
@@ -76,9 +126,9 @@ class MeshBatchRenderer:
         cameraPosition = context.camera.location
         lightPosition = cameraPosition # (context.LightPosition ?? context.Camera.Location)
 
+        # groups
         groupedDrawCalls = drawCalls.groupBy(lambda a: a.call.shader) if not context.replacementShader else \
             drawCalls.groupBy(lambda a: context.replacementShader)
-
         for shaderGroup in groupedDrawCalls:
             shader = shaderGroup.key
             uniformLocationAnimated = shader.getUniformLocation('bAnimated')
@@ -90,39 +140,35 @@ class MeshBatchRenderer:
             uniformLocationTime = shader.getUniformLocation('g_flTime')
             uniformLocationObjectId = shader.getUniformLocation('sceneObjectId')
             uniformLocationMeshId = shader.getUniformLocation('meshId')
-
             glUseProgram(shader.program)
-
             glUniform3(shader.getUniformLocation('vLightPosition'), cameraPosition)
             glUniform3(shader.getUniformLocation('vEyePosition'), cameraPosition)
             glUniformMatrix4(shader.getUniformLocation('uProjectionViewMatrix'), False) # ref viewProjectionMatrix
 
+            # materials
             for materialGroup in shaderGroup.groupBy(lambda a: a.call.material):
                 material = materialGroup.key
                 if not context.showDebug and material.isToolsMaterial: continue
                 material.render(shader)
-
                 for request in materialGroup:
                     transform = request.transform
-                    glUniformMatrix4(uniformLocationTransform, False) # ref transformTk
+                    transform = glUniformMatrix4(uniformLocationTransform, False)
                     if uniformLocationObjectId != 1: glUniform1(uniformLocationObjectId, request.nodeId)
                     if uniformLocationMeshId != 1: glUniform1(uniformLocationMeshId, request.meshId)
                     if uniformLocationTime != 1: glUniform1(uniformLocationTime, request.mesh.time)
-                    if uniformLocationAnimated != -1: glUniform1(uniformLocationAnimated, 1. if request.mesh.animationTexture.hasValue else 0.)
+                    if uniformLocationAnimated != -1: glUniform1(uniformLocationAnimated, 1. if request.mesh.animationTexture != None else 0.)
 
                     # push animation texture to the shader (if it supports it)
-                    if request.mesh.animationTexture.hasValue:
+                    if request.mesh.animationTexture != None:
                         if uniformLocationAnimationTexture != -1: glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, request.mesh.animationTexture.value); glUniform1(uniformLocationAnimationTexture, 0)
                         if uniformLocationNumBones != -1: v = math.max(1, request.mesh.animationTextureSize - 1); glUniform1(uniformLocationNumBones, v)
 
+                    # draw
                     if uniformLocationTint > -1: tint = request.mesh.tint; glUniform4(uniformLocationTint, tint)
                     if uniformLocationTintDrawCall > -1: glUniform3(uniformLocationTintDrawCall, request.call.tintColor)
-
                     glBindVertexArray(request.call.vertexArrayObject)
                     glDrawElements(request.call.primitiveType, request.call.indexCount, request.call.IndexType, request.call.startIndex)
-
                 material.postRender()
-
         glDisable(GL_DEPTH_TEST)
 
 # QuadIndexBuffer
@@ -168,36 +214,57 @@ class GLPickingTexture(IPickingTexture):
         intent: PickingIntent
         pixelInfo: PixelInfo
         
+    onPicked: object
+    request: PickingRequest = PickingRequest()
+    shader: Shader
+    debugShader: Shader
+    @property
+    def isActive(self) -> bool: self.request.activeNextFrame
+    debug: bool
+    width: int = 4
+    height: int = 4
+    fboHandle: int
+    colorHandle: int
+    depthHandle: int
+
     def __init__(self, graphic: IOpenGLGraphic, onPicked: list[Callable]):
         self.shader = graphic.loadShader('vrf.picking', {})
         self.debugShader = graphic.loadShader('vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
         self.setup()
 
-    def setup(self) -> None:
-        fboHandle = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, fboHandle)
+    def dispose(self):
+        self.onPicked = None
+        glDeleteTexture(self.colorHandle)
+        glDeleteTexture(self.depthHandle)
+        glDeleteFramebuffer(self.fboHandle)
 
-        colorHandle = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, colorHandle)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, width, height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, None)
+    def setup(self) -> None:
+        self.fboHandle = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fboHandle)
+
+        # color
+        self.colorHandle = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.colorHandle)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, self.width, self.height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, None)
         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorHandle, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.colorHandle, 0)
 
-        depthHandle = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, depthHandle)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthHandle, 0)
+        # depth
+        self.depthHandle = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.depthHandle)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.depthHandle, 0)
 
+        # bind
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if status != GL_FRAMEBUFFER_COMPLETE: raise Exception(f'Framebuffer failed to bind with error: {status}')
-
         glBindTexture(GL_TEXTURE_2D, 0)
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
     def render(self) -> None:
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboHandle)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self.fboHandle)
         glClearColor(0., 0., 0., 0.)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -207,35 +274,28 @@ class GLPickingTexture(IPickingTexture):
             self.request.activeNextFrame = False
             pixelInfo = ReadPixelInfo(self.request.cursorPositionX, self.request.cursorPositionY)
             if self.onPicked:
-                self.onPicked.Invoke(self, PickingResponse(
+                self.onPicked.invoke(self, PickingResponse(
                     intent = Request.Intent,
-                    pixelInfo = pixelInfo
-                    ))
+                    pixelInfo = pixelInfo))
 
     def resize(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
-        glBindTexture(GL_TEXTURE_2D, colorHandle)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, width, height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, IntPtr.Zero)
-        glBindTexture(GL_TEXTURE_2D, depthHandle)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, IntPtr.Zero)
+        glBindTexture(GL_TEXTURE_2D, self.colorHandle)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, self.width, self.height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, IntPtr.Zero)
+        glBindTexture(GL_TEXTURE_2D, self.depthHandle)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, IntPtr.Zero)
 
     def readPixelInfo(self, width: int, height: int) -> PixelInfo:
         glFlush()
         glFinish()
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fboHandle)
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, self.fboHandle)
         glReadBuffer(GL_COLOR_ATTACHMENT0)
-        pixelInfo = PixelInfo()
-        glReadPixels(width, self.height - height, 1, 1, GL_RGBA_INTEGER, GL_UNSIGNED_INT) # , ref pixelInfo
+        # pixelInfo = PixelInfo()
+        pixelInfo = glReadPixels(width, self.height - height, 1, 1, GL_RGBA_INTEGER, GL_UNSIGNED_INT)
         glReadBuffer(GL_NONE)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
         return pixelInfo
-
-    def dispose(self):
-        self.onPicked = None
-        glDeleteTexture(colorHandle)
-        glDeleteTexture(depthHandle)
-        glDeleteFramebuffer(fboHandle)
 
 # GLRenderMaterial
 class GLRenderMaterial(RenderMaterial):
@@ -243,8 +303,8 @@ class GLRenderMaterial(RenderMaterial):
         super().__init__(material)
 
     def render(self, shader: Shader) -> None:
-        # Start at 1, texture unit 0 is reserved for the animation texture
-        textureUnit: int = 1
+        # start at 1, texture unit 0 is reserved for the animation texture
+        textureUnit = 1
         uniformLocation: int
         for texture in self.textures:
             uniformLocation = shader.getUniformLocation(texture.key)
@@ -278,46 +338,39 @@ class GLRenderableMesh(RenderableMesh):
     graphic: IOpenGLGraphic
 
     def __init__(self, graphic: IOpenGLGraphic, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
-        # super().__init__(lambda t: t.graphic = graphic, mesh, meshIndex, skinMaterials, model)
-        pass # SKY
+        super().__init__(lambda t: print('TODO: t.graphic = graphic'), mesh, meshIndex, skinMaterials, model)
 
     def setRenderMode(self, renderMode: str):
         for call in (self.drawCallsOpaque + self.drawCallsBlended):
             # recycle old shader parameters that are not render modes since we are scrapping those anyway
             parameters = { x.key:x.value for x in call.shader.parameters if x.key.startsWith('renderMode') }
-            if renderMode and call.shader.renderModes.contains(renderMode):
-                parameters.append(f'renderMode_{renderMode}', True)
+            if renderMode and call.shader.renderModes.contains(renderMode): parameters.append(f'renderMode_{renderMode}', True)
             call.shader = self.graphic.loadShader(call.shader.name, parameters)
             call.vertexArrayObject = self.graphic.meshBufferCache.getVertexArrayObject(self.mesh.vbib, call.shader, call.vertexBuffer.id, call.indexBuffer.id, call.baseVertex)
 
     def _configureDrawCalls(skinMaterials: dict[str, str], firstSetup: bool) -> None:
         data = mesh.data
-        if firstSetup: self.graphic.meshBufferCache.getVertexIndexBuffers(self.vbib)  # This call has side effects because it uploads to gpu
+        if firstSetup: self.graphic.meshBufferCache.getVertexIndexBuffers(self.vbib) # this call has side effects because it uploads to gpu
 
-        # Prepare drawcalls
+        # prepare drawcalls
         i = 0
         for sceneObject in data['m_sceneObjects']:
             for objectDrawCall in sceneObject['m_drawCalls']:
                 materialName = objectDrawCall['m_material'] or objectDrawCall['m_pMaterial']
                 if skinMaterials and materialName in skinMaterials: materialName = skinMaterials[materialName]
-
                 material, _ = self.graphic.materialManager.loadMaterial(f'{materialName}_c')
                 isOverlay = isinstance(material.material, IParamMaterial) and 'F_OVERLAY' in material.material.intParams
-
-                # Ignore overlays for now
-                if isOverlay: continue
-
+                if isOverlay: continue # ignore overlays for now
                 shaderArgs: dict[str, bool] = {}
                 if drawCall.isCompressedNormalTangent(objectDrawCall): shaderArgs['fulltangent'] = False
-
+                # first
                 if firstSetup:
-                    # TODO: Don't pass around so much shit
-                    drawCall = self.createDrawCall(objectDrawCall, shaderArgs, material)
+                    drawCall = self.createDrawCall(objectDrawCall, shaderArgs, material) # TODO: don't pass around so much shit
                     self.drawCallsAll.append(drawCall)
                     if drawCall.material.isBlended: self.drawCallsBlended.append(drawCall)
                     else: self.drawCallsOpaque.append(drawCall)
                     continue
-
+                # next
                 self.setupDrawCallMaterial(self.drawCallsAll[i], shaderArgs, material); i += 1
 
     def _createDrawCall(objectDrawCall: dict[str, object], shaderArgs: dict[str, bool], material: GLRenderMaterial) -> DrawCall:
@@ -329,25 +382,25 @@ class GLRenderableMesh(RenderableMesh):
             case s if isinstance(primitiveType, str):
                 if s == 'RENDER_PRIM_TRIANGLES': drawCall.primitiveType = GL_TRIANGLES
         if drawCall.primitiveType != GL_TRIANGLES: raise Exception(f'Unknown PrimitiveType in drawCall! {primitiveType})')
-
+        # material
         self.setupDrawCallMaterial(drawCall, shaderArgs, material)
-
+        # index-buffer
         indexBufferObject = objectDrawCall['m_indexBuffer']
         drawCall.indexBuffer = (indexBufferObject['m_hBuffer'], indexBufferObject['m_nBindOffsetBytes'])
-
+        # vertex
         vertexElementSize = self.vbib.vertexBuffers[drawCall.vertexBuffer.id].elementSizeInBytes
         drawCall.baseVertex = objectDrawCall['m_nBaseVertex'] * vertexElementSize
-
+        # index
         indexElementSize = self.vbib.indexBuffers[drawCall.indexBuffer.id].elementSizeInBytes
         drawCall.startIndex = objectDrawCall['m_nStartIndex'] * indexElementSize
         drawCall.indexCount = objectDrawCall['m_nIndexCount']
-
+        # tint
         if 'm_vTintColor' in objectDrawCall: drawCall.tintColor = objectDrawCall['m_vTintColor']
-
+        # index-type
         if indexElementSize == 2: drawCall.indexType = GL_UNSIGNED_SHORT; # shopkeeper_vr
         elif indexElementSize == 4: drawCall.indexType = GL_UNSIGNED_INT; # glados
         else: raise Exception(f'Unsupported index type {indexElementSize}')
-
+        # vbo
         vertexBuffer = objectDrawCall['m_vertexBuffers'][0]
         drawCall.vertexBuffer = (vertexBuffer['m_hBuffer'], vertexBuffer['m_nBindOffsetBytes'])
         drawCall.vertexArrayObject = self.graphic.meshBufferCache.getVertexArrayObject(self.vbib, drawCall.shader, drawCall.vertexBuffer.id, drawCall.indexBuffer.id, drawCall.baseVertex)
@@ -355,15 +408,12 @@ class GLRenderableMesh(RenderableMesh):
 
     def _setupDrawCallMaterial(drawCall: DrawCall, shaderArgs: dict[str, bool], material: RenderMaterial) -> None:
         drawCall.material = material
-
         # add shader parameters from material to the shader parameters from the draw call
         combinedShaderArgs = { x.key:x.value for x in shaderArgs + material.material.getShaderArgs() }
-
         # load shader
         drawCall.shader = self.graphic.loadShader(drawCall.material.material.shaderName, combinedShaderArgs)
-
         # bind and validate shader
         glUseProgram(drawCall.shader.program)
-
+        # tint and normal
         if 'g_tTintMask' not in drawCall.material.textures: drawCall.material.textures.append('g_tTintMask', self.graphic.textureManager.buildSolidTexture(1, 1, 1., 1., 1., 1.))
         if 'g_tNormal' not in drawCall.material.textures: drawCall.material.textures.append('g_tNormal', self.graphic.textureManager.buildSolidTexture(1, 1, 0.5, 1, 0.5, 1))

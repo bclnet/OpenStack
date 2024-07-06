@@ -85,12 +85,11 @@ class AABB:
     def center(self) -> np.ndarray: return (self.min + self.max) * 0.5
     def __str__(self): return f'AABB [({self.min[0]},{self.min[1]},{self.min[2]}) -> ({self.max[0]},{self.max[1]},{self.max[2]}))'
 
-    def __init__(self, min: np.ndarray, max: np.ndarray):
-        self.min = min
-        self.max = max
-    def __init__(self, min: np.ndarray, max: np.ndarray):
-        self.min = np.array([minX, minY, minZ])
-        self.max = np.array([maxX, maxY, maxZ])
+    def __init__(self, *args):
+        match args:
+            case (min, max): self.min = min; self.max = max
+            case (minX, minY, minZ, maxX, maxY, maxZ): self.min = np.array([minX, minY, minZ]); self.max = np.array([maxX, maxY, maxZ])
+            case _: raise Exception(f'Unknown {args}')
     
     def contains(self, point: np.ndarray | AABB) -> bool:
         match point:

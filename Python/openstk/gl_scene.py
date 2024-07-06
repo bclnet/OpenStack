@@ -45,48 +45,50 @@ class OctreeDebugRenderer:
 
         glBindVertexArray(0)
 
-    def addLine(self, vertices: list[float], from_: np.ndarray, to: np.ndarray, r: float, g: float, b: float, a: float) -> None:
+    def _addLine(self, vertices: list[float], from_: np.ndarray, to: np.ndarray, r: float, g: float, b: float, a: float) -> None:
         vertices.append(from_[0]); vertices.append(from_[1]); vertices.append(from_[2])
         vertices.append(r); vertices.append(g); vertices.append(b); vertices.append(a)
         vertices.append(to[0]); vertices.append(to[1]); vertices.append(to[2])
         vertices.append(r); vertices.append(g); vertices.append(b); vertices.append(a)
 
     def addBox(self, vertices: list[float], box: AABB, r: float, g: float, b: float, a: float) -> None:
-        self.addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Min[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Min[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Min[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Min[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Min[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Min[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Min[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Min[2]]), r, g, b, a)
 
-        self.addLine(vertices, np.array([box.Min[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Min[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Min[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Max[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Max[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Min[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
 
-        self.addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
-        self.addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
+        self._addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
 
     def _addOctreeNode(vertices: list[float], node: Octree.Node, depth: int) -> None:
-        self.addBox(vertices, node.region, 1., 1., 1., 1. if node.hasElements else 0.1)
+        self._addBox(vertices, node.region, 1., 1., 1., 1. if node.hasElements else 0.1)
         if node.hasElements:
             for element in node.Elements:
                 shading = math.min(1., depth * 0.1)
-                self.addBox(vertices, element.boundingBox, 1., shading, 0., 1.)
+                self._addBox(vertices, element.boundingBox, 1., shading, 0., 1.)
+                # self._addLine(vertices, element.boundingBox.min, element.region.min, 1., shading, 0., 0.5)
+                # self._addLine(vertices, element.boundingBox.max, element.region.max, 1., shading, 0., 0.5)
         if node.hasChildren:
             for child in node.children:
-                self.addOctreeNode(vertices, child, depth + 1)
+                self._addOctreeNode(vertices, child, depth + 1)
 
-    def rebuild(self) -> None:
+    def _rebuild(self) -> None:
         vertices = []
-        self.addOctreeNode(vertices, _octree.root, 0)
+        self._addOctreeNode(vertices, _octree.root, 0)
         self._vertexCount = vertices.Count / 7
         glBindBuffer(GL_ARRAY_BUFFER, _vboHandle)
         glBufferData(GL_ARRAY_BUFFER, vertices.count * 4, vertices, GL_DYNAMIC_DRAW if _dynamic else GL_STATIC_DRAW)
 
     def render(self, camera: Camera, renderPass: RenderPass):
         if renderPass == RenderPass.Translucent or renderPass == RenderPass.Both:
-            if _dynamic: self.rebuild()
+            if _dynamic: self._rebuild()
 
             glEnable(GL_BLEND)
             glEnable(GL_DEPTH_TEST)

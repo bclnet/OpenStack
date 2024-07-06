@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Graphics.Animate
+namespace OpenStack.Graphics
 {
     /// <summary>
     /// Bone

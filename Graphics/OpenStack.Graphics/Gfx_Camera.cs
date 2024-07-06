@@ -36,26 +36,22 @@ namespace OpenStack.Graphics
         // Calculate forward vector from pitch and yaw
         protected Vector3 GetForwardVector() => new Vector3((float)(Math.Cos(Yaw) * Math.Cos(Pitch)), (float)(Math.Sin(Yaw) * Math.Cos(Pitch)), (float)Math.Sin(Pitch));
 
-        protected Vector3 GetRightVector() => new Vector3((float)Math.Cos(Yaw - MathX.PiOver2), (float)Math.Sin(Yaw - MathX.PiOver2), 0);
+        protected Vector3 GetRightVector() => new Vector3((float)Math.Cos(Yaw - MathX.PiOver2), (float)Math.Sin(Yaw - MathX.PiOver2), 0f);
 
         public void SetViewportSize(int viewportWidth, int viewportHeight)
         {
-            // Store window size and aspect ratio
+            // store window size and aspect ratio
             AspectRatio = viewportWidth / (float)viewportHeight;
             WindowSize = new Vector2(viewportWidth, viewportHeight);
-
-            // Calculate projection matrix
+            // calculate projection matrix
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FOV, AspectRatio, 1.0f, 40000.0f);
-
             RecalculateMatrices();
-
             // setup viewport
             SetViewport(0, 0, viewportWidth, viewportHeight);
-
             Picker?.Resize(viewportWidth, viewportHeight);
         }
 
-        protected abstract void SetViewport(int x, int y, int width, int height); //GL.Viewport(0, 0, viewportWidth, viewportHeight); //:TODO            
+        protected abstract void SetViewport(int x, int y, int width, int height);
 
         public void CopyFrom(Camera fromOther)
         {
@@ -96,7 +92,7 @@ namespace OpenStack.Graphics
         public void SetFromTransformMatrix(Matrix4x4 matrix)
         {
             Location = matrix.Translation;
-            // Extract view direction from view matrix and use it to calculate pitch and yaw
+            // extract view direction from view matrix and use it to calculate pitch and yaw
             var dir = new Vector3(matrix.M11, matrix.M12, matrix.M13);
             Yaw = (float)Math.Atan2(dir.Y, dir.X);
             Pitch = (float)Math.Asin(dir.Z);

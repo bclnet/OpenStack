@@ -1,21 +1,25 @@
-//#define DEBUG_SHADERS
+﻿//#define DEBUG_SHADERS
 using OpenStack.Graphics.Algorithms;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace OpenStack.Graphics.OpenGL
 {
+    /// <summary>
+    /// ShaderLoader
+    /// </summary>
     public abstract class ShaderLoader
     {
         const int ShaderSeed = 0x13141516;
 
-#if !DEBUG_SHADERS || !DEBUG
-        readonly Dictionary<uint, Shader> CachedShaders = new Dictionary<uint, Shader>();
-        readonly Dictionary<string, List<string>> ShaderDefines = new Dictionary<string, List<string>>();
+        Dictionary<uint, Shader> CachedShaders = new Dictionary<uint, Shader>();
+        Dictionary<string, List<string>> ShaderDefines = new Dictionary<string, List<string>>();
 
         uint CalculateShaderCacheHash(string shaderFileName, IDictionary<string, bool> args)
         {
@@ -29,7 +33,6 @@ namespace OpenStack.Graphics.OpenGL
             }
             return MurmurHash2.Hash(b.ToString(), ShaderSeed);
         }
-#endif
 
         protected abstract string GetShaderFileByName(string shaderName);
 
@@ -39,22 +42,22 @@ namespace OpenStack.Graphics.OpenGL
         {
             var shaderFileName = GetShaderFileByName(shaderName);
 
-#if !DEBUG_SHADERS || !DEBUG
+            // cache
             if (ShaderDefines.ContainsKey(shaderFileName))
             {
                 var shaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
                 if (CachedShaders.TryGetValue(shaderCacheHash, out var cachedShader)) return cachedShader;
             }
-#endif
 
+            // build
             var defines = new List<string>();
 
-            // Vertex shader
+            // vertex shader
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             {
                 var shaderSource = GetShaderSource($"{shaderFileName}.vert");
                 GL.ShaderSource(vertexShader, PreprocessVertexShader(shaderSource, args));
-                // Find defines supported from source
+                // find defines supported from source
                 defines.AddRange(FindDefines(shaderSource));
             }
             GL.CompileShader(vertexShader);
@@ -65,12 +68,12 @@ namespace OpenStack.Graphics.OpenGL
                 throw new Exception($"Error setting up Vertex Shader \"{shaderName}\": {vsInfo}");
             }
 
-            // Fragment shader
+            // fragment shader
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             {
                 var shaderSource = GetShaderSource($"{shaderFileName}.frag");
                 GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
-                // Find render modes supported from source, take union to avoid duplicates
+                // find render modes supported from source, take union to avoid duplicates
                 defines = defines.Union(FindDefines(shaderSource)).ToList();
             }
             GL.CompileShader(fragmentShader);
@@ -81,12 +84,11 @@ namespace OpenStack.Graphics.OpenGL
                 throw new Exception($"Error setting up Fragment Shader \"{shaderName}\": {fsInfo}");
             }
 
+            // render modes
             const string RenderMode = "renderMode_";
-            var renderModes = defines
-                .Where(k => k.StartsWith(RenderMode))
-                .Select(k => k[RenderMode.Length..])
-                .ToList();
+            var renderModes = defines.Where(k => k.StartsWith(RenderMode)).Select(k => k[RenderMode.Length..]).ToList();
 
+            // build shader
             var shader = new Shader(GL.GetUniformLocation)
             {
                 Name = shaderName,
@@ -104,13 +106,13 @@ namespace OpenStack.Graphics.OpenGL
                 GL.GetProgramInfoLog(shader.Program, out var linkInfo);
                 throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus})");
             }
-
             GL.DetachShader(shader.Program, vertexShader);
             GL.DeleteShader(vertexShader);
             GL.DetachShader(shader.Program, fragmentShader);
             GL.DeleteShader(fragmentShader);
 
 #if !DEBUG_SHADERS || !DEBUG
+            // cache shader
             ShaderDefines[shaderFileName] = defines;
             var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
             CachedShaders[newShaderCacheHash] = shader;
@@ -123,7 +125,7 @@ namespace OpenStack.Graphics.OpenGL
         {
             var shaderFileName = GetShaderFileByName(shaderName);
 
-            // Vertex shader
+            // vertex shader
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             {
                 var shaderSource = GetShaderSource($"plane.vert");
@@ -137,7 +139,7 @@ namespace OpenStack.Graphics.OpenGL
                 throw new Exception($"Error setting up Vertex Shader \"{shaderName}\": {vsInfo}");
             }
 
-            // Fragment shader
+            // fragment shader
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             {
                 var shaderSource = GetShaderSource($"{shaderFileName}.frag");
@@ -151,6 +153,7 @@ namespace OpenStack.Graphics.OpenGL
                 throw new Exception($"Error setting up Fragment Shader \"{shaderName}\": {fsInfo}");
             }
 
+            // build shader
             var shader = new Shader(GL.GetUniformLocation)
             {
                 Name = shaderName,
@@ -166,7 +169,6 @@ namespace OpenStack.Graphics.OpenGL
                 GL.GetProgramInfoLog(shader.Program, out var linkInfo);
                 throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus}");
             }
-
             GL.DetachShader(shader.Program, vertexShader);
             GL.DeleteShader(vertexShader);
             GL.DetachShader(shader.Program, fragmentShader);
@@ -176,29 +178,22 @@ namespace OpenStack.Graphics.OpenGL
 
         // Preprocess a vertex shader's source to include the #version plus #defines for parameters
         string PreprocessVertexShader(string source, IDictionary<string, bool> args)
-        {
-            // Update parameter defines
-            var paramSource = UpdateDefines(source, args);
-            // Inject code into shader based on #includes
-            var includedSource = ResolveIncludes(paramSource);
-            return includedSource;
-        }
+            => ResolveIncludes(UpdateDefines(source, args));
 
         // Update default defines with possible overrides from the model
         static string UpdateDefines(string source, IDictionary<string, bool> args)
         {
-            // Find all #define param_(paramName) (paramValue) using regex
+            // find all #define param_(paramName) (paramValue) using regex
             var defines = Regex.Matches(source, @"#define param_(\S*?) (\S*?)\s*?\n");
             foreach (Match define in defines)
-                // Check if this parameter is in the arguments
+                // check if this parameter is in the arguments
                 if (args.TryGetValue(define.Groups[1].Value, out var value))
                 {
-                    // Overwrite default value
+                    // overwrite default value
                     var index = define.Groups[2].Index;
                     var length = define.Groups[2].Length;
                     source = source.Remove(index, Math.Min(length, source.Length - index)).Insert(index, value ? "1" : "0");
                 }
-
             return source;
         }
 
@@ -208,15 +203,14 @@ namespace OpenStack.Graphics.OpenGL
             var includes = Regex.Matches(source, @"#include ""([^""]*?)"";?\s*\n");
             foreach (Match define in includes)
             {
-                // Read included code
+                // read included code
                 var includedCode = GetShaderSource(define.Groups[1].Value);
-                // Recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
+                // recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
                 includedCode = ResolveIncludes(includedCode);
                 if (!includedCode.EndsWith("\n")) includedCode += "\n";
-                // Replace the include with the code
+                // replace the include with the code
                 source = source.Replace(define.Value, includedCode);
             }
-
             return source;
         }
 
@@ -226,4 +220,85 @@ namespace OpenStack.Graphics.OpenGL
             return defines.Cast<Match>().Select(_ => _.Groups[1].Value).ToList();
         }
     }
+
+    /// <summary>
+    /// ShaderDebugLoader
+    /// </summary>
+    public class ShaderDebugLoader : ShaderLoader
+    {
+        const string ShaderDirectory = "OpenStack.Graphics.OpenGL.Shaders";
+
+        // Map shader names to shader files
+        protected override string GetShaderFileByName(string shaderName)
+        {
+            switch (shaderName)
+            {
+                case "plane": return "plane";
+                case "vrf.error": return "error";
+                case "vrf.grid": return "debug_grid";
+                case "vrf.picking": return "picking";
+                case "vrf.particle.sprite": return "particle_sprite";
+                case "vrf.particle.trail": return "particle_trail";
+                case "tools_sprite.vfx": return "sprite";
+                case "vr_unlit.vfx": return "vr_unlit";
+                case "vr_black_unlit.vfx": return "vr_black_unlit";
+                case "water_dota.vfx": return "water";
+                case "hero.vfx":
+                case "hero_underlords.vfx": return "dota_hero";
+                case "multiblend.vfx": return "multiblend";
+                default:
+                    if (shaderName.StartsWith("vr_")) return "vr_standard";
+                    // Console.WriteLine($"Unknown shader {shaderName}, defaulting to simple.");
+                    return "simple";
+            }
+        }
+
+        protected override string GetShaderSource(string shaderFileName)
+        {
+#if DEBUG_SHADERS && DEBUG
+            using (var stream = File.Open(GetShaderDiskPath(shaderFileName), FileMode.Open))
+#else
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream($"{ShaderDirectory}.{shaderFileName}"))
+#endif
+            using (var reader = new StreamReader(stream)) return reader.ReadToEnd();
+        }
+
+#if DEBUG_SHADERS && DEBUG
+        // Reload shaders at runtime
+        static string GetShaderDiskPath(string name) => Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName), "../../../../", ShaderDirectory.Replace(".", "/"), name);
+#endif
+    }
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
+
+    /// <summary>
+    /// XX
+    /// </summary>
 }

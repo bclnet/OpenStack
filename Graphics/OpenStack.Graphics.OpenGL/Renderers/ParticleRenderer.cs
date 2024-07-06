@@ -7,17 +7,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
+namespace OpenStack.Graphics.OpenGL
 {
     public class ParticleRenderer : IRenderer
     {
-        public IEnumerable<IParticleEmitter> Emitters { get; private set; } = new List<IParticleEmitter>();
+        public IEnumerable<IParticleEmitter> Emitters = new List<IParticleEmitter>();
 
-        public IEnumerable<IParticleInitializer> Initializers { get; private set; } = new List<IParticleInitializer>();
+        public IEnumerable<IParticleInitializer> Initializers = new List<IParticleInitializer>();
 
-        public IEnumerable<IParticleOperator> Operators { get; private set; } = new List<IParticleOperator>();
+        public IEnumerable<IParticleOperator> Operators = new List<IParticleOperator>();
 
-        public IEnumerable<IParticleRenderer> Renderers { get; private set; } = new List<IParticleRenderer>();
+        public IEnumerable<IParticleRenderer> Renderers = new List<IParticleRenderer>();
 
         public AABB BoundingBox { get; private set; }
 

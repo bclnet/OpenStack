@@ -10,5 +10,5 @@ class DirectBitmap:
         self.height = height
         self.pixels = bytes(width * height * 4)
     def setPixel(self, x: int, y: int, color: int) -> None: pass
-    def getPixel(self, x: int, y: int) -> int: pass
+    def getPixel(self, x: int, y: int) -> int: return 0
     def save(self, path: str) -> None: pass

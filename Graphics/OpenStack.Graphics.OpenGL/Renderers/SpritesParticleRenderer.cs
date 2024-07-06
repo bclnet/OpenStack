@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Graphics.OpenGL.Renderer1.Renderers
+namespace OpenStack.Graphics.OpenGL
 {
     public class SpritesParticleRenderer : IParticleRenderer
     {

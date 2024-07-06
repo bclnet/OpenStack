@@ -50,7 +50,7 @@ class FrameBone:
     angle: quaternion.quaternion
     scale: float
 
-# FrameBone
+# Frame
 class Frame:
     bones: list[FrameBone]
 

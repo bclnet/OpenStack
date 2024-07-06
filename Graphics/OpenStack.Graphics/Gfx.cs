@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("OpenStack.Graphics.OpenGL")]
+[assembly: InternalsVisibleTo("OpenStack.GraphicsTests")]
 
 namespace OpenStack.Graphics
 {

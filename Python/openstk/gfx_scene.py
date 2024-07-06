@@ -161,10 +161,8 @@ class Scene:
     staticOctree: Octree
     dynamicOctree: Octree
     showDebug: bool
-    
     @property
     def allNodes() -> list[SceneNode]: return self.staticNodes + self.dynamicNodes
-
     staticNodes: list[SceneNode] = []
     dynamicNodes: list[SceneNode] = []
     meshBatchRenderer: object

@@ -67,10 +67,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Renderer1\OctreeDebugRenderer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="OpenTK.NetStandard" Version="1.0.5.32" />
   </ItemGroup>
 

@@ -100,7 +100,6 @@ namespace OpenStack.Graphics
             Min = min;
             Max = max;
         }
-
         public AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
         {
             Min = new Vector3(minX, minY, minZ);
