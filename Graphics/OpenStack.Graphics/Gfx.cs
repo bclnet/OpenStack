@@ -167,6 +167,6 @@ namespace OpenStack.Graphics
         public static int ProcessorCount { get; private set; }
         public static bool Unix { get; private set; }
 
-        public static int MaxTextureMaxAnisotropy; // { get; set; }
+        public static int MaxTextureMaxAnisotropy;
     }
 }

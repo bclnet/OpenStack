@@ -71,9 +71,7 @@ class OpenGLView(QOpenGLWidget):
 
         glClearColor(0.2, 0.3, 0.3, 1.)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        # for paint in self.paints:
-        #     paint(frameTime, self.camera)
+        # for paint in self.paints: paint(frameTime, self.camera)
         # self.update()
 
     def handleResize(self):

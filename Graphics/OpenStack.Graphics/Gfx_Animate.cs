@@ -24,10 +24,9 @@ namespace OpenStack.Graphics
             Name = name;
             Position = position;
             Angle = rotation;
-            // Calculate matrices
+            // calculate matrices
             BindPose = Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
-            Matrix4x4.Invert(BindPose, out var inverseBindPose);
-            InverseBindPose = inverseBindPose;
+            Matrix4x4.Invert(BindPose, out var inverseBindPose); InverseBindPose = inverseBindPose;
         }
 
         public void SetParent(Bone parent)
@@ -150,10 +149,10 @@ namespace OpenStack.Graphics
     {
         public static Func<ISkeleton, Frame> FrameFactory = skeleton => new Frame(skeleton);
 
-        (int FrameIndex, Frame Frame) PreviousFrame;
-        (int FrameIndex, Frame Frame) NextFrame;
-        Frame InterpolatedFrame;
-        ISkeleton Skeleton;
+        internal (int frameIndex, Frame frame) PreviousFrame;
+        internal (int frameIndex, Frame frame) NextFrame;
+        internal Frame InterpolatedFrame;
+        internal ISkeleton Skeleton;
 
         public FrameCache(ISkeleton skeleton)
         {
@@ -169,8 +168,8 @@ namespace OpenStack.Graphics
         /// </summary>
         public void Clear()
         {
-            PreviousFrame = (-1, PreviousFrame.Frame); PreviousFrame.Frame.Clear(Skeleton);
-            NextFrame = (-1, NextFrame.Frame); NextFrame.Frame.Clear(Skeleton);
+            PreviousFrame = (-1, PreviousFrame.frame); PreviousFrame.frame.Clear(Skeleton);
+            NextFrame = (-1, NextFrame.frame); NextFrame.frame.Clear(Skeleton);
         }
 
         /// <summary>
@@ -183,15 +182,13 @@ namespace OpenStack.Graphics
             {
                 case float time:
                     {
-                        // Calculate the index of the current frame
+                        // calculate the index of the current frame
                         var frameIndex = (int)(time * anim.Fps) % anim.FrameCount;
                         var t = (time * anim.Fps - frameIndex) % 1;
-
-                        // Get current and next frame
+                        // get current and next frame
                         var frame1 = GetFrame(anim, frameIndex);
                         var frame2 = GetFrame(anim, (frameIndex + 1) % anim.FrameCount);
-
-                        // Interpolate bone positions, angles and scale
+                        // interpolate bone positions, angles and scale
                         for (var i = 0; i < frame1.Bones.Length; i++)
                         {
                             var frame1Bone = frame1.Bones[i];
@@ -204,25 +201,14 @@ namespace OpenStack.Graphics
                     }
                 case int frameIndex:
                     {
-                        // Try to lookup cached (precomputed) frame - happens when GUI Autoplay runs faster than animation FPS
-                        if (frameIndex == PreviousFrame.FrameIndex) return PreviousFrame.Frame;
-                        else if (frameIndex == NextFrame.FrameIndex) return NextFrame.Frame;
-
-                        // Only two frames are cached at a time to minimize memory usage, especially with Autoplay enabled
+                        // try to lookup cached (precomputed) frame - happens when GUI Autoplay runs faster than animation FPS
+                        if (frameIndex == PreviousFrame.frameIndex) return PreviousFrame.frame;
+                        else if (frameIndex == NextFrame.frameIndex) return NextFrame.frame;
+                        // only two frames are cached at a time to minimize memory usage, especially with Autoplay enabled
                         Frame frame;
-                        if (frameIndex > PreviousFrame.FrameIndex)
-                        {
-                            frame = PreviousFrame.Frame;
-                            PreviousFrame = NextFrame;
-                            NextFrame = (frameIndex, frame);
-                        }
-                        else
-                        {
-                            frame = NextFrame.Frame;
-                            NextFrame = PreviousFrame;
-                            PreviousFrame = (frameIndex, frame);
-                        }
-                        // We make an assumption that frames within one animation contain identical bone sets, so we don't clear frame here
+                        if (frameIndex > PreviousFrame.frameIndex) { frame = PreviousFrame.frame; PreviousFrame = NextFrame; NextFrame = (frameIndex, frame); }
+                        else { frame = NextFrame.frame; NextFrame = PreviousFrame; PreviousFrame = (frameIndex, frame); }
+                        // we make an assumption that frames within one animation contain identical bone sets, so we don't clear frame here
                         anim.DecodeFrame(frameIndex, frame);
                         return frame;
                     }
@@ -236,61 +222,60 @@ namespace OpenStack.Graphics
     /// </summary>
     public class AnimationController
     {
-        FrameCache frameCache;
-        Action<IAnimation, int> updateHandler = (a, b) => { };
-        IAnimation activeAnimation;
+        internal FrameCache FrameCache;
+        Action<IAnimation, int> UpdateHandler = (a, b) => { };
+        public IAnimation ActiveAnimation;
         float Time;
-        bool shouldUpdate;
-        public IAnimation ActiveAnimation => activeAnimation;
+        bool ShouldUpdate;
         public bool IsPaused;
         public int Frame
         {
-            get => activeAnimation != null && activeAnimation.FrameCount != 0
-                ? (int)Math.Round(Time * activeAnimation.Fps) % activeAnimation.FrameCount
+            get => ActiveAnimation != null && ActiveAnimation.FrameCount != 0
+                ? (int)Math.Round(Time * ActiveAnimation.Fps) % ActiveAnimation.FrameCount
                 : 0;
             set
             {
-                if (activeAnimation != null)
+                if (ActiveAnimation != null)
                 {
-                    Time = activeAnimation.Fps != 0
-                        ? value / activeAnimation.Fps
+                    Time = ActiveAnimation.Fps != 0
+                        ? value / ActiveAnimation.Fps
                         : 0f;
-                    shouldUpdate = true;
+                    ShouldUpdate = true;
                 }
             }
         }
 
-        public AnimationController(ISkeleton skeleton) => frameCache = new FrameCache(skeleton);
+        public AnimationController(ISkeleton skeleton) => FrameCache = new FrameCache(skeleton);
 
         public bool Update(float timeStep)
         {
-            if (activeAnimation == null) return false;
-            if (IsPaused) { var res = shouldUpdate; shouldUpdate = false; return res; }
+            if (ActiveAnimation == null) return false;
+            if (IsPaused) { var res = ShouldUpdate; ShouldUpdate = false; return res; }
             Time += timeStep;
-            updateHandler(activeAnimation, Frame);
-            shouldUpdate = false;
+            UpdateHandler(ActiveAnimation, Frame);
+            ShouldUpdate = false;
             return true;
         }
 
         public void SetAnimation(IAnimation animation)
         {
-            frameCache.Clear();
-            activeAnimation = animation;
+            FrameCache.Clear();
+            ActiveAnimation = animation;
             Time = 0f;
-            updateHandler(activeAnimation, -1);
+            UpdateHandler(ActiveAnimation, -1);
         }
 
         public void PauseLastFrame()
         {
             IsPaused = true;
-            Frame = activeAnimation == null ? 0 : activeAnimation.FrameCount - 1;
+            Frame = ActiveAnimation == null ? 0 : ActiveAnimation.FrameCount - 1;
         }
 
         public Matrix4x4[] GetAnimationMatrices(ISkeleton skeleton)
             => IsPaused
-            ? activeAnimation.GetAnimationMatrices(frameCache, Frame, skeleton)
-            : activeAnimation.GetAnimationMatrices(frameCache, Time, skeleton);
+            ? ActiveAnimation.GetAnimationMatrices(FrameCache, Frame, skeleton)
+            : ActiveAnimation.GetAnimationMatrices(FrameCache, Time, skeleton);
 
-        public void RegisterUpdateHandler(Action<IAnimation, int> handler) => updateHandler = handler;
+        public void RegisterUpdateHandler(Action<IAnimation, int> handler) => UpdateHandler = handler;
     }
 }

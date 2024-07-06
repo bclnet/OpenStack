@@ -4,12 +4,19 @@ using System.Drawing;
 namespace OpenStack.Graphics
 {
     /// <summary>
-    /// DirectBitmap
+    /// TestDirectBitmap
     /// </summary>
     [TestClass]
     public class TestDirectBitmap : DirectBitmap
     {
         public TestDirectBitmap() : base(100, 100) { }
+
+        [TestMethod]
+        public void Test_Init()
+        {
+            Assert.AreEqual(100, Width);
+            Assert.AreEqual(100, Height);
+        }
 
         [TestMethod]
         public void Test_SetPixel()

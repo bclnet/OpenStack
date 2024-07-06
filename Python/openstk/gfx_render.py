@@ -1,8 +1,7 @@
 import numpy as np
 from typing import Callable
 from enum import Enum, Flag
-from openstk.util import _throw
-from util import _np_normalize
+from openstk.util import _throw, _np_normalize
 
 # typedefs
 class Camera: pass

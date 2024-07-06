@@ -1,12 +1,15 @@
-import unittest
+from unittest import TestCase, main
 from gfx_bitmap import DirectBitmap
 
 # TestDirectBitmap
-class TestDirectBitmap(unittest.TestCase, DirectBitmap):
+class TestDirectBitmap(DirectBitmap, TestCase):
     def __init__(self, method: str):
-        super().__init__(method)
-        DirectBitmap.__init__(100, 100)
+        TestCase.__init__(self, method)
+        super().__init__(100, 100)
 
+    def test__init__(self):
+        self.assertEqual(100, self.width)
+        self.assertEqual(100, self.height)
     def test_setPixel(self):
         self.setPixel(0, 0, 10)
     def test_getPixel(self):
@@ -16,4 +19,4 @@ class TestDirectBitmap(unittest.TestCase, DirectBitmap):
         self.save('path')
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    main(verbosity=1)

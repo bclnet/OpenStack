@@ -64,7 +64,7 @@ namespace OpenStack.Graphics.OpenGL
             }
         }
 
-        void HandleInputTick(float deltaTime)
+        internal void HandleInputTick(float deltaTime)
         {
             var speed = CAMERASPEED * deltaTime;
 

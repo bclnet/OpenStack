@@ -39,7 +39,7 @@ class TextureRenderer(IRenderer):
             +1., -1., +0.,  +0., +0., 1.,  +1., +1.,  +1., +0., +0.,
             +1., +1., +0.,  +0., +0., 1.,  +1., +0.,  +1., +0., +0.
             ], dtype = np.float32)
-        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices.tobytes(), GL_STATIC_DRAW)
         # arrayType = GLfloat * len(vertices)
         # glBufferData(GL_ARRAY_BUFFER, len(vertices) * sizeof_float, arrayType(*vertices), GL_STATIC_DRAW)
         # glBufferData(GL_ARRAY_BUFFER, len(vertices) * sizeof_float, (GLfloat * len(vertices))(*vertices), GL_STATIC_DRAW)
@@ -53,9 +53,9 @@ class TextureRenderer(IRenderer):
             ('vTANGENT', 3)]
         stride = sizeof_float * sum([x[1] for x in attributes])
         offset = 0
-        for name,size in attributes:
-            attributeLocation = glGetAttribLocation(self.shader.program, name)
-            if attributeLocation > -1: glEnableVertexAttribArray(attributeLocation); glVertexAttribPointer(attributeLocation, size, GL_FLOAT, False, stride, offset)
+        for name, size in attributes:
+            location = glGetAttribLocation(self.shader.program, name)
+            if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, False, stride, offset)
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
         return vao
@@ -108,9 +108,9 @@ class MaterialRenderer(IRenderer):
             ('vTANGENT', 3)]
         stride = sizeof_float * sum([x[1] for x in attributes])
         offset = 0
-        for name,size in attributes:
-            attributeLocation = glGetAttribLocation(self.shader.program, name)
-            if attributeLocation > -1: glEnableVertexAttribArray(attributeLocation); glVertexAttribPointer(attributeLocation, size, GL_FLOAT, False, stride, offset)
+        for name, size in attributes:
+            location = glGetAttribLocation(self.shader.program, name)
+            if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, False, stride, offset)
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
         return vao

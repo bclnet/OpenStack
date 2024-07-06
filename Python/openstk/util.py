@@ -1,4 +1,4 @@
-import math, numpy as np
+import math, quaternion as quat, numpy as np
 # https://realpython.com/python-unittest/
 
 @staticmethod
@@ -13,12 +13,38 @@ def _np_normalize(vector: np.ndarray) -> np.ndarray:
 
 #ref https://github.com/microsoft/referencesource/blob/master/System.Numerics/System/Numerics/Matrix4x4.cs#L358
 @staticmethod
-def _np_createTranslation4x4(xPosition: float, yPosition: float, zPosition: float) -> np.ndarray:
+def _np_createTranslation4x4(*args) -> np.ndarray:
+    match args:
+        case ([position]):
+            return np.array([
+                [1., 0., 0., 0.],
+                [0., 1., 0., 0.],
+                [0., 0., 1., 0.],
+                [position[0], position[1], position[2], 1.]])
+        case (xPosition, yPosition, zPosition):
+            return np.array([
+                [1., 0., 0., 0.],
+                [0., 1., 0., 0.],
+                [0., 0., 1., 0.],
+                [xPosition, yPosition, zPosition, 1.]])
+
+#ref https://github.com/microsoft/referencesource/blob/master/System.Numerics/System/Numerics/Matrix4x4.cs#L1118
+@staticmethod
+def _np_createFromQuaternion4x4(quaternion: quat.quaternion) -> np.ndarray:
+    xx: float = quaternion.x * quaternion.x
+    yy: float = quaternion.y * quaternion.y
+    zz: float = quaternion.z * quaternion.z
+    xy: float = quaternion.x * quaternion.y
+    wz: float = quaternion.z * quaternion.w
+    xz: float = quaternion.z * quaternion.x
+    wy: float = quaternion.y * quaternion.w
+    yz: float = quaternion.y * quaternion.z
+    wx: float = quaternion.x * quaternion.w
     return np.array([
-        [1., 0., 0., 0.],
-        [0., 1., 0., 0.],
-        [0., 0., 1., 0.],
-        [xPosition, yPosition, zPosition, 1.]])
+        [1. - 2. * (yy + zz), 2. * (xy + wz), 2. * (xz - wy), 0.],
+        [2. * (xy - wz), 1. - 2. * (zz + xx), 2. * (yz + wx), 0.],
+        [2. * (xz + wy), 2. * (yz - wx), 1. - 2. * (yy + xx), 0.],
+        [0., 0., 0., 1.]])
 
 #ref https://github.com/microsoft/referencesource/blob/master/System.Numerics/System/Numerics/Matrix4x4.cs#L117
 @staticmethod

@@ -15,6 +15,12 @@ namespace OpenStack.Graphics
         #endregion
 
         [TestMethod]
+        public void Test_Init()
+        {
+            Assert.AreEqual(-0.6154797f, Pitch);
+            Assert.AreEqual(-2.3561945f, Yaw);
+        }
+        [TestMethod]
         public void Test_RecalculateMatrices()
         {
             SetViewportSize(100, 100);

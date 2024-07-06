@@ -54,8 +54,8 @@ namespace OpenStack.Graphics.OpenGL
             var offset = 0;
             foreach (var (name, size) in attributes)
             {
-                var attributeLocation = GL.GetAttribLocation(Shader.Program, name);
-                if (attributeLocation > -1) { GL.EnableVertexAttribArray(attributeLocation); GL.VertexAttribPointer(attributeLocation, size, VertexAttribPointerType.Float, false, stride, offset); }
+                var location = GL.GetAttribLocation(Shader.Program, name);
+                if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
                 offset += sizeof(float) * size;
             }
             GL.BindVertexArray(0); // unbind vao
@@ -126,8 +126,8 @@ namespace OpenStack.Graphics.OpenGL
             var offset = 0;
             foreach (var (name, size) in attributes)
             {
-                var attributeLocation = GL.GetAttribLocation(Shader.Program, name);
-                if (attributeLocation > -1) { GL.EnableVertexAttribArray(attributeLocation); GL.VertexAttribPointer(attributeLocation, size, VertexAttribPointerType.Float, false, stride, offset); }
+                var location = GL.GetAttribLocation(Shader.Program, name);
+                if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
                 offset += sizeof(float) * size;
             }
             GL.BindVertexArray(0); // unbind vao
@@ -187,9 +187,9 @@ namespace OpenStack.Graphics.OpenGL
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
             // attributes
             GL.EnableVertexAttribArray(0);
-            var positionAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexPosition");
-            GL.EnableVertexAttribArray(positionAttributeLocation);
-            GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, STRIDE, 0);
+            var location = GL.GetAttribLocation(_shader.Program, "aVertexPosition");
+            GL.EnableVertexAttribArray(location);
+            GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, STRIDE, 0);
             var colorAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexColor");
             GL.EnableVertexAttribArray(colorAttributeLocation);
             GL.VertexAttribPointer(colorAttributeLocation, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3);

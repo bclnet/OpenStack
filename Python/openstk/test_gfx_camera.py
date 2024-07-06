@@ -1,13 +1,16 @@
-import unittest
-import math, numpy as np
+import numpy as np
+from unittest import TestCase, main
 from gfx_camera import Camera
 
 # TestCamera
-class TestCamera(unittest.TestCase, Camera):
+class TestCamera(Camera, TestCase):
     def __init__(self, method: str):
-        super().__init__(method)
-        Camera.__init__(self)
+        TestCase.__init__(self, method)
+        super().__init__()
 
+    def test__init__(self):
+        self.assertAlmostEqual(-0.6154797, self.pitch)
+        self.assertAlmostEqual(-2.3561945, self.yaw)
     def test__recalculateMatrices(self):
         self.setViewportSize(100, 100)
         # test
@@ -68,4 +71,4 @@ class TestCamera(unittest.TestCase, Camera):
         self._clampRotation()
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2)
+    main(verbosity=1)

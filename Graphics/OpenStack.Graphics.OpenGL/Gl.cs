@@ -1,4 +1,8 @@
-﻿namespace OpenStack.Graphics.OpenGL
+﻿using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("OpenStack.GraphicsTests")]
+
+namespace OpenStack.Graphics.OpenGL
 {
     /// <summary>
     /// IOpenGLGraphic

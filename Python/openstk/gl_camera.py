@@ -28,8 +28,8 @@ class GLDebugCamera(GLCamera):
         # full width of the screen is a 1 PI (180deg)
         self.yaw -= math.pi * self.mouseDelta[0] / self.windowSize[0]
         self.pitch -= math.pi / self.aspectRatio * self.mouseDelta[1] / self.windowSize[1]
-        self.clampRotation()
-        self.recalculateMatrices()
+        self._clampRotation()
+        self._recalculateMatrices()
 
     def handleInput(self, mouseState: object, keyboardState: object) -> None: # MouseState, KeyboardState
         self.scrollWheelDelta += mouseState.scrollWheelValue - self.mouseState.scrollWheelValue
