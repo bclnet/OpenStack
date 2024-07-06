@@ -37,15 +37,14 @@ class ITextureManager:
     def buildSolidTexture(self, width: int, height: int, rgba: list[float]) -> Texture: pass
     def buildNormalMap(self, source: Texture, strength: float) -> Texture: pass
     def loadTexture(self, key: object, level: range = None) -> (Texture, Object): pass
-    def preloadTexture(self, path: str) -> None: pass
+    def preloadTexture(self, key: object) -> None: pass
     def deleteTexture(self, key: object) -> None: pass
 
 # IMaterialManager
 class IMaterialManager:
-    #TODO: field?
-    def textureManager(self) -> ITextureManager: pass
-    def loadMaterial(self, key: object) -> (Material, dict[str, object]): pass
-    def preloadMaterial(self, path: str) -> None: pass
+    textureManager: ITextureManager
+    def loadMaterial(self, key: object) -> (Material, Object): pass
+    def preloadMaterial(self, key: object) -> None: pass
 
 # IMaterial
 class IMaterial:

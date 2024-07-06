@@ -8,7 +8,7 @@ namespace OpenStack.Graphics
     [Flags]
     public enum TextureFlags : int
     {
-#pragma warning disable 1591
+        NO_CACHE = 0x00100000,
         SUGGEST_CLAMPS = 0x00000001,
         SUGGEST_CLAMPT = 0x00000002,
         SUGGEST_CLAMPU = 0x00000004,
@@ -16,7 +16,6 @@ namespace OpenStack.Graphics
         CUBE_TEXTURE = 0x00000010,
         VOLUME_TEXTURE = 0x00000020,
         TEXTURE_ARRAY = 0x00000040,
-#pragma warning restore 1591
     }
 
     /// <summary>

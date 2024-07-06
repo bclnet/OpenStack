@@ -59,7 +59,8 @@ namespace OpenStack.Graphics
         Texture BuildSolidTexture(int width, int height, params float[] rgba);
         Texture BuildNormalMap(Texture source, float strength);
         Texture LoadTexture(object key, out object tag, Range? level = null);
-        void PreloadTexture(string path);
+        Texture ReloadTexture(object key, out object tag, Range? level = null);
+        void PreloadTexture(object key);
         void DeleteTexture(object key);
     }
 
@@ -69,8 +70,8 @@ namespace OpenStack.Graphics
     public interface IMaterialManager<Material, Texture>
     {
         ITextureManager<Texture> TextureManager { get; }
-        Material LoadMaterial(object key, out IDictionary<string, object> data);
-        void PreloadMaterial(string path);
+        Material LoadMaterial(object key, out object tag);
+        void PreloadMaterial(object key);
     }
 
     ///// <summary>
