@@ -18,6 +18,7 @@ def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
 
 # OpenGLView
 class OpenGLView(QOpenGLWidget):
+    hasCheckedOpenGL: bool = False
     mouseState: MouseState = MouseState()
     keyboardState: KeyboardState = KeyboardState()
 
@@ -26,6 +27,8 @@ class OpenGLView(QOpenGLWidget):
         self.debugger = QOpenGLDebugLogger(self)
 
     def checkGL(self):
+        if self.hasCheckedOpenGL == True: return
+        self.hasCheckedOpenGL = True
         print(f'OpenGL version: {glGetString(GL_VERSION).decode()}')
         print(f'OpenGL vendor: {glGetString(GL_VENDOR).decode()}')
         if self.debugger.initialize():
@@ -33,12 +36,10 @@ class OpenGLView(QOpenGLWidget):
             self.debugger.messageLogged.connect(debuggerMessage)
             self.debugger.startLogging()
         print(f'GLSL version: {glGetString(GL_SHADING_LANGUAGE_VERSION).decode()}')
-
         extensions = {}
         for i in range(glGetInteger(GL_NUM_EXTENSIONS)):
             extension = glGetStringi(GL_EXTENSIONS, i).decode()
             if extension not in extensions: extensions[extension] = None
-
         if 'GL_EXT_texture_filter_anisotropic' in extensions:
             maxTextureMaxAnisotropy = glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             PlatformStats.maxTextureMaxAnisotropy = maxTextureMaxAnisotropy
@@ -88,10 +89,10 @@ class OpenGLView(QOpenGLWidget):
         self.elapsedTime = elapsedTime - self.elapsedTime
         frameTime = self.elapsedTime / 1000.
         self.elapsedTime = elapsedTime
-
+        #
         self.camera.tick(frameTime)
         self.camera.handleInput(self.mouseState, self.keyboardState)
-
+        #
         glClearColor(0.2, 0.3, 0.3, 1.)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         self.render(self.camera, frameTime)

@@ -2,7 +2,6 @@
 using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 using System.Linq;
-using static OpenStack.Debug;
 
 namespace OpenStack.Graphics.OpenGL
 {
@@ -66,7 +65,6 @@ namespace OpenStack.Graphics.OpenGL
 
         public void Render(Camera camera, RenderPass renderPass)
         {
-            Log("Render");
             if (Background) { GL.ClearColor(OpenTK.Color.White); GL.Clear(ClearBufferMask.ColorBufferBit); }
             GL.UseProgram(Shader.Program);
             GL.BindVertexArray(QuadVao);

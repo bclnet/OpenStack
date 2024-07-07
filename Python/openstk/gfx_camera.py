@@ -45,10 +45,10 @@ class Camera:
         self.projectionMatrix = _np_createPerspectiveFieldOfView4x4(FOV, self.aspectRatio, 1., 40000.)
         self._recalculateMatrices()
         # setup viewport
-        self._setViewport(0, 0, viewportWidth, viewportHeight)
+        self.setViewport(0, 0, viewportWidth, viewportHeight)
         if self.picker: self.picker.resize(viewportWidth, viewportHeight)
 
-    def _setViewport(self, x: int, y: int, width: int, height: int) -> None: pass
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None: pass
 
     def copyFrom(self, fromOther: Camera) -> None:
         self.aspectRatio = fromOther.aspectRatio

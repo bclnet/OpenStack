@@ -24,7 +24,6 @@ namespace OpenStack.Graphics.Controls
             public Camera Camera { get; set; }
         }
 
-        public event EventHandler GLLoad;
         readonly DispatcherTimer _timer = new() { Interval = new TimeSpan(1) };
 
         public GLViewerControl()
@@ -71,18 +70,16 @@ namespace OpenStack.Graphics.Controls
             _timer.Start();
             OnTick(0);
             if (!HasValidContext) return;
-
             MakeCurrent();
-
             CheckOpenGL();
-
             _stopwatch.Start();
             GL.Enable(EnableCap.DepthTest);
-            GLLoad?.Invoke(this, null);
-
+            //LoadGL();
             HandleResize();
             Draw();
         }
+        
+        //protected virtual void LoadGL() { }
 
         protected override void DestroyHandle(HandleRef hwnd)
         {
@@ -138,18 +135,15 @@ namespace OpenStack.Graphics.Controls
         {
             if (_hasCheckedOpenGL) return;
             _hasCheckedOpenGL = true;
-
             Console.WriteLine($"OpenGL version: {GL.GetString(StringName.Version)}");
             Console.WriteLine($"OpenGL vendor: {GL.GetString(StringName.Vendor)}");
             Console.WriteLine($"GLSL version: {GL.GetString(StringName.ShadingLanguageVersion)}");
-
             var extensions = new HashSet<string>();
             for (var i = 0; i < GL.GetInteger(GetPName.NumExtensions); i++)
             {
                 var extension = GL.GetString(StringNameIndexed.Extensions, i);
                 if (!extensions.Contains(extension)) extensions.Add(extension);
             }
-
             if (extensions.Contains("GL_EXT_texture_filter_anisotropic"))
             {
                 var maxTextureMaxAnisotropy = GL.GetInteger((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);

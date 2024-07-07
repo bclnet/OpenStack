@@ -10,6 +10,7 @@ class GLCamera(Camera):
     def __init__(self):
         super().__init__()
     def setViewport(self, x: int, y: int, width: int, height: int) -> None:
+        print(f'setViewport: {width}, {height}')
         return glViewport(0, 0, width, height)
 
 # GLDebugCamera
