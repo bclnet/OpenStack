@@ -10,6 +10,7 @@ namespace OpenStack.Graphics.OpenGL
     public class TestGLCamera : GLCamera
     {
         #region base
+        public TestGLCamera() => SetViewportSize(100, 100);
         public override void Tick(float deltaTime) { }
         protected override void SetViewport(int x, int y, int width, int height) { }
         #endregion
@@ -32,6 +33,12 @@ namespace OpenStack.Graphics.OpenGL
     public class TestGLDebugCamera : GLDebugCamera
     {
         #region base
+        public TestGLDebugCamera()
+        {
+            HandleInput(new MouseState(), new KeyboardState());
+            MouseOverRenderArea = true;
+            SetViewportSize(100, 100);
+        }
         protected override void SetViewport(int x, int y, int width, int height) { }
         #endregion
 

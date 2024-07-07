@@ -12,22 +12,27 @@ namespace OpenStack.Graphics
     public class Shader
     {
         readonly Func<int, string, int> _getUniformLocation;
+        readonly Func<int, string, int> _getAttribLocation;
         Dictionary<string, int> _uniforms = new Dictionary<string, int>();
         public string Name;
         public int Program;
         public IDictionary<string, bool> Parameters;
         public List<string> RenderModes;
 
-        public Shader(Func<int, string, int> getUniformLocation)
-            => _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
+        public Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation)
+        { 
+            _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
+            _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
+        }
 
         public int GetUniformLocation(string name)
         {
             if (_uniforms.TryGetValue(name, out var value)) return value;
-            value = _getUniformLocation(Program, name);
-            _uniforms[name] = value;
-            return value;
+            value = _getUniformLocation(Program, name); _uniforms[name] = value; return value;
         }
+
+        public int GetAttribLocation(string name)
+            => _getAttribLocation(Program, name);
     }
 
     /// <summary>

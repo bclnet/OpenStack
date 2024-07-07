@@ -18,14 +18,16 @@ class RenderSlotType: pass
 # Shader
 class Shader:
     _getUniformLocation: Callable
+    _getAttribLocation: Callable
     _uniforms: dict[str, int] = {}
     name: str
     program: int
     parameters: dict[str, bool]
     renderModes: list[str]
 
-    def __init__(self, getUniformLocation: Callable, name: str = None, program: int = None, parameters: dict[str, bool] = None, renderModes: list[str] = None):
+    def __init__(self, getUniformLocation: Callable, getAttribLocation: Callable, name: str = None, program: int = None, parameters: dict[str, bool] = None, renderModes: list[str] = None):
         self._getUniformLocation = getUniformLocation or _throw('Null')
+        self._getAttribLocation = getAttribLocation or _throw('Null')
         self.name = name
         self.program = program
         self.parameters = parameters
@@ -33,9 +35,10 @@ class Shader:
     
     def getUniformLocation(self, name: str) -> int:
         if name in self._uniforms: return self._uniforms[name]
-        value = self._getUniformLocation(self.program, name)
-        self._uniforms[name] = value
-        return value
+        value = self._getUniformLocation(self.program, name); self._uniforms[name] = value; return value
+
+    def getAttribLocation(self, name: str) -> int:
+        reurn self._getAttribLocation(self.program, name)
 
 # IPickingTexture
 class IPickingTexture:

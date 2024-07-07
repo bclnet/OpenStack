@@ -6,7 +6,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtOpenGL import QOpenGLBuffer, QOpenGLShader, QOpenGLShaderProgram, QOpenGLTexture, QOpenGLDebugLogger, QOpenGLDebugMessage
 from openstk.gfx import PlatformStats
-from openstk.gl_camera import GLDebugCamera
+from openstk.gfx_ui import MouseState, KeyboardState
+from openstk.gl_camera import GLCamera, GLDebugCamera
 
 # https://forum.qt.io/topic/137468/a-few-basic-changes-in-pyqt6-and-pyside6-regarding-shader-based-opengl-graphics
 # https://github.com/8Observer8/falling-collada-cube-bullet-physics-opengl33-pyqt6/blob/master/main.py
@@ -17,6 +18,9 @@ def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
 
 # OpenGLView
 class OpenGLView(QOpenGLWidget):
+    mouseState: MouseState = MouseState()
+    keyboardState: KeyboardState = KeyboardState()
+
     def __init__(self):
         super().__init__()
         self.debugger = QOpenGLDebugLogger(self)
@@ -39,8 +43,7 @@ class OpenGLView(QOpenGLWidget):
             maxTextureMaxAnisotropy = glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             PlatformStats.maxTextureMaxAnisotropy = maxTextureMaxAnisotropy
             print(f'MaxTextureMaxAnisotropyExt: {maxTextureMaxAnisotropy}')
-        else:
-            print(f'GL_EXT_texture_filter_anisotropic is not supported')
+        else: print(f'GL_EXT_texture_filter_anisotropic is not supported')
 
     def initializeGL(self):
         super().initializeGL()
@@ -60,6 +63,26 @@ class OpenGLView(QOpenGLWidget):
         self.camera.mouseOverRenderArea = False
         return super().leaveEvent(event)
 
+    # def mouseMoveEvent(self, event):
+    #     print(f'mouseEvent: {self.event.pos()}')
+    #     return super().mouseMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        button = event.button()
+        self.mouseState.leftButton = button in Qt.MouseButton.LeftButton
+        self.mouseState.rightButton = button in Qt.MouseButton.RightButton
+        return super().mousePressEvent(event)
+
+    # def keyPressEvent(self, event):
+    #     print(f'keyboardPressEvent: {event.key()}')
+    #     self.keyboardState.keys.add(event.key())
+    #     return super().keyPressEvent(event)
+
+    # def keyReleaseEvent(self, event):
+    #     print(f'keyReleaseEvent: {event.key()}')
+    #     self.keyboardState.keys.remove(event.key())
+    #     return super().keyReleaseEvent(event)
+
     def paintGL(self):
         elapsedTime = time.time()
         self.elapsedTime = elapsedTime - self.elapsedTime
@@ -67,19 +90,20 @@ class OpenGLView(QOpenGLWidget):
         self.elapsedTime = elapsedTime
 
         self.camera.tick(frameTime)
-        # self.camera.handleInput(None, None) #OpenTK.Input.Mouse.GetState(), OpenTK.Input.Keyboard.GetState()
+        self.camera.handleInput(self.mouseState, self.keyboardState)
 
         glClearColor(0.2, 0.3, 0.3, 1.)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        # for paint in self.paints: paint(frameTime, self.camera)
-        # self.update()
+        self.render(self.camera, frameTime)
+        # self.update(frameTime)
+
+    def render(self, camera: GLCamera, frameTime: float): pass
 
     def handleResize(self):
         self.camera.setViewportSize(self.width(), self.height())
         self.recalculatePositions()
 
     def recalculatePositions(self): pass
-
 
 # from PyQt6.QtGui import QSurfaceFormat
 # fmt = QSurfaceFormat()

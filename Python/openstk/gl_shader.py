@@ -11,9 +11,9 @@ class ShaderLoader:
     _cachedShaders: dict[int, Shader] = {}
     _shaderDefines: dict[str, list[str]] = {}
     
-    def _calculateShaderCacheHash(self, shaderFileName: str, args: dict[str, bool]) -> int:
-        # b = [shaderFileName]
-        # parameters = self._shaderDefines[shaderFileName].intersect(args.keys)
+    def _calculateShaderCacheHash(self, name: str, args: dict[str, bool]) -> int:
+        # b = [name]
+        # parameters = self._shaderDefines[name].intersect(args.keys)
         # foreach (var key in parameters)
         # {
         #     b.AppendLine(key);
@@ -22,16 +22,17 @@ class ShaderLoader:
         # return MurmurHash2.Hash(b.ToString(), ShaderSeed)
         return 0
 
-    def getShaderFileByName(self, shaderName: str) -> str: pass
+    def getShaderFileByName(self, name: str) -> str: pass
 
-    def getShaderSource(self, shaderName: str) -> str: pass
+    def getShaderSource(self, name: str) -> str: pass
 
-    def loadShader(self, shaderName: str, args: dict[str, bool]) -> Shader:
-        shaderFileName = self.getShaderFileByName(shaderName)
+    def createShader(self, path: object, args: dict[str, bool]) -> Shader:
+        name = str(path)
+        fileName = self.getShaderFileByName(name)
         
         # cache
-        if shaderFileName in self._shaderDefines:
-            shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+        if fileName in self._shaderDefines:
+            shaderCacheHash = self._calculateShaderCacheHash(fileName, args)
             if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
 
         # build
@@ -40,7 +41,7 @@ class ShaderLoader:
         # vertex shader
         vertexShader = glCreateShader(GL_VERTEX_SHADER)
         if True:
-            shaderSource = self.getShaderSource(f'{shaderFileName}.vert')
+            shaderSource = self.getShaderSource(f'{fileName}.vert')
             glShaderSource(vertexShader, self.preprocessVertexShader(shaderSource, args))
             # find defines supported from source
             defines += self.findDefines(shaderSource)
@@ -48,12 +49,12 @@ class ShaderLoader:
         shaderStatus = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
         if shaderStatus != 1:
             vsInfo = glGetShaderInfoLog(vertexShader)
-            raise Exception(f'Error setting up Vertex Shader "{shaderName}": {vsInfo}')
+            raise Exception(f'Error setting up Vertex Shader "{name}": {vsInfo}')
 
         # fragment shader
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
         if True:
-            shaderSource = self.getShaderSource(f'{shaderFileName}.frag')
+            shaderSource = self.getShaderSource(f'{fileName}.frag')
             glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
             # find render modes supported from source, take union to avoid duplicates
             defines += self.findDefines(shaderSource)
@@ -61,14 +62,14 @@ class ShaderLoader:
         shaderStatus = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
         if shaderStatus != 1:
             fsInfo = glGetShaderInfoLog(fragmentShader)
-            raise Exception(f'Error setting up Fragment Shader "{shaderName}": {fsInfo}')
+            raise Exception(f'Error setting up Fragment Shader "{name}": {fsInfo}')
 
         # render modes
         renderModes = [k[RenderModeLength] for k in defines if k.startswith(RenderMode)]
 
         # build shader
-        shader = Shader(glGetUniformLocation,
-            name = shaderName,
+        shader = Shader(glGetUniformLocation, glGetAttribLocation,
+            name = name,
             parameters = args,
             program = glCreateProgram(),
             renderModes = renderModes)
@@ -87,14 +88,15 @@ class ShaderLoader:
 
         # cache shader
         if False:
-            self._shaderDefines[shaderFileName] = defines
-            newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+            self._shaderDefines[fileName] = defines
+            newShaderCacheHash = self._calculateShaderCacheHash(fileName, args)
             self._cachedShaders[newShaderCacheHash] = shader
-            print(f'Shader {newShaderCacheHash} ({shaderName}) ({', '.join(args.Keys)}) compiled and linked succesfully')
+            print(f'Shader {newShaderCacheHash} ({name}) ({', '.join(args.Keys)}) compiled and linked succesfully')
         return shader
 
-    def loadPlaneShader(self, shaderName: str, args: dict[str, bool]) -> Shader:
-        shaderFileName = self.getShaderFileByName(shaderName)
+    def createPlaneShader(self, path: object, args: dict[str, bool]) -> Shader:
+        name = str(path)
+        fileName = self.getShaderFileByName(name)
 
         # vertex shader
         vertexShader = glCreateShader(GL_VERTEX_SHADER)
@@ -105,22 +107,22 @@ class ShaderLoader:
         shaderStatus = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
         if shaderStatus != 1:
             vsInfo = glGetShaderInfoLog(vertexShader)
-            raise Exception(f'Error setting up Vertex Shader "{shaderName}": {vsInfo}')
+            raise Exception(f'Error setting up Vertex Shader "{name}": {vsInfo}')
 
         # fragment shader
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
         if True:
-            shaderSource = self.getShaderSource(f'{shaderFileName}.frag')
+            shaderSource = self.getShaderSource(f'{fileName}.frag')
             glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
         glCompileShader(fragmentShader)
         shaderStatus = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
         if shaderStatus != 1:
             fsInfo = glGetShaderInfoLog(fragmentShader)
-            raise Exception(f'Error setting up Fragment Shader "{shaderName}": {fsInfo}')
+            raise Exception(f'Error setting up Fragment Shader "{name}": {fsInfo}')
 
         # build shader
-        shader = Shader(glGetUniformLocation,
-            name = shaderName,
+        shader = Shader(glGetUniformLocation, glGetAttribLocation,
+            name = name,
             program = glCreateProgram())
         glAttachShader(shader.program, vertexShader)
         glAttachShader(shader.program, fragmentShader)
@@ -174,8 +176,8 @@ class ShaderLoader:
 
 # ShaderDebugLoader
 class ShaderDebugLoader(ShaderLoader):
-    def getShaderFileByName(self, shaderName: str) -> str:
-        match shaderName:
+    def getShaderFileByName(self, name: str) -> str:
+        match name:
             case 'plane': return 'plane'
             case 'vrf.error': return 'error'
             case 'vrf.grid': return 'debug_grid'
@@ -189,10 +191,10 @@ class ShaderDebugLoader(ShaderLoader):
             case 'hero.vfx', 'hero_underlords.vfx': return 'dota_hero'
             case 'multiblend.vfx': return 'multiblend'
             case _:
-                if shaderName.startsWith('vr_'): return 'vr_standard'
+                if name.startsWith('vr_'): return 'vr_standard'
                 return 'simple'
 
-    def getShaderSource(self, shaderFileName: str) -> str:
-        return resources.files().joinpath('shaders', shaderFileName).read_text(encoding='utf-8')
+    def getShaderSource(self, name: str) -> str:
+        return resources.files().joinpath('shaders', name).read_text(encoding='utf-8')
 
 # print(ShaderDebugLoader().loadShader('water_dota.vfx', {'fulltangent': 1}))

@@ -10,6 +10,7 @@ namespace OpenStack.Graphics
     public class TestCamera : Camera
     {
         #region base
+        public TestCamera() => SetViewportSize(100, 100);
         public override void Tick(float deltaTime) { }
         protected override void SetViewport(int x, int y, int width, int height) { }
         #endregion
@@ -23,8 +24,6 @@ namespace OpenStack.Graphics
         [TestMethod]
         public void Test_RecalculateMatrices()
         {
-            SetViewportSize(100, 100);
-            // test
             RecalculateMatrices();
             Assert.AreEqual(-1.70710671f, ViewProjectionMatrix.M11);
             Assert.AreEqual(-0.985598564f, ViewProjectionMatrix.M12);

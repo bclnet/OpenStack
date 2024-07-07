@@ -13,36 +13,29 @@ STRIDE = 4 * 7
 
 # OctreeDebugRenderer
 class OctreeDebugRenderer:
-    _shader: Shader
-    _octree: Octree
-    _vaoHandle: int
-    _vboHandle: int
-    _dynamic: bool
-    _vertexCount: int
+    shader: Shader
+    octree: Octree
+    vaoHandle: int
+    vboHandle: int
+    dynamic: bool
+    vertexCount: int
 
     def __init__(self, octree: Octree, graphic: IOpenGLGraphic, dynamic: bool):
-        self._octree = octree
-        self._dynamic = dynamic
-
-        self._shader = graphic.loadShader('vrf.grid')
-        glUseProgram(_shader.program)
-
-        self._vboHandle = glGenBuffer()
-        if not dynamic:
-            self.rebuild()
-
-        self._vaoHandle = glGenVertexArray()
-        bindVertexArray(_vaoHandle)
-        bindBuffer(GL_ARRAY_BUFFER, _vboHandle)
-
-        positionAttributeLocation = glGetAttribLocation(self._shader.program, 'aVertexPosition')
-        glEnableVertexAttribArray(positionAttributeLocation)
-        glVertexAttribPointer(positionAttributeLocation, 3, GL_FLOAT, False, STRIDE, 0)
-
-        colorAttributeLocation = glGetAttribLocation(self._shader.program, 'aVertexColor')
-        glEnableVertexAttribArray(colorAttributeLocation)
-        glVertexAttribPointer(colorAttributeLocation, 4, GL_FLOAT, False, STRIDE, sizeof(float) * 3)
-
+        self.octree = octree
+        self.dynamic = dynamic
+        self.shader, self.shaderTag = graphic.createShader('vrf.grid')
+        glUseProgram(shader.program)
+        self.vboHandle = glGenBuffer()
+        if not dynamic: self.rebuild()
+        self.vaoHandle = glGenVertexArray()
+        bindVertexArray(self.vaoHandle)
+        bindBuffer(GL_ARRAY_BUFFER, self.vboHandle)
+        location = self.shader.getAttribLocation('aVertexPosition')
+        glEnableVertexAttribArray(location)
+        glVertexAttribPointer(location, 3, GL_FLOAT, False, STRIDE, 0)
+        location = self.shader.getAttribLocation('aVertexColor')
+        glEnableVertexAttribArray(location)
+        glVertexAttribPointer(location, 4, GL_FLOAT, False, STRIDE, sizeof(float) * 3)
         glBindVertexArray(0)
 
     def _addLine(self, vertices: list[float], from_: np.ndarray, to: np.ndarray, r: float, g: float, b: float, a: float) -> None:
@@ -51,17 +44,17 @@ class OctreeDebugRenderer:
         vertices.append(to[0]); vertices.append(to[1]); vertices.append(to[2])
         vertices.append(r); vertices.append(g); vertices.append(b); vertices.append(a)
 
-    def addBox(self, vertices: list[float], box: AABB, r: float, g: float, b: float, a: float) -> None:
+    def _addBox(self, vertices: list[float], box: AABB, r: float, g: float, b: float, a: float) -> None:
         self._addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Min[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Min[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Max[1], box.Min[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Min[0], box.Max[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Min[2]]), r, g, b, a)
-
+        #
         self._addLine(vertices, np.array([box.Min[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Max[0], box.Min[1], box.Max[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Max[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Max[1], box.Max[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Min[0], box.Max[1], box.Max[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
-
+        #
         self._addLine(vertices, np.array([box.Min[0], box.Min[1], box.Min[2]]), np.array([box.Min[0], box.Min[1], box.Max[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Max[0], box.Min[1], box.Min[2]]), np.array([box.Max[0], box.Min[1], box.Max[2]]), r, g, b, a)
         self._addLine(vertices, np.array([box.Max[0], box.Max[1], box.Min[2]]), np.array([box.Max[0], box.Max[1], box.Max[2]]), r, g, b, a)
@@ -81,26 +74,23 @@ class OctreeDebugRenderer:
 
     def _rebuild(self) -> None:
         vertices = []
-        self._addOctreeNode(vertices, _octree.root, 0)
-        self._vertexCount = vertices.Count / 7
-        glBindBuffer(GL_ARRAY_BUFFER, _vboHandle)
-        glBufferData(GL_ARRAY_BUFFER, vertices.count * 4, vertices, GL_DYNAMIC_DRAW if _dynamic else GL_STATIC_DRAW)
+        self._addOctreeNode(vertices, self.octree.root, 0)
+        self.vertexCount = vertices.Count / 7
+        glBindBuffer(GL_ARRAY_BUFFER, self.vboHandle)
+        glBufferData(GL_ARRAY_BUFFER, vertices.count * 4, vertices, GL_DYNAMIC_DRAW if self.dynamic else GL_STATIC_DRAW)
 
     def render(self, camera: Camera, renderPass: RenderPass):
         if renderPass == RenderPass.Translucent or renderPass == RenderPass.Both:
-            if _dynamic: self._rebuild()
-
+            if self.dynamic: self._rebuild()
             glEnable(GL_BLEND)
             glEnable(GL_DEPTH_TEST)
             glDepthMask(False)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            glUseProgram(self._shader.program)
-
+            glUseProgram(self.shader.program)
             projectionViewMatrix = camera.viewProjectionMatrix
-            glUniformMatrix4(_shader.getUniformLocation('uProjectionViewMatrix'), False, self.projectionViewMatrix)
-
-            glBindVertexArray(_vaoHandle)
-            glDrawArrays(GL_LINES, 0, _vertexCount)
+            glUniformMatrix4(self.shader.getUniformLocation('uProjectionViewMatrix'), False, self.projectionViewMatrix)
+            glBindVertexArray(self.vaoHandle)
+            glDrawArrays(GL_LINES, 0, self.vertexCount)
             glBindVertexArray(0)
             glUseProgram(0)
             glDepthMask(True)

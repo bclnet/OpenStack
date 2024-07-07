@@ -8,7 +8,6 @@ namespace OpenStack.Graphics
     [Flags]
     public enum TextureFlags : int
     {
-        NO_CACHE = 0x00100000,
         SUGGEST_CLAMPS = 0x00000001,
         SUGGEST_CLAMPT = 0x00000002,
         SUGGEST_CLAMPU = 0x00000004,

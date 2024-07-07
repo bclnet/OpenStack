@@ -283,8 +283,8 @@ namespace OpenStack.Graphics.OpenGL
 
         public GLPickingTexture(IOpenGLGraphic graphic, EventHandler<PickingResponse> onPicked)
         {
-            Shader = graphic.LoadShader("vrf.picking", new Dictionary<string, bool>());
-            DebugShader = graphic.LoadShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
+            (Shader, _) = graphic.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>());
+            (DebugShader, _) = graphic.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
             OnPicked += onPicked;
             Setup();
         }
@@ -441,7 +441,7 @@ namespace OpenStack.Graphics.OpenGL
                 // recycle old shader parameters that are not render modes since we are scrapping those anyway
                 var parameters = call.Shader.Parameters.Where(kvp => !kvp.Key.StartsWith("renderMode")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                 if (renderMode != null && call.Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
-                call.Shader = Graphic.LoadShader(call.Shader.Name, parameters);
+                (call.Shader, _) = Graphic.ShaderManager.CreateShader(call.Shader.Name, parameters);
                 call.VertexArrayObject = Graphic.MeshBufferCache.GetVertexArrayObject(Mesh.VBIB, call.Shader, call.VertexBuffer.Id, call.IndexBuffer.Id, call.BaseVertex);
             }
         }
@@ -458,7 +458,7 @@ namespace OpenStack.Graphics.OpenGL
                 {
                     var materialName = objectDrawCall.Get<string>("m_material") ?? objectDrawCall.Get<string>("m_pMaterial");
                     if (skinMaterials != null && skinMaterials.ContainsKey(materialName)) materialName = skinMaterials[materialName];
-                    var material = Graphic.MaterialManager.LoadMaterial($"{materialName}_c", out var _);
+                    var (material, _) = Graphic.MaterialManager.CreateMaterial($"{materialName}_c");
                     var isOverlay = material.Material is IParamMaterial z && z.IntParams.ContainsKey("F_OVERLAY");
                     if (isOverlay) continue; // ignore overlays for now
                     var shaderArgs = new Dictionary<string, bool>();
@@ -466,7 +466,7 @@ namespace OpenStack.Graphics.OpenGL
                     // first
                     if (firstSetup)
                     {
-                        var drawCall = CreateDrawCall(objectDrawCall, shaderArgs, material); // TODO: don't pass around so much shit
+                        var drawCall = CreateDrawCall(objectDrawCall, shaderArgs, material);
                         DrawCallsAll.Add(drawCall);
                         if (drawCall.Material.IsBlended) DrawCallsBlended.Add(drawCall);
                         else DrawCallsOpaque.Add(drawCall);
@@ -523,12 +523,12 @@ namespace OpenStack.Graphics.OpenGL
             // add shader parameters from material to the shader parameters from the draw call
             var combinedShaderArgs = shaderArgs.Concat(material.Material.GetShaderArgs()).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             // load shader
-            drawCall.Shader = Graphic.LoadShader(drawCall.Material.Material.ShaderName, combinedShaderArgs);
+            (drawCall.Shader, _) = Graphic.ShaderManager.CreateShader(drawCall.Material.Material.ShaderName, combinedShaderArgs);
             // bind and validate shader
             GL.UseProgram(drawCall.Shader.Program);
             // tint and normal
-            if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", Graphic.TextureManager.BuildSolidTexture(1, 1, 1f, 1f, 1f, 1f));
-            if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", Graphic.TextureManager.BuildSolidTexture(1, 1, 0.5f, 1f, 0.5f, 1f));
+            if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", Graphic.TextureManager.CreateSolidTexture(1, 1, 1f, 1f, 1f, 1f));
+            if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", Graphic.TextureManager.CreateSolidTexture(1, 1, 0.5f, 1f, 0.5f, 1f));
         }
     }
 }

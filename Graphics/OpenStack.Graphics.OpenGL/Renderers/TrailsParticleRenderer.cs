@@ -8,29 +8,31 @@ namespace OpenStack.Graphics.OpenGL
 {
     public class TrailsParticleRenderer : IParticleRenderer
     {
-        readonly Shader _shader;
-        readonly int _quadVao;
-        readonly int _texture;
+        readonly Shader Shader;
+        readonly object ShaderTag;
+        readonly int QuadVao;
+        readonly int Texture;
+        readonly object TextureTag;
 
-        readonly TextureSequences _textureSequences;
-        readonly float _animationRate;
+        readonly TextureSequences TextureSequences;
+        readonly float AnimationRate;
 
-        readonly bool _additive;
-        readonly float _overbrightFactor;
-        readonly long _orientationType;
+        readonly bool Additive;
+        readonly float OverbrightFactor;
+        readonly long OrientationType;
 
-        readonly float _finalTextureScaleU;
-        readonly float _finalTextureScaleV;
+        readonly float FinalTextureScaleU;
+        readonly float FinalTextureScaleV;
 
-        readonly float _maxLength;
-        readonly float _lengthFadeInTime;
+        readonly float MaxLength;
+        readonly float LengthFadeInTime;
 
         public TrailsParticleRenderer(IDictionary<string, object> keyValues, IOpenGLGraphic graphic)
         {
-            _shader = graphic.LoadShader("vrf.particle.trail", new Dictionary<string, bool>());
+            (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.trail", new Dictionary<string, bool>());
 
             // The same quad is reused for all particles
-            _quadVao = SetupQuadBuffer();
+            QuadVao = SetupQuadBuffer();
 
             string textureName = null;
             if (keyValues.ContainsKey("m_hTexture")) textureName = keyValues.Get<string>("m_hTexture");
@@ -42,29 +44,28 @@ namespace OpenStack.Graphics.OpenGL
 
             if (textureName != null)
             {
-                var texture = graphic.LoadTexture(textureName, out var tag);
-                _texture = texture;
-                if (tag is IDictionary<string, object> info)
-                    _textureSequences = info.Get<TextureSequences>("sequences");
+                (Texture, TextureTag) = graphic.TextureManager.CreateTexture(textureName);
+                if (TextureTag is IDictionary<string, object> info)
+                    TextureSequences = info.Get<TextureSequences>("sequences");
             }
-            else _texture = graphic.TextureManager.DefaultTexture;
+            else Texture = graphic.TextureManager.DefaultTexture;
 
-            _additive = keyValues.Get<bool>("m_bAdditive");
-            _overbrightFactor = keyValues.GetFloat("m_flOverbrightFactor", 1f);
-            _orientationType = keyValues.GetInt64("m_nOrientationType");
+            Additive = keyValues.Get<bool>("m_bAdditive");
+            OverbrightFactor = keyValues.GetFloat("m_flOverbrightFactor", 1f);
+            OrientationType = keyValues.GetInt64("m_nOrientationType");
 
-            _animationRate = keyValues.GetFloat("m_flAnimationRate", .1f);
+            AnimationRate = keyValues.GetFloat("m_flAnimationRate", .1f);
 
-            _finalTextureScaleU = keyValues.GetFloat("m_flFinalTextureScaleU", 1f);
-            _finalTextureScaleV = keyValues.GetFloat("m_flFinalTextureScaleV", 1f);
+            FinalTextureScaleU = keyValues.GetFloat("m_flFinalTextureScaleU", 1f);
+            FinalTextureScaleV = keyValues.GetFloat("m_flFinalTextureScaleV", 1f);
 
-            _maxLength = keyValues.GetFloat("m_flMaxLength", 2000f);
-            _lengthFadeInTime = keyValues.GetFloat("m_flLengthFadeInTime");
+            MaxLength = keyValues.GetFloat("m_flMaxLength", 2000f);
+            LengthFadeInTime = keyValues.GetFloat("m_flLengthFadeInTime");
         }
 
         int SetupQuadBuffer()
         {
-            GL.UseProgram(_shader.Program);
+            GL.UseProgram(Shader.Program);
 
             // Create and bind VAO
             var vao = GL.GenVertexArray();
@@ -85,7 +86,7 @@ namespace OpenStack.Graphics.OpenGL
 
             GL.EnableVertexAttribArray(0);
 
-            var positionAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexPosition");
+            var positionAttributeLocation = Shader.GetAttribLocation("aVertexPosition");
             GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, 0, 0);
 
             GL.BindVertexArray(0); // Unbind VAO
@@ -107,30 +108,30 @@ namespace OpenStack.Graphics.OpenGL
             var particles = particleBag.LiveParticles;
 
             GL.Enable(EnableCap.Blend);
-            GL.UseProgram(_shader.Program);
+            GL.UseProgram(Shader.Program);
 
-            if (_additive) GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+            if (Additive) GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
             else GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            GL.BindVertexArray(_quadVao);
+            GL.BindVertexArray(QuadVao);
             GL.EnableVertexAttribArray(0);
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, _texture);
+            GL.BindTexture(TextureTarget.Texture2D, Texture);
 
-            GL.Uniform1(_shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
+            GL.Uniform1(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
 
             var otkProjection = viewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4(_shader.GetUniformLocation("uProjectionViewMatrix"), false, ref otkProjection);
+            GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref otkProjection);
 
             // TODO: This formula is a guess but still seems too bright compared to valve particles
-            GL.Uniform1(_shader.GetUniformLocation("uOverbrightFactor"), _overbrightFactor);
+            GL.Uniform1(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
 
-            var modelMatrixLocation = _shader.GetUniformLocation("uModelMatrix");
-            var colorLocation = _shader.GetUniformLocation("uColor");
-            var alphaLocation = _shader.GetUniformLocation("uAlpha");
-            var uvOffsetLocation = _shader.GetUniformLocation("uUvOffset");
-            var uvScaleLocation = _shader.GetUniformLocation("uUvScale");
+            var modelMatrixLocation = Shader.GetUniformLocation("uModelMatrix");
+            var colorLocation = Shader.GetUniformLocation("uColor");
+            var alphaLocation = Shader.GetUniformLocation("uAlpha");
+            var uvOffsetLocation = Shader.GetUniformLocation("uUvOffset");
+            var uvScaleLocation = Shader.GetUniformLocation("uUvScale");
 
             // Create billboarding rotation (always facing camera)
             Matrix4x4.Decompose(modelViewMatrix, out _, out Quaternion modelViewRotation, out _);
@@ -148,11 +149,11 @@ namespace OpenStack.Graphics.OpenGL
 
                 // Trail width = radius
                 // Trail length = distance between current and previous times trail length divided by 2 (because the base particle is 2 wide)
-                var length = Math.Min(_maxLength, particles[i].TrailLength * difference.Length() / 2f);
+                var length = Math.Min(MaxLength, particles[i].TrailLength * difference.Length() / 2f);
                 var t = 1 - particles[i].Lifetime / particles[i].ConstantLifetime;
-                var animatedLength = t >= _lengthFadeInTime
+                var animatedLength = t >= LengthFadeInTime
                     ? length
-                    : t * length / _lengthFadeInTime;
+                    : t * length / LengthFadeInTime;
                 var scaleMatrix = Matrix4x4.CreateScale(particles[i].Radius, animatedLength, 1);
 
                 // Center the particle at the midpoint between the two points
@@ -165,19 +166,19 @@ namespace OpenStack.Graphics.OpenGL
                 var rotationMatrix = Matrix4x4.CreateFromAxisAngle(axis, angle);
 
                 var modelMatrix =
-                    _orientationType == 0 ? Matrix4x4.Multiply(scaleMatrix, Matrix4x4.Multiply(translationMatrix, rotationMatrix))
+                    OrientationType == 0 ? Matrix4x4.Multiply(scaleMatrix, Matrix4x4.Multiply(translationMatrix, rotationMatrix))
                     : particles[i].GetTransformationMatrix();
 
                 // Position/Radius uniform
                 var otkModelMatrix = modelMatrix.ToOpenTK();
                 GL.UniformMatrix4(modelMatrixLocation, false, ref otkModelMatrix);
 
-                if (_textureSequences != null && _textureSequences.Count > 0 && _textureSequences[0].Frames.Count > 0)
+                if (TextureSequences != null && TextureSequences.Count > 0 && TextureSequences[0].Frames.Count > 0)
                 {
-                    var sequence = _textureSequences[0];
+                    var sequence = TextureSequences[0];
 
                     var particleTime = particles[i].ConstantLifetime - particles[i].Lifetime;
-                    var frame = particleTime * sequence.FramesPerSecond * _animationRate;
+                    var frame = particleTime * sequence.FramesPerSecond * AnimationRate;
 
                     var currentFrame = sequence.Frames[(int)Math.Floor(frame) % sequence.Frames.Count];
                     var currentImage = currentFrame.Images[0]; // TODO: Support more than one image per frame?
@@ -189,12 +190,12 @@ namespace OpenStack.Graphics.OpenGL
                         (currentImage.UncroppedMax - currentImage.UncroppedMin) * subFrameTime;
 
                     GL.Uniform2(uvOffsetLocation, offset.X, offset.Y);
-                    GL.Uniform2(uvScaleLocation, scale.X * _finalTextureScaleU, scale.Y * _finalTextureScaleV);
+                    GL.Uniform2(uvScaleLocation, scale.X * FinalTextureScaleU, scale.Y * FinalTextureScaleV);
                 }
                 else
                 {
                     GL.Uniform2(uvOffsetLocation, 1f, 1f);
-                    GL.Uniform2(uvScaleLocation, _finalTextureScaleU, _finalTextureScaleV);
+                    GL.Uniform2(uvScaleLocation, FinalTextureScaleU, FinalTextureScaleV);
                 }
 
                 // Color uniform
@@ -208,17 +209,17 @@ namespace OpenStack.Graphics.OpenGL
             GL.BindVertexArray(0);
             GL.UseProgram(0);
 
-            if (_additive) GL.BlendEquation(BlendEquationMode.FuncAdd);
+            if (Additive) GL.BlendEquation(BlendEquationMode.FuncAdd);
 
             GL.Disable(EnableCap.Blend);
         }
 
-        public IEnumerable<string> GetSupportedRenderModes() => _shader.RenderModes;
+        public IEnumerable<string> GetSupportedRenderModes() => Shader.RenderModes;
 
         public void SetRenderMode(string renderMode)
         {
             var parameters = new Dictionary<string, bool>();
-            if (renderMode != null && _shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
+            if (renderMode != null && Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
             //_shader = graphic.LoadShader(ShaderName, parameters);
         }
     }

@@ -2,15 +2,21 @@ import numpy as np
 
 # typedefs
 class IVBIB: pass
+class Audio: pass
 class Object: pass
 class Material: pass
 class Texture: pass
 class Shader: pass
 
+# IAudioManager
+class IAudioManager:
+    def createAudio(self, path: object) -> (Audio, object): pass
+    def deleteAudio(self, path: object) -> None: pass
+
 # IObjectManager
 class IObjectManager:
-    def createObject(self, path: str) -> (Object, Object): pass
-    def preloadObject(self, path: str) -> None: pass
+    def createObject(self, path: object) -> (Object, object): pass
+    def preloadObject(self, path: object) -> None: pass
 
 # IModel
 class IModel:
@@ -28,22 +34,23 @@ class IParticleSystem:
 
 # IShaderManager
 class IShaderManager:
-    def loadShader(self, path: str, args: dict[str: bool] = None): pass
-    def loadPlaneShader(self, path: str, args: dict[str: bool] = None): pass
+    def createShader(self, path: object, args: dict[str: bool] = None) -> (Shader, object): pass
+    def createPlaneShader(self, path: object, args: dict[str: bool] = None) -> (Shader, object): pass
 
 # ITextureManager:
 class ITextureManager:
     defaultTexture: Texture
-    def buildSolidTexture(self, width: int, height: int, rgba: list[float]) -> Texture: pass
-    def buildNormalMap(self, source: Texture, strength: float) -> Texture: pass
-    def loadTexture(self, key: object, level: range = None) -> (Texture, Object): pass
-    def preloadTexture(self, key: object) -> None: pass
-    def deleteTexture(self, key: object) -> None: pass
+    def createNormalMap(self, texture: Texture, strength: float) -> Texture: pass
+    def createSolidTexture(self, width: int, height: int, rgba: list[float]) -> Texture: pass
+    def createTexture(self, path: object, level: range = None) -> (Texture, object): pass
+    def reloadTexture(self, path: object, level: range = None) -> (Texture, object): pass
+    def preloadTexture(self, path: object) -> None: pass
+    def deleteTexture(self, path: object) -> None: pass
 
 # IMaterialManager
 class IMaterialManager:
     textureManager: ITextureManager
-    def loadMaterial(self, key: object) -> (Material, Object): pass
+    def createMaterial(self, key: object) -> (Material, object): pass
     def preloadMaterial(self, key: object) -> None: pass
 
 # IMaterial
@@ -78,19 +85,21 @@ class IParamMaterial(IMaterial):
 
 # IOpenGraphic:
 class IOpenGraphic:
-    def loadFileObject(self, path: str): pass
-    def preloadTexture(self, texturePath: str): pass
-    def preloadObject(self, filePath: str): pass
+    def loadFileObject(self, path: object): pass
+    def preloadTexture(self, path: object): pass
+    def preloadObject(self, path: object): pass
 
 # IOpenGraphicAny
 class IOpenGraphicAny(IOpenGraphic):
+    audioManager: IAudioManager
     textureManager: ITextureManager
     materialManager: IMaterialManager
     objectManager: IObjectManager
     shaderManager: IShaderManager
-    def loadTexture(self, path: str, level: range = None) -> (Texture, dict[str, object]): pass
-    def createObject(self, path: str) -> (Object, dict[str, object]): pass
-    def loadShader(self, path: str, args: dict[str, bool] = None) -> Shader: pass
+    def createAudio(self, path: object) -> Audio: pass
+    def createTexture(self, path: object, level: range = None) -> Texture: pass
+    def createObject(self, path: object) -> Object: pass
+    def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: pass
 
 # PlatformStats:
 class PlatformStats:

@@ -12,37 +12,31 @@ namespace OpenStack.Graphics.OpenGL
     {
         const int STRIDE = sizeof(float) * 7;
 
-        readonly Shader _shader;
-        readonly Octree<T> _octree;
-        readonly int _vaoHandle;
-        readonly int _vboHandle;
-        readonly bool _dynamic;
-        int _vertexCount;
+        readonly Shader Shader;
+        readonly object ShaderTag;
+        readonly Octree<T> Octree;
+        readonly int VaoHandle;
+        readonly int VboHandle;
+        readonly bool Dynamic;
+        int VertexCount;
 
         public OctreeDebugRenderer(Octree<T> octree, IOpenGLGraphic graphic, bool dynamic)
         {
-            _octree = octree;
-            _dynamic = dynamic;
-
-            _shader = graphic.LoadShader("vrf.grid");
-            GL.UseProgram(_shader.Program);
-
-            _vboHandle = GL.GenBuffer();
-            if (!dynamic)
-                Rebuild();
-
-            _vaoHandle = GL.GenVertexArray();
-            GL.BindVertexArray(_vaoHandle);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vboHandle);
-
-            var positionAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexPosition");
-            GL.EnableVertexAttribArray(positionAttributeLocation);
-            GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, STRIDE, 0);
-
-            var colorAttributeLocation = GL.GetAttribLocation(_shader.Program, "aVertexColor");
-            GL.EnableVertexAttribArray(colorAttributeLocation);
-            GL.VertexAttribPointer(colorAttributeLocation, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3);
-
+            Octree = octree;
+            Dynamic = dynamic;
+            (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.grid");
+            GL.UseProgram(Shader.Program);
+            VboHandle = GL.GenBuffer();
+            if (!dynamic) Rebuild();
+            VaoHandle = GL.GenVertexArray();
+            GL.BindVertexArray(VaoHandle);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VboHandle);
+            var location = Shader.GetAttribLocation("aVertexPosition");
+            GL.EnableVertexAttribArray(location);
+            GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, STRIDE, 0);
+            location = Shader.GetAttribLocation("aVertexColor");
+            GL.EnableVertexAttribArray(location);
+            GL.VertexAttribPointer(location, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3);
             GL.BindVertexArray(0);
         }
 
@@ -60,12 +54,12 @@ namespace OpenStack.Graphics.OpenGL
             AddLine(vertices, new Vector3(box.Max.X, box.Min.Y, box.Min.Z), new Vector3(box.Max.X, box.Max.Y, box.Min.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Max.X, box.Max.Y, box.Min.Z), new Vector3(box.Min.X, box.Max.Y, box.Min.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Min.X, box.Max.Y, box.Min.Z), new Vector3(box.Min.X, box.Min.Y, box.Min.Z), r, g, b, a);
-
+            //
             AddLine(vertices, new Vector3(box.Min.X, box.Min.Y, box.Max.Z), new Vector3(box.Max.X, box.Min.Y, box.Max.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Max.X, box.Min.Y, box.Max.Z), new Vector3(box.Max.X, box.Max.Y, box.Max.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Max.X, box.Max.Y, box.Max.Z), new Vector3(box.Min.X, box.Max.Y, box.Max.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Min.X, box.Max.Y, box.Max.Z), new Vector3(box.Min.X, box.Min.Y, box.Max.Z), r, g, b, a);
-
+            //
             AddLine(vertices, new Vector3(box.Min.X, box.Min.Y, box.Min.Z), new Vector3(box.Min.X, box.Min.Y, box.Max.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Max.X, box.Min.Y, box.Min.Z), new Vector3(box.Max.X, box.Min.Y, box.Max.Z), r, g, b, a);
             AddLine(vertices, new Vector3(box.Max.X, box.Max.Y, box.Min.Z), new Vector3(box.Max.X, box.Max.Y, box.Max.Z), r, g, b, a);
@@ -91,30 +85,26 @@ namespace OpenStack.Graphics.OpenGL
         void Rebuild()
         {
             var vertices = new List<float>();
-            AddOctreeNode(vertices, _octree.Root, 0);
-            _vertexCount = vertices.Count / 7;
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vboHandle);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), _dynamic ? BufferUsageHint.DynamicDraw : BufferUsageHint.StaticDraw);
+            AddOctreeNode(vertices, Octree.Root, 0);
+            VertexCount = vertices.Count / 7;
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VboHandle);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), Dynamic ? BufferUsageHint.DynamicDraw : BufferUsageHint.StaticDraw);
         }
 
         public void Render(Camera camera, RenderPass renderPass)
         {
             if (renderPass == RenderPass.Translucent || renderPass == RenderPass.Both)
             {
-                if (_dynamic) Rebuild();
-
+                if (Dynamic) Rebuild();
                 GL.Enable(EnableCap.Blend);
                 GL.Enable(EnableCap.DepthTest);
                 GL.DepthMask(false);
                 GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-                GL.UseProgram(_shader.Program);
-
+                GL.UseProgram(Shader.Program);
                 var projectionViewMatrix = camera.ViewProjectionMatrix.ToOpenTK();
-                GL.UniformMatrix4(_shader.GetUniformLocation("uProjectionViewMatrix"), false, ref projectionViewMatrix);
-
-                GL.BindVertexArray(_vaoHandle);
-                GL.DrawArrays(PrimitiveType.Lines, 0, _vertexCount);
+                GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref projectionViewMatrix);
+                GL.BindVertexArray(VaoHandle);
+                GL.DrawArrays(PrimitiveType.Lines, 0, VertexCount);
                 GL.BindVertexArray(0);
                 GL.UseProgram(0);
                 GL.DepthMask(true);

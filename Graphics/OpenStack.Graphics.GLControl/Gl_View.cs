@@ -24,7 +24,6 @@ namespace OpenStack.Graphics.Controls
             public Camera Camera { get; set; }
         }
 
-        public event EventHandler<RenderEventArgs> GLPaint;
         public event EventHandler GLLoad;
         readonly DispatcherTimer _timer = new() { Interval = new TimeSpan(1) };
 
@@ -102,22 +101,18 @@ namespace OpenStack.Graphics.Controls
         protected void Draw()
         {
             if (Visibility != Visibility.Visible) return;
-
             var frameTime = _stopwatch.ElapsedMilliseconds / 1000f;
             _stopwatch.Restart();
-
             Camera.Tick(frameTime);
             Camera.HandleInput(OpenTK.Input.Mouse.GetState(), OpenTK.Input.Keyboard.GetState());
-
             //SetFps(1f / frameTime);
-
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GLPaint?.Invoke(this, new RenderEventArgs { FrameTime = frameTime, Camera = Camera });
-
+            Render(Camera, frameTime);
             SwapBuffers();
         }
+
+        protected virtual void Render(Camera camera, float frameTime) { }
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {

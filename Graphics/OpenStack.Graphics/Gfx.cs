@@ -11,12 +11,22 @@ using System.Threading.Tasks;
 namespace OpenStack.Graphics
 {
     /// <summary>
+    /// IAudioManager
+    /// </summary>
+    public interface IAudioManager<Audio>
+    {
+        (Audio aud, object tag) CreateAudio(object path);
+        void PreloadAudio(object path);
+        void DeleteAudio(object path);
+    }
+
+    /// <summary>
     /// IObjectManager
     /// </summary>
     public interface IObjectManager<Object, Material, Texture>
     {
-        Object CreateObject(string path, out object tag);
-        void PreloadObject(string path);
+        (Object obj, object tag) CreateObject(object path);
+        void PreloadObject(object path);
     }
 
     /// <summary>
@@ -46,8 +56,8 @@ namespace OpenStack.Graphics
     /// </summary>
     public interface IShaderManager<Shader>
     {
-        public Shader LoadShader(string path, IDictionary<string, bool> args = null);
-        public Shader LoadPlaneShader(string path, IDictionary<string, bool> args = null);
+        public (Shader sha, object tag) CreateShader(object path, IDictionary<string, bool> args = null);
+        public (Shader sha, object tag) CreatePlaneShader(object path, IDictionary<string, bool> args = null);
     }
 
     /// <summary>
@@ -56,12 +66,12 @@ namespace OpenStack.Graphics
     public interface ITextureManager<Texture>
     {
         Texture DefaultTexture { get; }
-        Texture BuildSolidTexture(int width, int height, params float[] rgba);
-        Texture BuildNormalMap(Texture source, float strength);
-        Texture LoadTexture(object key, out object tag, Range? level = null);
-        Texture ReloadTexture(object key, out object tag, Range? level = null);
-        void PreloadTexture(object key);
-        void DeleteTexture(object key);
+        Texture CreateNormalMap(Texture texture, float strength);
+        Texture CreateSolidTexture(int width, int height, params float[] rgba);
+        (Texture tex, object tag) CreateTexture(object path, Range? level = null);
+        (Texture tex, object tag) ReloadTexture(object path, Range? level = null);
+        void PreloadTexture(object path);
+        void DeleteTexture(object path);
     }
 
     /// <summary>
@@ -70,14 +80,9 @@ namespace OpenStack.Graphics
     public interface IMaterialManager<Material, Texture>
     {
         ITextureManager<Texture> TextureManager { get; }
-        Material LoadMaterial(object key, out object tag);
-        void PreloadMaterial(object key);
+        (Material mat, object tag) CreateMaterial(object path);
+        void PreloadMaterial(object path);
     }
-
-    ///// <summary>
-    ///// MaterialType
-    ///// </summary>
-    //public enum MaterialType { None, Default, Standard, BumpedDiffuse, Unlit }
 
     /// <summary>
     /// IMaterial
@@ -129,24 +134,25 @@ namespace OpenStack.Graphics
     /// </summary>
     public interface IOpenGraphic
     {
-        //object Source { get; }
-        Task<T> LoadFileObject<T>(string path);
-        void PreloadTexture(string texturePath);
-        void PreloadObject(string filePath);
+        Task<T> LoadFileObject<T>(object path);
+        void PreloadTexture(object path);
+        void PreloadObject(object path);
     }
 
     /// <summary>
     /// IOpenGraphicAny
     /// </summary>
-    public interface IOpenGraphicAny<Object, Material, Texture, Shader> : IOpenGraphic
+    public interface IOpenGraphicAny<Audio, Object, Material, Texture, Shader> : IOpenGraphic
     {
+        IAudioManager<Audio> AudioManager { get; }
         ITextureManager<Texture> TextureManager { get; }
         IMaterialManager<Material, Texture> MaterialManager { get; }
         IObjectManager<Object, Material, Texture> ObjectManager { get; }
         IShaderManager<Shader> ShaderManager { get; }
-        Texture LoadTexture(string path, out object tag, Range? rng = null);
-        Object CreateObject(string path, out object tag);
-        Shader LoadShader(string path, IDictionary<string, bool> args = null);
+        Audio CreateAudio(object path);
+        Texture CreateTexture(object path, Range? level = null);
+        Object CreateObject(object path);
+        Shader CreateShader(object path, IDictionary<string, bool> args = null);
     }
 
     /// <summary>

@@ -16,6 +16,7 @@ class TextureRenderer(IRenderer):
     graphic: IOpenGLGraphic
     texture: int
     shader: Shader
+    shaderTag: object
     quadVao: int
     background: bool
     boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
@@ -23,7 +24,7 @@ class TextureRenderer(IRenderer):
     def __init__(self, graphic: IOpenGLGraphic, texture: int, background: bool = False):
         self.graphic = graphic
         self.texture = texture
-        self.shader = graphic.shaderManager.loadPlaneShader('plane')
+        self.shader, self.shaderTag = graphic.shaderManager.createPlaneShader('plane')
         self.quadVao = self._setupQuadBuffer()
         self.background = background
 
@@ -54,7 +55,7 @@ class TextureRenderer(IRenderer):
         stride = sizeof_float * sum([x[1] for x in attributes])
         offset = 0
         for name, size in attributes:
-            location = glGetAttribLocation(self.shader.program, name)
+            location = self.shader.getAttribLocation(name)
             if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, False, stride, offset)
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
@@ -77,13 +78,14 @@ class MaterialRenderer(IRenderer):
     graphic: IOpenGLGraphic
     material: GLRenderMaterial
     shader: Shader
+    shaderTag: object
     quadVao: int
     boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
     def __init__(self, graphic: IOpenGLGraphic, material: GLRenderMaterial):
         self.graphic = graphic
         self.material = material
-        self.shader = graphic.shaderManager.loadShader(material.material.shaderName, material.material.getShaderArgs())
+        self.shader, self.shaderTag = graphic.shaderManager.createShader(material.material.shaderName, material.material.getShaderArgs())
         self.quadVao = self._setupQuadBuffer()
 
     def _setupQuadBuffer(self) -> int:
@@ -109,7 +111,7 @@ class MaterialRenderer(IRenderer):
         stride = sizeof_float * sum([x[1] for x in attributes])
         offset = 0
         for name, size in attributes:
-            location = glGetAttribLocation(self.shader.program, name)
+            location = self.shader.getAttribLocation(name)
             if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, False, stride, offset)
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
@@ -120,18 +122,94 @@ class MaterialRenderer(IRenderer):
         glUseProgram(self.shader.program)
         glBindVertexArray(self.quadVao)
         glEnableVertexAttribArray(0)
-        uniformLocation = self.shader.getUniformLocation('m_vTintColorSceneObject')
-        if uniformLocation > -1: glUniform4(uniformLocation, np.ones(4))
-        uniformLocation = self.shader.getUniformLocation('m_vTintColorDrawCall')
-        if uniformLocation > -1: glUniform3(uniformLocation, np.ones(3))
-        uniformLocation = self.shader.getUniformLocation('uProjectionViewMatrix')
-        if uniformLocation > -1: glUniformMatrix4(uniformLocation, False, identity)
-        uniformLocation = self.shader.getUniformLocation('transform')
-        if uniformLocation > -1: glUniformMatrix4(uniformLocation, False, identity)
+        location = self.shader.getUniformLocation('m_vTintColorSceneObject')
+        if location > -1: glUniform4(uniformLocation, np.ones(4))
+        location = self.shader.getUniformLocation('m_vTintColorDrawCall')
+        if location > -1: glUniform3(uniformLocation, np.ones(3))
+        location = self.shader.getUniformLocation('uProjectionViewMatrix')
+        if location > -1: glUniformMatrix4(uniformLocation, False, identity)
+        location = self.shader.getUniformLocation('transform')
+        if location > -1: glUniformMatrix4(uniformLocation, False, identity)
         self.material.render(self.shader)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
         self.material.postRender()
         glBindVertexArray(0)
         glUseProgram(0)
+
+    def update(self, frameTime: float) -> None: pass
+
+# ParticleGridRenderer
+class ParticleGridRenderer(IRenderer):
+    shader: Shader
+    shaderTag: object
+    quadVao: int
+    vertexCount: int
+    boundingBox: AABB
+
+    def __init__(self, graphic: IOpenGLGraphic, cellWidth: float, gridWidthInCells: int):
+        self.boundingBox = AABB(
+            -cellWidth * 0.5 * gridWidthInCells, -cellWidth * 0.5 * gridWidthInCells, 0,
+            cellWidth * 0.5 * gridWidthInCells, cellWidth * 0.5 * gridWidthInCells, 0)
+        self.shader, self.shaderTag = graphic.shaderManager.createShader('vrf.grid')
+        self.quadVao = self._setupQuadBuffer(cellWidth, gridWidthInCells)
+
+    @staticmethod
+    def _generateGridVertexBuffer(cellWidth: float, gridWidthInCells: int) -> list[float]:
+        vertices: list[float] = []
+        width = cellWidth * gridWidthInCells
+        color = [1., 1., 1., 1.]
+        for i in range(gridWidthInCells):
+            vertices.extend([width, i * cellWidth, 0.])
+            vertices.extend(color)
+            vertices.extend([-width, i * cellWidth, 0.])
+            vertices.extend(color)
+        for i in range(gridWidthInCells):
+            vertices.extend([width, -i * cellWidth, 0.])
+            vertices.extend(color)
+            vertices.extend([-width, -i * cellWidth, 0.])
+            vertices.extend(color)
+        for i in range(gridWidthInCells):
+            vertices.extend([i * cellWidth, width, 0.])
+            vertices.extend(color)
+            vertices.extend([i * cellWidth, -width, 0.])
+            vertices.extend(color)
+        for i in range(gridWidthInCells):
+            vertices.extend([-i * cellWidth, width, 0.])
+            vertices.extend(color)
+            vertices.extend([-i * cellWidth, -width, 0.])
+            vertices.extend(color)
+        return vertices
+
+    def _setupQuadBuffer(self, cellWidth: float, gridWidthInCells: int) -> int:
+        STRIDE: int = 28
+        glUseProgram(self.shader.program)
+        # create and bind vao
+        vao = glGenVertexArray(); glBindVertexArray(vao)
+        vbo = glGenBuffer(); glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        vertices = _generateGridVertexBuffer(cellWidth, gridWidthInCells)
+        self.vertexCount = len(vertices) / 3 # number of vertices in our buffer
+        glBufferData(GL_ARRAY_BUFFER, len(vertices) * sizeof_float, vertices, GL_STATIC_DRAW)
+        # attributes
+        glEnableVertexAttribArray(0)
+        location = self.shader.getAttribLocation('aVertexPosition')
+        if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 3, GL_FLOAT, False, STRIDE, 0)
+        location = self.shader.getAttribLocation('aVertexColor')
+        if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 4, GL_FLOAT, False, STRIDE, sizeof_float * 3)
+        glBindVertexArray(0) # unbind vao
+        glUseProgram(0)
+        return vao
+
+    def render(self, camera: Camera, renderPass: RenderPass) -> None:
+        glEnable(GL_BLEND)
+        glBlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
+        glUseProgram(Shader.Program)
+        matrix = camera.ViewProjectionMatrix.ToOpenTK()
+        glUniformMatrix4(self.shader.getUniformLocation('uProjectionViewMatrix'), False, matrix)
+        glBindVertexArray(self.quadVao)
+        glEnableVertexAttribArray(0)
+        glDrawArrays(GL_LINES, 0, self.vertexCount)
+        glBindVertexArray(0)
+        glUseProgram(0)
+        glDisable(GL_BLEND)
 
     def update(self, frameTime: float) -> None: pass

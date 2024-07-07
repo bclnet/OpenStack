@@ -7,4 +7,4 @@ class TestPlatformStats(TestCase):
         self.assertEqual(0, PlatformStats.maxTextureMaxAnisotropy)
 
 if __name__ == "__main__":
-    main(verbosity=2)
+    main(verbosity=1)

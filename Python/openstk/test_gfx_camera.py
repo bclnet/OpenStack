@@ -7,13 +7,12 @@ class TestCamera(Camera, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
         super().__init__()
+        self.setViewportSize(100, 100)
 
     def test__init__(self):
         self.assertAlmostEqual(-0.6154797, self.pitch)
         self.assertAlmostEqual(-2.3561945, self.yaw)
     def test__recalculateMatrices(self):
-        self.setViewportSize(100, 100)
-        # test
         self._recalculateMatrices()
         self.assertAlmostEqual(-1.70710671, self.viewProjectionMatrix[0, 0], places=6)
         self.assertAlmostEqual(-0.985598564, self.viewProjectionMatrix[0, 1], places=6)

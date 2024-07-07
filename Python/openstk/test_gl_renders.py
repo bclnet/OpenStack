@@ -30,4 +30,8 @@ class TestParticleGridRenderer(ParticleGridRenderer, TestCase):
         self.assertEqual(0., self.pitch)
 
 if __name__ == "__main__":
+    import pygame
+    from pygame.locals import *
+    pygame.init()
+    pygame.display.set_mode((200, 200), HWSURFACE|OPENGL|DOUBLEBUF)
     main(verbosity=1)

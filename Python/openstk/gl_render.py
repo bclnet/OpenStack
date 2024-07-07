@@ -228,8 +228,8 @@ class GLPickingTexture(IPickingTexture):
     depthHandle: int
 
     def __init__(self, graphic: IOpenGLGraphic, onPicked: list[Callable]):
-        self.shader = graphic.loadShader('vrf.picking', {})
-        self.debugShader = graphic.loadShader('vrf.picking', { 'F_DEBUG_PICKER': True })
+        self.shader, _ = graphic.createShader('vrf.picking', {})
+        self.debugShader, _ = graphic.createShader('vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
         self.setup()
 
@@ -345,7 +345,7 @@ class GLRenderableMesh(RenderableMesh):
             # recycle old shader parameters that are not render modes since we are scrapping those anyway
             parameters = { x.key:x.value for x in call.shader.parameters if x.key.startsWith('renderMode') }
             if renderMode and call.shader.renderModes.contains(renderMode): parameters.append(f'renderMode_{renderMode}', True)
-            call.shader = self.graphic.loadShader(call.shader.name, parameters)
+            (call.shader, _) = self.graphic.createShader(call.shader.name, parameters)
             call.vertexArrayObject = self.graphic.meshBufferCache.getVertexArrayObject(self.mesh.vbib, call.shader, call.vertexBuffer.id, call.indexBuffer.id, call.baseVertex)
 
     def _configureDrawCalls(skinMaterials: dict[str, str], firstSetup: bool) -> None:
@@ -365,7 +365,7 @@ class GLRenderableMesh(RenderableMesh):
                 if drawCall.isCompressedNormalTangent(objectDrawCall): shaderArgs['fulltangent'] = False
                 # first
                 if firstSetup:
-                    drawCall = self.createDrawCall(objectDrawCall, shaderArgs, material) # TODO: don't pass around so much shit
+                    drawCall = self.createDrawCall(objectDrawCall, shaderArgs, material)
                     self.drawCallsAll.append(drawCall)
                     if drawCall.material.isBlended: self.drawCallsBlended.append(drawCall)
                     else: self.drawCallsOpaque.append(drawCall)
@@ -411,7 +411,7 @@ class GLRenderableMesh(RenderableMesh):
         # add shader parameters from material to the shader parameters from the draw call
         combinedShaderArgs = { x.key:x.value for x in shaderArgs + material.material.getShaderArgs() }
         # load shader
-        drawCall.shader = self.graphic.loadShader(drawCall.material.material.shaderName, combinedShaderArgs)
+        drawCall.shader, _ = self.graphic.loadShader(drawCall.material.material.shaderName, combinedShaderArgs)
         # bind and validate shader
         glUseProgram(drawCall.shader.program)
         # tint and normal
