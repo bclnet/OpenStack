@@ -38,7 +38,7 @@ class Shader:
         value = self._getUniformLocation(self.program, name); self._uniforms[name] = value; return value
 
     def getAttribLocation(self, name: str) -> int:
-        reurn self._getAttribLocation(self.program, name)
+        return self._getAttribLocation(self.program, name)
 
 # IPickingTexture
 class IPickingTexture:
