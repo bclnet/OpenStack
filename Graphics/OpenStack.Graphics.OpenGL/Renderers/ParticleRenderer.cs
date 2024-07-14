@@ -96,14 +96,14 @@ namespace OpenStack.Graphics.OpenGL
             foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Restart();
         }
 
-        public void Update(float frameTime)
+        public void Update(float deltaTime)
         {
             if (!_hasStarted) { Start(); _hasStarted = true; }
 
-            _systemRenderState.Lifetime += frameTime;
+            _systemRenderState.Lifetime += deltaTime;
 
-            foreach (var emitter in Emitters) emitter.Update(frameTime);
-            foreach (var particleOperator in Operators) particleOperator.Update(_particleBag.LiveParticles, frameTime, _systemRenderState);
+            foreach (var emitter in Emitters) emitter.Update(deltaTime);
+            foreach (var particleOperator in Operators) particleOperator.Update(_particleBag.LiveParticles, deltaTime, _systemRenderState);
 
             // Remove all dead particles
             _particleBag.PruneExpired();
@@ -129,7 +129,7 @@ namespace OpenStack.Graphics.OpenGL
 
             foreach (var childParticleRenderer in _childParticleRenderers)
             {
-                childParticleRenderer.Update(frameTime);
+                childParticleRenderer.Update(deltaTime);
                 BoundingBox = BoundingBox.Union(childParticleRenderer.BoundingBox);
             }
 

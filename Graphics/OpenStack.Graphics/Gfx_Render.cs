@@ -403,7 +403,7 @@ namespace OpenStack.Graphics
     {
         AABB BoundingBox { get; }
         void Render(Camera camera, RenderPass renderPass);
-        void Update(float frameTime);
+        void Update(float deltaTime);
     }
 
     /// <summary>

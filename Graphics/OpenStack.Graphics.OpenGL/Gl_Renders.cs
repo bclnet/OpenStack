@@ -65,7 +65,7 @@ namespace OpenStack.Graphics.OpenGL
 
         public void Render(Camera camera, RenderPass renderPass)
         {
-            if (Background) { GL.ClearColor(OpenTK.Color.White); GL.Clear(ClearBufferMask.ColorBufferBit); }
+            if (Background) { GL.ClearColor(Color.White); GL.Clear(ClearBufferMask.ColorBufferBit); }
             GL.UseProgram(Shader.Program);
             GL.BindVertexArray(QuadVao);
             GL.EnableVertexAttribArray(0);
@@ -75,7 +75,7 @@ namespace OpenStack.Graphics.OpenGL
             GL.UseProgram(0);
         }
 
-        public void Update(float frameTime) { }
+        public void Update(float deltaTime) { }
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ namespace OpenStack.Graphics.OpenGL
             GL.UseProgram(0);
         }
 
-        public void Update(float frameTime) { }
+        public void Update(float deltaTime) { }
     }
 
     /// <summary>
@@ -252,6 +252,6 @@ namespace OpenStack.Graphics.OpenGL
             GL.Disable(EnableCap.Blend);
         }
 
-        public void Update(float frameTime) { }
+        public void Update(float deltaTime) { }
     }
 }

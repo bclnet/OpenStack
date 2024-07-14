@@ -2,7 +2,8 @@ import sys, os, time
 from OpenGL.GL import *
 from OpenGL.raw.GL.EXT.texture_filter_anisotropic import GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QSurfaceFormat, QPainter, QColor
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtOpenGL import QOpenGLBuffer, QOpenGLShader, QOpenGLShaderProgram, QOpenGLTexture, QOpenGLDebugLogger, QOpenGLDebugMessage
 from openstk.gfx import PlatformStats
@@ -11,6 +12,8 @@ from openstk.gl_camera import GLCamera, GLDebugCamera
 
 # https://forum.qt.io/topic/137468/a-few-basic-changes-in-pyqt6-and-pyside6-regarding-shader-based-opengl-graphics
 # https://github.com/8Observer8/falling-collada-cube-bullet-physics-opengl33-pyqt6/blob/master/main.py
+# https://stackoverflow.com/questions/50855257/when-to-use-paintevent-and-paintgl-in-qt
+# https://codebrowser.dev/qt5/qtbase/src/widgets/kernel/qopenglwidget.cpp.html#_ZN13QOpenGLWidget10paintEventEP11QPaintEvent
 
 def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
     if msg.severity().value >= QOpenGLDebugMessage.Severity.LowSeverity.value: return
@@ -18,17 +21,106 @@ def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
 
 # OpenGLView
 class OpenGLView(QOpenGLWidget):
-    hasCheckedOpenGL: bool = False
-    mouseState: MouseState = MouseState()
-    keyboardState: KeyboardState = KeyboardState()
+    timer: QTimer
+    camera: GLCamera
+    viewportChanged: bool
+    deltaTime: float
+    elapsedTime: int
 
     def __init__(self):
         super().__init__()
-        self.debugger = QOpenGLDebugLogger(self)
+        self.setAutoFillBackground(False)
+        self.setUpdateBehavior(self.UpdateBehavior.PartialUpdate)
+        self.viewportChanged = True
+        self.deltaTime = 0.
+        self.elapsedTime = time.time()
+        interval = 10
+        if interval:
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.timerTick)
+            self.timer.start(interval)
 
+    # tag::Events[]
+    def timerTick(self): self.update()
+    def resizeGL(self, width: int, height: int) -> None: self.viewportChanged = True; return super().resizeGL(width, height)
+    def enterEvent(self, event: object) -> None: self.camera.event(GLCamera.EventType.MouseEnter, event, None); return super().enterEvent(event)
+    def leaveEvent(self, event: object) -> None: self.camera.event(GLCamera.EventType.MouseLeave, event, None); return super().leaveEvent(event)
+    def mouseMoveEvent(self, event: object) -> None: self.camera.event(GLCamera.EventType.MouseMove, event, event.pos()); return super().mouseMoveEvent(event)
+    def mousePressEvent(self, event: object) -> None: button = event.button(); self.camera.event(GLCamera.EventType.MouseDown, event, (Qt.MouseButton.LeftButton in button, Qt.MouseButton.RightButton in button)); return super().mousePressEvent(event)
+    def keyPressEvent(self, event: object) -> None: self.camera.event(GLCamera.EventType.KeyPress, event, event.key()); return super().keyPressEvent(event)
+    def keyReleaseEvent(self, event: object) -> None: self.camera.event(GLCamera.EventType.KeyRelease, event, event.key()); return super().keyReleaseEvent(event)
+    # end::Events[]
+
+    # tag::Tick[]
+    def tick(self, **kwargs) -> None:
+        deltaTime = kwargs.get('deltaTime', None)
+        if not deltaTime:
+            elapsedTime = time.time()
+            self.elapsedTime = elapsedTime - self.elapsedTime
+            deltaTime = self.elapsedTime / 1000.
+            self.elapsedTime = elapsedTime
+        self.deltaTime = deltaTime
+        mouseState = self.camera.mouseState; keyboardState = self.camera.keyboardState
+        self.camera.tick(self.deltaTime)
+        self.camera.handleInput(mouseState, keyboardState)
+        self.handleInput(mouseState, keyboardState)
+
+    def handleInput(self, mouseState: MouseState, keyboardState: KeyboardState) -> None: pass
+    # end::Tick[]
+
+    # tag::Render[]
+    def setViewportSize(self, x: int, y: int, width: int, height: int) -> None:
+        self.camera.setViewportSize(x, y, width, height)
+        self.viewportChanged = False
+
+    def paintEvent(self, event: object):
+        p: QPainter = QPainter(self)
+        p.beginNativePainting()
+        self.paintGL()
+        p.endNativePainting()
+        self.paint(p)
+
+    # https://stackoverflow.com/questions/38796140/qpainterdrawrects-painter-not-active-error-c-qt
+    def paint(self, p: QPainter):
+        r1: QRect = self.rect().adjusted(10, 10, -10, -10)
+        p.setPen(QColor("#FFFFFF"))
+        p.drawRect(r1)
+        #
+        # r2: QRect = QRect(QPoint(0, 0), QSize(100, 100))
+        # r2.moveCenter(m_mousePos)
+        # p.setPen(QPen(Qt.black, 3, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
+        # p.drawRect(r2)
+
+    def paintGL(self):
+        if self.viewportChanged: self.setViewportSize(0, 0, self.width(), self.height())
+        self.tick()
+        self.renderGL()
+        ctx = self.context(); ctx.swapBuffers(ctx.surface())
+        
+    def renderGL(self):
+        glClearColor(0.2, 0.3, 0.3, 1.)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        self.render(self.camera, self.deltaTime)
+
+    def render(self, camera: GLCamera, deltaTime: float): pass
+    # end::Render[]
+
+    # tag::InitializeGL[]
+    def initializeGL(self):
+        super().initializeGL()
+        self.makeCurrent()
+        self.debugger = QOpenGLDebugLogger(self)
+        self.checkGL()
+        self.initGL()
+        self.camera = GLDebugCamera()
+        glEnable(GL_DEPTH_TEST)
+
+    checkGLCalled: bool = False
     def checkGL(self):
-        if self.hasCheckedOpenGL == True: return
-        self.hasCheckedOpenGL = True
+        if OpenGLView.checkGLCalled == True: return
+        OpenGLView.checkGLCalled = True
+        format = QSurfaceFormat.defaultFormat()
+        print(f'QSurface format: {format.version()}')
         print(f'OpenGL version: {glGetString(GL_VERSION).decode()}')
         print(f'OpenGL vendor: {glGetString(GL_VENDOR).decode()}')
         if self.debugger.initialize():
@@ -46,72 +138,5 @@ class OpenGLView(QOpenGLWidget):
             print(f'MaxTextureMaxAnisotropyExt: {maxTextureMaxAnisotropy}')
         else: print(f'GL_EXT_texture_filter_anisotropic is not supported')
 
-    def initializeGL(self):
-        super().initializeGL()
-        self.checkGL()
-        self.camera = GLDebugCamera()
-        self.elapsedTime = time.time()
-        self.handleResize()
-    
-    def resizeGL(self, width: int, height: int):
-        self.handleResize()
-
-    def enterEvent(self, event):
-        self.camera.mouseOverRenderArea = True
-        return super().enterEvent(event)
-
-    def leaveEvent(self, event):
-        self.camera.mouseOverRenderArea = False
-        return super().leaveEvent(event)
-
-    # def mouseMoveEvent(self, event):
-    #     print(f'mouseEvent: {self.event.pos()}')
-    #     return super().mouseMoveEvent(event)
-
-    def mousePressEvent(self, event):
-        button = event.button()
-        self.mouseState.leftButton = button in Qt.MouseButton.LeftButton
-        self.mouseState.rightButton = button in Qt.MouseButton.RightButton
-        return super().mousePressEvent(event)
-
-    # def keyPressEvent(self, event):
-    #     print(f'keyboardPressEvent: {event.key()}')
-    #     self.keyboardState.keys.add(event.key())
-    #     return super().keyPressEvent(event)
-
-    # def keyReleaseEvent(self, event):
-    #     print(f'keyReleaseEvent: {event.key()}')
-    #     self.keyboardState.keys.remove(event.key())
-    #     return super().keyReleaseEvent(event)
-
-    def paintGL(self):
-        elapsedTime = time.time()
-        self.elapsedTime = elapsedTime - self.elapsedTime
-        frameTime = self.elapsedTime / 1000.
-        self.elapsedTime = elapsedTime
-        #
-        self.camera.tick(frameTime)
-        self.camera.handleInput(self.mouseState, self.keyboardState)
-        #
-        glClearColor(0.2, 0.3, 0.3, 1.)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        self.render(self.camera, frameTime)
-        # self.update(frameTime)
-
-    def render(self, camera: GLCamera, frameTime: float): pass
-
-    def handleResize(self):
-        self.camera.setViewportSize(self.width(), self.height())
-        self.recalculatePositions()
-
-    def recalculatePositions(self): pass
-
-# from PyQt6.QtGui import QSurfaceFormat
-# fmt = QSurfaceFormat()
-# fmt.setVersion(4, 6)
-# fmt.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
-# fmt.setOption(QSurfaceFormat.FormatOption.DebugContext) # | QSurfaceFormat.FormatOption.DeprecatedFunctions)
-# self.setFormat(fmt)
-# message = QOpenGLDebugMessage.createApplicationMessage(QStringLiteral()'Custom message'))
-# self.debugger.logMessage(message)
-# glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, 'Vary dangerous error')
+    def initGL(self): pass
+    # end::InitializeGL[]

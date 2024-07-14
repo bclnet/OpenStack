@@ -23,8 +23,7 @@ namespace OpenStack.Graphics.OpenGL
 
         uint CalculateShaderCacheHash(string name, IDictionary<string, bool> args)
         {
-            var b = new StringBuilder();
-            b.AppendLine(name);
+            var b = new StringBuilder(); b.AppendLine(name);
             var parameters = ShaderDefines[name].Intersect(args.Keys);
             foreach (var key in parameters)
             {

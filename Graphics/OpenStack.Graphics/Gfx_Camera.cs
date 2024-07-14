@@ -38,17 +38,17 @@ namespace OpenStack.Graphics
 
         protected Vector3 GetRightVector() => new Vector3((float)Math.Cos(Yaw - MathX.PiOver2), (float)Math.Sin(Yaw - MathX.PiOver2), 0f);
 
-        public void SetViewportSize(int viewportWidth, int viewportHeight)
+        public void SetViewportSize(int x, int y, int width, int height)
         {
             // store window size and aspect ratio
-            AspectRatio = viewportWidth / (float)viewportHeight;
-            WindowSize = new Vector2(viewportWidth, viewportHeight);
+            AspectRatio = width / (float)height;
+            WindowSize = new Vector2(width, height);
             // calculate projection matrix
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FOV, AspectRatio, 1.0f, 40000.0f);
             RecalculateMatrices();
             // setup viewport
-            SetViewport(0, 0, viewportWidth, viewportHeight);
-            Picker?.Resize(viewportWidth, viewportHeight);
+            SetViewport(x, y, width, height);
+            Picker?.Resize(width, height);
         }
 
         protected abstract void SetViewport(int x, int y, int width, int height);

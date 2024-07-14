@@ -1,4 +1,5 @@
 import math, numpy as np
+from enum import Enum
 from OpenGL.GL import *
 from openstk.gfx_ui import Key, KeyboardState, MouseState
 from openstk.gfx_camera import Camera
@@ -7,15 +8,37 @@ CAMERASPEED = 300 # Per second
 
 # GLCamera
 class GLCamera(Camera):
+    mouseOverRenderArea: bool = False
+    mouseState: MouseState = MouseState()
+    keyboardState: KeyboardState = KeyboardState()
+
+    class EventType(Enum):
+        MouseEnter = 1
+        MouseLeave = 2
+        MouseMove = 3
+        MouseDown = 4
+        MouseUp = 5
+        MouseWheel = 6
+        KeyPress = 7
+        KeyRelease = 8
+
     def __init__(self):
         super().__init__()
-    def setViewport(self, x: int, y: int, width: int, height: int) -> None:
-        print(f'setViewport: {width}, {height}')
-        return glViewport(0, 0, width, height)
+
+    def event(self, type: EventType, event: object, arg: object) -> None:
+        match type:
+            case self.EventType.MouseEnter: mouseOverRenderArea = True
+            case self.EventType.MouseLeave: mouseOverRenderArea = False
+            case self.EventType.MouseDown: (self.mouseState.leftButton, self.mouseState.rightButton) = arg
+            case self.EventType.KeyPress: self.keyboardState.keys.add(arg)
+            case self.EventType.KeyRelease: self.keyboardState.keys.remove(arg)
+
+    def handleInput(self, mouseState: MouseState, keyboardState: KeyboardState) -> None: pass
+
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None: return glViewport(x, y, width, height)
 
 # GLDebugCamera
 class GLDebugCamera(GLCamera):
-    mouseOverRenderArea: bool = False # Set from outside this class by forms code
     mouseDragging: bool = False
     mouseDelta: np.ndarray = np.array([0., 0.])
     mousePreviousPosition: np.ndarray = np.array([0., 0.])

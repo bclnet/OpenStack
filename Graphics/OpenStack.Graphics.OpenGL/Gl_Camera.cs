@@ -10,8 +10,32 @@ namespace OpenStack.Graphics.OpenGL
     /// </summary>
     public abstract class GLCamera : Camera
     {
-        protected override void SetViewport(int x, int y, int width, int height)
-            => GL.Viewport(0, 0, width, height);
+        public bool MouseOverRenderArea;
+
+        public enum EventType
+        {
+            MouseEnter,
+            MouseLeave,
+            MouseMove,
+            MouseDown,
+            MouseUp,
+            MouseWheel,
+            KeyPress,
+            KeyRelease
+        };
+
+        public void Event(EventType type, object e, object arg)
+        {
+            switch (type)
+            {
+                case EventType.MouseEnter: MouseOverRenderArea = true; break;
+                case EventType.MouseLeave: MouseOverRenderArea = false; break;
+            }
+        }
+
+        public abstract void HandleInput(MouseState mouseState, KeyboardState keyboardState);
+
+        protected override void SetViewport(int x, int y, int width, int height) => GL.Viewport(x, y, width, height);
     }
 
     /// <summary>
@@ -19,7 +43,6 @@ namespace OpenStack.Graphics.OpenGL
     /// </summary>
     public class GLDebugCamera : GLCamera
     {
-        public bool MouseOverRenderArea; // Set from outside this class by forms code
         bool MouseDragging;
         Vector2 MouseDelta;
         Vector2 MousePreviousPosition;
@@ -41,7 +64,7 @@ namespace OpenStack.Graphics.OpenGL
             RecalculateMatrices();
         }
 
-        public void HandleInput(MouseState mouseState, KeyboardState keyboardState)
+        public override void HandleInput(MouseState mouseState, KeyboardState keyboardState)
         {
             ScrollWheelDelta += mouseState.ScrollWheelValue - MouseState.ScrollWheelValue;
             MouseState = mouseState;

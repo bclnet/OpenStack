@@ -8,10 +8,13 @@ class TestGLCamera(GLCamera, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
         super().__init__()
-        self.setViewportSize(100, 100)
+        self.setViewportSize(0, 0, 100, 100)
 
     def test__init__(self):
         pass
+    def test_event(self):
+        self.event(GLCamera.EventType.MouseEnter)
+        self.event(GLCamera.EventType.MouseLeave)
     def test_setViewport(self):
         self.setViewport(0, 0, 100, 100)
 
@@ -21,7 +24,7 @@ class TestGLDebugCamera(GLDebugCamera, TestCase):
         TestCase.__init__(self, method)
         super().__init__()
         self.mouseOverRenderArea = True
-        self.setViewportSize(100, 100)
+        self.setViewportSize(0, 0, 100, 100)
 
     def test__init__(self):
         pass

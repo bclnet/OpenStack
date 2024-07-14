@@ -37,16 +37,16 @@ class Camera:
 
     def _getRightVector(self) -> np.ndarray: return np.array([math.cos(self.yaw - PiOver2), math.sin(self.yaw - PiOver2), 0.])
 
-    def setViewportSize(self, viewportWidth: int, viewportHeight: int):
+    def setViewportSize(self, x: int, y: int, width: int, height: int):
         # store window size and aspect ratio
-        self.aspectRatio = viewportWidth / viewportHeight
-        self.windowSize = np.array([viewportWidth, viewportHeight])
+        self.aspectRatio = width / height
+        self.windowSize = np.array([width, height])
         # calculate projection matrix
         self.projectionMatrix = _np_createPerspectiveFieldOfView4x4(FOV, self.aspectRatio, 1., 40000.)
         self._recalculateMatrices()
         # setup viewport
-        self.setViewport(0, 0, viewportWidth, viewportHeight)
-        if self.picker: self.picker.resize(viewportWidth, viewportHeight)
+        self.setViewport(x, y, width, height)
+        if self.picker: self.picker.resize(width, height)
 
     def setViewport(self, x: int, y: int, width: int, height: int) -> None: pass
 

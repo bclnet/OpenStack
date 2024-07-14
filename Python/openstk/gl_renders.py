@@ -41,10 +41,7 @@ class TextureRenderer(IRenderer):
             +1., +1., +0.,  +0., +0., 1.,  +1., +0.,  +1., +0., +0.
             ], dtype = np.float32)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices.tobytes(), GL_STATIC_DRAW)
-        # arrayType = GLfloat * len(vertices)
-        # glBufferData(GL_ARRAY_BUFFER, len(vertices) * sizeof_float, arrayType(*vertices), GL_STATIC_DRAW)
-        # glBufferData(GL_ARRAY_BUFFER, len(vertices) * sizeof_float, (GLfloat * len(vertices))(*vertices), GL_STATIC_DRAW)
-        # print(vertices.nbytes, glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE))
+
         # attributes
         glEnableVertexAttribArray(0)
         attributes = [
@@ -71,7 +68,7 @@ class TextureRenderer(IRenderer):
         glBindVertexArray(0)
         glUseProgram(0)
 
-    def update(self, frameTime: float) -> None: pass
+    def update(self, deltaTime: float) -> None: pass
 
 # MaterialRenderer
 class MaterialRenderer(IRenderer):

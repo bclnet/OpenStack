@@ -3,7 +3,7 @@ from importlib import resources
 from OpenGL.GL import *
 from openstk.gfx_render import Shader
 
-ShaderSeed = 0x13141516
+# ShaderSeed = 0x13141516
 RenderMode = 'renderMode_'; RenderModeLength = len(RenderMode)
 
 # ShaderLoader
@@ -12,15 +12,12 @@ class ShaderLoader:
     _shaderDefines: dict[str, list[str]] = {}
     
     def _calculateShaderCacheHash(self, name: str, args: dict[str, bool]) -> int:
-        # b = [name]
-        # parameters = self._shaderDefines[name].intersect(args.keys)
-        # foreach (var key in parameters)
-        # {
-        #     b.AppendLine(key);
-        #     b.AppendLine(args[key] ? "t" : "f");
-        # }
-        # return MurmurHash2.Hash(b.ToString(), ShaderSeed)
-        return 0
+        b = [name]
+        parameters = self._shaderDefines[name].intersect(args.keys)
+        for key in parameters:
+            b.append(key)
+            b.append('t' if args[key] else 'f')
+        return hash('\n'.join(b))
 
     def getShaderFileByName(self, name: str) -> str: pass
 
@@ -87,7 +84,7 @@ class ShaderLoader:
         glDeleteShader(fragmentShader)
 
         # cache shader
-        if False:
+        if True:
             self._shaderDefines[fileName] = defines
             newShaderCacheHash = self._calculateShaderCacheHash(fileName, args)
             self._cachedShaders[newShaderCacheHash] = shader

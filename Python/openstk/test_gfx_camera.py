@@ -7,7 +7,7 @@ class TestCamera(Camera, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
         super().__init__()
-        self.setViewportSize(100, 100)
+        self.setViewportSize(0, 0, 100, 100)
 
     def test__init__(self):
         self.assertAlmostEqual(-0.6154797, self.pitch)
@@ -31,7 +31,7 @@ class TestCamera(Camera, TestCase):
         self.assertAlmostEqual(0.7071066, actual[1])
         self.assertAlmostEqual(0., actual[2])
     def test_setViewportSize(self):
-        self.setViewportSize(100, 100)
+        self.setViewportSize(0, 0, 100, 100)
         self.assertEqual(1., self.aspectRatio)
         self.assertEqual('[100 100]', np.array_str(self.windowSize))
         self.assertAlmostEqual(2.41421342, self.projectionMatrix[0, 0])

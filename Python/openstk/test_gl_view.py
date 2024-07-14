@@ -1,14 +1,23 @@
-import sys
 from unittest import TestCase, main
+from PyQt6.QtWidgets import QApplication
+from gl_view import OpenGLView
 
+# TestOpenGlView
 # @unittest.skipUnless(sys.platform.startswith("xwin"), "Requires Windows")
-# class GlView(TestCase):
-#     def test_zero(self):
-#         self.assertEqual(abs(0), 0)
+class TestOpenGlView(OpenGLView, TestCase): 
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__()
+
+    def test__init__(self):
+        print(timer)
+        #self.assertEqual(timer, 0)
+        pass
+
+    # def test_zero(self):
+    #     self.assertEqual(abs(0), 0)
 
 if __name__ == "__main__":
-    import pygame
-    from pygame.locals import *
-    pygame.init()
-    pygame.display.set_mode((200, 200), HWSURFACE|OPENGL|DOUBLEBUF)
+    app: QApplication = QApplication([])
     main(verbosity=2)
+
