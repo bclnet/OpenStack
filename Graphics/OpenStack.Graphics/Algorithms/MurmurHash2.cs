@@ -2,7 +2,7 @@ using System.Text;
 
 namespace OpenStack.Graphics.Algorithms
 {
-    internal static class MurmurHash2
+    public static class MurmurHash2
     {
         const uint M = 0x5bd1e995;
         const int R = 24;
