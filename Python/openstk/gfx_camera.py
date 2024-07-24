@@ -90,7 +90,7 @@ class Camera:
         self.scale = scale
         self._recalculateMatrices()
 
-    def tick(self, deltaTime: float) -> None: pass
+    def tick(self, deltaTime: int) -> None: pass
 
     # prevent camera from going upside-down
     def _clampRotation(self) -> None:

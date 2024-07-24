@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
@@ -90,15 +91,20 @@ namespace System
         public static T MarshalS<T>(Func<int, byte[]> bytesFunc) where T : struct
         {
             var (map, sizeOf) = Shape<T>.Struct;
-            byte[] bytes = bytesFunc(sizeOf), bytes2 = map[0] == '<' ? bytes : MarshalSApply(bytes, map);
-            fixed (byte* _ = bytes2) return Marshal.PtrToStructure<T>((IntPtr)_);
+            byte[] bytes = bytesFunc(sizeOf);
+            if (map[0] == '>') bytes = MarshalSApply(bytes, map);
+            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
             //return MemoryMarshal.Cast<byte, T>(bytes2)[0];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] MarshalS<T>(T value, Func<int, byte[]> bytesFunc) where T : struct
+        public static byte[] MarshalS<T>(T value) where T : struct
         {
-            return null;
+            var (map, sizeOf) = Shape<T>.Struct;
+            var bytes = new byte[sizeOf];
+            fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
+            if (map[0] == '>') bytes = MarshalSApply(bytes, map);
+            return bytes;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

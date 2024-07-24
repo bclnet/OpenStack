@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Graphics
+namespace OpenStack.Graphics.Gfx
 {
     /// <summary>
     /// TestPlatformStats

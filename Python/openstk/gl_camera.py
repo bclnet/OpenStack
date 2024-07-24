@@ -49,7 +49,7 @@ class GLDebugCamera(GLCamera):
     def __init__(self):
         super().__init__()
 
-    def tick(self, deltaTime: float) -> None:
+    def tick(self, deltaTime: int) -> None:
         if not self.mouseOverRenderArea: return
 
         # use the keyboard state to update position

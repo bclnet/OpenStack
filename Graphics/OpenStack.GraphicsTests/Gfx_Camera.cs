@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
 
-namespace OpenStack.Graphics
+namespace OpenStack.Graphics.Gfx_Camera
 {
     /// <summary>
     /// TestCamera
@@ -11,7 +11,6 @@ namespace OpenStack.Graphics
     {
         #region base
         public TestCamera() => SetViewportSize(0, 0, 100, 100);
-        public override void Tick(float deltaTime) { }
         protected override void SetViewport(int x, int y, int width, int height) { }
         #endregion
 
@@ -108,7 +107,7 @@ namespace OpenStack.Graphics
         [TestMethod]
         public void Test_Tick()
         {
-            Tick(1f);
+            Tick(1);
         }
         [TestMethod]
         public void Test_ClampRotation()

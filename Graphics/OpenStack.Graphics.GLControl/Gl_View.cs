@@ -20,7 +20,7 @@ namespace OpenStack.Graphics.Controls
         readonly Stopwatch Watch = new();
         readonly DispatcherTimer Timer;
         public bool ViewportChanged = true;
-        public float DeltaTime;
+        public int DeltaTime;
 
         public GLViewerControl(TimeSpan? interval = default)
         {
@@ -61,9 +61,9 @@ namespace OpenStack.Graphics.Controls
 
         #region Tick
 
-        public virtual void Tick(float? deltaTime = null)
+        public virtual void Tick(int? deltaTime = null)
         {
-            DeltaTime = deltaTime ?? Watch.ElapsedMilliseconds / 1000f; Watch.Restart();
+            DeltaTime = deltaTime ?? (int)Watch.ElapsedMilliseconds; Watch.Restart();
             var mouseState = OpenTK.Input.Mouse.GetState(); var keyboardState = OpenTK.Input.Keyboard.GetState();
             Camera.Tick(DeltaTime);
             Camera.HandleInput(mouseState, keyboardState);

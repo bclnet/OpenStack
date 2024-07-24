@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
 
-namespace OpenStack.Graphics.OpenGL
+namespace OpenStack.Graphics
 {
 }

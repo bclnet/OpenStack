@@ -92,7 +92,8 @@ namespace System.IO
 
         // Struct : Single
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void WriteF<T>(this BinaryWriter source, T value, Func<BinaryWriter, T, byte[]> factory) => source.Write(factory(source, value));
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static void WriteS<T>(this BinaryWriter source, T value) where T : struct => MarshalS<T>(sizeOf => source.ReadBytes(sizeOf));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void WriteS<T>(this BinaryWriter source, T value) where T : struct => source.Write(MarshalS(value));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void WriteSAndVerify<T>(this BinaryWriter source, T value, int sizeOf = 0) where T : struct => source.Write(MarshalS(value));
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void WriteT<T>(this BinaryWriter source, T value, int sizeOf = 0) where T : struct => source.Write(MarshalT(value, sizeOf == 0 ? sizeof(T) : sizeOf));
 
         // Struct : Array - Factory

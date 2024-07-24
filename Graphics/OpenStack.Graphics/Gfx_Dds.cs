@@ -395,24 +395,24 @@ namespace OpenStack.Graphics.DirectX
         /// https://github.com/BinomialLLC/basis_universal/wiki/OpenGL-texture-format-enums-table
         /// https://www.g-truc.net/post-0335.html
         /// https://www.reedbeta.com/blog/understanding-bcn-texture-compression-formats/
-        public static byte[] Read(BinaryReader r, bool readMagic, out DDS_HEADER header, out DDS_HEADER_DXT10? headerDXT10, out (object type, int blockSize, object gl, object vulken, object unity, object unreal) format)
+        public static (DDS_HEADER header, DDS_HEADER_DXT10? headerDxt10, (object type, int blockSize, object gl, object vulken, object unity, object unreal) format, byte[] bytes) Read(BinaryReader r, bool readMagic = true)
         {
             if (readMagic)
             {
                 var magic = r.ReadUInt32();
                 if (magic != MAGIC) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
             }
-            header = r.ReadS<DDS_HEADER>();
+            var header = r.ReadS<DDS_HEADER>();
             header.Verify();
             ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
-            headerDXT10 = ddspf.dwFourCC == DX10 ? r.ReadS<DDS_HEADER_DXT10>() : default;
-            format = ddspf.dwFourCC switch
+            var headerDxt10 = ddspf.dwFourCC == DX10 ? (DDS_HEADER_DXT10?)r.ReadS<DDS_HEADER_DXT10>() : null;
+            var format = ddspf.dwFourCC switch
             {
                 0 => MakeFormat(ref ddspf),
                 DXT1 => (DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
                 DXT3 => (DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
                 DXT5 => (DXT5, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5),
-                DX10 => (headerDXT10?.dxgiFormat) switch
+                DX10 => (headerDxt10?.dxgiFormat) switch
                 {
                     BC1_UNORM => (BC1_UNORM, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
                     BC1_UNORM_SRGB => (BC1_UNORM_SRGB, 8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
@@ -429,12 +429,25 @@ namespace OpenStack.Graphics.DirectX
                     BC7_UNORM => (BC7_UNORM, 16, TextureGLFormat.CompressedRgbaBptcUnorm, TextureGLFormat.CompressedRgbaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7),
                     BC7_UNORM_SRGB => (BC7_UNORM_SRGB, 16, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureGLFormat.CompressedSrgbAlphaBptcUnorm, TextureUnityFormat.BC7, TextureUnrealFormat.BC7),
                     R8_UNORM => (R8_UNORM, 1, (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), (TextureGLFormat.R8, TextureGLPixelFormat.Red, TextureGLPixelType.Byte), TextureUnityFormat.R8, TextureUnrealFormat.R8), //: guess
-                    _ => throw new ArgumentOutOfRangeException(nameof(headerDXT10.Value.dxgiFormat), $"{headerDXT10?.dxgiFormat}"),
+                    _ => throw new ArgumentOutOfRangeException(nameof(headerDxt10.Value.dxgiFormat), $"{headerDxt10?.dxgiFormat}"),
                 },
                 // BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
                 _ => throw new ArgumentOutOfRangeException(nameof(ddspf.dwFourCC), $"{ddspf.dwFourCC}"),
             };
-            return r.ReadToEnd();
+            return (header, headerDxt10, format, r.ReadToEnd());
+        }
+
+        public static void Write(BinaryWriter w, DDS_HEADER header, DDS_HEADER_DXT10? headerDxt10, byte[] bytes, bool writeMagic = true)
+        {
+            header.Verify();
+            if (writeMagic) w.Write(MAGIC);
+            w.WriteS(header);
+            if (header.ddspf.dwFourCC == DX10)
+            {
+                if (headerDxt10 == null) throw new ArgumentNullException(nameof(headerDxt10));
+                w.WriteS(headerDxt10.Value);
+            }
+            w.Write(bytes);
         }
 
         static (object type, int blockSize, object gl, object vulken, object unity, object unreal) MakeFormat(ref DDS_PIXELFORMAT f) =>

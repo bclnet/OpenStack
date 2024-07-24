@@ -105,7 +105,7 @@ namespace OpenStack.Graphics
             RecalculateMatrices();
         }
 
-        public abstract void Tick(float deltaTime);
+        public virtual void Tick(int deltaTime) { }
 
         // Prevent camera from going upside-down
         protected void ClampRotation()

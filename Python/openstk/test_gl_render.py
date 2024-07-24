@@ -6,7 +6,7 @@ from gl_render import GLMeshBuffers, GLMeshBufferCache, MeshBatchRenderer, QuadI
 class TestGLMeshBuffers(GLMeshBuffers, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__()
+        super().__init__(None)
 
     def test__init__(self):
         self.assertEqual(0., self.pitch)

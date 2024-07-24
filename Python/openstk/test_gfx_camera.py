@@ -8,6 +8,7 @@ class TestCamera(Camera, TestCase):
         TestCase.__init__(self, method)
         super().__init__()
         self.setViewportSize(0, 0, 100, 100)
+    def setViewport(self, x: int, y: int, width: int, height: int): pass
 
     def test__init__(self):
         self.assertAlmostEqual(-0.6154797, self.pitch)
@@ -65,7 +66,7 @@ class TestCamera(Camera, TestCase):
         self.setScale(1.)
         self.assertEqual(1., self.scale)
     def test_tick(self):
-        self.tick(1.)
+        self.tick(1)
     def test__clampRotation(self):
         self._clampRotation()
 

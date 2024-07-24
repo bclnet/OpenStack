@@ -1,18 +1,28 @@
 import numpy as np
 from unittest import TestCase, main
-# from gfx_dds import Camera
+from gfx_dds import DDS_HEADER
 
-# TestCamera
-# class TestCamera(Camera, TestCase):
-#     def __init__(self, method: str):
-#         TestCase.__init__(self, method)
-#         super().__init__()
-#         self.setViewportSize(0, 0, 100, 100)
+# TestDdsHeader
+class TestDdsHeader(TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
 
-#     def test__init__(self):
-#         self.assertAlmostEqual(-0.6154797, self.pitch)
-#         self.assertAlmostEqual(-2.3561945, self.yaw)
-    
+    def test_verify(self):
+        # self.assertEqual(-0.6154797, self.pitch)
+        # self.assertEqual(-2.3561945, self.yaw)
+        pass
+    def test_read(self):
+        # self.assertEqual(-0.6154797, self.pitch)
+        # self.assertEqual(-2.3561945, self.yaw)
+        pass
+    def test_write(self):
+        # self.assertEqual(-0.6154797, self.pitch)
+        # self.assertEqual(-2.3561945, self.yaw)
+        pass
+    def test_convertDxt3ToDtx5(self):
+        # self.assertEqual(-0.6154797, self.pitch)
+        # self.assertEqual(-2.3561945, self.yaw)
+        pass
 
 if __name__ == "__main__":
     main(verbosity=1)

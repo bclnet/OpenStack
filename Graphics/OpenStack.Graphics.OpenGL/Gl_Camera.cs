@@ -22,7 +22,7 @@ namespace OpenStack.Graphics.OpenGL
             MouseWheel,
             KeyPress,
             KeyRelease
-        };
+        }
 
         public void Event(EventType type, object e, object arg)
         {
@@ -50,7 +50,7 @@ namespace OpenStack.Graphics.OpenGL
         MouseState MouseState;
         int ScrollWheelDelta;
 
-        public override void Tick(float deltaTime)
+        public override void Tick(int deltaTime)
         {
             if (!MouseOverRenderArea) return;
 

@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Drawing;
 
-namespace OpenStack.Graphics
+namespace OpenStack.Graphics.Gfx_Bitmap
 {
     /// <summary>
     /// TestDirectBitmap
@@ -17,13 +17,11 @@ namespace OpenStack.Graphics
             Assert.AreEqual(100, Width);
             Assert.AreEqual(100, Height);
         }
-
         [TestMethod]
         public void Test_SetPixel()
         {
             SetPixel(0, 0, Color.Aqua);
         }
-
         [TestMethod]
         public void Test_GetPixel()
         {
@@ -33,7 +31,6 @@ namespace OpenStack.Graphics
             Assert.AreEqual(0, actual.B);
             Assert.AreEqual(0, actual.A);
         }
-
         [TestMethod]
         public void Test_Save()
         {

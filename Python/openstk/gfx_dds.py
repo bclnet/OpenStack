@@ -1,6 +1,6 @@
 import os
 from enum import Enum, Flag
-from openstk.poly import Reader
+from openstk.poly import Reader, Writer, findType
 from openstk.gfx_texture import TextureGLFormat, TextureUnityFormat, TextureUnrealFormat
 
 # forwards
@@ -169,21 +169,21 @@ class DDS_HEADER:
         elif self.ddspf.dwSize != 32: raise Exception(f'Invalid DDS file pixel format size: {ddspf.dwSize}.')
 
     @staticmethod
-    def read(r: Reader, readMagic: bool = True) -> (bytes, DDS_HEADER, DDS_HEADER_DXT10, object):
+    def read(r: Reader, readMagic: bool = True) -> (DDS_HEADER, DDS_HEADER_DXT10, object, bytes):
         if readMagic:
             magic = r.readUInt32()
             if magic != DDS_HEADER.MAGIC: raise Exception(f'Invalid DDS file magic: "{magic}".')
         header = r.readS(DDS_HEADER)
         header.verify()
         ddspf = header.ddspf
-        headerDXT10 = r.ReadT(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None
+        headerDxt10 = r.ReadT(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None
         match ddspf.dwFourCC:
             case 0: format = _makeformat(ddspf)
             case FourCC.DXT1: format = (FourCC.DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1)
             case FourCC.DXT3: format = (FourCC.DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3)
             case FourCC.DXT5: format = (FourCC.DXT5, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5)
             case FourCC.DX10: 
-                match headerDXT10.dxgiFormat:
+                match headerDxt10.dxgiFormat:
                     case DXGI_FORMAT.BC1_UNORM: format = (BC1_UNORM, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1)
                     case DXGI_FORMAT.BC1_UNORM_SRGB: format = (BC1_UNORM_SRGB, 8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1)
                     case DXGI_FORMAT.BC2_UNORM: format = (BC2_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3)
@@ -202,7 +202,11 @@ class DDS_HEADER:
                     case _: raise Exception(f'Unknown dxgiFormat: 0x{ddspf.dxgiFormat:x}')
             # BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
             case _: raise Exception(f'Unknown dwFourCC: 0x{ddspf.dwFourCC:x}')
-        return r.readToEnd(), header, headerDXT10, format
+        return header, headerDxt10, format, r.readToEnd()
+
+    @staticmethod
+    def write(w: Writer, header: DDS_HEADER, headerDxt10: DDS_HEADER_DXT10, object, bytes: bytearray, writeMagic: bool = True) -> None:
+        pass
 
     @staticmethod
     def _makeformat(f: DDS_PIXELFORMAT) -> object:

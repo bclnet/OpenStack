@@ -6,7 +6,7 @@ from gl_renders import TextureRenderer, MaterialRenderer, ParticleGridRenderer
 class TestTextureRenderer(TextureRenderer, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__()
+        super().__init__(None, 0, False)
 
     def test__init__(self):
         self.assertEqual(0., self.pitch)
@@ -15,7 +15,7 @@ class TestTextureRenderer(TextureRenderer, TestCase):
 class TestMaterialRenderer(MaterialRenderer, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__()
+        super().__init__(None, None)
 
     def test__init__(self):
         self.assertEqual(0., self.pitch)
@@ -24,7 +24,7 @@ class TestMaterialRenderer(MaterialRenderer, TestCase):
 class TestParticleGridRenderer(ParticleGridRenderer, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__()
+        super().__init__(None, 1., 1)
 
     def test__init__(self):
         self.assertEqual(0., self.pitch)

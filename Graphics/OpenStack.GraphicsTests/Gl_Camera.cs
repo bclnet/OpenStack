@@ -1,7 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenStack.Graphics.OpenGL;
 using OpenTK.Input;
 
-namespace OpenStack.Graphics.OpenGL
+namespace OpenStack.Graphics.Gl_Camera
 {
     /// <summary>
     /// TestGLCamera
@@ -11,7 +12,6 @@ namespace OpenStack.Graphics.OpenGL
     {
         #region base
         public TestGLCamera() => SetViewportSize(0, 0, 100, 100);
-        public override void Tick(float deltaTime) { }
         public override void HandleInput(MouseState mouseState, KeyboardState keyboardState) { }
         protected override void SetViewport(int x, int y, int width, int height) { }
         #endregion
@@ -56,7 +56,7 @@ namespace OpenStack.Graphics.OpenGL
         [TestMethod]
         public void Test_Tick()
         {
-            Tick(1f);
+            Tick(1);
         }
         [TestMethod]
         public void Test_HandleInput()
