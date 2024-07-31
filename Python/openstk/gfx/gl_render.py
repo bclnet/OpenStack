@@ -2,8 +2,8 @@ import numpy as np
 from typing import Callable
 from enum import Enum
 from OpenGL.GL import *
-from openstk.gfx_render import DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
-from openstk.gfx_scene import Scene
+from openstk.gfx.gfx_render import DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
+from openstk.gfx.gfx_scene import Scene
 
 # typedefs
 class Camera: pass

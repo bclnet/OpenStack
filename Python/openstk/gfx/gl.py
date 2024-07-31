@@ -1,6 +1,6 @@
 import numpy as np
 from OpenGL.GL import *
-from openstk.gfx import IOpenGraphicAny
+from openstk.gfx.gfx import IOpenGraphicAny
 
 #ref https://pyopengl.sourceforge.net/documentation/manual-3.0/glGetProgram.html
 

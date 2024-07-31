@@ -1,6 +1,6 @@
 import sys
 from unittest import TestCase, main
-from openstk.gfx_ui import KeyboardState, MouseState
+from gfx_ui import KeyboardState, MouseState
 from gl_camera import GLCamera, GLDebugCamera
 
 # TestGLCamera

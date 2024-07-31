@@ -1,8 +1,8 @@
 import math, numpy as np
 from enum import Enum
 from OpenGL.GL import *
-from openstk.gfx_ui import Key, KeyboardState, MouseState
-from openstk.gfx_camera import Camera
+from openstk.gfx.gfx_ui import Key, KeyboardState, MouseState
+from openstk.gfx.gfx_camera import Camera
 
 CAMERASPEED = 300 # Per second
 

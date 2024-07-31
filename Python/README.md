@@ -4,4 +4,6 @@
 
 ```
 pip install openstk
+pip install openstk.gfx
+pip install openstk.sfx
 ```

@@ -1,8 +1,8 @@
 import numpy as np
 from OpenGL.GL import *
-from openstk.gl import IOpenGLGraphic
-from openstk.gfx_render import RenderPass
-from openstk.gfx_scene import Octree
+from openstk.gfx.gl import IOpenGLGraphic
+from openstk.gfx.gfx_render import RenderPass
+from openstk.gfx.gfx_scene import Octree
 
 # typedefs
 class Camera: pass

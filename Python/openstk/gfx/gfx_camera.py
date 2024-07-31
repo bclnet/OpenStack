@@ -1,6 +1,6 @@
 import math, numpy as np
-from openstk.gfx_render import Frustum, IPickingTexture
-from openstk.util import _np_normalize, _np_getTranslation4x4, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
+from openstk.gfx.gfx_render import Frustum, IPickingTexture
+from openstk.gfx.util import _np_normalize, _np_getTranslation4x4, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
 
 CAMERASPEED = 300.
 PiOver2 = 1.570796

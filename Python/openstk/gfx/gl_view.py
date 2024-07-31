@@ -6,9 +6,9 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QSurfaceFormat, QPainter, QColor
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from PyQt6.QtOpenGL import QOpenGLBuffer, QOpenGLShader, QOpenGLShaderProgram, QOpenGLTexture, QOpenGLDebugLogger, QOpenGLDebugMessage
-from openstk.gfx import PlatformStats
-from openstk.gfx_ui import MouseState, KeyboardState
-from openstk.gl_camera import GLCamera, GLDebugCamera
+from openstk.gfx.gfx import PlatformStats
+from openstk.gfx.gfx_ui import MouseState, KeyboardState
+from openstk.gfx.gl_camera import GLCamera, GLDebugCamera
 
 # https://forum.qt.io/topic/137468/a-few-basic-changes-in-pyqt6-and-pyside6-regarding-shader-based-opengl-graphics
 # https://github.com/8Observer8/falling-collada-cube-bullet-physics-opengl33-pyqt6/blob/master/main.py

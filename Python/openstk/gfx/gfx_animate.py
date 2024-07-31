@@ -1,7 +1,7 @@
 import quaternion as quat, numpy as np
 from typing import NamedTuple, Callable
 from enum import Enum
-from openstk.util import _np_createFromQuaternion4x4, _np_createTranslation4x4
+from openstk.gfx.util import _np_createFromQuaternion4x4, _np_createTranslation4x4
 
 # forwards
 class Bone: pass
