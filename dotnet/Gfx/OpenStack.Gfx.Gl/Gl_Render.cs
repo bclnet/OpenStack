@@ -280,7 +280,7 @@ namespace OpenStack.Gfx.Gl
         int colorHandle;
         int depthHandle;
 
-        public GLPickingTexture(IOpenGLGraphic graphic, EventHandler<PickingResponse> onPicked)
+        public GLPickingTexture(IOpenGLGfx graphic, EventHandler<PickingResponse> onPicked)
         {
             (Shader, _) = graphic.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>());
             (DebugShader, _) = graphic.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
@@ -429,9 +429,9 @@ namespace OpenStack.Gfx.Gl
     /// </summary>
     public class GLRenderableMesh : RenderableMesh
     {
-        IOpenGLGraphic Graphic;
+        IOpenGLGfx Graphic;
 
-        public GLRenderableMesh(IOpenGLGraphic graphic, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : base(t => ((GLRenderableMesh)t).Graphic = graphic, mesh, meshIndex, skinMaterials, model) { }
+        public GLRenderableMesh(IOpenGLGfx graphic, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : base(t => ((GLRenderableMesh)t).Graphic = graphic, mesh, meshIndex, skinMaterials, model) { }
 
         public override void SetRenderMode(string renderMode)
         {

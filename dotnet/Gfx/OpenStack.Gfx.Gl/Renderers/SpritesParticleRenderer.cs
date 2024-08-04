@@ -23,7 +23,7 @@ namespace OpenStack.Gfx.Gl
         QuadIndexBuffer QuadIndices;
         int VertexBufferHandle;
 
-        public SpritesParticleRenderer(IDictionary<string, object> keyValues, IOpenGLGraphic graphic)
+        public SpritesParticleRenderer(IDictionary<string, object> keyValues, IOpenGLGfx graphic)
         {
             (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.sprite");
             QuadIndices = graphic.QuadIndices;

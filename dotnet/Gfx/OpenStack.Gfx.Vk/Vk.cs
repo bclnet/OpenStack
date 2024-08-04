@@ -8,7 +8,7 @@ namespace OpenStack.Gfx.Vk
     /// <summary>
     /// IVulkenGraphic
     /// </summary>
-    public interface IVulkenGraphic : IOpenGraphicAny<object, object, GLRenderMaterial, int, Shader>
+    public interface IVulkenGfx : IOpenGfxAny<object, GLRenderMaterial, int, Shader>
     {
     }
 }

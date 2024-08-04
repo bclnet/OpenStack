@@ -7,13 +7,13 @@ from openstk.gfx.gl_render import GLRenderMaterial
 sizeof_float = ctypes.sizeof(GLfloat)
 
 # typedefs
-class IOpenGLGraphic: pass
+class IOpenGLGfx: pass
 class Shader: pass
 class Camera: pass
 
 # TextureRenderer
 class TextureRenderer(IRenderer):
-    graphic: IOpenGLGraphic
+    graphic: IOpenGLGfx
     texture: int
     shader: Shader
     shaderTag: object
@@ -21,7 +21,7 @@ class TextureRenderer(IRenderer):
     background: bool
     boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
-    def __init__(self, graphic: IOpenGLGraphic, texture: int, background: bool = False):
+    def __init__(self, graphic: IOpenGLGfx, texture: int, background: bool = False):
         self.graphic = graphic
         self.texture = texture
         self.shader, self.shaderTag = graphic.shaderManager.createPlaneShader('plane')
@@ -72,14 +72,14 @@ class TextureRenderer(IRenderer):
 
 # MaterialRenderer
 class MaterialRenderer(IRenderer):
-    graphic: IOpenGLGraphic
+    graphic: IOpenGLGfx
     material: GLRenderMaterial
     shader: Shader
     shaderTag: object
     quadVao: int
     boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
-    def __init__(self, graphic: IOpenGLGraphic, material: GLRenderMaterial):
+    def __init__(self, graphic: IOpenGLGfx, material: GLRenderMaterial):
         self.graphic = graphic
         self.material = material
         self.shader, self.shaderTag = graphic.shaderManager.createShader(material.material.shaderName, material.material.getShaderArgs())
@@ -143,7 +143,7 @@ class ParticleGridRenderer(IRenderer):
     vertexCount: int
     boundingBox: AABB
 
-    def __init__(self, graphic: IOpenGLGraphic, cellWidth: float, gridWidthInCells: int):
+    def __init__(self, graphic: IOpenGLGfx, cellWidth: float, gridWidthInCells: int):
         self.boundingBox = AABB(
             -cellWidth * 0.5 * gridWidthInCells, -cellWidth * 0.5 * gridWidthInCells, 0,
             cellWidth * 0.5 * gridWidthInCells, cellWidth * 0.5 * gridWidthInCells, 0)

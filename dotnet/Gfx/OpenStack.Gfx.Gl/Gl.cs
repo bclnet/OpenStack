@@ -1,13 +1,13 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("OpenStack.GraphicsTests")]
+[assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack.Gfx.Gl
 {
     /// <summary>
-    /// IOpenGLGraphic
+    /// IOpenGLGfx
     /// </summary>
-    public interface IOpenGLGraphic : IOpenGraphicAny<object, object, GLRenderMaterial, int, Shader>
+    public interface IOpenGLGfx : IOpenGfxAny<object, GLRenderMaterial, int, Shader>
     {
         // cache
         public GLMeshBufferCache MeshBufferCache { get; }

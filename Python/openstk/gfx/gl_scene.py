@@ -1,6 +1,6 @@
 import numpy as np
 from OpenGL.GL import *
-from openstk.gfx.gl import IOpenGLGraphic
+from openstk.gfx.gl import IOpenGLGfx
 from openstk.gfx.gfx_render import RenderPass
 from openstk.gfx.gfx_scene import Octree
 
@@ -20,7 +20,7 @@ class OctreeDebugRenderer:
     dynamic: bool
     vertexCount: int
 
-    def __init__(self, octree: Octree, graphic: IOpenGLGraphic, dynamic: bool):
+    def __init__(self, octree: Octree, graphic: IOpenGLGfx, dynamic: bool):
         self.octree = octree
         self.dynamic = dynamic
         self.shader, self.shaderTag = graphic.createShader('vrf.grid')

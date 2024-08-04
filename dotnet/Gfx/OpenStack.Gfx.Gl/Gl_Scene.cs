@@ -20,7 +20,7 @@ namespace OpenStack.Gfx.Gl
         readonly bool Dynamic;
         int VertexCount;
 
-        public OctreeDebugRenderer(Octree<T> octree, IOpenGLGraphic graphic, bool dynamic)
+        public OctreeDebugRenderer(Octree<T> octree, IOpenGLGfx graphic, bool dynamic)
         {
             Octree = octree;
             Dynamic = dynamic;

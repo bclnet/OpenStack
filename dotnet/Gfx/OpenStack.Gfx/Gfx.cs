@@ -11,16 +11,6 @@ using System.Threading.Tasks;
 namespace OpenStack.Gfx
 {
     /// <summary>
-    /// IAudioManager
-    /// </summary>
-    public interface IAudioManager<Audio>
-    {
-        (Audio aud, object tag) CreateAudio(object path);
-        void PreloadAudio(object path);
-        void DeleteAudio(object path);
-    }
-
-    /// <summary>
     /// IObjectManager
     /// </summary>
     public interface IObjectManager<Object, Material, Texture>
@@ -130,9 +120,9 @@ namespace OpenStack.Gfx
     }
 
     /// <summary>
-    /// IOpenGraphic
+    /// IOpenGfx
     /// </summary>
-    public interface IOpenGraphic
+    public interface IOpenGfx
     {
         Task<T> LoadFileObject<T>(object path);
         void PreloadTexture(object path);
@@ -140,16 +130,14 @@ namespace OpenStack.Gfx
     }
 
     /// <summary>
-    /// IOpenGraphicAny
+    /// IOpenGfxAny
     /// </summary>
-    public interface IOpenGraphicAny<Audio, Object, Material, Texture, Shader> : IOpenGraphic
+    public interface IOpenGfxAny<Object, Material, Texture, Shader> : IOpenGfx
     {
-        IAudioManager<Audio> AudioManager { get; }
         ITextureManager<Texture> TextureManager { get; }
         IMaterialManager<Material, Texture> MaterialManager { get; }
         IObjectManager<Object, Material, Texture> ObjectManager { get; }
         IShaderManager<Shader> ShaderManager { get; }
-        Audio CreateAudio(object path);
         Texture CreateTexture(object path, Range? level = null);
         Object CreateObject(object path);
         Shader CreateShader(object path, IDictionary<string, bool> args = null);

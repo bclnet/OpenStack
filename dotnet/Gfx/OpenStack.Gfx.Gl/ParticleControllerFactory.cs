@@ -53,11 +53,11 @@ namespace OpenStack.Gfx.Particles
            };
 
         // Register particle renderers
-        static readonly IDictionary<string, Func<IDictionary<string, object>, IOpenGLGraphic, IParticleRenderer>> RendererDictionary
-           = new Dictionary<string, Func<IDictionary<string, object>, IOpenGLGraphic, IParticleRenderer>>
+        static readonly IDictionary<string, Func<IDictionary<string, object>, IOpenGLGfx, IParticleRenderer>> RendererDictionary
+           = new Dictionary<string, Func<IDictionary<string, object>, IOpenGLGfx, IParticleRenderer>>
            {
-               ["C_OP_RenderSprites"] = (rendererInfo, graphic) => new SpritesParticleRenderer(rendererInfo, graphic as IOpenGLGraphic),
-               ["C_OP_RenderTrails"] = (rendererInfo, graphic) => new TrailsParticleRenderer(rendererInfo, graphic as IOpenGLGraphic),
+               ["C_OP_RenderSprites"] = (rendererInfo, graphic) => new SpritesParticleRenderer(rendererInfo, graphic as IOpenGLGfx),
+               ["C_OP_RenderTrails"] = (rendererInfo, graphic) => new TrailsParticleRenderer(rendererInfo, graphic as IOpenGLGfx),
            };
 
         public static bool TryCreateEmitter(string name, IDictionary<string, object> baseProperties, IDictionary<string, object> emitterInfo, out IParticleEmitter emitter)
@@ -85,7 +85,7 @@ namespace OpenStack.Gfx.Particles
             return false;
         }
 
-        public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, IOpenGLGraphic graphic, out IParticleRenderer renderer)
+        public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, IOpenGLGfx graphic, out IParticleRenderer renderer)
         {
             if (RendererDictionary.TryGetValue(name, out var factory)) { renderer = factory(rendererInfo, graphic); return true; }
             renderer = default;

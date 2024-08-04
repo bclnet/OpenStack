@@ -83,14 +83,14 @@ class IParamMaterial(IMaterial):
     textureParams: dict[str, str]
     intAttributes: dict[str, int]
 
-# IOpenGraphic:
-class IOpenGraphic:
+# IOpenGfx:
+class IOpenGfx:
     def loadFileObject(self, path: object): pass
     def preloadTexture(self, path: object): pass
     def preloadObject(self, path: object): pass
 
-# IOpenGraphicAny
-class IOpenGraphicAny(IOpenGraphic):
+# IOpenGfxAny
+class IOpenGfxAny(IOpenGfx):
     audioManager: IAudioManager
     textureManager: ITextureManager
     materialManager: IMaterialManager

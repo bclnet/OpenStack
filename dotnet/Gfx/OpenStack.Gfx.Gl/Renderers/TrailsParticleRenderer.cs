@@ -27,7 +27,7 @@ namespace OpenStack.Gfx.Gl
         readonly float MaxLength;
         readonly float LengthFadeInTime;
 
-        public TrailsParticleRenderer(IDictionary<string, object> keyValues, IOpenGLGraphic graphic)
+        public TrailsParticleRenderer(IDictionary<string, object> keyValues, IOpenGLGfx graphic)
         {
             (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.trail", new Dictionary<string, bool>());
 

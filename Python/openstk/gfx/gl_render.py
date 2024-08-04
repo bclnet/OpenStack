@@ -14,7 +14,7 @@ class IMesh: pass
 class IModel: pass
 
 # forwards
-class IOpenGLGraphic: pass
+class IOpenGLGfx: pass
 class PickingIntent: pass
 class PixelInfo: pass
 class VAOKey: pass
@@ -227,7 +227,7 @@ class GLPickingTexture(IPickingTexture):
     colorHandle: int
     depthHandle: int
 
-    def __init__(self, graphic: IOpenGLGraphic, onPicked: list[Callable]):
+    def __init__(self, graphic: IOpenGLGfx, onPicked: list[Callable]):
         self.shader, _ = graphic.createShader('vrf.picking', {})
         self.debugShader, _ = graphic.createShader('vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
@@ -335,9 +335,9 @@ class GLRenderMaterial(RenderMaterial):
 
 # GLRenderableMesh
 class GLRenderableMesh(RenderableMesh):
-    graphic: IOpenGLGraphic
+    graphic: IOpenGLGfx
 
-    def __init__(self, graphic: IOpenGLGraphic, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
+    def __init__(self, graphic: IOpenGLGfx, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
         super().__init__(lambda t: print('TODO: t.graphic = graphic'), mesh, meshIndex, skinMaterials, model)
 
     def setRenderMode(self, renderMode: str):

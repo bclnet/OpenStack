@@ -10,7 +10,7 @@ namespace OpenStack.Gfx.Gl
     /// </summary>
     public class TextureRenderer : IRenderer
     {
-        readonly IOpenGLGraphic Graphic;
+        readonly IOpenGLGfx Graphic;
         readonly int Texture;
         readonly Shader Shader;
         readonly object ShaderTag;
@@ -18,7 +18,7 @@ namespace OpenStack.Gfx.Gl
         public bool Background;
         public AABB BoundingBox => new AABB(-1f, -1f, -1f, 1f, 1f, 1f);
 
-        public TextureRenderer(IOpenGLGraphic graphic, int texture, bool background = false)
+        public TextureRenderer(IOpenGLGfx graphic, int texture, bool background = false)
         {
             Graphic = graphic;
             Texture = texture;
@@ -83,14 +83,14 @@ namespace OpenStack.Gfx.Gl
     /// </summary>
     public class MaterialRenderer : IRenderer
     {
-        readonly IOpenGLGraphic Graphic;
+        readonly IOpenGLGfx Graphic;
         readonly GLRenderMaterial Material;
         readonly Shader Shader;
         readonly object ShaderTag;
         readonly int QuadVao;
         public AABB BoundingBox => new AABB(-1f, -1f, -1f, 1f, 1f, 1f);
 
-        public MaterialRenderer(IOpenGLGraphic graphic, GLRenderMaterial material)
+        public MaterialRenderer(IOpenGLGfx graphic, GLRenderMaterial material)
         {
             Graphic = graphic;
             Material = material;
@@ -171,7 +171,7 @@ namespace OpenStack.Gfx.Gl
         int VertexCount;
         public AABB BoundingBox { get; }
 
-        public ParticleGridRenderer(IOpenGLGraphic graphic, float cellWidth, int gridWidthInCells)
+        public ParticleGridRenderer(IOpenGLGfx graphic, float cellWidth, int gridWidthInCells)
         {
             BoundingBox = new AABB(
                 -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,

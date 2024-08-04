@@ -31,7 +31,7 @@ namespace OpenStack.Gfx.Gl
             }
         }
 
-        readonly IOpenGLGraphic _graphic;
+        readonly IOpenGLGfx _graphic;
         readonly List<ParticleRenderer> _childParticleRenderers;
         bool _hasStarted = false;
 
@@ -40,7 +40,7 @@ namespace OpenStack.Gfx.Gl
         ParticleSystemRenderState _systemRenderState;
 
         // TODO: Passing in position here was for testing, do it properly
-        public ParticleRenderer(IOpenGLGraphic graphic, IParticleSystem particleSystem, Vector3 pos = default)
+        public ParticleRenderer(IOpenGLGfx graphic, IParticleSystem particleSystem, Vector3 pos = default)
         {
             _graphic = graphic;
             _childParticleRenderers = new List<ParticleRenderer>();
@@ -205,7 +205,7 @@ namespace OpenStack.Gfx.Gl
             foreach (var childName in childNames)
             {
                 var childSystem = _graphic.LoadFileObject<IParticleSystem>(childName).Result;
-                _childParticleRenderers.Add(new ParticleRenderer(_graphic as IOpenGLGraphic, childSystem, _systemRenderState.GetControlPoint(0)));
+                _childParticleRenderers.Add(new ParticleRenderer(_graphic as IOpenGLGfx, childSystem, _systemRenderState.GetControlPoint(0)));
             }
         }
     }

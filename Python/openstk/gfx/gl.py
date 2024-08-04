@@ -1,6 +1,6 @@
 import numpy as np
 from OpenGL.GL import *
-from openstk.gfx.gfx import IOpenGraphicAny
+from openstk.gfx.gfx import IOpenGfxAny
 
 #ref https://pyopengl.sourceforge.net/documentation/manual-3.0/glGetProgram.html
 
@@ -8,8 +8,8 @@ from openstk.gfx.gfx import IOpenGraphicAny
 class GLMeshBufferCache: pass
 class QuadIndexBuffer: pass
 
-# IOpenGLGraphic
-class IOpenGLGraphic(IOpenGraphicAny):
+# IOpenGLGfx
+class IOpenGLGfx(IOpenGfxAny):
     # cache
     meshBufferCache: GLMeshBufferCache
     quadIndices: QuadIndexBuffer
