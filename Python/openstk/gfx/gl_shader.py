@@ -1,7 +1,7 @@
 import re, math, numpy as np
 from importlib import resources
 from OpenGL.GL import *
-from openstk.gfx_render import Shader
+from openstk.gfx.gfx_render import Shader
 
 # ShaderSeed = 0x13141516
 RenderMode = 'renderMode_'; RenderModeLength = len(RenderMode)
