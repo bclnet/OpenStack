@@ -201,7 +201,7 @@ namespace OpenStack.Gfx
     {
         public Camera MainCamera;
         public Vector3? LightPosition;
-        public IOpenGfx Graphic;
+        public IOpenGfx Gfx;
         public Octree<SceneNode> StaticOctree;
         public Octree<SceneNode> DynamicOctree;
         public bool ShowDebug;
@@ -225,9 +225,9 @@ namespace OpenStack.Gfx
             public bool ShowDebug;
         }
 
-        public Scene(IOpenGfx graphic, Action<List<MeshBatchRequest>, RenderContext> meshBatchRenderer, float sizeHint = 32768)
+        public Scene(IOpenGfx gfx, Action<List<MeshBatchRequest>, RenderContext> meshBatchRenderer, float sizeHint = 32768)
         {
-            Graphic = graphic ?? throw new ArgumentNullException(nameof(graphic));
+            Gfx = gfx ?? throw new ArgumentNullException(nameof(gfx));
             MeshBatchRenderer = meshBatchRenderer ?? throw new ArgumentNullException(nameof(meshBatchRenderer));
             StaticOctree = new Octree<SceneNode>(sizeHint);
             DynamicOctree = new Octree<SceneNode>(sizeHint);

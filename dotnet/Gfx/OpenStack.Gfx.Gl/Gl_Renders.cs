@@ -10,7 +10,7 @@ namespace OpenStack.Gfx.Gl
     /// </summary>
     public class TextureRenderer : IRenderer
     {
-        readonly IOpenGLGfx Graphic;
+        readonly IOpenGLGfx Gfx;
         readonly int Texture;
         readonly Shader Shader;
         readonly object ShaderTag;
@@ -18,11 +18,11 @@ namespace OpenStack.Gfx.Gl
         public bool Background;
         public AABB BoundingBox => new AABB(-1f, -1f, -1f, 1f, 1f, 1f);
 
-        public TextureRenderer(IOpenGLGfx graphic, int texture, bool background = false)
+        public TextureRenderer(IOpenGLGfx gfx, int texture, bool background = false)
         {
-            Graphic = graphic;
+            Gfx = gfx;
             Texture = texture;
-            (Shader, ShaderTag) = Graphic.ShaderManager.CreatePlaneShader("plane");
+            (Shader, ShaderTag) = Gfx.ShaderManager.CreatePlaneShader("plane");
             QuadVao = SetupQuadBuffer();
             Background = background;
         }

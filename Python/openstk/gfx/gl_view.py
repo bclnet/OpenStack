@@ -70,23 +70,23 @@ class OpenGLView(QOpenGLWidget):
         self.camera.setViewportSize(x, y, width, height)
         self.viewportChanged = False
 
-    def paintEvent(self, event: object):
-        p: QPainter = QPainter(self)
-        p.beginNativePainting()
-        self.paintGL()
-        p.endNativePainting()
-        self.paint(p)
+    # def paintEvent(self, event: object):
+    #     p: QPainter = QPainter(self)
+    #     p.beginNativePainting()
+    #     self.paintGL()
+    #     p.endNativePainting()
+    #     self.paint(p)
 
     # https://stackoverflow.com/questions/38796140/qpainterdrawrects-painter-not-active-error-c-qt
-    def paint(self, p: QPainter):
-        r1: QRect = self.rect().adjusted(10, 10, -10, -10)
-        p.setPen(QColor("#FFFFFF"))
-        p.drawRect(r1)
-        #
-        # r2: QRect = QRect(QPoint(0, 0), QSize(100, 100))
-        # r2.moveCenter(m_mousePos)
-        # p.setPen(QPen(Qt.black, 3, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
-        # p.drawRect(r2)
+    # def paint(self, p: QPainter):
+    #     r1: QRect = self.rect().adjusted(10, 10, -10, -10)
+    #     p.setPen(QColor("#FFFFFF"))
+    #     p.drawRect(r1)
+    #     #
+    #     # r2: QRect = QRect(QPoint(0, 0), QSize(100, 100))
+    #     # r2.moveCenter(m_mousePos)
+    #     # p.setPen(QPen(Qt.black, 3, Qt.SolidLine, Qt.SquareCap, Qt.MiterJoin))
+    #     # p.drawRect(r2)
 
     def paintGL(self):
         if self.viewportChanged: self.setViewportSize(0, 0, self.width(), self.height())
