@@ -34,7 +34,7 @@ class OpenGLView(QOpenGLWidget):
         self.viewportChanged = True
         self.deltaTime = 0
         self.elapsedTime = time.time()
-        interval = 10
+        interval = None
         if interval:
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.timerTick)
@@ -110,7 +110,7 @@ class OpenGLView(QOpenGLWidget):
         self.checkGL()
         self.initGL()
         self.camera = GLDebugCamera()
-        glEnable(GL_DEPTH_TEST)
+        # glEnable(GL_DEPTH_TEST)
 
     checkGLCalled: bool = False
     def checkGL(self):

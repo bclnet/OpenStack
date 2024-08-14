@@ -14,7 +14,7 @@ namespace OpenStack.Gfx.Gl
         readonly int Texture;
         readonly Shader Shader;
         readonly object ShaderTag;
-        readonly int QuadVao;
+        readonly int Vao;
         public bool Background;
         public AABB BoundingBox => new AABB(-1f, -1f, -1f, 1f, 1f, 1f);
 
@@ -23,7 +23,7 @@ namespace OpenStack.Gfx.Gl
             Gfx = gfx;
             Texture = texture;
             (Shader, ShaderTag) = Gfx.ShaderManager.CreatePlaneShader("plane");
-            QuadVao = SetupQuadBuffer();
+            Vao = SetupQuadBuffer();
             Background = background;
         }
 
@@ -31,8 +31,10 @@ namespace OpenStack.Gfx.Gl
         {
             GL.UseProgram(Shader.Program);
             // create and bind vao
-            var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
-            var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            var vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+            var vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             var vertices = new[]
             {
                 // position     :normal        :texcoord  :tangent
@@ -67,7 +69,7 @@ namespace OpenStack.Gfx.Gl
         {
             if (Background) { GL.ClearColor(Color.White); GL.Clear(ClearBufferMask.ColorBufferBit); }
             GL.UseProgram(Shader.Program);
-            GL.BindVertexArray(QuadVao);
+            GL.BindVertexArray(Vao);
             GL.EnableVertexAttribArray(0);
             if (Texture > -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, Texture); }
             GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
