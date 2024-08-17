@@ -20,4 +20,3 @@ def findType(klass):
 # IDisposable
 class IDisposable:
     def dispose(self): pass
-
