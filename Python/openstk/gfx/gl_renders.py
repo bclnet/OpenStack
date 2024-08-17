@@ -11,9 +11,8 @@ class IOpenGLGfx: pass
 class Shader: pass
 class Camera: pass
 
-
-# TestTriangleRenderer
-class TestTriangleRenderer(IRenderer):
+# TestTriRenderer
+class TestTriRenderer(IRenderer):
     gfx: IOpenGLGfx
     texture: int
     shader: Shader
