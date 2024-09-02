@@ -13,7 +13,7 @@ class ShaderLoader:
     
     def _calculateShaderCacheHash(self, name: str, args: dict[str, bool]) -> int:
         b = [name]
-        parameters = self._shaderDefines[name].intersect(args.keys)
+        parameters = set(self._shaderDefines[name]).intersection(args.keys())
         for key in parameters:
             b.append(key)
             b.append('t' if args[key] else 'f')
@@ -25,22 +25,24 @@ class ShaderLoader:
 
     def createShader(self, path: object, args: dict[str, bool]) -> Shader:
         name = str(path)
-        fileName = self.getShaderFileByName(name)
+        plane = name == 'plane'
+        cache = not plane and not name.startswith('#')
+        shaderFileName = self.getShaderFileByName(name)
         
         # cache
-        if fileName in self._shaderDefines:
-            shaderCacheHash = self._calculateShaderCacheHash(fileName, args)
+        if cache and shaderFileName in self._shaderDefines:
+            shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
             if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
 
-        # build
+        # defines
         defines = []
 
         # vertex shader
         vertexShader = glCreateShader(GL_VERTEX_SHADER)
         if True:
-            shaderSource = self.getShaderSource(f'{fileName}.vert')
+            shaderSource = self.getShaderSource('plane.vert' if plane else f'{shaderFileName}.vert')
             glShaderSource(vertexShader, self.preprocessVertexShader(shaderSource, args))
-            # find defines supported from source
+            # defines: find defines supported from source
             defines += self.findDefines(shaderSource)
         glCompileShader(vertexShader)
         shaderStatus = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
@@ -51,9 +53,9 @@ class ShaderLoader:
         # fragment shader
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
         if True:
-            shaderSource = self.getShaderSource(f'{fileName}.frag')
+            shaderSource = self.getShaderSource(f'{shaderFileName}.frag')
             glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
-            # find render modes supported from source, take union to avoid duplicates
+            # defines: find render modes supported from source, take union to avoid duplicates
             defines += self.findDefines(shaderSource)
         glCompileShader(fragmentShader)
         shaderStatus = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
@@ -61,7 +63,7 @@ class ShaderLoader:
             fsInfo = glGetShaderInfoLog(fragmentShader)
             raise Exception(f'Error setting up Fragment Shader "{name}": {fsInfo}')
 
-        # render modes
+        # defines find render modes
         renderModes = [k[RenderModeLength] for k in defines if k.startswith(RenderMode)]
 
         # build shader
@@ -84,55 +86,11 @@ class ShaderLoader:
         glDeleteShader(fragmentShader)
 
         # cache shader
-        if True:
-            self._shaderDefines[fileName] = defines
-            newShaderCacheHash = self._calculateShaderCacheHash(fileName, args)
+        if cache:
+            self._shaderDefines[shaderFileName] = defines
+            newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
             self._cachedShaders[newShaderCacheHash] = shader
-            print(f'Shader {newShaderCacheHash} ({name}) ({', '.join(args.Keys)}) compiled and linked succesfully')
-        return shader
-
-    def createPlaneShader(self, path: object, args: dict[str, bool]) -> Shader:
-        name = str(path)
-        fileName = self.getShaderFileByName(name)
-
-        # vertex shader
-        vertexShader = glCreateShader(GL_VERTEX_SHADER)
-        if True:
-            shaderSource = self.getShaderSource('plane.vert')
-            glShaderSource(vertexShader, shaderSource)
-        glCompileShader(vertexShader)
-        shaderStatus = glGetShaderiv(vertexShader, GL_COMPILE_STATUS)
-        if shaderStatus != 1:
-            vsInfo = glGetShaderInfoLog(vertexShader)
-            raise Exception(f'Error setting up Vertex Shader "{name}": {vsInfo}')
-
-        # fragment shader
-        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-        if True:
-            shaderSource = self.getShaderSource(f'{fileName}.frag')
-            glShaderSource(fragmentShader, self.updateDefines(shaderSource, args))
-        glCompileShader(fragmentShader)
-        shaderStatus = glGetShaderiv(fragmentShader, GL_COMPILE_STATUS)
-        if shaderStatus != 1:
-            fsInfo = glGetShaderInfoLog(fragmentShader)
-            raise Exception(f'Error setting up Fragment Shader "{name}": {fsInfo}')
-
-        # build shader
-        shader = Shader(glGetUniformLocation, glGetAttribLocation,
-            name = name,
-            program = glCreateProgram())
-        glAttachShader(shader.program, vertexShader)
-        glAttachShader(shader.program, fragmentShader)
-        glLinkProgram(shader.program)
-        glValidateProgram(shader.program)
-        linkStatus = glGetProgramiv(shader.program, GL_LINK_STATUS)
-        if linkStatus != 1:
-            linkInfo = glGetProgramInfoLog(shader.program)
-            raise Exception(f'Error linking shaders: {linkInfo} (link status = {linkStatus})')
-        glDetachShader(shader.program, vertexShader)
-        glDeleteShader(vertexShader)
-        glDetachShader(shader.program, fragmentShader)
-        glDeleteShader(fragmentShader)
+            print(f'Shader {newShaderCacheHash} ({name}) ({', '.join(args.keys())}) compiled and linked succesfully')
         return shader
 
     # Preprocess a vertex shader's source to include the #version plus #defines for parameters
@@ -176,6 +134,7 @@ class ShaderDebugLoader(ShaderLoader):
     def getShaderFileByName(self, name: str) -> str:
         match name:
             case 'plane': return 'plane'
+            case 'testtri': return 'testtri'
             case 'vrf.error': return 'error'
             case 'vrf.grid': return 'debug_grid'
             case 'vrf.picking': return 'picking'

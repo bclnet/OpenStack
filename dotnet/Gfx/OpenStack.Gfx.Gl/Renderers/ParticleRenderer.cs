@@ -11,13 +11,13 @@ namespace OpenStack.Gfx.Gl
 {
     public class ParticleRenderer : IRenderer
     {
-        public IEnumerable<IParticleEmitter> Emitters = new List<IParticleEmitter>();
+        public IEnumerable<IParticleEmitter> Emitters = [];
 
-        public IEnumerable<IParticleInitializer> Initializers = new List<IParticleInitializer>();
+        public IEnumerable<IParticleInitializer> Initializers = [];
 
-        public IEnumerable<IParticleOperator> Operators = new List<IParticleOperator>();
+        public IEnumerable<IParticleOperator> Operators = [];
 
-        public IEnumerable<IParticleRenderer> Renderers = new List<IParticleRenderer>();
+        public IEnumerable<IParticleRenderer> Renderers = [];
 
         public AABB BoundingBox { get; private set; }
 
@@ -43,7 +43,7 @@ namespace OpenStack.Gfx.Gl
         public ParticleRenderer(IOpenGLGfx graphic, IParticleSystem particleSystem, Vector3 pos = default)
         {
             _graphic = graphic;
-            _childParticleRenderers = new List<ParticleRenderer>();
+            _childParticleRenderers = [];
 
             _particleBag = new ParticleBag(100, true);
             _systemRenderState = new ParticleSystemRenderState();
@@ -205,7 +205,7 @@ namespace OpenStack.Gfx.Gl
             foreach (var childName in childNames)
             {
                 var childSystem = _graphic.LoadFileObject<IParticleSystem>(childName).Result;
-                _childParticleRenderers.Add(new ParticleRenderer(_graphic as IOpenGLGfx, childSystem, _systemRenderState.GetControlPoint(0)));
+                _childParticleRenderers.Add(new ParticleRenderer(_graphic, childSystem, _systemRenderState.GetControlPoint(0)));
             }
         }
     }

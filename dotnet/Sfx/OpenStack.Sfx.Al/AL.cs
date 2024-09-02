@@ -1204,7 +1204,7 @@ namespace OpenStack.Sfx.Al
 
     public struct ALContext : IEquatable<ALContext>
     {
-        public static readonly ALContext Null = new ALContext(IntPtr.Zero);
+        public static readonly ALContext Null = new(IntPtr.Zero);
         public IntPtr Handle;
         public ALContext(IntPtr handle) => Handle = handle;
         public override bool Equals(object obj) => obj is ALContext handle && Equals(handle);
@@ -1224,7 +1224,7 @@ namespace OpenStack.Sfx.Al
     /// </summary>
     public struct ALDevice : IEquatable<ALDevice>
     {
-        public static readonly ALDevice Null = new ALDevice(IntPtr.Zero);
+        public static readonly ALDevice Null = new(IntPtr.Zero);
         public IntPtr Handle;
         public ALDevice(IntPtr handle) => Handle = handle;
         public override bool Equals(object obj) => obj is ALDevice device && Equals(device);

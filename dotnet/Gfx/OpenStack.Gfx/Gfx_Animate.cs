@@ -11,7 +11,7 @@ namespace OpenStack.Gfx
     {
         public int Index;
         public Bone Parent;
-        public List<Bone> Children = new List<Bone>();
+        public List<Bone> Children = [];
         public string Name;
         public Vector3 Position;
         public Quaternion Angle;

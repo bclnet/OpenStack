@@ -5,6 +5,65 @@ using System.Linq;
 
 namespace OpenStack.Gfx.Gl
 {
+    #region TestTriRenderer
+
+    /// <summary>
+    /// TestTriRenderer
+    /// </summary>
+    public class TestTriRenderer : IRenderer
+    {
+        readonly IOpenGLGfx Gfx;
+        readonly Shader Shader;
+        readonly object ShaderTag;
+        readonly int Vao;
+        public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
+
+        public TestTriRenderer(IOpenGLGfx gfx)
+        {
+            Gfx = gfx;
+            (Shader, ShaderTag) = Gfx.ShaderManager.CreateShader("testtri");
+            Vao = SetupVao();
+        }
+
+        int SetupVao()
+        {
+            GL.UseProgram(Shader.Program);
+            
+            // create and bind vao
+            var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
+            var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            float[] vertices = [
+                // xyz           :rgb
+               -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
+                0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+                0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
+            ];
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+
+            // attributes
+            GL.EnableVertexAttribArray(0); GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 24, 0);
+            GL.EnableVertexAttribArray(1); GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 24, 12);
+            GL.BindVertexArray(0); // unbind vao
+            return vao;
+        }
+
+        public void Render(Camera camera, RenderPass renderPass)
+        {
+            GL.UseProgram(Shader.Program);
+            GL.BindVertexArray(Vao);
+            GL.EnableVertexAttribArray(0);
+            GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 6);
+            GL.BindVertexArray(0); // unbind vao
+            GL.UseProgram(0); // unbind program
+        }
+
+        public void Update(float deltaTime) { }
+    }
+
+    #endregion
+
+    #region TextureRenderer
+
     /// <summary>
     /// TextureRenderer
     /// </summary>
@@ -16,34 +75,33 @@ namespace OpenStack.Gfx.Gl
         readonly object ShaderTag;
         readonly int Vao;
         public bool Background;
-        public AABB BoundingBox => new AABB(-1f, -1f, -1f, 1f, 1f, 1f);
+        public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
         public TextureRenderer(IOpenGLGfx gfx, int texture, bool background = false)
         {
             Gfx = gfx;
             Texture = texture;
-            (Shader, ShaderTag) = Gfx.ShaderManager.CreatePlaneShader("plane");
-            Vao = SetupQuadBuffer();
+            (Shader, ShaderTag) = Gfx.ShaderManager.CreateShader("plane");
+            Vao = SetupVao();
             Background = background;
         }
 
-        int SetupQuadBuffer()
+        int SetupVao()
         {
             GL.UseProgram(Shader.Program);
+
             // create and bind vao
-            var vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-            var vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            var vertices = new[]
-            {
+            var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
+            var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            float[] vertices = [
                 // position     :normal        :texcoord  :tangent
                 -1f, -1f, +0f,  +0f, +0f, 1f,  +0f, +1f,  +1f, +0f, +0f,
                 -1f, +1f, +0f,  +0f, +0f, 1f,  +0f, +0f,  +1f, +0f, +0f,
                 +1f, -1f, +0f,  +0f, +0f, 1f,  +1f, +1f,  +1f, +0f, +0f,
                 +1f, +1f, +0f,  +0f, +0f, 1f,  +1f, +0f,  +1f, +0f, +0f,
-            };
+            ];
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+
             // attributes
             GL.EnableVertexAttribArray(0);
             var attributes = new (string name, int size)[]
@@ -73,12 +131,16 @@ namespace OpenStack.Gfx.Gl
             GL.EnableVertexAttribArray(0);
             if (Texture > -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, Texture); }
             GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
-            GL.BindVertexArray(0);
-            GL.UseProgram(0);
+            GL.BindVertexArray(0); // unbind vao
+            GL.UseProgram(0); // unbind program
         }
 
         public void Update(float deltaTime) { }
     }
+
+    #endregion
+
+    #region MaterialRenderer
 
     /// <summary>
     /// MaterialRenderer
@@ -89,32 +151,33 @@ namespace OpenStack.Gfx.Gl
         readonly GLRenderMaterial Material;
         readonly Shader Shader;
         readonly object ShaderTag;
-        readonly int QuadVao;
-        public AABB BoundingBox => new AABB(-1f, -1f, -1f, 1f, 1f, 1f);
+        readonly int Vao;
+        public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
         public MaterialRenderer(IOpenGLGfx graphic, GLRenderMaterial material)
         {
             Graphic = graphic;
             Material = material;
             (Shader, ShaderTag) = Graphic.ShaderManager.CreateShader(Material.Material.ShaderName, Material.Material.GetShaderArgs());
-            QuadVao = SetupQuadBuffer();
+            Vao = SetupVao();
         }
 
-        int SetupQuadBuffer()
+        int SetupVao()
         {
             GL.UseProgram(Shader.Program);
+
             // create and bind vao
             var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
             var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            var vertices = new[]
-            {
+            float[] vertices = [
                 // position    normal            texcordr  tangent           blendindices      blendweight
                 -1f, -1f, 0f,  0f, 0f, 0f, 1f,   0f, 1f,   1f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,
                 -1f, +1f, 0f,  0f, 0f, 0f, 1f,   0f, 0f,   1f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,
                 +1f, -1f, 0f,  0f, 0f, 0f, 1f,   1f, 1f,   1f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,
                 +1f, +1f, 0f,  0f, 0f, 0f, 1f,   1f, 0f,   1f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,
-            };
+            ];
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+
             // attributes
             GL.EnableVertexAttribArray(0);
             var attributes = new (string name, int size)[]
@@ -142,7 +205,7 @@ namespace OpenStack.Gfx.Gl
         {
             var identity = Matrix4.Identity;
             GL.UseProgram(Shader.Program);
-            GL.BindVertexArray(QuadVao);
+            GL.BindVertexArray(Vao);
             GL.EnableVertexAttribArray(0);
             var location = Shader.GetUniformLocation("m_vTintColorSceneObject");
             if (location > -1) GL.Uniform4(location, Vector4.One);
@@ -155,12 +218,16 @@ namespace OpenStack.Gfx.Gl
             Material.Render(Shader);
             GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
             Material.PostRender();
-            GL.BindVertexArray(0);
-            GL.UseProgram(0);
+            GL.BindVertexArray(0); // unbind vao
+            GL.UseProgram(0); // unbind program
         }
 
         public void Update(float deltaTime) { }
     }
+
+    #endregion
+
+    #region ParticleGridRenderer
 
     /// <summary>
     /// ParticleGridRenderer
@@ -169,7 +236,7 @@ namespace OpenStack.Gfx.Gl
     {
         readonly Shader Shader;
         readonly object ShaderTag;
-        readonly int QuadVao;
+        readonly int Vao;
         int VertexCount;
         public AABB BoundingBox { get; }
 
@@ -179,7 +246,7 @@ namespace OpenStack.Gfx.Gl
                 -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,
                 cellWidth * 0.5f * gridWidthInCells, cellWidth * 0.5f * gridWidthInCells, 0);
             (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.grid");
-            QuadVao = SetupQuadBuffer(cellWidth, gridWidthInCells);
+            Vao = SetupVao(cellWidth, gridWidthInCells);
         }
 
         static float[] GenerateGridVertexBuffer(float cellWidth, int gridWidthInCells)
@@ -189,45 +256,47 @@ namespace OpenStack.Gfx.Gl
             var color = new[] { 1.0f, 1.0f, 1.0f, 1.0f };
             for (var i = 0; i <= gridWidthInCells; i++)
             {
-                vertices.AddRange(new[] { width, i * cellWidth, 0 });
+                vertices.AddRange([width, i * cellWidth, 0]);
                 vertices.AddRange(color);
-                vertices.AddRange(new[] { -width, i * cellWidth, 0 });
+                vertices.AddRange([-width, i * cellWidth, 0]);
                 vertices.AddRange(color);
             }
             for (var i = 1; i <= gridWidthInCells; i++)
             {
-                vertices.AddRange(new[] { width, -i * cellWidth, 0 });
+                vertices.AddRange([width, -i * cellWidth, 0]);
                 vertices.AddRange(color);
-                vertices.AddRange(new[] { -width, -i * cellWidth, 0 });
+                vertices.AddRange([-width, -i * cellWidth, 0]);
                 vertices.AddRange(color);
             }
             for (var i = 0; i <= gridWidthInCells; i++)
             {
-                vertices.AddRange(new[] { i * cellWidth, width, 0 });
+                vertices.AddRange([i * cellWidth, width, 0]);
                 vertices.AddRange(color);
-                vertices.AddRange(new[] { i * cellWidth, -width, 0 });
+                vertices.AddRange([i * cellWidth, -width, 0]);
                 vertices.AddRange(color);
             }
             for (var i = 1; i <= gridWidthInCells; i++)
             {
-                vertices.AddRange(new[] { -i * cellWidth, width, 0 });
+                vertices.AddRange([-i * cellWidth, width, 0]);
                 vertices.AddRange(color);
-                vertices.AddRange(new[] { -i * cellWidth, -width, 0 });
+                vertices.AddRange([-i * cellWidth, -width, 0]);
                 vertices.AddRange(color);
             }
-            return vertices.ToArray();
+            return [.. vertices];
         }
 
-        int SetupQuadBuffer(float cellWidth, int gridWidthInCells)
+        int SetupVao(float cellWidth, int gridWidthInCells)
         {
             const int STRIDE = sizeof(float) * 7;
             GL.UseProgram(Shader.Program);
+
             // create and bind vao
             var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
             var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             var vertices = GenerateGridVertexBuffer(cellWidth, gridWidthInCells);
             VertexCount = vertices.Length / 3; // number of vertices in our buffer
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+
             // attributes
             GL.EnableVertexAttribArray(0);
             var location = Shader.GetAttribLocation("aVertexPosition");
@@ -235,7 +304,7 @@ namespace OpenStack.Gfx.Gl
             location = Shader.GetAttribLocation("aVertexColor");
             if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3); }
             GL.BindVertexArray(0); // unbind vao
-            GL.UseProgram(0);
+            GL.UseProgram(0); // unbind program
             return vao;
         }
 
@@ -246,14 +315,16 @@ namespace OpenStack.Gfx.Gl
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.UseProgram(Shader.Program);
             GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref matrix);
-            GL.BindVertexArray(QuadVao);
+            GL.BindVertexArray(Vao);
             GL.EnableVertexAttribArray(0);
             GL.DrawArrays(PrimitiveType.Lines, 0, VertexCount);
-            GL.BindVertexArray(0);
-            GL.UseProgram(0);
+            GL.BindVertexArray(0); // unbind vao
+            GL.UseProgram(0); // unbind program
             GL.Disable(EnableCap.Blend);
         }
 
         public void Update(float deltaTime) { }
     }
+
+    #endregion
 }

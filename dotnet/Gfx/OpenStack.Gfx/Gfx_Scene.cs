@@ -38,7 +38,7 @@ namespace OpenStack.Gfx
                 if (Children != null) return; // Already subdivided
                 var subregionSize = Region.Size * 0.5f;
                 var center = Region.Min + subregionSize;
-                Children = new[] {
+                Children = [
                     new Node(this, Region.Min, subregionSize),
                     new Node(this, new Vector3(center.X, Region.Min.Y, Region.Min.Z), subregionSize),
                     new Node(this, new Vector3(Region.Min.X, center.Y, Region.Min.Z), subregionSize),
@@ -46,7 +46,7 @@ namespace OpenStack.Gfx
                     new Node(this, new Vector3(Region.Min.X, Region.Min.Y, center.Z), subregionSize),
                     new Node(this, new Vector3(center.X, Region.Min.Y, center.Z), subregionSize),
                     new Node(this, new Vector3(Region.Min.X, center.Y, center.Z), subregionSize),
-                    new Node(this, new Vector3(center.X, center.Y, center.Z), subregionSize)};
+                    new Node(this, new Vector3(center.X, center.Y, center.Z), subregionSize)];
                 var remainingElements = new List<Element>();
                 foreach (var element in Elements)
                 {
@@ -197,23 +197,22 @@ namespace OpenStack.Gfx
     /// <summary>
     /// Scene
     /// </summary>
-    public class Scene
+    public class Scene(IOpenGfx gfx, Action<List<MeshBatchRequest>, Scene.RenderContext> meshBatchRenderer, float sizeHint = 32768)
     {
         public Camera MainCamera;
         public Vector3? LightPosition;
-        public IOpenGfx Gfx;
-        public Octree<SceneNode> StaticOctree;
-        public Octree<SceneNode> DynamicOctree;
+        public IOpenGfx Gfx = gfx ?? throw new ArgumentNullException(nameof(gfx));
+        public Octree<SceneNode> StaticOctree = new Octree<SceneNode>(sizeHint);
+        public Octree<SceneNode> DynamicOctree = new Octree<SceneNode>(sizeHint);
         public bool ShowDebug;
         public IEnumerable<SceneNode> AllNodes => StaticNodes.Concat(DynamicNodes);
-        List<SceneNode> StaticNodes = new List<SceneNode>();
-        List<SceneNode> DynamicNodes = new List<SceneNode>();
-        Action<List<MeshBatchRequest>, RenderContext> MeshBatchRenderer;
+        List<SceneNode> StaticNodes = [];
+        List<SceneNode> DynamicNodes = [];
+        Action<List<MeshBatchRequest>, RenderContext> MeshBatchRenderer = meshBatchRenderer ?? throw new ArgumentNullException(nameof(meshBatchRenderer));
 
-        public class UpdateContext
+        public class UpdateContext(float timestep)
         {
-            public float Timestep;
-            public UpdateContext(float timestep) => Timestep = timestep;
+            public float Timestep = timestep;
         }
 
         public class RenderContext
@@ -223,14 +222,6 @@ namespace OpenStack.Gfx
             public RenderPass RenderPass;
             public Shader ReplacementShader;
             public bool ShowDebug;
-        }
-
-        public Scene(IOpenGfx gfx, Action<List<MeshBatchRequest>, RenderContext> meshBatchRenderer, float sizeHint = 32768)
-        {
-            Gfx = gfx ?? throw new ArgumentNullException(nameof(gfx));
-            MeshBatchRenderer = meshBatchRenderer ?? throw new ArgumentNullException(nameof(meshBatchRenderer));
-            StaticOctree = new Octree<SceneNode>(sizeHint);
-            DynamicOctree = new Octree<SceneNode>(sizeHint);
         }
 
         public void Add(SceneNode node, bool dynamic)
@@ -352,7 +343,7 @@ namespace OpenStack.Gfx
     /// <summary>
     /// SceneNode
     /// </summary>
-    public abstract class SceneNode
+    public abstract class SceneNode(Scene scene)
     {
         Matrix4x4 _transform = Matrix4x4.Identity;
         AABB _localBoundingBox;
@@ -371,12 +362,11 @@ namespace OpenStack.Gfx
         }
         public string Name;
         public int Id;
-        public Scene Scene;
+        public Scene Scene = scene;
 
-        protected SceneNode(Scene scene) => Scene = scene;
         public abstract void Update(Scene.UpdateContext context);
         public abstract void Render(Scene.RenderContext context);
-        public virtual IEnumerable<string> GetSupportedRenderModes() => Enumerable.Empty<string>();
+        public virtual IEnumerable<string> GetSupportedRenderModes() => [];
         public virtual void SetRenderMode(string mode) { }
     }
 }

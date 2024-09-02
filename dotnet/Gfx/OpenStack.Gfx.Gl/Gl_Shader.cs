@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using static OpenStack.Debug;
 
 namespace OpenStack.Gfx.Gl
 {
@@ -18,8 +19,8 @@ namespace OpenStack.Gfx.Gl
     {
         const int ShaderSeed = 0x13141516;
 
-        Dictionary<uint, Shader> CachedShaders = new Dictionary<uint, Shader>();
-        Dictionary<string, List<string>> ShaderDefines = new Dictionary<string, List<string>>();
+        Dictionary<uint, Shader> CachedShaders = [];
+        Dictionary<string, List<string>> ShaderDefines = [];
 
         uint CalculateShaderCacheHash(string name, IDictionary<string, bool> args)
         {
@@ -40,24 +41,26 @@ namespace OpenStack.Gfx.Gl
         public Shader CreateShader(object path, IDictionary<string, bool> args)
         {
             var name = (string)path;
-            var fileName = GetShaderFileByName(name);
+            var plane = name == "plane";
+            var cache = !plane && !name.StartsWith("#");
+            var shaderFileName = GetShaderFileByName(name);
 
             // cache
-            if (ShaderDefines.ContainsKey(fileName))
+            if (cache && ShaderDefines.ContainsKey(shaderFileName))
             {
-                var shaderCacheHash = CalculateShaderCacheHash(fileName, args);
+                var shaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
                 if (CachedShaders.TryGetValue(shaderCacheHash, out var c)) return c;
             }
 
-            // build
-            var defines = new List<string>();
+            // defines
+            List<string> defines = [];
 
             // vertex shader
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             {
-                var shaderSource = GetShaderSource($"{fileName}.vert");
+                var shaderSource = GetShaderSource(plane ? "plane.vert" : $"{shaderFileName}.vert");
                 GL.ShaderSource(vertexShader, PreprocessVertexShader(shaderSource, args));
-                // find defines supported from source
+                // defines: find defines supported from source
                 defines.AddRange(FindDefines(shaderSource));
             }
             GL.CompileShader(vertexShader);
@@ -71,9 +74,9 @@ namespace OpenStack.Gfx.Gl
             // fragment shader
             var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             {
-                var shaderSource = GetShaderSource($"{fileName}.frag");
+                var shaderSource = GetShaderSource($"{shaderFileName}.frag");
                 GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
-                // find render modes supported from source, take union to avoid duplicates
+                // defines: find render modes supported from source, take union to avoid duplicates
                 defines = defines.Union(FindDefines(shaderSource)).ToList();
             }
             GL.CompileShader(fragmentShader);
@@ -84,7 +87,7 @@ namespace OpenStack.Gfx.Gl
                 throw new Exception($"Error setting up Fragment Shader \"{name}\": {fsInfo}");
             }
 
-            // render modes
+            // defines: find render modes
             const string RenderMode = "renderMode_";
             var renderModes = defines.Where(k => k.StartsWith(RenderMode)).Select(k => k[RenderMode.Length..]).ToList();
 
@@ -113,67 +116,14 @@ namespace OpenStack.Gfx.Gl
 
 #if !DEBUG_SHADERS || !DEBUG
             // cache shader
-            ShaderDefines[fileName] = defines;
-            var newShaderCacheHash = CalculateShaderCacheHash(fileName, args);
-            CachedShaders[newShaderCacheHash] = shader;
-            Console.WriteLine($"Shader {newShaderCacheHash} ({name}) ({string.Join(", ", args.Keys)}) compiled and linked succesfully");
+            if (cache)
+            {
+                ShaderDefines[shaderFileName] = defines;
+                var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
+                CachedShaders[newShaderCacheHash] = shader;
+                Log($"Shader {newShaderCacheHash} ({name}) ({string.Join(", ", args.Keys)}) compiled and linked succesfully");
+            }
 #endif
-            return shader;
-        }
-
-        public Shader CreatePlaneShader(object path, IDictionary<string, bool> args)
-        {
-            var name = (string)path;
-            var shaderFileName = GetShaderFileByName(name);
-
-            // vertex shader
-            var vertexShader = GL.CreateShader(ShaderType.VertexShader);
-            {
-                var shaderSource = GetShaderSource($"plane.vert");
-                GL.ShaderSource(vertexShader, shaderSource);
-            }
-            GL.CompileShader(vertexShader);
-            GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out var shaderStatus);
-            if (shaderStatus != 1)
-            {
-                GL.GetShaderInfoLog(vertexShader, out var vsInfo);
-                throw new Exception($"Error setting up Vertex Shader \"{name}\": {vsInfo}");
-            }
-
-            // fragment shader
-            var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            {
-                var shaderSource = GetShaderSource($"{shaderFileName}.frag");
-                GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
-            }
-            GL.CompileShader(fragmentShader);
-            GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out shaderStatus);
-            if (shaderStatus != 1)
-            {
-                GL.GetShaderInfoLog(fragmentShader, out var fsInfo);
-                throw new Exception($"Error setting up Fragment Shader \"{name}\": {fsInfo}");
-            }
-
-            // build shader
-            var shader = new Shader(GL.GetUniformLocation, GL.GetAttribLocation)
-            {
-                Name = name,
-                Program = GL.CreateProgram(),
-            };
-            GL.AttachShader(shader.Program, vertexShader);
-            GL.AttachShader(shader.Program, fragmentShader);
-            GL.LinkProgram(shader.Program);
-            GL.ValidateProgram(shader.Program);
-            GL.GetProgram(shader.Program, GetProgramParameterName.LinkStatus, out var linkStatus);
-            if (linkStatus != 1)
-            {
-                GL.GetProgramInfoLog(shader.Program, out var linkInfo);
-                throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus}");
-            }
-            GL.DetachShader(shader.Program, vertexShader);
-            GL.DeleteShader(vertexShader);
-            GL.DetachShader(shader.Program, fragmentShader);
-            GL.DeleteShader(fragmentShader);
             return shader;
         }
 
@@ -235,6 +185,7 @@ namespace OpenStack.Gfx.Gl
             switch (name)
             {
                 case "plane": return "plane";
+                case "testtri": return "testtri";
                 case "vrf.error": return "error";
                 case "vrf.grid": return "debug_grid";
                 case "vrf.picking": return "picking";
@@ -257,12 +208,11 @@ namespace OpenStack.Gfx.Gl
         protected override string GetShaderSource(string name)
         {
 #if DEBUG_SHADERS && DEBUG
-            using (var stream = File.Open(GetShaderDiskPath(name), FileMode.Open))
+            var stream = File.Open(GetShaderDiskPath(name), FileMode.Open);
 #else
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var stream = assembly.GetManifestResourceStream($"{ShaderDirectory}.{name}"))
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{ShaderDirectory}.{name}");
 #endif
-            using (var reader = new StreamReader(stream)) return reader.ReadToEnd();
+            using var r = new StreamReader(stream); return r.ReadToEnd();
         }
 
 #if DEBUG_SHADERS && DEBUG

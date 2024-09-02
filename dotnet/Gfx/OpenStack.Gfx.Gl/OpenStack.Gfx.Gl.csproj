@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
@@ -31,6 +32,8 @@
     <None Remove="Shaders\plane.vert" />
     <None Remove="Shaders\simple.frag" />
     <None Remove="Shaders\simple.vert" />
+    <None Remove="Shaders\testtri.frag" />
+    <None Remove="Shaders\testtri.vert" />
     <None Remove="Shaders\vr_standard.frag" />
     <None Remove="Shaders\vr_standard.vert" />
     <None Remove="Shaders\vr_unlit.frag" />
@@ -58,6 +61,8 @@
     <EmbeddedResource Include="Shaders\plane.vert" />
     <EmbeddedResource Include="Shaders\simple.frag" />
     <EmbeddedResource Include="Shaders\simple.vert" />
+    <EmbeddedResource Include="Shaders\testtri.frag" />
+    <EmbeddedResource Include="Shaders\testtri.vert" />
     <EmbeddedResource Include="Shaders\vr_standard.frag" />
     <EmbeddedResource Include="Shaders\vr_standard.vert" />
     <EmbeddedResource Include="Shaders\vr_unlit.frag" />

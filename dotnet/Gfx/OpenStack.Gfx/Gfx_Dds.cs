@@ -486,7 +486,6 @@ namespace OpenStack.Gfx
     /// </summary>
     public enum DXGI_FORMAT : uint
     {
-#pragma warning disable 1591
         /// <summary>
         /// The format is not known.
         /// </summary>
@@ -975,7 +974,6 @@ namespace OpenStack.Gfx
         /// SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE
         /// </summary>
         SAMPLER_FEEDBACK_MIP_REGION_USED_OPAQUE = 134,
-#pragma warning restore 1591
     }
 
     #endregion

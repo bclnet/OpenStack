@@ -45,8 +45,8 @@ namespace OpenStack.Gfx.Gl
     /// </summary>
     public class GLMeshBufferCache
     {
-        Dictionary<IVBIB, GLMeshBuffers> _gpuBuffers = new Dictionary<IVBIB, GLMeshBuffers>();
-        Dictionary<VAOKey, uint> _vertexArrayObjects = new Dictionary<VAOKey, uint>();
+        Dictionary<IVBIB, GLMeshBuffers> _gpuBuffers = [];
+        Dictionary<VAOKey, uint> _vertexArrayObjects = [];
 
         struct VAOKey
         {
@@ -269,7 +269,7 @@ namespace OpenStack.Gfx.Gl
         }
 
         public event EventHandler<PickingResponse> OnPicked;
-        public readonly PickingRequest Request = new PickingRequest();
+        public readonly PickingRequest Request = new();
         public Shader Shader { get; }
         public Shader DebugShader { get; }
         public bool IsActive => Request.ActiveNextFrame;
@@ -371,10 +371,8 @@ namespace OpenStack.Gfx.Gl
     /// <summary>
     /// GLRenderMaterial
     /// </summary>
-    public class GLRenderMaterial : RenderMaterial
+    public class GLRenderMaterial(IMaterial material) : RenderMaterial(material)
     {
-        public GLRenderMaterial(IMaterial material) : base(material) { }
-
         public override void Render(Shader shader)
         {
             // start at 1, texture unit 0 is reserved for the animation texture
@@ -427,11 +425,9 @@ namespace OpenStack.Gfx.Gl
     /// <summary>
     /// GLRenderableMesh
     /// </summary>
-    public class GLRenderableMesh : RenderableMesh
+    public class GLRenderableMesh(IOpenGLGfx graphic, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Graphic = graphic, mesh, meshIndex, skinMaterials, model)
     {
         IOpenGLGfx Graphic;
-
-        public GLRenderableMesh(IOpenGLGfx graphic, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : base(t => ((GLRenderableMesh)t).Graphic = graphic, mesh, meshIndex, skinMaterials, model) { }
 
         public override void SetRenderMode(string renderMode)
         {

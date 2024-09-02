@@ -47,7 +47,6 @@ namespace OpenStack.Gfx
     public interface IShaderManager<Shader>
     {
         public (Shader sha, object tag) CreateShader(object path, IDictionary<string, bool> args = null);
-        public (Shader sha, object tag) CreatePlaneShader(object path, IDictionary<string, bool> args = null);
     }
 
     /// <summary>
@@ -152,11 +151,9 @@ namespace OpenStack.Gfx
         static readonly double _HighFrequency = 1000.0 / Stopwatch.Frequency;
         static readonly double _LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
         static bool _UseHRT = false;
-
         public static bool UsingHighResolutionTiming => _UseHRT && _HighRes && !Unix;
         public static long TickCount => (long)Ticks;
         public static double Ticks => _UseHRT && _HighRes && !Unix ? Stopwatch.GetTimestamp() * _HighFrequency : DateTime.UtcNow.Ticks * _LowFrequency;
-
         public static readonly bool Is64Bit = Environment.Is64BitProcess;
         public static bool MultiProcessor { get; private set; }
         public static int ProcessorCount { get; private set; }

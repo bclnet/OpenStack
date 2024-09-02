@@ -696,7 +696,7 @@ namespace OpenStack.Sfx.Al
     /// </summary>
     public struct ALCaptureDevice : IEquatable<ALCaptureDevice>
     {
-        public static readonly ALCaptureDevice Null = new ALCaptureDevice(IntPtr.Zero);
+        public static readonly ALCaptureDevice Null = new(IntPtr.Zero);
         public IntPtr Handle;
         public ALCaptureDevice(IntPtr handle) => Handle = handle;
         public override bool Equals(object obj) => obj is ALCaptureDevice device && Equals(device);

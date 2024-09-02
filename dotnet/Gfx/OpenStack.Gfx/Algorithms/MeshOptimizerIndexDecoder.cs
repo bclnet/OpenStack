@@ -84,9 +84,9 @@ namespace OpenStack.Gfx.Algorithms
             var last = 0u;
 
             var bufferIndex = 1;
-            var data = buffer.Slice(dataOffset, buffer.Length - 16 - dataOffset);
+            var data = buffer[dataOffset..^16];
 
-            var codeauxTable = buffer.Slice(buffer.Length - 16);
+            var codeauxTable = buffer[^16..];
 
             var destination = new Span<byte>(new byte[indexCount * indexSize]);
 

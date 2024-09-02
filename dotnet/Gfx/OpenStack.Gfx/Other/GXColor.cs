@@ -125,24 +125,24 @@ namespace OpenStack.Gfx
             return new GXColor(a.R + ((b.R - a.R) * t), a.G + ((b.G - a.G) * t), a.B + ((b.B - a.B) * t), a.A + ((b.A - a.A) * t));
         }
 
-        public static GXColor LerpUnclamped(GXColor a, GXColor b, float t) => new GXColor(a.R + ((b.R - a.R) * t), a.G + ((b.G - a.G) * t), a.B + ((b.B - a.B) * t), a.A + ((b.A - a.A) * t));
+        public static GXColor LerpUnclamped(GXColor a, GXColor b, float t) => new(a.R + ((b.R - a.R) * t), a.G + ((b.G - a.G) * t), a.B + ((b.B - a.B) * t), a.A + ((b.A - a.A) * t));
 
-        internal GXColor RGBMultiplied(float multiplier) => new GXColor(R * multiplier, G * multiplier, B * multiplier, A);
+        internal GXColor RGBMultiplied(float multiplier) => new(R * multiplier, G * multiplier, B * multiplier, A);
 
-        internal GXColor AlphaMultiplied(float multiplier) => new GXColor(R, G, B, A * multiplier);
+        internal GXColor AlphaMultiplied(float multiplier) => new(R, G, B, A * multiplier);
 
-        internal GXColor RGBMultiplied(GXColor multiplier) => new GXColor(R * multiplier.R, G * multiplier.G, B * multiplier.B, A);
+        internal GXColor RGBMultiplied(GXColor multiplier) => new(R * multiplier.R, G * multiplier.G, B * multiplier.B, A);
 
-        public static GXColor Red => new GXColor(1f, 0f, 0f, 1f);
-        public static GXColor Green => new GXColor(0f, 1f, 0f, 1f);
-        public static GXColor Blue => new GXColor(0f, 0f, 1f, 1f);
-        public static GXColor White => new GXColor(1f, 1f, 1f, 1f);
-        public static GXColor Black => new GXColor(0f, 0f, 0f, 1f);
-        public static GXColor Yellow => new GXColor(1f, 0.9215686f, 0.01568628f, 1f);
-        public static GXColor Cyan => new GXColor(0f, 1f, 1f, 1f);
-        public static GXColor Magenta => new GXColor(1f, 0f, 1f, 1f);
-        public static GXColor Gray => new GXColor(0.5f, 0.5f, 0.5f, 1f);
-        public static GXColor Clear => new GXColor(0f, 0f, 0f, 0f);
+        public static GXColor Red => new(1f, 0f, 0f, 1f);
+        public static GXColor Green => new(0f, 1f, 0f, 1f);
+        public static GXColor Blue => new(0f, 0f, 1f, 1f);
+        public static GXColor White => new(1f, 1f, 1f, 1f);
+        public static GXColor Black => new(0f, 0f, 0f, 1f);
+        public static GXColor Yellow => new(1f, 0.9215686f, 0.01568628f, 1f);
+        public static GXColor Cyan => new(0f, 1f, 1f, 1f);
+        public static GXColor Magenta => new(1f, 0f, 1f, 1f);
+        public static GXColor Gray => new(0.5f, 0.5f, 0.5f, 1f);
+        public static GXColor Clear => new(0f, 0f, 0f, 0f);
 
         public float Grayscale => (((0.299f * R) + (0.587f * G)) + (0.114f * B));
 
@@ -263,7 +263,7 @@ namespace OpenStack.Gfx
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator GXColor32(GXColor c) => new GXColor32((byte)(MathX.Clamp(c.R) * 0xfff), (byte)(MathX.Clamp(c.G) * 0xfff), (byte)(MathX.Clamp(c.B) * 0xfff), (byte)(MathX.Clamp(c.A) * 0xfff));
+        public static implicit operator GXColor32(GXColor c) => new((byte)(MathX.Clamp(c.R) * 0xfff), (byte)(MathX.Clamp(c.G) * 0xfff), (byte)(MathX.Clamp(c.B) * 0xfff), (byte)(MathX.Clamp(c.A) * 0xfff));
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="GXColor32"/> to <see cref="GXColor"/>.
@@ -272,7 +272,7 @@ namespace OpenStack.Gfx
         /// <returns>
         /// The result of the conversion.
         /// </returns>
-        public static implicit operator GXColor(GXColor32 c) => new GXColor(((float)c.R) / 0xfff, ((float)c.G) / 0xfff, ((float)c.B) / 0xfff, ((float)c.A) / 0xfff);
+        public static implicit operator GXColor(GXColor32 c) => new(((float)c.R) / 0xfff, ((float)c.G) / 0xfff, ((float)c.B) / 0xfff, ((float)c.A) / 0xfff);
 
         /// <summary>
         /// Lerps the specified a.
@@ -294,7 +294,7 @@ namespace OpenStack.Gfx
         /// <param name="b">The b.</param>
         /// <param name="t">The t.</param>
         /// <returns></returns>
-        public static GXColor32 LerpUnclamped(GXColor32 a, GXColor32 b, float t) => new GXColor32((byte)(a.R + ((b.R - a.R) * t)), (byte)(a.G + ((b.G - a.G) * t)), (byte)(a.B + ((b.B - a.B) * t)), (byte)(a.A + ((b.A - a.A) * t)));
+        public static GXColor32 LerpUnclamped(GXColor32 a, GXColor32 b, float t) => new((byte)(a.R + ((b.R - a.R) * t)), (byte)(a.G + ((b.G - a.G) * t)), (byte)(a.B + ((b.B - a.B) * t)), (byte)(a.A + ((b.A - a.A) * t)));
 
         /// <summary>
         /// Converts to string.

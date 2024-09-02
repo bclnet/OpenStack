@@ -11,7 +11,7 @@ namespace OpenStack.Gfx.Gl
         const int VertexSize = 9;
         readonly Shader Shader;
         readonly object ShaderTag;
-        readonly int QuadVao;
+        readonly int Vao;
         readonly int Texture;
         readonly object TextureTag;
         readonly TextureSequences TextureSequences;
@@ -29,7 +29,7 @@ namespace OpenStack.Gfx.Gl
             QuadIndices = graphic.QuadIndices;
 
             // The same quad is reused for all particles
-            QuadVao = SetupQuadBuffer();
+            Vao = MakeVao();
 
             string textureName = null;
             if (keyValues.ContainsKey("m_hTexture")) textureName = keyValues.Get<string>("m_hTexture");
@@ -52,7 +52,7 @@ namespace OpenStack.Gfx.Gl
             AnimationRate = keyValues.GetFloat("m_flAnimationRate", .1f);
         }
 
-        int SetupQuadBuffer()
+        int MakeVao()
         {
             GL.UseProgram(Shader.Program);
 
@@ -202,7 +202,7 @@ namespace OpenStack.Gfx.Gl
             if (Additive) GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
             else GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            GL.BindVertexArray(QuadVao);
+            GL.BindVertexArray(Vao);
             GL.EnableVertexAttribArray(0);
 
             GL.ActiveTexture(TextureUnit.Texture0);

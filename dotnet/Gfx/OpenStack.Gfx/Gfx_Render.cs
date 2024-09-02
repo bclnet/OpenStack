@@ -8,21 +8,15 @@ namespace OpenStack.Gfx
     /// <summary>
     /// Shader
     /// </summary>
-    public class Shader
+    public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation)
     {
-        readonly Func<int, string, int> _getUniformLocation;
-        readonly Func<int, string, int> _getAttribLocation;
-        Dictionary<string, int> _uniforms = new Dictionary<string, int>();
+        readonly Func<int, string, int> _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
+        readonly Func<int, string, int> _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
+        Dictionary<string, int> _uniforms = [];
         public string Name;
         public int Program;
         public IDictionary<string, bool> Parameters;
         public List<string> RenderModes;
-
-        public Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation)
-        { 
-            _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
-            _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
-        }
 
         public int GetUniformLocation(string name)
         {
@@ -130,10 +124,10 @@ namespace OpenStack.Gfx
             other.Max.Z >= Min.Z && other.Min.Z < Max.Z;
 
         public AABB Union(AABB other)
-            => new AABB(Vector3.Min(Min, other.Min), Vector3.Max(Max, other.Max));
+            => new(Vector3.Min(Min, other.Min), Vector3.Max(Max, other.Max));
 
         public AABB Translate(Vector3 offset)
-            => new AABB(Min + offset, Max + offset);
+            => new(Min + offset, Max + offset);
 
         // Note: Since we're dealing with AABBs here, the resulting AABB is likely to be bigger than the original if rotation
         // and whatnot is involved. This problem compounds with multiple transformations. Therefore, endeavour to premultiply matrices
@@ -169,7 +163,7 @@ namespace OpenStack.Gfx
     {
         Vector4[] Planes = new Vector4[6];
 
-        public static Frustum CreateEmpty() => new Frustum { Planes = Array.Empty<Vector4>() };
+        public static Frustum CreateEmpty() => new() { Planes = [] };
 
         public void Update(Matrix4x4 viewProjectionMatrix)
         {
@@ -244,7 +238,7 @@ namespace OpenStack.Gfx
     public abstract class RenderMaterial
     {
         public IMaterial Material;
-        public Dictionary<string, int> Textures = new Dictionary<string, int>();
+        public Dictionary<string, int> Textures = [];
         public bool IsBlended;
         public bool IsToolsMaterial;
         public float AlphaTestReference;
@@ -334,9 +328,9 @@ namespace OpenStack.Gfx
     {
         public AABB BoundingBox;
         public Vector4 Tint = Vector4.One;
-        public List<DrawCall> DrawCallsAll = new List<DrawCall>();
-        public List<DrawCall> DrawCallsOpaque = new List<DrawCall>();
-        public List<DrawCall> DrawCallsBlended = new List<DrawCall>();
+        public List<DrawCall> DrawCallsAll = [];
+        public List<DrawCall> DrawCallsOpaque = [];
+        public List<DrawCall> DrawCallsBlended = [];
         public int? AnimationTexture;
         public int AnimationTextureSize;
         public float Time = 0f;

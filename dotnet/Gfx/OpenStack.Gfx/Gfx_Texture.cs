@@ -928,9 +928,9 @@ namespace OpenStack.Gfx
     }
 
     /// <summary>
-    /// ITextureVideo
+    /// ITextureFrames
     /// </summary>
-    public interface ITextureVideo : ITexture
+    public interface ITextureFrames : ITexture
     {
         int Fps { get; }
         bool HasFrames { get; }
@@ -938,12 +938,11 @@ namespace OpenStack.Gfx
     }
 
     /// <summary>
-    /// ITextureMultiple
+    /// ITextureFramesSelect
     /// </summary>
-    public interface ITextureMultiple
+    public interface ITextureFramesSelect : ITextureFrames
     {
-        int Fps { get; }
-        int FrameMaxIndex { get; }
-        void FrameSelect(int index);
+        int FrameMax { get; }
+        void FrameSelect(int id);
     }
 }

@@ -35,7 +35,6 @@ class IParticleSystem:
 # IShaderManager
 class IShaderManager:
     def createShader(self, path: object, args: dict[str: bool] = None) -> (Shader, object): pass
-    def createPlaneShader(self, path: object, args: dict[str: bool] = None) -> (Shader, object): pass
 
 # ITextureManager:
 class ITextureManager:

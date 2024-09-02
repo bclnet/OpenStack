@@ -11,14 +11,14 @@ namespace OpenStack.Gfx
         protected const float CAMERASPEED = 300f; // Per second
         protected const float FOV = MathX.PiOver4;
 
-        public Vector3 Location = new Vector3(1);
+        public Vector3 Location = new(1);
         public float Pitch;
         public float Yaw;
         public float Scale = 1.0f;
         public Matrix4x4 ProjectionMatrix;
         public Matrix4x4 CameraViewMatrix;
         public Matrix4x4 ViewProjectionMatrix;
-        public Frustum ViewFrustum = new Frustum();
+        public Frustum ViewFrustum = new();
         public IPickingTexture Picker;
         public Vector2 WindowSize;
         public float AspectRatio;
@@ -34,9 +34,9 @@ namespace OpenStack.Gfx
         }
 
         // Calculate forward vector from pitch and yaw
-        protected Vector3 GetForwardVector() => new Vector3((float)(Math.Cos(Yaw) * Math.Cos(Pitch)), (float)(Math.Sin(Yaw) * Math.Cos(Pitch)), (float)Math.Sin(Pitch));
+        protected Vector3 GetForwardVector() => new((float)(Math.Cos(Yaw) * Math.Cos(Pitch)), (float)(Math.Sin(Yaw) * Math.Cos(Pitch)), (float)Math.Sin(Pitch));
 
-        protected Vector3 GetRightVector() => new Vector3((float)Math.Cos(Yaw - MathX.PiOver2), (float)Math.Sin(Yaw - MathX.PiOver2), 0f);
+        protected Vector3 GetRightVector() => new((float)Math.Cos(Yaw - MathX.PiOver2), (float)Math.Sin(Yaw - MathX.PiOver2), 0f);
 
         public void SetViewportSize(int x, int y, int width, int height)
         {
