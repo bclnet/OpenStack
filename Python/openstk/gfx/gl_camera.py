@@ -35,7 +35,7 @@ class GLCamera(Camera):
 
     def handleInput(self, mouseState: MouseState, keyboardState: KeyboardState) -> None: pass
 
-    def setViewport(self, x: int, y: int, width: int, height: int) -> None: return glViewport(x, y, width, height)
+    def gfxSetViewport(self, x: int, y: int, width: int, height: int) -> None: print(f'glViewport {width}x{height}'); return glViewport(x, y, width, height)
 
 # GLDebugCamera
 class GLDebugCamera(GLCamera):

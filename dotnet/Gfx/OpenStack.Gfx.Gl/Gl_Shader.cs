@@ -41,8 +41,7 @@ namespace OpenStack.Gfx.Gl
         public Shader CreateShader(object path, IDictionary<string, bool> args)
         {
             var name = (string)path;
-            var plane = name == "plane";
-            var cache = !plane && !name.StartsWith("#");
+            var cache = !name.StartsWith("#");
             var shaderFileName = GetShaderFileByName(name);
 
             // cache
@@ -58,7 +57,7 @@ namespace OpenStack.Gfx.Gl
             // vertex shader
             var vertexShader = GL.CreateShader(ShaderType.VertexShader);
             {
-                var shaderSource = GetShaderSource(plane ? "plane.vert" : $"{shaderFileName}.vert");
+                var shaderSource = GetShaderSource($"{shaderFileName}.vert");
                 GL.ShaderSource(vertexShader, PreprocessVertexShader(shaderSource, args));
                 // defines: find defines supported from source
                 defines.AddRange(FindDefines(shaderSource));
@@ -121,7 +120,7 @@ namespace OpenStack.Gfx.Gl
                 ShaderDefines[shaderFileName] = defines;
                 var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
                 CachedShaders[newShaderCacheHash] = shader;
-                Log($"Shader {newShaderCacheHash} ({name}) ({string.Join(", ", args.Keys)}) compiled and linked succesfully");
+                Log($"Shader {name}({string.Join(", ", args.Keys)}) compiled and linked succesfully");
             }
 #endif
             return shader;

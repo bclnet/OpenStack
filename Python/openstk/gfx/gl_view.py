@@ -23,22 +23,21 @@ def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
 class OpenGLView(QOpenGLWidget):
     timer: QTimer
     camera: GLCamera
-    viewportChanged: bool
-    deltaTime: int
+    viewportChanged: bool = False
+    deltaTime: int = 0
     elapsedTime: int
 
     def __init__(self):
         super().__init__()
         self.setAutoFillBackground(False)
         self.setUpdateBehavior(self.UpdateBehavior.PartialUpdate)
-        self.viewportChanged = True
-        self.deltaTime = 0
         self.elapsedTime = time.time()
-        interval = None
+        interval = 0 # 1.0
         if interval:
             self.timer = QTimer(self)
+            self.interval = interval
             self.timer.timeout.connect(self.timerTick)
-            self.timer.start(interval)
+            self.timer.start()
 
     # tag::Events[]
     def timerTick(self): self.update()
@@ -54,9 +53,8 @@ class OpenGLView(QOpenGLWidget):
     # tag::Tick[]
     def tick(self, **kwargs) -> None:
         deltaTime: int = kwargs.get('deltaTime', None)
-        if not deltaTime:
-            elapsedTime = time.time()
-            self.deltaTime = self.elapsedTime = elapsedTime - self.elapsedTime; self.elapsedTime = elapsedTime
+        if not deltaTime: elapsedTime = time.time(); self.deltaTime = self.elapsedTime = elapsedTime - self.elapsedTime; self.elapsedTime = elapsedTime
+        else: self.deltaTime = deltaTime
         mouseState = self.camera.mouseState; keyboardState = self.camera.keyboardState
         self.camera.tick(self.deltaTime)
         self.camera.handleInput(mouseState, keyboardState)
@@ -66,9 +64,7 @@ class OpenGLView(QOpenGLWidget):
     # end::Tick[]
 
     # tag::Render[]
-    def setViewportSize(self, x: int, y: int, width: int, height: int) -> None:
-        self.camera.setViewportSize(x, y, width, height)
-        self.viewportChanged = False
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None: self.viewportChanged = False; self.camera.setViewport(x, y, width, height)
 
     # def paintEvent(self, event: object):
     #     p: QPainter = QPainter(self)
@@ -89,7 +85,7 @@ class OpenGLView(QOpenGLWidget):
     #     # p.drawRect(r2)
 
     def paintGL(self):
-        if self.viewportChanged: self.setViewportSize(0, 0, self.width(), self.height())
+        if self.viewportChanged: self.setViewport(0, 0, self.width(), self.height())
         self.tick()
         self.renderGL()
         ctx = self.context(); ctx.swapBuffers(ctx.surface())

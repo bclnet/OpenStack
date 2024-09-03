@@ -27,12 +27,7 @@ namespace OpenStack.Gfx.Gl
             if (ShowConsole && !IsInDesignMode) ConsoleManager.Show();
             IsVisibleChanged += OnIsVisibleChanged;
             Watch.Start();
-            if (interval != null)
-            {
-                Timer = new() { Interval = interval.Value };
-                Timer.Tick += OnTimerTick;
-                Timer.Start();
-            }
+            if (interval != null) { Timer = new() { Interval = interval.Value }; Timer.Tick += OnTimerTick; Timer.Start(); }
         }
 
         protected override void Dispose(bool disposing)
@@ -75,16 +70,12 @@ namespace OpenStack.Gfx.Gl
 
         #region Render
 
-        protected virtual void SetViewportSize(int x, int y, int width, int height)
-        {
-            Camera.SetViewportSize(x, y, width, height);
-            ViewportChanged = false;
-        }
+        protected virtual void SetViewport(int x, int y, int width, int height) { Camera.SetViewport(x, y, width, height); ViewportChanged = false; }
 
         protected override void OnRender(DrawingContext drawingContext)
         {
             if (!HasValidContext || Visibility != Visibility.Visible) { base.OnRender(drawingContext); return; }
-            if (ViewportChanged) SetViewportSize(0, 0, (int)ActualWidth, (int)ActualHeight);
+            if (ViewportChanged) SetViewport(0, 0, (int)ActualWidth, (int)ActualHeight);
             Tick();
             Render();
             SwapBuffers();

@@ -38,7 +38,7 @@ namespace OpenStack.Gfx
 
         protected Vector3 GetRightVector() => new((float)Math.Cos(Yaw - MathX.PiOver2), (float)Math.Sin(Yaw - MathX.PiOver2), 0f);
 
-        public void SetViewportSize(int x, int y, int width, int height)
+        public void SetViewport(int x, int y, int width, int height)
         {
             // store window size and aspect ratio
             AspectRatio = width / (float)height;
@@ -47,11 +47,11 @@ namespace OpenStack.Gfx
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FOV, AspectRatio, 1.0f, 40000.0f);
             RecalculateMatrices();
             // setup viewport
-            SetViewport(x, y, width, height);
+            GfxSetViewport(x, y, width, height);
             Picker?.Resize(width, height);
         }
 
-        protected abstract void SetViewport(int x, int y, int width, int height);
+        protected abstract void GfxSetViewport(int x, int y, int width, int height);
 
         public void CopyFrom(Camera fromOther)
         {

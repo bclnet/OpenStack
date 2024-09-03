@@ -509,7 +509,7 @@ class ITexture:
 
 # ITextureSelect
 class ITextureSelect(ITexture):
-    def select(self, platform: int) -> None: pass
+    def select(self, id: int) -> None: pass
 
 # ITextureVideo
 class ITextureVideo(ITexture):
@@ -517,8 +517,7 @@ class ITextureVideo(ITexture):
     hasFrames: bool
     def decodeFrame(self) -> bool: pass
 
-# ITextureMultiple
-class ITextureMultiple:
-    fps: int
-    frameMaxIndex: int
-    def frameSelect(self, index: int) -> None: pass
+# ITextureFrames
+class ITextureFrames(ITextureVideo):
+    frameMax: int
+    def frameSelect(self, id: int) -> None: pass

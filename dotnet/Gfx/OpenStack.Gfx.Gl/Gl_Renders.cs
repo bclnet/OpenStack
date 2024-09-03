@@ -1,4 +1,4 @@
-﻿using OpenTK;
+﻿    using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,7 @@ namespace OpenStack.Gfx.Gl
         int SetupVao()
         {
             GL.UseProgram(Shader.Program);
-            
+
             // create and bind vao
             var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
             var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -111,8 +111,7 @@ namespace OpenStack.Gfx.Gl
                 ("vTEXCOORD", 2),
                 ("vTANGENT", 3)
             };
-            var stride = sizeof(float) * attributes.Sum(x => x.size);
-            var offset = 0;
+            int offset = 0, stride = sizeof(float) * attributes.Sum(x => x.size);
             foreach (var (name, size) in attributes)
             {
                 var location = Shader.GetAttribLocation(name);
@@ -189,8 +188,7 @@ namespace OpenStack.Gfx.Gl
                 ("vBLENDINDICES", 4),
                 ("vBLENDWEIGHT", 4),
             };
-            var stride = sizeof(float) * attributes.Sum(x => x.size);
-            var offset = 0;
+            int offset = 0, stride = sizeof(float) * attributes.Sum(x => x.size);
             foreach (var (name, size) in attributes)
             {
                 var location = Shader.GetAttribLocation(name);

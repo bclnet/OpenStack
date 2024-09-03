@@ -10,8 +10,8 @@ namespace OpenStack.Gfx.Gfx_Camera
     public class TestCamera : Camera
     {
         #region base
-        public TestCamera() => SetViewportSize(0, 0, 100, 100);
-        protected override void SetViewport(int x, int y, int width, int height) { }
+        public TestCamera() => SetViewport(0, 0, 100, 100);
+        protected override void GfxSetViewport(int x, int y, int width, int height) { }
         #endregion
 
         [TestMethod]
@@ -48,17 +48,17 @@ namespace OpenStack.Gfx.Gfx_Camera
             Assert.AreEqual(0f, actual.Z);
         }
         [TestMethod]
-        public void Test_SetViewportSize()
+        public void Test_SetViewport()
         {
-            SetViewportSize(0, 0, 100, 100);
+            SetViewport(0, 0, 100, 100);
             Assert.AreEqual(1f, AspectRatio);
             Assert.AreEqual("<100, 100>", WindowSize.ToString());
             Assert.AreEqual(2.41421342f, ProjectionMatrix.M11);
         }
         [TestMethod]
-        public void Test_SetViewport()
+        public void Test_GfxSetViewport()
         {
-            SetViewport(0, 0, 100, 100);
+            GfxSetViewport(0, 0, 100, 100);
         }
         [TestMethod]
         public void Test_CopyFrom()

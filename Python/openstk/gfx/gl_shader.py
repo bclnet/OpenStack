@@ -25,8 +25,7 @@ class ShaderLoader:
 
     def createShader(self, path: object, args: dict[str, bool]) -> Shader:
         name = str(path)
-        plane = name == 'plane'
-        cache = not plane and not name.startswith('#')
+        cache = not name.startswith('#')
         shaderFileName = self.getShaderFileByName(name)
         
         # cache
@@ -40,7 +39,7 @@ class ShaderLoader:
         # vertex shader
         vertexShader = glCreateShader(GL_VERTEX_SHADER)
         if True:
-            shaderSource = self.getShaderSource('plane.vert' if plane else f'{shaderFileName}.vert')
+            shaderSource = self.getShaderSource(f'{shaderFileName}.vert')
             glShaderSource(vertexShader, self.preprocessVertexShader(shaderSource, args))
             # defines: find defines supported from source
             defines += self.findDefines(shaderSource)
@@ -90,7 +89,7 @@ class ShaderLoader:
             self._shaderDefines[shaderFileName] = defines
             newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
             self._cachedShaders[newShaderCacheHash] = shader
-            print(f'Shader {newShaderCacheHash} ({name}) ({', '.join(args.keys())}) compiled and linked succesfully')
+            print(f'Shader {name}({', '.join(args.keys())}) compiled and linked succesfully')
         return shader
 
     # Preprocess a vertex shader's source to include the #version plus #defines for parameters

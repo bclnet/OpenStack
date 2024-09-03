@@ -100,11 +100,10 @@ class TextureRenderer(IRenderer):
             ('vNORMAL', 3),
             ('vTEXCOORD', 2),
             ('vTANGENT', 3)]
-        stride = sizeof_float * sum([x[1] for x in attributes])
-        offset = 0
+        offset = 0; stride = sizeof_float * sum([x[1] for x in attributes])
         for name, size in attributes:
             location = self.shader.getAttribLocation(name)
-            if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride, offset)
+            if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(offset))
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
         return vao
@@ -162,11 +161,10 @@ class MaterialRenderer(IRenderer):
             ('vNORMAL', 3),
             ('vTEXCOORD', 2),
             ('vTANGENT', 3)]
-        stride = sizeof_float * sum([x[1] for x in attributes])
-        offset = 0
+        offset = 0; stride = sizeof_float * sum([x[1] for x in attributes])
         for name, size in attributes:
             location = self.shader.getAttribLocation(name)
-            if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride, offset)
+            if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(offset))
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
         return vao
@@ -250,9 +248,9 @@ class ParticleGridRenderer(IRenderer):
         # attributes
         glEnableVertexAttribArray(0)
         location = self.shader.getAttribLocation('aVertexPosition')
-        if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 3, GL_FLOAT, False, STRIDE, 0)
+        if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, STRIDE, ctypes.c_void_p(0))
         location = self.shader.getAttribLocation('aVertexColor')
-        if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 4, GL_FLOAT, False, STRIDE, sizeof_float * 3)
+        if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, STRIDE, ctypes.c_void_p(sizeof_float * 3))
         glBindVertexArray(0) # unbind vao
         glUseProgram(0) # unbind program
         return vao

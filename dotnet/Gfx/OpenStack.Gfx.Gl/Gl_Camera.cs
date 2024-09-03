@@ -35,7 +35,7 @@ namespace OpenStack.Gfx.Gl
 
         public abstract void HandleInput(MouseState mouseState, KeyboardState keyboardState);
 
-        protected override void SetViewport(int x, int y, int width, int height) => GL.Viewport(x, y, width, height);
+        protected override void GfxSetViewport(int x, int y, int width, int height) => GL.Viewport(x, y, width, height);
     }
 
     /// <summary>

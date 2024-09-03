@@ -11,9 +11,9 @@ namespace OpenStack.Gfx.Gl_Camera
     public class TestGLCamera : GLCamera
     {
         #region base
-        public TestGLCamera() => SetViewportSize(0, 0, 100, 100);
+        public TestGLCamera() => SetViewport(0, 0, 100, 100);
         public override void HandleInput(MouseState mouseState, KeyboardState keyboardState) { }
-        protected override void SetViewport(int x, int y, int width, int height) { }
+        protected override void GfxSetViewport(int x, int y, int width, int height) { }
         #endregion
 
         [TestMethod]
@@ -44,9 +44,9 @@ namespace OpenStack.Gfx.Gl_Camera
         {
             HandleInput(new MouseState(), new KeyboardState());
             MouseOverRenderArea = true;
-            SetViewportSize(0, 0, 100, 100);
+            SetViewport(0, 0, 100, 100);
         }
-        protected override void SetViewport(int x, int y, int width, int height) { }
+        protected override void GfxSetViewport(int x, int y, int width, int height) { }
         #endregion
 
         [TestMethod]
