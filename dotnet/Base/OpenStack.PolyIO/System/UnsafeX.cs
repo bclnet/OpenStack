@@ -44,7 +44,6 @@ namespace System
 
         public static byte[] MarshalSApply(byte[] source, string map, int count = 1)
         {
-            const string StructMap = "cxbhiq"; const int StructMapIdx = 2;
             if (map[0] == '<') return source;
             var s = map.ToCharArray();
             char c;
@@ -55,7 +54,7 @@ namespace System
                     c = s[i];
                     if (char.IsDigit(c)) { cnt = cnt * 10 + c - '0'; continue; }
                     else if (cnt == 0) cnt = 1;
-                    size = (int)Math.Pow(2, StructMap.IndexOf(char.ToLower(c)) - StructMapIdx);
+                    size = MarshalPSize(c);
                     if (size <= 0) p += cnt;
                     else for (var j = 0; j < cnt; j++) { Array.Reverse(source, p, size); p += size; }
                     cnt = 0;
@@ -74,17 +73,16 @@ namespace System
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T MarshalT<T>(byte[] bytes) where T : struct
-        {
-            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
-        }
+        public static int MarshalPSize(char c) => (int)Math.Pow(2, "cxbhiq".IndexOf(char.ToLower(c)) - 2);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] MarshalT<T>(T value, int sizeOf) where T : struct
+        public static T MarshalP<T>(string pat, Func<int, byte[]> bytesFunc) where T : struct
         {
-            var bytes = new byte[sizeOf];
-            fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
-            return bytes;
+            var (map, sizeOf) = (pat, MarshalPSize(pat[0]));
+            byte[] bytes = bytesFunc(sizeOf);
+            if (map[0] == '>') bytes = MarshalSApply(bytes, map);
+            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
+            //return MemoryMarshal.Cast<byte, T>(bytes2)[0];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -108,14 +106,29 @@ namespace System
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] MarshalTArray<T>(byte[] bytes, int count) where T : struct
+        public static T MarshalT<T>(byte[] bytes) where T : struct
         {
-            //return MemoryMarshal.Cast<byte, T>(bytes).ToArray();
+            fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] MarshalT<T>(T value, int sizeOf) where T : struct
+        {
+            var bytes = new byte[sizeOf];
+            fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
+            return bytes;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] MarshalPArray<T>(string pat, Func<int, byte[]> bytesFunc, int count) where T : struct
+        {
+            var (map, sizeOf) = (pat, MarshalPSize(pat[0]));
+            byte[] bytes = bytesFunc(sizeOf), bytes2 = map[0] == '<' ? bytes : MarshalSApply(bytes, map);
             var typeOfT = typeof(T);
             var isEnum = typeOfT.IsEnum;
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
             var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            fixed (byte* _ = bytes2) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes2.Length);
             hresult.Free();
             return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }
@@ -130,6 +143,19 @@ namespace System
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
             var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
             fixed (byte* _ = bytes2) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes2.Length);
+            hresult.Free();
+            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T[] MarshalTArray<T>(byte[] bytes, int count) where T : struct
+        {
+            //return MemoryMarshal.Cast<byte, T>(bytes).ToArray();
+            var typeOfT = typeof(T);
+            var isEnum = typeOfT.IsEnum;
+            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
             hresult.Free();
             return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }

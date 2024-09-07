@@ -34,14 +34,15 @@ class DDPF(Flag):
 
 # Surface pixel format.
 class DDS_PIXELFORMAT:
-    dwSize:int              # Structure size; set to 32 (bytes)
-    dwFlags:DDPF            # Values which indicate what type of data is in the surface
-    dwFourCC:FourCC         # Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC
-    dwRGBBitCount:int       # Number of bits in an RGB (possibly including alpha) format. Valid when dwFlags includes DDPF_RGB, DDPF_LUMINANCE, or DDPF_YUV
-    dwRBitMask:int          # Red (or lumiannce or Y) mask for reading color data. For instance, given the A8R8G8B8 format, the red mask would be 0x00ff0000
-    dwGBitMask:int          # Green (or U) mask for reading color data. For instance, given the A8R8G8B8 format, the green mask would be 0x0000ff00
-    dwBBitMask:int          # Blue (or V) mask for reading color data. For instance, given the A8R8G8B8 format, the blue mask would be 0x000000ff
-    dwABitMask:int          # Alpha mask for reading alpha data. dwFlags must include DDPF_ALPHAPIXELS or DDPF_ALPHA. For instance, given the A8R8G8B8 format, the alpha mask would be 0xff000000
+    struct = ('8I', 32)
+    dwSize: int                 # Structure size; set to 32 (bytes)
+    dwFlags: DDPF               # Values which indicate what type of data is in the surface
+    dwFourCC: FourCC            # Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC
+    dwRGBBitCount: int          # Number of bits in an RGB (possibly including alpha) format. Valid when dwFlags includes DDPF_RGB, DDPF_LUMINANCE, or DDPF_YUV
+    dwRBitMask: int             # Red (or lumiannce or Y) mask for reading color data. For instance, given the A8R8G8B8 format, the red mask would be 0x00ff0000
+    dwGBitMask: int             # Green (or U) mask for reading color data. For instance, given the A8R8G8B8 format, the green mask would be 0x0000ff00
+    dwBBitMask: int             # Blue (or V) mask for reading color data. For instance, given the A8R8G8B8 format, the blue mask would be 0x000000ff
+    dwABitMask: int             # Alpha mask for reading alpha data. dwFlags must include DDPF_ALPHAPIXELS or DDPF_ALPHA. For instance, given the A8R8G8B8 format, the alpha mask would be 0xff000000
 
 #endregion
 
@@ -65,7 +66,7 @@ class D3D10_RESOURCE_DIMENSION(Enum):
 
 # DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata
 class DDS_HEADER_DXT10:
-    struct = (f'<5I', 20)
+    struct = ('<5I', 20)
     def __init__(self, tuple):
         self.dxgiFormat, \
         self.resourceDimension, \
@@ -129,8 +130,8 @@ class DDSCAPS2(Flag):
 
 # Describes a DDS file header
 class DDS_HEADER:
+    struct = (f'<7I44s{DDS_PIXELFORMAT.struct[0]}5I', 124)
     MAGIC = 0x20534444 # DDS_
-    struct = (f'<7I44s{"8I"}5I', 124)
     def __init__(self, tuple):
         ddspf = self.ddspf = DDS_PIXELFORMAT()
         self.dwSize, \

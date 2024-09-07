@@ -391,6 +391,7 @@ namespace System.IO
 
         // Struct : Single
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadF<T>(this BinaryReader source, Func<BinaryReader, T> factory) => factory(source);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadP<T>(this BinaryReader source, string pat) where T : struct => MarshalP<T>(pat, sizeOf => source.ReadBytes(sizeOf));
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadS<T>(this BinaryReader source) where T : struct => MarshalS<T>(sizeOf => source.ReadBytes(sizeOf));
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadSAndVerify<T>(this BinaryReader source, int size) where T : struct => MarshalS<T>(sizeOf => source.ReadBytes(sizeOf == size ? sizeOf : throw new Exception($"Sizes are different: {sizeOf}|{size}")));
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => MarshalT<T>(source.ReadBytes(sizeOf));
@@ -402,19 +403,26 @@ namespace System.IO
         public static T[] ReadC32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, (int)source.ReadCInt32X(endian));
         public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
 
+        // Struct : Array - Pattern
+        public static T[] ReadL8PArray<T>(this BinaryReader source, string pat) where T : struct => source.ReadPArray<T>(pat, source.ReadByte());
+        public static T[] ReadL16PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => source.ReadPArray<T>(pat, source.ReadUInt16X(endian));
+        public static T[] ReadL32PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => source.ReadPArray<T>(pat, (int)source.ReadUInt32X(endian));
+        public static T[] ReadC32PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => source.ReadPArray<T>(pat, (int)source.ReadCInt32X(endian));
+        public static T[] ReadPArray<T>(this BinaryReader source, string pat, int count) where T : struct => count > 0 ? MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count) : [];
+
         // Struct : Array - Struct
         public static T[] ReadL8SArray<T>(this BinaryReader source) where T : struct => source.ReadSArray<T>(source.ReadByte());
         public static T[] ReadL16SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>(source.ReadUInt16X(endian));
         public static T[] ReadL32SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadUInt32X(endian));
         public static T[] ReadC32SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadCInt32X(endian));
-        public static T[] ReadSArray<T>(this BinaryReader source, int count) where T : struct => count > 0 ? MarshalSArray<T>(sizeOf => source.ReadBytes(sizeOf * count), count) : new T[0];
+        public static T[] ReadSArray<T>(this BinaryReader source, int count) where T : struct => count > 0 ? MarshalSArray<T>(sizeOf => source.ReadBytes(sizeOf * count), count) : [];
 
         // Struct : Array - Type
         public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadByte());
         public static T[] ReadL16TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadUInt16X(endian));
         public static T[] ReadL32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadUInt32X(endian));
         public static T[] ReadC32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadCInt32X(endian));
-        public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? MarshalTArray<T>(source.ReadBytes(sizeOf * count), count) : new T[0];
+        public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? MarshalTArray<T>(source.ReadBytes(sizeOf * count), count) : [];
 
         // Struct : Each
         public static T[] ReadSEach<T>(this BinaryReader source, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalS<T>(sizeOf => source.ReadBytes(sizeOf)); return list; }

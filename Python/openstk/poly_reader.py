@@ -4,6 +4,8 @@ from struct import unpack
 from io import BytesIO
 from openstk.util import _throw
 
+def marshalPSize(c: str) -> int: return 2 ** ('cxbhiq'.index(c.lower()) - 2)
+
 # Reader
 class Reader:
     def __init__(self, f): self.f = f; self.__update()
@@ -59,7 +61,6 @@ class Reader:
     def readGuid(self): return self.f.read(16)
     def readCInt32(self): raise NotImplementedError()
 
-
     # position
     def align(self, align: int = 4): align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
     def tell(self): return self.f.tell()
@@ -75,7 +76,6 @@ class Reader:
         value = action(self)
         f.seek(pos)
         return value
-
 
     # string : chars
     def readCString(self) -> str:
@@ -95,10 +95,10 @@ class Reader:
     def readL8Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(1), 'little')).decode('ascii' if not encoding else encoding)
     def readL16Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(2), 'little')).decode('ascii' if not encoding else encoding)
     def readL32Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(4), 'little')).decode('ascii' if not encoding else encoding)
-
     
     # struct : single  - https://docs.python.org/3/library/struct.html 
     def readF(self, cls: object, factory: Callable) -> object: return factory(self)
+    def readP(self, pat: str) -> object: size = marshalPSize(pat); return unpack(pat, self.f.read(size))[0]
     def readS(self, cls: object) -> object: pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size)))
     def readSAndVerify(self, cls: object, sizeOf: int) -> object: pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size if sizeOf == size else _throw(f'Sizes are different: {sizeOf}|{size}'))))
     def readT(self, cls: object, sizeOf: int) -> object: return unpack(cls, self.f.read(size))[0]
@@ -109,6 +109,13 @@ class Reader:
     def readL32FArray(self, cls: object, factory: Callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readUInt32E(endian))
     def readC32FArray(self, cls: object, factory: Callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readCInt32E(endian))
     def readFArray(self, cls: object, factory: Callable, count: int) -> list[object]: return [self.readF(cls, factory) for x in range(count)] if count else []
+
+    # struct : array - pattern / primative
+    def readL8PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readByte())
+    def readL16PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readUInt16(endian))
+    def readL32PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readUInt32(endian))
+    def readC32PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readCInt32(endian))
+    def readPArray(self, pat: str, count: int) -> list[object]: size = marshalPSize(pat); return unpack(f'{count}{pat}', self.f.read(size * count)) if count else []
 
     # struct : array - struct
     def readL8SArray(self, cls: object, endian: bool = False) -> list[object]: return self.readSArray(cls, source.readByte())
