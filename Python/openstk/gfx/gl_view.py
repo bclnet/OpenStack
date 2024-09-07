@@ -88,7 +88,7 @@ class OpenGLView(QOpenGLWidget):
         if self.viewportChanged: self.setViewport(0, 0, self.width(), self.height())
         self.tick()
         self.renderGL()
-        ctx = self.context(); ctx.swapBuffers(ctx.surface())
+        # ctx = self.context(); ctx.swapBuffers(ctx.surface())
         
     def renderGL(self):
         glClearColor(0.2, 0.3, 0.3, 1.)
