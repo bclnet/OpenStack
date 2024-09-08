@@ -36,8 +36,8 @@ class TestCamera(Camera, TestCase):
         self.assertEqual(1., self.aspectRatio)
         self.assertEqual('[100 100]', np.array_str(self.windowSize))
         self.assertAlmostEqual(2.41421342, self.projectionMatrix[0, 0])
-    def test_gfxSetViewport(self):
-        self.gfxSetViewport(0, 0, 100, 100)
+    def test_gfxViewport(self):
+        self.gfxViewport(0, 0, 100, 100)
     def test_copyFrom(self):
         otherCamera: Camera = TestCamera('test_copyFrom')
         otherCamera.aspectRatio = .5

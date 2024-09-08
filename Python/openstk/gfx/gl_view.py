@@ -86,6 +86,7 @@ class OpenGLView(QOpenGLWidget):
 
     def paintGL(self):
         if self.viewportChanged: self.setViewport(0, 0, self.width(), self.height())
+        else: self.camera.gfxViewport(0, 0)
         self.tick()
         self.renderGL()
         # ctx = self.context(); ctx.swapBuffers(ctx.surface())
@@ -101,7 +102,7 @@ class OpenGLView(QOpenGLWidget):
     # tag::InitializeGL[]
     def initializeGL(self):
         super().initializeGL()
-        self.makeCurrent()
+        # self.makeCurrent()
         self.debugger = QOpenGLDebugLogger(self)
         self.checkGL()
         self.initGL()

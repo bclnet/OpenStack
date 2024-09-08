@@ -11,7 +11,7 @@ namespace OpenStack.Gfx.Gfx_Camera
     {
         #region base
         public TestCamera() => SetViewport(0, 0, 100, 100);
-        protected override void GfxSetViewport(int x, int y, int width, int height) { }
+        public override void GfxViewport(int x, int y, int width, int height) { }
         #endregion
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace OpenStack.Gfx.Gfx_Camera
         [TestMethod]
         public void Test_GfxSetViewport()
         {
-            GfxSetViewport(0, 0, 100, 100);
+            GfxViewport(0, 0, 100, 100);
         }
         [TestMethod]
         public void Test_CopyFrom()

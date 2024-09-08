@@ -20,11 +20,10 @@ namespace OpenStack.Gfx
         public Matrix4x4 ViewProjectionMatrix;
         public Frustum ViewFrustum = new();
         public IPickingTexture Picker;
-        public Vector2 WindowSize;
+        public Vector2<int> WindowSize;
         public float AspectRatio;
 
-        public Camera()
-            => LookAt(new Vector3(0));
+        public Camera() => LookAt(new Vector3(0));
 
         protected void RecalculateMatrices()
         {
@@ -42,16 +41,16 @@ namespace OpenStack.Gfx
         {
             // store window size and aspect ratio
             AspectRatio = width / (float)height;
-            WindowSize = new Vector2(width, height);
+            WindowSize = new Vector2<int>(width, height);
             // calculate projection matrix
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FOV, AspectRatio, 1.0f, 40000.0f);
             RecalculateMatrices();
             // setup viewport
-            GfxSetViewport(x, y, width, height);
+            GfxViewport(x, y, width, height);
             Picker?.Resize(width, height);
         }
 
-        protected abstract void GfxSetViewport(int x, int y, int width, int height);
+        public abstract void GfxViewport(int x, int y, int width = 0, int height = 0);
 
         public void CopyFrom(Camera fromOther)
         {

@@ -9,7 +9,7 @@ class TestGLCamera(GLCamera, TestCase):
         TestCase.__init__(self, method)
         super().__init__()
         self.setViewport(0, 0, 100, 100)
-    def gfxSetViewport(self, x: int, y: int, width: int, height: int): pass
+    def gfxViewport(self, x: int, y: int, width: int, height: int): pass
 
     def test__init__(self): pass
     def test_event(self):
@@ -25,7 +25,7 @@ class TestGLDebugCamera(GLDebugCamera, TestCase):
         super().__init__()
         self.mouseOverRenderArea = True
         self.setViewport(0, 0, 100, 100)
-    def gfxSetViewport(self, x: int, y: int, width: int, height: int): pass
+    def gfxViewport(self, x: int, y: int, width: int, height: int): pass
 
     def test__init__(self): pass
     def test_tick(self):
