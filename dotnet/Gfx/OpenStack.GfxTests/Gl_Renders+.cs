@@ -1,48 +1,15 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Gfx.Gl
+namespace OpenStack.Gfx.Gl.Renders
 {
-    #region Shaders
-
     /// <summary>
-    /// TestShaderLoader
+    /// TestTextureRenderer
     /// </summary>
     [TestClass]
-    public class TestShaderLoader : ShaderLoader
+    public class TestTextureRenderer : TextureRenderer
     {
         #region base
-        //public TestShaderLoader() : base(null) { }
-        protected override string GetShaderFileByName(string name) => "";
-        protected override string GetShaderSource(string name) => "";
-        #endregion
-
-        [TestMethod]
-        public void Test_Init()
-        {
-            //Assert.AreEqual(0, Pitch);
-        }
-
-        //[TestMethod]
-        //public void Test_Event()
-        //{
-        //    Event(EventType.MouseEnter, null, null);
-        //    Event(EventType.MouseLeave, null, null);
-        //}
-        //[TestMethod]
-        //public void Test_SetViewport()
-        //{
-        //    SetViewport(0, 0, 100, 100);
-        //}
-    }
-
-    /// <summary>
-    /// TestShaderDebugLoader
-    /// </summary>
-    [TestClass]
-    public class TestShaderDebugLoader : ShaderDebugLoader
-    {
-        #region base
-        //public TestShaderDebugLoader() : base(null) { }
+        public TestTextureRenderer() : base(null, 0, false) { }
         #endregion
 
         [TestMethod]
@@ -63,5 +30,59 @@ namespace OpenStack.Gfx.Gl
         //}
     }
 
-    #endregion
+    /// <summary>
+    /// TestMaterialRenderer
+    /// </summary>
+    [TestClass]
+    public class TestMaterialRenderer : MaterialRenderer
+    {
+        #region base
+        public TestMaterialRenderer() : base(null, null) { }
+        #endregion
+
+        [TestMethod]
+        public void Test_Init()
+        {
+            //Assert.AreEqual(0, Pitch);
+        }
+        //[TestMethod]
+        //public void Test_Event()
+        //{
+        //    Event(EventType.MouseEnter, null, null);
+        //    Event(EventType.MouseLeave, null, null);
+        //}
+        //[TestMethod]
+        //public void Test_SetViewport()
+        //{
+        //    SetViewport(0, 0, 100, 100);
+        //}
+    }
+
+    /// <summary>
+    /// TestParticleGridRenderer
+    /// </summary>
+    [TestClass]
+    public class TestParticleGridRenderer : ParticleGridRenderer
+    {
+        #region base
+        public TestParticleGridRenderer() : base(null, 1f, 1) { }
+        #endregion
+
+        [TestMethod]
+        public void Test_Init()
+        {
+            //Assert.AreEqual(0, Pitch);
+        }
+        //[TestMethod]
+        //public void Test_Event()
+        //{
+        //    Event(EventType.MouseEnter, null, null);
+        //    Event(EventType.MouseLeave, null, null);
+        //}
+        //[TestMethod]
+        //public void Test_SetViewport()
+        //{
+        //    SetViewport(0, 0, 100, 100);
+        //}
+    }
 }

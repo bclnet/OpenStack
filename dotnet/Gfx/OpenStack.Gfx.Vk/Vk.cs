@@ -1,4 +1,5 @@
-﻿using OpenStack.Gfx.Gl;
+﻿using OpenStack.Gfx.Gl.Renders;
+using OpenStack.Gfx.Renders;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]

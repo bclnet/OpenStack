@@ -1,74 +1,82 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OpenStack.Gfx.Gl;
 using OpenTK.Input;
-using static OpenStack.Gfx.Gl.GLCamera;
 
-namespace OpenStack.Gfx.Gl_Renders
+namespace OpenStack.Gfx.Gl.Renders
 {
     /// <summary>
-    /// TestTextureRenderer
+    /// TestGLCamera
     /// </summary>
     [TestClass]
-    public class TestTextureRenderer : TextureRenderer
+    public class TestGLCamera : GLCamera
     {
         #region base
-        public TestTextureRenderer() : base(null, 0, false) { }
+        public TestGLCamera() => SetViewport(0, 0, 100, 100);
+        public override void HandleInput(MouseState mouseState, KeyboardState keyboardState) { }
+        public override void GfxViewport(int x, int y, int width, int height) { }
         #endregion
 
         [TestMethod]
         public void Test_Init()
         {
-            //Assert.AreEqual(0, Pitch);
         }
-        //[TestMethod]
-        //public void Test_Event()
-        //{
-        //    Event(EventType.MouseEnter, null, null);
-        //    Event(EventType.MouseLeave, null, null);
-        //}
-        //[TestMethod]
-        //public void Test_SetViewport()
-        //{
-        //    SetViewport(0, 0, 100, 100);
-        //}
+        [TestMethod]
+        public void Test_Event()
+        {
+            Event(EventType.MouseEnter, null, null);
+            Event(EventType.MouseLeave, null, null);
+        }
+        [TestMethod]
+        public void Test_SetViewport()
+        {
+            SetViewport(0, 0, 100, 100);
+        }
     }
 
     /// <summary>
-    /// TestMaterialRenderer
+    /// TestGLDebugCamera
     /// </summary>
     [TestClass]
-    public class TestMaterialRenderer : MaterialRenderer
+    public class TestGLDebugCamera : GLDebugCamera
     {
         #region base
-        public TestMaterialRenderer() : base(null, null) { }
+        public TestGLDebugCamera()
+        {
+            HandleInput(new MouseState(), new KeyboardState());
+            MouseOverRenderArea = true;
+            SetViewport(0, 0, 100, 100);
+        }
+        public override void GfxViewport(int x, int y, int width, int height) { }
         #endregion
 
         [TestMethod]
         public void Test_Init()
         {
-            //Assert.AreEqual(0, Pitch);
         }
-        //[TestMethod]
-        //public void Test_Event()
-        //{
-        //    Event(EventType.MouseEnter, null, null);
-        //    Event(EventType.MouseLeave, null, null);
-        //}
-        //[TestMethod]
-        //public void Test_SetViewport()
-        //{
-        //    SetViewport(0, 0, 100, 100);
-        //}
+        [TestMethod]
+        public void Test_Tick()
+        {
+            Tick(1);
+        }
+        [TestMethod]
+        public void Test_HandleInput()
+        {
+            HandleInput(new MouseState(), new KeyboardState());
+        }
+        [TestMethod]
+        public void Test_HandleInputTick()
+        {
+            HandleInputTick(1f);
+        }
     }
 
     /// <summary>
-    /// TestParticleGridRenderer
+    /// TestGLMeshBuffers
     /// </summary>
     [TestClass]
-    public class TestParticleGridRenderer : ParticleGridRenderer
+    public class TestGLMeshBuffers : GLMeshBuffers
     {
         #region base
-        public TestParticleGridRenderer() : base(null, 1f, 1) { }
+        public TestGLMeshBuffers() : base(null) { }
         #endregion
 
         [TestMethod]

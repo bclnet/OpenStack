@@ -2,12 +2,13 @@ using OpenStack.Gfx.Particles;
 using OpenStack.Gfx.Particles.Emitters;
 using OpenStack.Gfx.Particles.Initializers;
 using OpenStack.Gfx.Particles.Operators;
+using OpenStack.Gfx.Renders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Gl
+namespace OpenStack.Gfx.Gl.Renders
 {
     public class ParticleRenderer : IRenderer
     {

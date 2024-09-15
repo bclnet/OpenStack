@@ -1,10 +1,12 @@
+using OpenStack.Gfx.Gl.Renders;
 using OpenStack.Gfx.Particles;
+using OpenStack.Gfx.Renders;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Gl
+namespace OpenStack.Gfx.Gl.Renders
 {
     public class SpritesParticleRenderer : IParticleRenderer
     {

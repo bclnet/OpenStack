@@ -391,10 +391,9 @@ namespace System.IO
 
         // Struct : Single
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadF<T>(this BinaryReader source, Func<BinaryReader, T> factory) => factory(source);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadP<T>(this BinaryReader source, string pat) where T : struct => MarshalP<T>(pat, sizeOf => source.ReadBytes(sizeOf));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadS<T>(this BinaryReader source) where T : struct => MarshalS<T>(sizeOf => source.ReadBytes(sizeOf));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadSAndVerify<T>(this BinaryReader source, int size) where T : struct => MarshalS<T>(sizeOf => source.ReadBytes(sizeOf == size ? sizeOf : throw new Exception($"Sizes are different: {sizeOf}|{size}")));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => MarshalT<T>(source.ReadBytes(sizeOf));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadP<T>(this BinaryReader source, string pat) where T : struct => MarshalP<T>(pat, source.ReadBytes);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadS<T>(this BinaryReader source, int sizeOf = 0) where T : struct => MarshalS<T>(source.ReadBytes, sizeOf);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => MarshalT<T>(source.ReadBytes(sizeOf));
 
         // Struct : Array - Factory
         public static T[] ReadL8FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory) => source.ReadFArray(factory, source.ReadByte());
@@ -411,21 +410,21 @@ namespace System.IO
         public static T[] ReadPArray<T>(this BinaryReader source, string pat, int count) where T : struct => count > 0 ? MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count) : [];
 
         // Struct : Array - Struct
-        public static T[] ReadL8SArray<T>(this BinaryReader source) where T : struct => source.ReadSArray<T>(source.ReadByte());
-        public static T[] ReadL16SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>(source.ReadUInt16X(endian));
-        public static T[] ReadL32SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadUInt32X(endian));
-        public static T[] ReadC32SArray<T>(this BinaryReader source, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadCInt32X(endian));
-        public static T[] ReadSArray<T>(this BinaryReader source, int count) where T : struct => count > 0 ? MarshalSArray<T>(sizeOf => source.ReadBytes(sizeOf * count), count) : [];
+        public static T[] ReadL8SArray<T>(this BinaryReader source, int sizeOf = 0) where T : struct => source.ReadSArray<T>(source.ReadByte(), sizeOf);
+        public static T[] ReadL16SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => source.ReadSArray<T>(source.ReadUInt16X(endian));
+        public static T[] ReadL32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadUInt32X(endian));
+        public static T[] ReadC32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadCInt32X(endian));
+        public static T[] ReadSArray<T>(this BinaryReader source, int count, int sizeOf = 0) where T : struct => count > 0 ? MarshalSArray<T>(source.ReadBytes, count, sizeOf) : [];
 
         // Struct : Array - Type
-        public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadByte());
-        public static T[] ReadL16TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadUInt16X(endian));
-        public static T[] ReadL32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadUInt32X(endian));
-        public static T[] ReadC32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadCInt32X(endian));
-        public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? MarshalTArray<T>(source.ReadBytes(sizeOf * count), count) : [];
+        //public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadByte());
+        //public static T[] ReadL16TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadUInt16X(endian));
+        //public static T[] ReadL32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadUInt32X(endian));
+        //public static T[] ReadC32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadCInt32X(endian));
+        //public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? MarshalTArray<T>(source.ReadBytes(sizeOf * count), count) : [];
 
         // Struct : Each
-        public static T[] ReadSEach<T>(this BinaryReader source, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalS<T>(sizeOf => source.ReadBytes(sizeOf)); return list; }
+        public static T[] ReadSEach<T>(this BinaryReader source, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalS<T>(source.ReadBytes, -1); return list; }
         public static T[] ReadTEach<T>(this BinaryReader source, int sizeOf, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalT<T>(source.ReadBytes(sizeOf)); return list; }
 
         // Struct : Many - Factory
@@ -437,6 +436,18 @@ namespace System.IO
         {
             var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
             for (var i = 0; i < count; i++) set.Add(keyFactory(source), valueFactory(source));
+            return set;
+        }
+
+        // Struct : Many - Pattern
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, source.ReadByte(), sorted);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, source.ReadUInt16X(endian), sorted);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadUInt32X(endian), sorted);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadCInt32X(endian), sorted);
+        public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct
+        {
+            var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
+            for (var i = 0; i < count; i++) set.Add(source.ReadP<TKey>(pat), valueFactory(source));
             return set;
         }
 
@@ -453,16 +464,16 @@ namespace System.IO
         }
 
         // Struct : Many - Type
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadByte(), sorted);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadUInt16X(endian), sorted);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadUInt32X(endian), sorted);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-        public static IDictionary<TKey, TValue> ReadTMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct
-        {
-            var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
-            for (var i = 0; i < count; i++) set.Add(source.ReadT<TKey>(sizeOf), valueFactory(source));
-            return set;
-        }
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadByte(), sorted);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadUInt16X(endian), sorted);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadUInt32X(endian), sorted);
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadCInt32X(endian), sorted);
+        //public static IDictionary<TKey, TValue> ReadTMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct
+        //{
+        //    var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
+        //    for (var i = 0; i < count; i++) set.Add(source.ReadT<TKey>(sizeOf), valueFactory(source));
+        //    return set;
+        //}
 
         #endregion
 

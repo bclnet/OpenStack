@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -42,12 +44,12 @@ namespace System
             _ => Unsafe.CopyBlock,
         };
 
-        public static byte[] MarshalSApply(byte[] source, string map, int count = 1)
+        public static byte[] MarshalSApply(byte[] source, string p, int count = 1)
         {
-            if (map[0] == '<') return source;
-            var s = map.ToCharArray();
+            if (p[0] == '<') return source;
+            var s = p.ToCharArray();
             char c;
-            int p = 0, cnt = 0, size;
+            int _ = 0, cnt = 0, size;
             for (var k = 0; k < count; k++)
                 for (var i = 1; i < s.Length; i++)
                 {
@@ -55,8 +57,8 @@ namespace System
                     if (char.IsDigit(c)) { cnt = cnt * 10 + c - '0'; continue; }
                     else if (cnt == 0) cnt = 1;
                     size = MarshalPSize(c);
-                    if (size <= 0) p += cnt;
-                    else for (var j = 0; j < cnt; j++) { Array.Reverse(source, p, size); p += size; }
+                    if (size <= 0) _ += cnt;
+                    else for (var j = 0; j < cnt; j++) { Array.Reverse(source, _, size); _ += size; }
                     cnt = 0;
                 }
             return source;
@@ -64,46 +66,90 @@ namespace System
 
         public static class Shape<T>
         {
-            public static readonly (string map, int sizeOf) Struct = GetValue();
-            static (string map, int sizeOf) GetValue()
-                => ((string, int))
-                (typeof(T).GetField("Struct", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+            public static readonly object Value = GetValue();
+            public static readonly (string p, int s) StructT = Value is (string, int) ? ((string, int))Value : default;
+            public static readonly Dictionary<int, string> StructM = Value is (Dictionary<int, string>) ? (Dictionary<int, string>)Value : default;
+            static object GetValue()
+                => (typeof(T).GetField("Struct", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 ?? throw new Exception($"{typeof(T).Name} needs a Struct field"))
                 .GetValue(null);
         }
+
+        #region MarshalP
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int MarshalPSize(char c) => (int)Math.Pow(2, "cxbhiq".IndexOf(char.ToLower(c)) - 2);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T MarshalP<T>(string pat, Func<int, byte[]> bytesFunc) where T : struct
+        public static T MarshalP<T>(string p, Func<int, byte[]> bytesFunc) where T : struct
         {
-            var (map, sizeOf) = (pat, MarshalPSize(pat[0]));
-            byte[] bytes = bytesFunc(sizeOf);
-            if (map[0] == '>') bytes = MarshalSApply(bytes, map);
+            var s = MarshalPSize(p[0]);
+            var bytes = bytesFunc(s);
+            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
             fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
             //return MemoryMarshal.Cast<byte, T>(bytes2)[0];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T MarshalS<T>(Func<int, byte[]> bytesFunc) where T : struct
+        public static T[] MarshalPArray<T>(string pat, Func<int, byte[]> bytesFunc, int count) where T : struct
         {
-            var (map, sizeOf) = Shape<T>.Struct;
-            byte[] bytes = bytesFunc(sizeOf);
-            if (map[0] == '>') bytes = MarshalSApply(bytes, map);
+            var (p, s) = (pat, MarshalPSize(pat[0]));
+            var bytes = bytesFunc(s);
+            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
+            var typeOfT = typeof(T);
+            var isEnum = typeOfT.IsEnum;
+            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            hresult.Free();
+            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
+        }
+
+        #endregion
+
+        #region MarshalS
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // READ
+        public static T MarshalS<T>(Func<int, byte[]> bytesFunc, int sizeOf) where T : struct
+        {
+            var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
+            if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
+            var bytes = bytesFunc(s);
+            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
             fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
             //return MemoryMarshal.Cast<byte, T>(bytes2)[0];
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] MarshalS<T>(T value) where T : struct
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // WRITE
+        public static byte[] MarshalS<T>(T value, int sizeOf) where T : struct
         {
-            var (map, sizeOf) = Shape<T>.Struct;
-            var bytes = new byte[sizeOf];
+            var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
+            if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
+            var bytes = new byte[s];
             fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
-            if (map[0] == '>') bytes = MarshalSApply(bytes, map);
+            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
             return bytes;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] // READ
+        public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count, int sizeOf) where T : struct
+        {
+            var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
+            if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
+            var bytes = bytesFunc(s * count);
+            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
+            var typeOfT = typeof(T);
+            var isEnum = typeOfT.IsEnum;
+            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
+            fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
+            hresult.Free();
+            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
+        }
+
+        #endregion
+
+        #region MarshalT
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T MarshalT<T>(byte[] bytes) where T : struct
@@ -117,34 +163,6 @@ namespace System
             var bytes = new byte[sizeOf];
             fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
             return bytes;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] MarshalPArray<T>(string pat, Func<int, byte[]> bytesFunc, int count) where T : struct
-        {
-            var (map, sizeOf) = (pat, MarshalPSize(pat[0]));
-            byte[] bytes = bytesFunc(sizeOf), bytes2 = map[0] == '<' ? bytes : MarshalSApply(bytes, map);
-            var typeOfT = typeof(T);
-            var isEnum = typeOfT.IsEnum;
-            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
-            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-            fixed (byte* _ = bytes2) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes2.Length);
-            hresult.Free();
-            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count) where T : struct
-        {
-            var (map, sizeOf) = Shape<T>.Struct;
-            byte[] bytes = bytesFunc(sizeOf), bytes2 = map[0] == '<' ? bytes : MarshalSApply(bytes, map);
-            var typeOfT = typeof(T);
-            var isEnum = typeOfT.IsEnum;
-            var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
-            var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
-            fixed (byte* _ = bytes2) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes2.Length);
-            hresult.Free();
-            return isEnum ? result.Cast<T>().ToArray() : (T[])result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -164,6 +182,8 @@ namespace System
         {
             throw new NotImplementedException();
         }
+
+        #endregion
 
         public static string FixedAString(byte* data, int length)
         {

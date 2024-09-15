@@ -6,9 +6,9 @@ namespace System
 {
     public static class MathX
     {
-        public const int SizeOfVector2 = sizeof(float) * 2;
-        public const int SizeOfVector3 = sizeof(float) * 3;
-        public const int SizeOfVector4 = sizeof(float) * 4;
+        //public const int SizeOfVector2 = sizeof(float) * 2;
+        //public const int SizeOfVector3 = sizeof(float) * 3;
+        //public const int SizeOfVector4 = sizeof(float) * 4;
 
         public const float Pi = 3.141593f;
         public const float PiOver2 = 1.570796f;

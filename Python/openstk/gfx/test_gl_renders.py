@@ -1,30 +1,99 @@
 import numpy as np
 from unittest import TestCase, main
-from gl_renders import TextureRenderer, MaterialRenderer, ParticleGridRenderer
+from gl_renders import GLCamera, GLDebugCamera, GLMeshBuffers, GLMeshBufferCache, MeshBatchRenderer, QuadIndexBuffer, GLPickingTexture, GLRenderMaterial, GLRenderableMesh
+from gfx_ui import KeyboardState, MouseState
 
-# TestTextureRenderer
-class TestTextureRenderer(TextureRenderer, TestCase):
+# TestGLCamera
+class TestGLCamera(GLCamera, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__(None, 0, False)
+        super().__init__()
+        self.setViewport(0, 0, 100, 100)
+    def gfxViewport(self, x: int, y: int, width: int, height: int): pass
 
-    def test__init__(self):
-        self.assertEqual(0., self.pitch)
+    def test__init__(self): pass
+    def test_event(self):
+        self.event(GLCamera.EventType.MouseEnter, None, None)
+        self.event(GLCamera.EventType.MouseLeave, None, None)
+    def test_setViewport(self):
+        self.setViewport(0, 0, 100, 100)
 
-# TestMaterialRenderer
-class TestMaterialRenderer(MaterialRenderer, TestCase):
+# TestGLDebugCamera
+class TestGLDebugCamera(GLDebugCamera, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__(None, None)
+        super().__init__()
+        self.mouseOverRenderArea = True
+        self.setViewport(0, 0, 100, 100)
+    def gfxViewport(self, x: int, y: int, width: int, height: int): pass
+
+    def test__init__(self): pass
+    def test_tick(self):
+        self.tick(1)
+    def test_handleInput(self):
+        self.handleInput(MouseState(), KeyboardState())
+    def test__handleInputTick(self):
+        self._handleInputTick(1.)
+
+# TestGLMeshBuffers
+class TestGLMeshBuffers(GLMeshBuffers, TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__(None)
 
     def test__init__(self):
         self.assertEqual(0., self.pitch)
     
-# TestParticleGridRenderer
-class TestParticleGridRenderer(ParticleGridRenderer, TestCase):
+# TestGLMeshBufferCache
+class TestGLMeshBufferCache(GLMeshBufferCache, TestCase):
     def __init__(self, method: str):
         TestCase.__init__(self, method)
-        super().__init__(None, 1., 1)
+        super().__init__()
+
+    def test__init__(self):
+        self.assertEqual(0., self.pitch)
+
+# TestMeshBatchRenderer
+class TestGLMeshBufferCache(MeshBatchRenderer, TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__()
+
+    def test__init__(self):
+        self.assertEqual(0., self.pitch)
+
+# TestQuadIndexBuffer
+class TestQuadIndexBuffer(QuadIndexBuffer, TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__()
+
+    def test__init__(self):
+        self.assertEqual(0., self.pitch)
+
+# TestGLPickingTexture
+class TestGLPickingTexture(GLPickingTexture, TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__()
+
+    def test__init__(self):
+        self.assertEqual(0., self.pitch)
+
+# TestGLRenderMaterial
+class TestGLRenderMaterial(GLRenderMaterial, TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__()
+
+    def test__init__(self):
+        self.assertEqual(0., self.pitch)
+
+# TestGLRenderableMesh
+class TestGLRenderableMesh(GLRenderableMesh, TestCase):
+    def __init__(self, method: str):
+        TestCase.__init__(self, method)
+        super().__init__()
 
     def test__init__(self):
         self.assertEqual(0., self.pitch)
