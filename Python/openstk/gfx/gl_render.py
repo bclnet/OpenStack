@@ -9,7 +9,6 @@ from openstk.gfx.gfx_ui import Key, KeyboardState, MouseState
 CAMERASPEED = 300 # Per second
 
 # typedefs
-class Camera: pass
 class Shader: pass
 class IVBIB: pass
 class IMaterial: pass
@@ -51,7 +50,7 @@ class GLCamera(Camera):
 
     def handleInput(self, mouseState: MouseState, keyboardState: KeyboardState) -> None: pass
 
-    def gfxViewport(self, x: int, y: int, width: int = 0, height: int = 0) -> None: return glViewport(x, y, width, height)
+    def gfxViewport(self, x: int = 0, y: int = 0, width: int = 0, height: int = 0) -> None: return glViewport(x, y, width if width != 0 else self.windowSize[0], height if height != 0 else self.windowSize[1])
 
 # GLDebugCamera
 class GLDebugCamera(GLCamera):

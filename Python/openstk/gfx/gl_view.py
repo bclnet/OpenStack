@@ -64,7 +64,7 @@ class OpenGLView(QOpenGLWidget):
     # end::Tick[]
 
     # tag::Render[]
-    def setViewport(self, x: int, y: int, width: int, height: int) -> None: self.viewportChanged = False; self.camera.gfxViewport(x, y, width, height)
+    def setViewport(self, x: int, y: int, width: int, height: int) -> None: self.viewportChanged = False; self.camera.setViewport(x, y, width, height)
 
     # def paintEvent(self, event: object):
     #     p: QPainter = QPainter(self)
@@ -86,7 +86,7 @@ class OpenGLView(QOpenGLWidget):
 
     def paintGL(self):
         if self.viewportChanged: self.setViewport(0, 0, self.width(), self.height())
-        else: self.camera.gfxViewport(0, 0)
+        else: self.camera.gfxViewport()
         self.tick()
         self.renderGL()
         # ctx = self.context(); ctx.swapBuffers(ctx.surface())
