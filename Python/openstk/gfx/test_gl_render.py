@@ -1,6 +1,6 @@
 import numpy as np
 from unittest import TestCase, main
-from gl_renders import GLCamera, GLDebugCamera, GLMeshBuffers, GLMeshBufferCache, MeshBatchRenderer, QuadIndexBuffer, GLPickingTexture, GLRenderMaterial, GLRenderableMesh
+from gl_render import GLCamera, GLDebugCamera, GLMeshBuffers, GLMeshBufferCache, MeshBatchRenderer, QuadIndexBuffer, GLPickingTexture, GLRenderMaterial, GLRenderableMesh
 from gfx_ui import KeyboardState, MouseState
 
 # TestGLCamera

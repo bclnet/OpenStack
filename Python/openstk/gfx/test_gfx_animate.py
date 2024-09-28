@@ -1,6 +1,6 @@
 import quaternion as quat, numpy as np
 from unittest import TestCase, main
-from gfx_animates import Bone, ISkeleton, ChannelAttribute, Frame, IAnimation, FrameCache, AnimationController
+from gfx_animate import Bone, ISkeleton, ChannelAttribute, Frame, IAnimation, FrameCache, AnimationController
 from openstk.gfx.util import _np_createFromQuaternion4x4, _np_createTranslation4x4
 
 # TestBone

@@ -1,8 +1,8 @@
 import ctypes, numpy as np
 from enum import Enum
 from OpenGL.GL import *
-from openstk.gfx.gfx_renders import AABB, IRenderer, RenderPass
-from openstk.gfx.gl_renders import GLRenderMaterial
+from openstk.gfx.gfx_render import AABB, IRenderer, RenderPass
+from openstk.gfx.gl_render import GLRenderMaterial
 
 sizeof_float = ctypes.sizeof(GLfloat)
 

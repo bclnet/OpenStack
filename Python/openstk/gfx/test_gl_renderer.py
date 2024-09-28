@@ -1,6 +1,6 @@
 import numpy as np
 from unittest import TestCase, main
-from gl_renders import TextureRenderer, MaterialRenderer, ParticleGridRenderer
+from gl_render import TextureRenderer, MaterialRenderer, ParticleGridRenderer
 
 # TestTextureRenderer
 class TestTextureRenderer(TextureRenderer, TestCase):

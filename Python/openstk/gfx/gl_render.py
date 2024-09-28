@@ -2,8 +2,8 @@ import math, numpy as np
 from typing import Callable
 from enum import Enum
 from OpenGL.GL import *
-from openstk.gfx.gfx_renders import Camera, DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
-from openstk.gfx.gfx_scenes import Scene
+from openstk.gfx.gfx_render import Camera, DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
+from openstk.gfx.gfx_scene import Scene
 from openstk.gfx.gfx_ui import Key, KeyboardState, MouseState
 
 CAMERASPEED = 300 # Per second
@@ -51,7 +51,7 @@ class GLCamera(Camera):
 
     def handleInput(self, mouseState: MouseState, keyboardState: KeyboardState) -> None: pass
 
-    def gfxViewport(self, x: int, y: int, width: int = 0, height: int = 0) -> None: return glViewport(x, y, width if width != 0 else self.windowSize[0], height if height != 0 else self.windowSize[1])
+    def gfxViewport(self, x: int, y: int, width: int = 0, height: int = 0) -> None: return glViewport(x, y, width, height)
 
 # GLDebugCamera
 class GLDebugCamera(GLCamera):

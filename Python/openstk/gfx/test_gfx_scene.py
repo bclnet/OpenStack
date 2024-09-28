@@ -1,6 +1,6 @@
 import numpy as np
 from unittest import TestCase, main
-# from gfx_textures import Camera
+# from gfx_scene import Camera
 
 # TestCamera
 # class TestCamera(Camera, TestCase):

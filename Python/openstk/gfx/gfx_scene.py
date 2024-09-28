@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Callable
-from openstk.gfx.gfx_renders import AABB, RenderPass
+from openstk.gfx.gfx_render import AABB, RenderPass
 
 MaximumElementsBeforeSubdivide = 4
 MinimumNodeSize = 64.0

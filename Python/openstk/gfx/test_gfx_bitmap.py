@@ -1,5 +1,5 @@
 from unittest import TestCase, main
-from gfx_bitmaps import DirectBitmap
+from gfx_bitmap import DirectBitmap
 
 # TestDirectBitmap
 class TestDirectBitmap(DirectBitmap, TestCase):
