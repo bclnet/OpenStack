@@ -1,5 +1,5 @@
 import quaternion as quat, numpy as np
-from typing import NamedTuple, Callable
+from typing import NamedTuple
 from enum import Enum
 from openstk.gfx.util import _np_createFromQuaternion4x4, _np_createTranslation4x4
 
@@ -101,7 +101,7 @@ class FrameTuple(NamedTuple):
 
 # FrameCache
 class FrameCache:
-    frameFactory: Callable = lambda skeleton: Frame(skeleton)
+    frameFactory: callable = lambda skeleton: Frame(skeleton)
 
     previousFrame: FrameTuple #(int, Frame)
     nextFrame: FrameTuple #(int, Frame)
@@ -152,7 +152,7 @@ class FrameCache:
 # AnimationController
 class AnimationController:
     frameCache: FrameCache
-    updateHandler: Callable = lambda a, b: None
+    updateHandler: callable = lambda a, b: None
     activeAnimation: IAnimation
     time: float
     shouldUpdate: bool
@@ -191,4 +191,4 @@ class AnimationController:
         return self.activeAnimation.getAnimationMatrices(self.frameCache, self.frame, skeleton) if self.isPaused else \
             self.activeAnimation.getAnimationMatrices(self.frameCache, self.time, skeleton)
 
-    def registerUpdateHandler(self, handler: Callable) -> None: self.updateHandler = handler
+    def registerUpdateHandler(self, handler: callable) -> None: self.updateHandler = handler

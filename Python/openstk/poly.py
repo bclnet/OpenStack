@@ -1,6 +1,7 @@
+import openstk.poly_unsafe as unsafe
 from openstk.poly_reader import Reader
 from openstk.poly_writer import Writer
-__all__ = ['Reader', 'Writer']
+__all__ = ['unsafe', 'Reader', 'Writer']
 
 # root module
 moduleRoot = 'gamex'

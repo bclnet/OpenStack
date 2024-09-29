@@ -1,0 +1,1 @@
+def fixedAString(data: bytes, length: int) -> str: return data.decode('ascii').rstrip('\00')

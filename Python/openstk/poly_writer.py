@@ -1,5 +1,4 @@
 import os, numpy as np
-from typing import Callable
 from struct import unpack
 from io import BytesIO
 from openstk.util import _throw
@@ -80,17 +79,17 @@ class Writer:
 
     
     # struct : single  - https://docs.python.org/3/library/struct.html 
-    def writeF(self, cls: object, value: object, factory: Callable) -> object: self.f.write(factory(self))
+    def writeF(self, cls: object, value: object, factory: callable) -> object: self.f.write(factory(self))
     def writeS(self, cls: object, value: object) -> object: pattern, size = cls.struct; cls(unpack(pattern, self.f.write(size)))
     def writeSAndVerify(self, cls: object, value: object, sizeOf: int) -> object: pattern, size = cls.struct; cls(unpack(pattern, self.f.write(size)))
     def writeT(self, cls: object, value: object, sizeOf: int) -> object: unpack(cls, self.f.write(size))[0]
 
     # struct : array - factory
-    def writeL8FArray(self, cls: object, value: object, factory: Callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeByte())
-    def writeL16FArray(self, cls: object, value: object, factory: Callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeUInt16E(endian))
-    def writeL32FArray(self, cls: object, value: object, factory: Callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeUInt32E(endian))
-    def writeC32FArray(self, cls: object, value: object, factory: Callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeCInt32E(endian))
-    def writeFArray(self, cls: object, value: object, factory: Callable, count: int) -> list[object]: return [self.writeF(cls, factory) for x in range(count)] if count else []
+    def writeL8FArray(self, cls: object, value: object, factory: callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeByte())
+    def writeL16FArray(self, cls: object, value: object, factory: callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeUInt16E(endian))
+    def writeL32FArray(self, cls: object, value: object, factory: callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeUInt32E(endian))
+    def writeC32FArray(self, cls: object, value: object, factory: callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeCInt32E(endian))
+    def writeFArray(self, cls: object, value: object, factory: callable, count: int) -> list[object]: return [self.writeF(cls, factory) for x in range(count)] if count else []
 
     # struct : array - struct
     def writeL8SArray(self, cls: object, value: object, endian: bool = False) -> list[object]: return self.writeSArray(cls, source.writeByte())
@@ -111,25 +110,25 @@ class Writer:
     # def writeTEach(self, cls: object, value: object, sizeOf: int, count: int) -> list[object]: return [self.writeT(cls, sizeOf) for x in range(count)] if count else []
     
     # struct : many - factory
-    # def writeL8FMany(self, clsKey: object, value: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeByte())
-    # def writeL16FMany(self, clsKey: object, value: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeUInt16(endian))
-    # def writeL32FMany(self, clsKey: object, value: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeUInt32(endian))
-    # def writeC32FMany(self, clsKey: object, value: object, keyFactory: Callable, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeCInt32(endian))
-    # def writeFMany(self, clsKey: object, value: object, keyFactory: Callable, valueFactory: Callable) -> dict[object, object]: return {keyFactory(self):valueFactory(self) for x in range(count)} if count else {}
+    # def writeL8FMany(self, clsKey: object, value: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeByte())
+    # def writeL16FMany(self, clsKey: object, value: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeUInt16(endian))
+    # def writeL32FMany(self, clsKey: object, value: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeUInt32(endian))
+    # def writeC32FMany(self, clsKey: object, value: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeFMany(clsKey, keyFactory, valueFactory, source.writeCInt32(endian))
+    # def writeFMany(self, clsKey: object, value: object, keyFactory: callable, valueFactory: callable) -> dict[object, object]: return {keyFactory(self):valueFactory(self) for x in range(count)} if count else {}
 
     # struct : many - struct
-    # def writeL8SMany(self, clsKey: object, value: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeByte())
-    # def writeL16SMany(self, clsKey: object, value: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeUInt16(endian))
-    # def writeL32SMany(self, clsKey: object, value: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeUInt32(endian))
-    # def writeC32SMany(self, clsKey: object, value: object, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeCInt32(endian))
-    # def writeSMany(self, clsKey: object, value: object, valueFactory: Callable) -> dict[object, object]: return {self.writeS(clsKey):valueFactory(self) for x in range(count)} if count else {}
+    # def writeL8SMany(self, clsKey: object, value: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeByte())
+    # def writeL16SMany(self, clsKey: object, value: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeUInt16(endian))
+    # def writeL32SMany(self, clsKey: object, value: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeUInt32(endian))
+    # def writeC32SMany(self, clsKey: object, value: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeSMany(clsKey, valueFactory, source.writeCInt32(endian))
+    # def writeSMany(self, clsKey: object, value: object, valueFactory: callable) -> dict[object, object]: return {self.writeS(clsKey):valueFactory(self) for x in range(count)} if count else {}
     
     # struct : many - type
-    # def writeL8TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeByte())
-    # def writeL16TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeUInt16(endian))
-    # def writeL32TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeUInt32(endian))
-    # def writeC32TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: Callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeCInt32(endian))
-    # def writeTMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: Callable) -> dict[object, object]: return {self.writeT(clsKey, sizeOf):valueFactory(self) for x in range(count)} if count else {}
+    # def writeL8TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeByte())
+    # def writeL16TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeUInt16(endian))
+    # def writeL32TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeUInt32(endian))
+    # def writeC32TMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.writeTMany(clsKey, sizeOf, valueFactory, source.writeCInt32(endian))
+    # def writeTMany(self, clsKey: object, value: object, sizeOf: int, valueFactory: callable) -> dict[object, object]: return {self.writeT(clsKey, sizeOf):valueFactory(self) for x in range(count)} if count else {}
 
     # numerics
     # def writeHalf(self, value: float) -> None: raise NotImplementedError()

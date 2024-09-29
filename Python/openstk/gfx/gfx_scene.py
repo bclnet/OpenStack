@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Callable
 from openstk.gfx.gfx_render import AABB, RenderPass
 
 MaximumElementsBeforeSubdivide = 4
@@ -179,7 +178,7 @@ class Scene:
         replacementShader: Shader
         showDebug: bool
 
-    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: Callable, sizeHint: float = 32768):
+    def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: callable, sizeHint: float = 32768):
         self.graphic = graphic or _throw('Null')
         self.meshBatchRenderer = meshBatchRenderer or _throw('Null')
         self.staticOctree = Octree(sizeHint)

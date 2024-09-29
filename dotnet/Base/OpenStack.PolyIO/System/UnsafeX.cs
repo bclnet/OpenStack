@@ -185,15 +185,15 @@ namespace System
 
         #endregion
 
-        public static string FixedAString(byte* data, int length)
-        {
-            var i = 0;
-            while (data[i] != 0 && length-- > 0) i++;
-            if (i == 0) return null;
-            var value = new byte[i];
-            fixed (byte* p = value) while (--i >= 0) p[i] = data[i];
-            return Encoding.ASCII.GetString(value);
-        }
+        public static string FixedAString(byte* data, int length) => Encoding.ASCII.GetString(data, length);
+        //{
+        //    var i = 0;
+        //    while (data[i] != 0 && length-- > 0) i++;
+        //    if (i == 0) return null;
+        //    var value = new byte[i];
+        //    fixed (byte* p = value) while (--i >= 0) p[i] = data[i];
+        //    return Encoding.ASCII.GetString(value);
+        //}
 
         public static T[] FixedTArray<T>(T* data, int length)
         {

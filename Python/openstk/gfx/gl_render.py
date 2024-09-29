@@ -1,5 +1,4 @@
 import math, numpy as np
-from typing import Callable
 from enum import Enum
 from OpenGL.GL import *
 from openstk.gfx.gfx_render import Camera, DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
@@ -318,7 +317,7 @@ class GLPickingTexture(IPickingTexture):
     colorHandle: int
     depthHandle: int
 
-    def __init__(self, graphic: IOpenGLGfx, onPicked: list[Callable]):
+    def __init__(self, graphic: IOpenGLGfx, onPicked: list[callable]):
         self.shader, _ = graphic.createShader('vrf.picking', {})
         self.debugShader, _ = graphic.createShader('vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
