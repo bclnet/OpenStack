@@ -185,7 +185,7 @@ namespace System
 
         #endregion
 
-        public static string FixedAString(byte* data, int length) => Encoding.ASCII.GetString(data, length);
+        public static string FixedAString(byte* data, int length) => Encoding.ASCII.GetString(data, length).TrimEnd('\0');
         //{
         //    var i = 0;
         //    while (data[i] != 0 && length-- > 0) i++;
