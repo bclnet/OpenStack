@@ -518,4 +518,34 @@ namespace OpenStack.Gfx.Renders
     {
         IEnumerable<RenderableMesh> RenderableMeshes { get; }
     }
+
+    /// <summary>
+    /// Rasterize
+    /// </summary>
+    public unsafe static class Rasterize
+    {
+        public static void CopyPixelsByPalette(Span<byte> data, int bbp, byte[] source, byte[] palette)
+        {
+            fixed (byte* _ = data)
+                if (bbp == 4)
+                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
+                    {
+                        var p = source[i] * 3;
+                        //if (p + 3 > palette.Length) continue;
+                        _[pi + 0] = palette[p + 0];
+                        _[pi + 1] = palette[p + 1];
+                        _[pi + 2] = palette[p + 2];
+                        _[pi + 3] = 0xFF;
+                    }
+                else
+                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 3)
+                    {
+                        var p = source[i] * 3;
+                        //if (p + 3 > palette.Length) continue;
+                        _[pi + 0] = palette[p + 0];
+                        _[pi + 1] = palette[p + 1];
+                        _[pi + 2] = palette[p + 2];
+                    }
+        }
+    }
 }

@@ -11,7 +11,6 @@ def marshalSArray(c: str) -> int:
     #if sizeOf == size else _throw(f'Sizes are different: {sizeOf}|{size}')
     pass
 
-
 # Reader
 class Reader:
     def __init__(self, f): self.f = f; self.__update()
@@ -24,7 +23,7 @@ class Reader:
         f.seek(pos, os.SEEK_SET)
 
     # base
-    def read(self, size: int): return self.f.read(size)
+    def readBytes(self, size: int): return self.f.read(size)
     def length(self): return self.length
     def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
     def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
@@ -83,16 +82,27 @@ class Reader:
         f.seek(pos)
         return value
 
-    # string : chars
-    def readCString(self) -> str:
+    # string : special
+    def readL16OString(self, codepage: int = 1252) -> str: raise Exception('not implemented')
+    # string : length
+    def readL8UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
+    def readL16UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
+    def readL32UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
+    def readL8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    def readL16AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    def readL32AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    # string : fixed
+    def readFUString(self, length: int) -> str: return self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
+    def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    # string : variable
+    def readVUString(self) -> str:
         f = self.f
         length = 0; tell = f.tell(); maxPosition = self.length()
-        while tell < maxPosition and int.from_bytes(f.read(1), 'little', signed=False) != 0: tell += 1; length += 1
+        while tell < maxPosition and f.read(1) != 0: tell += 1; length += 1
         f.seek(0 - length - 1, os.SEEK_CUR)
         chars = f.read(length + 1)
         return chars.decode('utf-8') if length > 0 else None
-    def readFString(self, length: int, zstring: bool = False) -> str: return self.f.read(length)[:length - 1 if zstring else length].decode('ascii') if length != 0 else None
-    def readZAString(self, length: int = 65535) -> str:
+    def readVAString(self, length: int = 65535) -> str:
         f = self.f; buf = BytesIO()
         while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; buf.write(c)
         buf.seek(0)

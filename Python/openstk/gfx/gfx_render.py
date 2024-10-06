@@ -409,3 +409,24 @@ class IRenderer:
 # IMeshCollection
 class IMeshCollection:
     renderableMeshes: list[RenderableMesh]
+
+# Rasterize
+class Rasterize:
+    @staticmethod
+    def copyPixelsByPalette(data: memoryview, bbp: int, source: bytes, palette: bytes):
+        pi = 0
+        if bbp == 4:
+            for i, s in enumerate(source):
+                p = s * 3
+                data[pi + 0] = palette[p + 0]
+                data[pi + 1] = palette[p + 1]
+                data[pi + 2] = palette[p + 2]
+                data[pi + 3] = 0xFF
+                pi += 4
+        else:
+            for i, s in enumerate(source):
+                p = s * 3
+                data[pi + 0] = palette[p + 0]
+                data[pi + 1] = palette[p + 1]
+                data[pi + 2] = palette[p + 2]
+                pi += 3

@@ -147,9 +147,9 @@ namespace System.IO
 
         #region String
 
-        // String
+        // String : Special
 
-        public static string ReadL16StringObfuscated(this BinaryReader source, int codepage = 1252) //: ReadObfuscatedString
+        public static string ReadL16OString(this BinaryReader source, int codepage = 1252) //: ReadObfuscatedString
         {
             var length = source.ReadUInt16();
             if (length == 0) return string.Empty;
@@ -159,6 +159,8 @@ namespace System.IO
             return Encoding.GetEncoding(codepage).GetString(bytes);
         }
 
+        // String : Length
+
         /// <summary>
         /// Read a Length-prefixed string from the stream
         /// </summary>
@@ -166,6 +168,43 @@ namespace System.IO
         /// <param name="byteLength">Size of the Length representation</param>
         /// <param name="zstring">Remove last character</param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+
+        /// <summary>
+        /// Read a Length-prefixed ascii string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="byteLength">Size of the Length representation</param>
+        /// <param name="zstring">Remove last character</param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+
+        // String : Fixed
+
+        /// <summary>
+        /// Read a Fixed-Length string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="length">Size of the String</param>
+        /// <param name="zstring">Remove last character</param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFUString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null;
+
+        /// <summary>
+        /// Read a Fixed-Length ascii string from the stream
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="length">Size of the String</param>
+        /// <param name="zstring">Remove last character</param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+
+        #region not used
+
         //public static string ReadLString(this BinaryReader source, int byteLength = 4, bool zstring = false) //:was ReadPString
         //{
         //    var length = byteLength switch
@@ -177,17 +216,6 @@ namespace System.IO
         //    };
         //    return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null;
         //}
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8String(this BinaryReader source, int maxLength = 0, bool endian = false, bool zstring = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16String(this BinaryReader source, int maxLength = 0, bool endian = false, bool zstring = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32String(this BinaryReader source, int maxLength = 0, bool endian = false, bool zstring = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; }
-
-        /// <summary>
-        /// Read a Length-prefixed ascii string from the stream
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="byteLength">Size of the Length representation</param>
-        /// <param name="zstring">Remove last character</param>
-        /// <returns></returns>
         //public static string ReadLAString(this BinaryReader source, int byteLength = 4, bool zstring = false)
         //{
         //    var length = byteLength switch
@@ -199,25 +227,27 @@ namespace System.IO
         //    };
         //    return length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null;
         //}
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8AString(this BinaryReader source, int maxLength = 0, bool endian = false, bool zstring = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16AString(this BinaryReader source, int maxLength = 0, bool endian = false, bool zstring = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null; }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32AString(this BinaryReader source, int maxLength = 0, bool endian = false, bool zstring = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null; }
-
-        /// <summary>
-        /// Read a NULL-Terminated string from the stream
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        public static string ReadCString(this BinaryReader source) //:was ReadCString
-        {
-            var length = 0;
-            var maxPosition = source.BaseStream.Length;
-            while (source.BaseStream.Position < maxPosition && source.ReadByte() != 0) length++;
-            source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
-            var chars = source.ReadChars(length + 1);
-            return length > 0 ? new string(chars, 0, length) : null;
-        }
-
+        //public static string ReadFCString(this BinaryReader source, int length)
+        //{
+        //    if (length == 0) return null;
+        //    var chars = source.ReadChars(length);
+        //    for (var i = 0; i < length; i++) if (chars[i] == 0) return new string(chars, 0, i);
+        //    return new string(chars);
+        //}
+        //public static string ReadZString(this BinaryReader source, int length, Encoding encoding = null)
+        //{
+        //    var buf = source.ReadBytes(length);
+        //    int i;
+        //    for (i = buf.Length - 1; i >= 0 && buf[i] == 0; i--) { }
+        //    return (encoding ?? Encoding.ASCII).GetString(buf, 0, i + 1);
+        //}
+        //public static string ReadCString(this BinaryReader source, int length, Encoding encoding = null)
+        //{
+        //    var buf = source.ReadBytes(length);
+        //    int i;
+        //    for (i = 0; i < buf.Length && buf[i] != 0; i++) { }
+        //    return (encoding ?? Encoding.ASCII).GetString(buf, 0, i);
+        //}
         //public static string ReadZString2(this BinaryReader source) //:was ReadCString (Dolkens)
         //{
         //    var length = 0;
@@ -230,41 +260,36 @@ namespace System.IO
         //    return length > 0 ? new string(chars, 0, length).Replace("\u0000", "") : null;
         //}
 
-        /// <summary>
-        /// Read a Fixed-Length string from the stream
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="length">Size of the String</param>
-        /// <param name="zstring">Remove last character</param>
-        /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFString(this BinaryReader source, int length, bool zstring = false) => length != 0 ? new string(source.ReadChars(length), 0, zstring ? length - 1 : length) : null; //: was ReadStringAsChars
+        #endregion
+
+        // String : Variable
 
         /// <summary>
-        /// Read a Fixed-Length ascii string from the stream
+        /// Read a NULL-Terminated string from the stream
         /// </summary>
         /// <param name="source"></param>
-        /// <param name="length">Size of the String</param>
-        /// <param name="zstring">Remove last character</param>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length, bool zstring = false) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, zstring ? length - 1 : length) : null;
-
-        /// <summary>
-        /// Read a Fixed-Length string from the stream
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="length">Size of the String</param>
-        /// <returns></returns>
-        public static string ReadFYString(this BinaryReader source, int length)
+        public static string ReadVUString(this BinaryReader source)
         {
-            if (length == 0) return null;
-            var chars = source.ReadChars(length);
-            for (var i = 0; i < length; i++) if (chars[i] == 0) return new string(chars, 0, i);
-            return new string(chars);
+            var length = 0;
+            var maxPosition = source.BaseStream.Length;
+            while (source.BaseStream.Position < maxPosition && source.ReadByte() != 0) length++;
+            source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
+            var chars = source.ReadChars(length + 1);
+            return length > 0 ? new string(chars, 0, length) : null;
+        }
+
+        public static string ReadVAString(this BinaryReader source, int length = int.MaxValue)
+        {
+            var buf = new MemoryStream();
+            byte c;
+            while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
+            return Encoding.ASCII.GetString(buf.ToArray());
         }
 
         // String : Unicode
 
-        public static string ReadCU32String(this BinaryReader source) //:was ReadUnicodeString
+        public static string ReadC32UString(this BinaryReader source)
         {
             var length = source.ReadCInt32();
             if (length == 0) return null;
@@ -286,20 +311,6 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadUInt32(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadC32YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadCInt32(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
 
-        public static string ReadZString(this BinaryReader source, int length, Encoding encoding = null)
-        {
-            var buf = source.ReadBytes(length);
-            int i;
-            for (i = buf.Length - 1; i >= 0 && buf[i] == 0; i--) { }
-            return (encoding ?? Encoding.ASCII).GetString(buf, 0, i + 1);
-        }
-        public static string ReadCString(this BinaryReader source, int length, Encoding encoding = null)
-        {
-            var buf = source.ReadBytes(length);
-            int i;
-            for (i = 0; i < buf.Length && buf[i] != 0; i++) { }
-            return (encoding ?? Encoding.ASCII).GetString(buf, 0, i);
-        }
 
         public static string ReadZEncoding(this BinaryReader source, Encoding encoding)
         {
@@ -329,13 +340,7 @@ namespace System.IO
             return list.ToArray();
         }
 
-        public static string ReadZAString(this BinaryReader source, int length = int.MaxValue)
-        {
-            var buf = new MemoryStream();
-            byte c;
-            while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
-            return Encoding.ASCII.GetString(buf.ToArray());
-        }
+
         public static List<string> ReadZAStringList(this BinaryReader source, int length = int.MaxValue)
         {
             var buf = new MemoryStream();
