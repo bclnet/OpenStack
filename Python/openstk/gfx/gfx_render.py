@@ -413,7 +413,7 @@ class IMeshCollection:
 # Rasterize
 class Rasterize:
     @staticmethod
-    def copyPixelsByPalette(data: memoryview, bbp: int, source: bytes, palette: bytes):
+    def copyPixelsByPalette(data: bytearray, bbp: int, source: bytes, palette: bytes):
         pi = 0
         if bbp == 4:
             for i, s in enumerate(source):
@@ -423,7 +423,7 @@ class Rasterize:
                 data[pi + 2] = palette[p + 2]
                 data[pi + 3] = 0xFF
                 pi += 4
-        else:
+        elif bbp == 3:
             for i, s in enumerate(source):
                 p = s * 3
                 data[pi + 0] = palette[p + 0]

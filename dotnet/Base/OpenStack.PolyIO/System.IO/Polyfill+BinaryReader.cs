@@ -269,22 +269,32 @@ namespace System.IO
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static string ReadVUString(this BinaryReader source)
+        //public static string ReadVUString(this BinaryReader source)
+        //{
+        //    var length = 0;
+        //    var maxPosition = source.BaseStream.Length;
+        //    while (source.BaseStream.Position < maxPosition && source.ReadByte() != 0) length++;
+        //    source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
+        //    var chars = source.ReadChars(length + 1);
+        //    return length > 0 ? new string(chars, 0, length) : null;
+        //}
+
+        public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null)
         {
-            var length = 0;
-            var maxPosition = source.BaseStream.Length;
-            while (source.BaseStream.Position < maxPosition && source.ReadByte() != 0) length++;
-            source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
-            var chars = source.ReadChars(length + 1);
-            return length > 0 ? new string(chars, 0, length) : null;
+            if (ms == null) ms = new MemoryStream();
+            else ms.SetLength(0);
+            byte c;
+            while (length-- > 0 && (c = source.ReadByte()) != 0) ms.WriteByte(c);
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
 
-        public static string ReadVAString(this BinaryReader source, int length = int.MaxValue)
+        public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null)
         {
-            var buf = new MemoryStream();
+            if (ms == null) ms = new MemoryStream();
+            else ms.SetLength(0);
             byte c;
-            while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
-            return Encoding.ASCII.GetString(buf.ToArray());
+            while (length-- > 0 && (c = source.ReadByte()) != 0) ms.WriteByte(c);
+            return Encoding.ASCII.GetString(ms.ToArray());
         }
 
         // String : Unicode
@@ -373,19 +383,9 @@ namespace System.IO
             var offset = source.ReadUInt32();
             if (offset == 0) return string.Empty;
             source.BaseStream.Position = currentOffset + offset;
-            var str = ReadZUTF8(source);
+            var str = ReadVUString(source);
             source.BaseStream.Position = currentOffset + 4;
             return str;
-        }
-
-        //: TODO Use Encoding Method
-        public static string ReadZUTF8(this BinaryReader source, int length = int.MaxValue, MemoryStream buf = null)
-        {
-            if (buf == null) buf = new MemoryStream();
-            buf.SetLength(0);
-            byte c;
-            while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
-            return Encoding.UTF8.GetString(buf.ToArray());
         }
 
         #endregion

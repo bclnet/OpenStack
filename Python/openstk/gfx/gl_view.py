@@ -27,12 +27,11 @@ class OpenGLView(QOpenGLWidget):
     deltaTime: int = 0
     elapsedTime: int
 
-    def __init__(self):
+    def __init__(self, interval: float = None):
         super().__init__()
         self.setAutoFillBackground(False)
         self.setUpdateBehavior(self.UpdateBehavior.PartialUpdate)
         self.elapsedTime = time.time()
-        interval = 0 # 1.0
         if interval:
             self.timer = QTimer(self)
             self.interval = interval
@@ -53,7 +52,7 @@ class OpenGLView(QOpenGLWidget):
     # tag::Tick[]
     def tick(self, **kwargs) -> None:
         deltaTime: int = kwargs.get('deltaTime', None)
-        if not deltaTime: elapsedTime = time.time(); self.deltaTime = self.elapsedTime = elapsedTime - self.elapsedTime; self.elapsedTime = elapsedTime
+        if not deltaTime: self.deltaTime = round((time.time() - self.elapsedTime) * 1000); self.elapsedTime = time.time()
         else: self.deltaTime = deltaTime
         mouseState = self.camera.mouseState; keyboardState = self.camera.keyboardState
         self.camera.tick(self.deltaTime)

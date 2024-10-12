@@ -537,7 +537,7 @@ namespace OpenStack.Gfx.Renders
                         _[pi + 2] = palette[p + 2];
                         _[pi + 3] = 0xFF;
                     }
-                else
+                else if (bbp == 3)
                     for (int i = 0, pi = 0; i < source.Length; i++, pi += 3)
                     {
                         var p = source[i] * 3;
@@ -547,5 +547,7 @@ namespace OpenStack.Gfx.Renders
                         _[pi + 2] = palette[p + 2];
                     }
         }
+
+        //public static void CopyPixelsByPalette(ref byte[] data, byte[] source, byte[][] palette) => data = palette[0] != null ? source.SelectMany(x => palette[x]).ToArray() : null;
     }
 }

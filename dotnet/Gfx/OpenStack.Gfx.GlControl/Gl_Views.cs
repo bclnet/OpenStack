@@ -23,9 +23,9 @@ namespace OpenStack.Gfx.Gl
         public bool ViewportChanged = true;
         public int DeltaTime;
 
-        public GLViewerControl(TimeSpan? interval = default)
+        public GLViewerControl(TimeSpan? interval = null)
         {
-            interval = new TimeSpan(1);
+            interval ??= new TimeSpan(10); //TODO Remove this
             if (ShowConsole && !IsInDesignMode) ConsoleManager.Show();
             IsVisibleChanged += OnIsVisibleChanged;
             Watch.Start();

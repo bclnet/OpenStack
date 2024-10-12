@@ -95,18 +95,27 @@ class Reader:
     def readFUString(self, length: int) -> str: return self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
     # string : variable
-    def readVUString(self) -> str:
+    # def readVUString(self) -> str:
+    #     f = self.f
+    #     length = 0; tell = f.tell(); maxPosition = self.length()
+    #     while tell < maxPosition and f.read(1) != 0: tell += 1; length += 1
+    #     f.seek(0 - length - 1, os.SEEK_CUR)
+    #     chars = f.read(length + 1)
+    #     return chars.decode('utf-8') if length > 0 else None
+    def readVUString(self, length: int = 65535, ms: BytesIO = None) -> str:
+        if not ms: ms = BytesIO()
+        else: ms.length(0)
         f = self.f
-        length = 0; tell = f.tell(); maxPosition = self.length()
-        while tell < maxPosition and f.read(1) != 0: tell += 1; length += 1
-        f.seek(0 - length - 1, os.SEEK_CUR)
-        chars = f.read(length + 1)
-        return chars.decode('utf-8') if length > 0 else None
-    def readVAString(self, length: int = 65535) -> str:
-        f = self.f; buf = BytesIO()
-        while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; buf.write(c)
-        buf.seek(0)
-        return buf.read().decode('ascii', 'ignore')
+        while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
+        ms.seek(0)
+        return ms.read().decode('utf-8', 'ignore')
+    def readVAString(self, length: int = 65535, ms: BytesIO = None) -> str:
+        if not ms: ms = BytesIO()
+        else: ms.length(0)
+        f = self.f
+        while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
+        ms.seek(0)
+        return ms.read().decode('ascii', 'ignore')
     # string : encoding
     def readL8Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(1), 'little')).decode('ascii' if not encoding else encoding)
     def readL16Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(2), 'little')).decode('ascii' if not encoding else encoding)
