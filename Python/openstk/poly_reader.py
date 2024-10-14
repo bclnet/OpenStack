@@ -23,6 +23,7 @@ class Reader:
         f.seek(pos, os.SEEK_SET)
 
     # base
+    def read(self, data: bytearray, offset: int, size: int): return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
     def readBytes(self, size: int): return self.f.read(size)
     def length(self): return self.length
     def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
