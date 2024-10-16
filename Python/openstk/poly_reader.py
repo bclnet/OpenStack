@@ -105,14 +105,14 @@ class Reader:
     #     return chars.decode('utf-8') if length > 0 else None
     def readVUString(self, length: int = 65535, ms: BytesIO = None) -> str:
         if not ms: ms = BytesIO()
-        else: ms.length(0)
+        else: ms.truncate(0)
         f = self.f
         while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
         ms.seek(0)
         return ms.read().decode('utf-8', 'ignore')
     def readVAString(self, length: int = 65535, ms: BytesIO = None) -> str:
         if not ms: ms = BytesIO()
-        else: ms.length(0)
+        else: ms.truncate(0)
         f = self.f
         while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
         ms.seek(0)
