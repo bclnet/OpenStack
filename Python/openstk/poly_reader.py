@@ -29,6 +29,13 @@ class Reader:
     def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
     def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
     def readLine(self) -> str: return self.f.readline().decode('utf-8')
+    def readToZero(self, length: int = 65535, ms: BytesIO = None) -> bytearray:
+        if not ms: ms = BytesIO()
+        else: ms.seek(0); ms.truncate(0)
+        f = self.f; length = min(length, self.length - self.f.tell())
+        while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
+        ms.seek(0)
+        return ms.read()
 
     # primatives : normal
     def readDouble(self): return float.from_bytes(self.f.read(8), 'little')
@@ -96,27 +103,8 @@ class Reader:
     def readFUString(self, length: int) -> str: return self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
     # string : variable
-    # def readVUString(self) -> str:
-    #     f = self.f
-    #     length = 0; tell = f.tell(); maxPosition = self.length()
-    #     while tell < maxPosition and f.read(1) != 0: tell += 1; length += 1
-    #     f.seek(0 - length - 1, os.SEEK_CUR)
-    #     chars = f.read(length + 1)
-    #     return chars.decode('utf-8') if length > 0 else None
-    def readVUString(self, length: int = 65535, ms: BytesIO = None) -> str:
-        if not ms: ms = BytesIO()
-        else: ms.truncate(0)
-        f = self.f
-        while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
-        ms.seek(0)
-        return ms.read().decode('utf-8', 'ignore')
-    def readVAString(self, length: int = 65535, ms: BytesIO = None) -> str:
-        if not ms: ms = BytesIO()
-        else: ms.truncate(0)
-        f = self.f
-        while length > 0 and (c := f.read(1)) != b'\x00': length -= 1; ms.write(c)
-        ms.seek(0)
-        return ms.read().decode('ascii', 'ignore')
+    def readVUString(self, length: int = 65535, ms: BytesIO = None) -> str: return self.readToZero(length, ms).decode('utf-8', 'ignore')
+    def readVAString(self, length: int = 65535, ms: BytesIO = None) -> str: return self.readToZero(length, ms).decode('ascii', 'ignore')
     # string : encoding
     def readL8Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(1), 'little')).decode('ascii' if not encoding else encoding)
     def readL16Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(2), 'little')).decode('ascii' if not encoding else encoding)

@@ -413,20 +413,37 @@ class IMeshCollection:
 # Rasterize
 class Rasterize:
     @staticmethod
-    def copyPixelsByPalette(data: bytearray, bbp: int, source: bytes, palette: bytes):
+    def copyPixelsByPalette(data: bytearray, bbp: int, source: bytes, palette: bytes, pbp: int):
         pi = 0
-        if bbp == 4:
-            for i, s in enumerate(source):
-                p = s * 3
-                data[pi + 0] = palette[p + 0]
-                data[pi + 1] = palette[p + 1]
-                data[pi + 2] = palette[p + 2]
-                data[pi + 3] = 0xFF
-                pi += 4
-        elif bbp == 3:
-            for i, s in enumerate(source):
-                p = s * 3
-                data[pi + 0] = palette[p + 0]
-                data[pi + 1] = palette[p + 1]
-                data[pi + 2] = palette[p + 2]
-                pi += 3
+        if pbp == 3:
+            if bbp == 4:
+                for i, s in enumerate(source):
+                    p = s * 3
+                    data[pi + 0] = palette[p + 0]
+                    data[pi + 1] = palette[p + 1]
+                    data[pi + 2] = palette[p + 2]
+                    data[pi + 3] = 0xFF
+                    pi += 4
+            elif bbp == 3:
+                for i, s in enumerate(source):
+                    p = s * 3
+                    data[pi + 0] = palette[p + 0]
+                    data[pi + 1] = palette[p + 1]
+                    data[pi + 2] = palette[p + 2]
+                    pi += 3
+        elif pbp == 4:
+            if bbp == 4:
+                for i, s in enumerate(source):
+                    p = s * 4
+                    data[pi + 0] = palette[p + 0]
+                    data[pi + 1] = palette[p + 1]
+                    data[pi + 2] = palette[p + 2]
+                    data[pi + 3] = palette[p + 3]
+                    pi += 4
+            elif bbp == 3:
+                for i, s in enumerate(source):
+                    p = s * 4
+                    data[pi + 0] = palette[p + 0]
+                    data[pi + 1] = palette[p + 1]
+                    data[pi + 2] = palette[p + 2]
+                    pi += 3

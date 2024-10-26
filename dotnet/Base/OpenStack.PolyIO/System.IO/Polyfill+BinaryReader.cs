@@ -33,6 +33,15 @@ namespace System.IO
         //    Debug.Assert(startIndex >= 0 && length <= int.MaxValue && startIndex + length <= buffer.Length);
         //    source.Read(buffer, startIndex, (int)length);
         //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] ReadToZero(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null)
+        {
+            if (ms == null) ms = new MemoryStream();
+            else ms.SetLength(0);
+            byte c; length = Math.Min(length, (int)(source.BaseStream.Length - source.BaseStream.Position));
+            while (length-- > 0 && (c = source.ReadByte()) != 0) ms.WriteByte(c);
+            return ms.ToArray();
+        }
 
         public static StreamReader ToStream(this BinaryReader source) => new StreamReader(source.BaseStream);
 
@@ -183,6 +192,15 @@ namespace System.IO
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
 
+        public static string ReadC32WString(this BinaryReader source)
+        {
+            var length = source.ReadCInt32();
+            if (length == 0) return null;
+            var b = new StringBuilder();
+            for (var i = 0; i < length; i++) b.Append(Convert.ToChar(source.ReadUInt16()));
+            return b.ToString();
+        }
+
         // String : Fixed
 
         /// <summary>
@@ -264,49 +282,8 @@ namespace System.IO
 
         // String : Variable
 
-        /// <summary>
-        /// Read a NULL-Terminated string from the stream
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        //public static string ReadVUString(this BinaryReader source)
-        //{
-        //    var length = 0;
-        //    var maxPosition = source.BaseStream.Length;
-        //    while (source.BaseStream.Position < maxPosition && source.ReadByte() != 0) length++;
-        //    source.BaseStream.Seek(0 - length - 1, SeekOrigin.Current);
-        //    var chars = source.ReadChars(length + 1);
-        //    return length > 0 ? new string(chars, 0, length) : null;
-        //}
-
-        public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null)
-        {
-            if (ms == null) ms = new MemoryStream();
-            else ms.SetLength(0);
-            byte c;
-            while (length-- > 0 && (c = source.ReadByte()) != 0) ms.WriteByte(c);
-            return Encoding.UTF8.GetString(ms.ToArray());
-        }
-
-        public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null)
-        {
-            if (ms == null) ms = new MemoryStream();
-            else ms.SetLength(0);
-            byte c;
-            while (length-- > 0 && (c = source.ReadByte()) != 0) ms.WriteByte(c);
-            return Encoding.ASCII.GetString(ms.ToArray());
-        }
-
-        // String : Unicode
-
-        public static string ReadC32UString(this BinaryReader source)
-        {
-            var length = source.ReadCInt32();
-            if (length == 0) return null;
-            var b = new StringBuilder();
-            for (var i = 0; i < length; i++) b.Append(Convert.ToChar(source.ReadUInt16()));
-            return b.ToString();
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null) => Encoding.UTF8.GetString(source.ReadToZero(length, ms));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null) => Encoding.ASCII.GetString(source.ReadToZero(length, ms));
 
         // String : Encoding
 
