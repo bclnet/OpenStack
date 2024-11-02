@@ -6,7 +6,6 @@ class Audio: pass
 class Object: pass
 class Material: pass
 class Texture: pass
-class Shader: pass
 
 # IAudioManager
 class IAudioManager:
@@ -31,6 +30,31 @@ class IParticleSystem:
     initializers: list[dict[str, object]]
     emitters: list[dict[str, object]]
     def getChildParticleNames(self, enabledOnly: bool = False) -> list[str]: pass
+
+# Shader
+class Shader:
+    _getUniformLocation: callable
+    _getAttribLocation: callable
+    _uniforms: dict[str, int] = {}
+    name: str
+    program: int
+    parameters: dict[str, bool]
+    renderModes: list[str]
+
+    def __init__(self, getUniformLocation: callable, getAttribLocation: callable, name: str = None, program: int = None, parameters: dict[str, bool] = None, renderModes: list[str] = None):
+        self._getUniformLocation = getUniformLocation or _throw('Null')
+        self._getAttribLocation = getAttribLocation or _throw('Null')
+        self.name = name
+        self.program = program
+        self.parameters = parameters
+        self.renderModes = renderModes
+    
+    def getUniformLocation(self, name: str) -> int:
+        if name in self._uniforms: return self._uniforms[name]
+        value = self._getUniformLocation(self.program, name); self._uniforms[name] = value;
+        return value
+
+    def getAttribLocation(self, name: str) -> int: return self._getAttribLocation(self.program, name)
 
 # IShaderManager
 class IShaderManager:

@@ -120,15 +120,15 @@ namespace OpenStack.Gfx.Gl
             GL.LinkProgram(shader.Program);
             GL.ValidateProgram(shader.Program);
             GL.GetProgram(shader.Program, GetProgramParameterName.LinkStatus, out var linkStatus);
+            GL.DetachShader(shader.Program, vertexShader);
+            GL.DeleteShader(vertexShader);
+            GL.DetachShader(shader.Program, fragmentShader);
+            GL.DeleteShader(fragmentShader);
             if (linkStatus != 1)
             {
                 GL.GetProgramInfoLog(shader.Program, out var linkInfo);
                 throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus})");
             }
-            GL.DetachShader(shader.Program, vertexShader);
-            GL.DeleteShader(vertexShader);
-            GL.DetachShader(shader.Program, fragmentShader);
-            GL.DeleteShader(fragmentShader);
 
 #if !DEBUG_SHADERS || !DEBUG
             // cache shader

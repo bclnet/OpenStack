@@ -43,6 +43,29 @@ namespace OpenStack.Gfx
     }
 
     /// <summary>
+    /// Shader
+    /// </summary>
+    public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation)
+    {
+        readonly Func<int, string, int> _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
+        readonly Func<int, string, int> _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
+        Dictionary<string, int> _uniforms = [];
+        public string Name;
+        public int Program;
+        public IDictionary<string, bool> Parameters;
+        public List<string> RenderModes;
+
+        public int GetUniformLocation(string name)
+        {
+            if (_uniforms.TryGetValue(name, out var value)) return value;
+            value = _getUniformLocation(Program, name); _uniforms[name] = value;
+            return value;
+        }
+
+        public int GetAttribLocation(string name) => _getAttribLocation(Program, name);
+    }
+
+    /// <summary>
     /// IShaderManager
     /// </summary>
     public interface IShaderManager<Shader>

@@ -1,5 +1,6 @@
 import math, numpy as np
 from enum import Enum, Flag
+from openstk.gfx.gfx import Shader
 from openstk.gfx.util import _throw, _np_normalize, _np_getTranslation4x4, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
 
 CAMERASPEED = 300.
@@ -17,31 +18,6 @@ class IVBIB: pass
 class Attribute: pass
 class Frustum: pass
 class RenderSlotType: pass
-
-# Shader
-class Shader:
-    _getUniformLocation: callable
-    _getAttribLocation: callable
-    _uniforms: dict[str, int] = {}
-    name: str
-    program: int
-    parameters: dict[str, bool]
-    renderModes: list[str]
-
-    def __init__(self, getUniformLocation: callable, getAttribLocation: callable, name: str = None, program: int = None, parameters: dict[str, bool] = None, renderModes: list[str] = None):
-        self._getUniformLocation = getUniformLocation or _throw('Null')
-        self._getAttribLocation = getAttribLocation or _throw('Null')
-        self.name = name
-        self.program = program
-        self.parameters = parameters
-        self.renderModes = renderModes
-    
-    def getUniformLocation(self, name: str) -> int:
-        if name in self._uniforms: return self._uniforms[name]
-        value = self._getUniformLocation(self.program, name); self._uniforms[name] = value; return value
-
-    def getAttribLocation(self, name: str) -> int:
-        return self._getAttribLocation(self.program, name)
 
 # IPickingTexture
 class IPickingTexture:
@@ -443,6 +419,26 @@ class Rasterize:
             elif bbp == 3:
                 for i, s in enumerate(source):
                     p = s * 4
+                    data[pi + 0] = palette[p + 0]
+                    data[pi + 1] = palette[p + 1]
+                    data[pi + 2] = palette[p + 2]
+                    pi += 3
+
+    @staticmethod
+    def copyPixelsByPaletteWithAlpha(data: bytearray, bbp: int, source: bytes, palette: bytes, pbp: int, alpha: int):
+        pi = 0
+        if pbp == 3:
+            if bbp == 4:
+                for i, s in enumerate(source):
+                    p = s * 3
+                    data[pi + 0] = palette[p + 0]
+                    data[pi + 1] = palette[p + 1]
+                    data[pi + 2] = palette[p + 2]
+                    data[pi + 3] = 0x00 if s == alpha else 0xFF
+                    pi += 4
+            elif bbp == 3:
+                for i, s in enumerate(source):
+                    p = s * 3
                     data[pi + 0] = palette[p + 0]
                     data[pi + 1] = palette[p + 1]
                     data[pi + 2] = palette[p + 2]

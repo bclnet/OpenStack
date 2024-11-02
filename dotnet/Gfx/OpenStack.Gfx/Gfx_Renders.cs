@@ -118,29 +118,6 @@ namespace OpenStack.Gfx.Renders
     }
 
     /// <summary>
-    /// Shader
-    /// </summary>
-    public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation)
-    {
-        readonly Func<int, string, int> _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
-        readonly Func<int, string, int> _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
-        Dictionary<string, int> _uniforms = [];
-        public string Name;
-        public int Program;
-        public IDictionary<string, bool> Parameters;
-        public List<string> RenderModes;
-
-        public int GetUniformLocation(string name)
-        {
-            if (_uniforms.TryGetValue(name, out var value)) return value;
-            value = _getUniformLocation(Program, name); _uniforms[name] = value; return value;
-        }
-
-        public int GetAttribLocation(string name)
-            => _getAttribLocation(Program, name);
-    }
-
-    /// <summary>
     /// IPickingTexture
     /// </summary>
     public interface IPickingTexture
@@ -566,6 +543,33 @@ namespace OpenStack.Gfx.Renders
                         {
                             var p = source[i] * 4;
                             //if (p + 4 > palette.Length) continue;
+                            _[pi + 0] = palette[p + 0];
+                            _[pi + 1] = palette[p + 1];
+                            _[pi + 2] = palette[p + 2];
+                        }
+                }
+        }
+
+        public static void CopyPixelsByPaletteWithAlpha(Span<byte> data, int bbp, byte[] source, byte[] palette, int pbp, byte alpha)
+        {
+            fixed (byte* _ = data)
+                if (pbp == 3)
+                {
+                    if (bbp == 4)
+                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
+                        {
+                            var s = source[i]; var p = s * 3;
+                            //if (p + 3 > palette.Length) continue;
+                            _[pi + 0] = palette[p + 0];
+                            _[pi + 1] = palette[p + 1];
+                            _[pi + 2] = palette[p + 2];
+                            _[pi + 3] = s == alpha ? (byte)0x00 : (byte)0xFF;
+                        }
+                    else if (bbp == 3)
+                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 3)
+                        {
+                            var p = source[i] * 3;
+                            //if (p + 3 > palette.Length) continue;
                             _[pi + 0] = palette[p + 0];
                             _[pi + 1] = palette[p + 1];
                             _[pi + 2] = palette[p + 2];
