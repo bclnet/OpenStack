@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math, numpy as np
 from enum import Enum, Flag
 from openstk.gfx.gfx import Shader
@@ -12,12 +13,12 @@ class IMaterial: pass
 class IModel: pass
 
 # forwards
-class AABB: pass
-class Camera: pass
-class IVBIB: pass
-class Attribute: pass
-class Frustum: pass
-class RenderSlotType: pass
+# class AABB: pass
+# class Camera: pass
+# class IVBIB: pass
+# class Attribute: pass
+# class Frustum: pass
+# class RenderSlotType: pass
 
 # IPickingTexture
 class IPickingTexture:

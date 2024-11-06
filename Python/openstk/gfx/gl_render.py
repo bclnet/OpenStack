@@ -1,3 +1,4 @@
+from __future__ import annotations
 import math, numpy as np
 from enum import Enum
 from OpenGL.GL import *
@@ -13,12 +14,12 @@ class IVBIB: pass
 class IMaterial: pass
 class IMesh: pass
 class IModel: pass
+class IOpenGLGfx: pass
 
 # forwards
-class IOpenGLGfx: pass
-class PickingIntent: pass
-class PixelInfo: pass
-class VAOKey: pass
+# class PickingIntent: pass
+# class PixelInfo: pass
+# class VAOKey: pass
 
 # GLCamera
 class GLCamera(Camera):

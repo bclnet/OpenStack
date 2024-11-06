@@ -1,3 +1,4 @@
+from __future__ import annotations
 import ctypes, numpy as np
 from enum import Enum
 from OpenGL.GL import *

@@ -6,46 +6,40 @@ namespace System.Collections.Generic
     public delegate void GenericPoolAction<T>(Action<T> action);
     public delegate TResult GenericPoolFunc<T, TResult>(Func<T, TResult> action);
 
-    public class GenericPool<T> : IDisposable
-        where T : IDisposable
+    public interface IGenericPool<T>
     {
-        readonly ConcurrentBag<T> _items = new ConcurrentBag<T>();
-        public readonly Func<T> Factory;
-        public readonly int RetainInPool;
+        T Get();
+        void Release(T item);
+        void Action(Action<T> action);
+        TResult Func<TResult>(Func<T, TResult> action);
+        Task ActionAsync(Func<T, Task> action);
+        Task<TResult> FuncAsync<TResult>(Func<T, Task<TResult>> action);
+    }
 
-        public GenericPool(Func<T> factory, int retainInPool = 10)
-        {
-            Factory = factory;
-            RetainInPool = retainInPool;
-        }
+    public class GenericPool<T>(Func<T> factory = null, int retainInPool = 10) : IGenericPool<T>, IDisposable where T : IDisposable
+    {
+        readonly ConcurrentBag<T> items = [];
+        public readonly Func<T> Factory = factory;
+        public readonly int RetainInPool = retainInPool;
 
         public void Dispose()
         {
-            foreach (var item in _items)
-                item.Dispose();
+            foreach (var item in items) item.Dispose();
         }
 
-        public void Release(T item)
+        public virtual T Get() => items.TryTake(out var item) ? item : Factory();
+
+        public virtual void Release(T item)
         {
-            if (_items.Count < RetainInPool) _items.Add(item);
+            if (items.Count < RetainInPool) items.Add(item);
             else item.Dispose();
         }
-
-        public T Get() => _items.TryTake(out var item) ? item : Factory();
 
         public void Action(Action<T> action)
         {
             var item = Get();
             try { action(item); }
             finally { Release(item); }
-        }
-
-        public Task ActionAsync(Action<T> action)
-        {
-            var item = Get();
-            try { action(item); }
-            finally { Release(item); }
-            return Task.CompletedTask;
         }
 
         public TResult Func<TResult>(Func<T, TResult> action)
@@ -55,11 +49,32 @@ namespace System.Collections.Generic
             finally { Release(item); }
         }
 
+        public Task ActionAsync(Func<T, Task> action)
+        {
+            var item = Get();
+            try { action(item); return Task.CompletedTask; }
+            finally { Release(item); }
+        }
+
         public Task<TResult> FuncAsync<TResult>(Func<T, Task<TResult>> action)
         {
             var item = Get();
             try { return action(item); }
             finally { Release(item); }
         }
+    }
+
+    public class SinglePool<T>(T single) : GenericPool<T>() where T : IDisposable
+    {
+        public readonly T Single = single;
+        public override T Get() => Single;
+        public override void Release(T item) { Single.Dispose(); }
+    }
+
+    public class StaticPool<T>(T @static) : GenericPool<T>() where T : IDisposable
+    {
+        public readonly T Static = @static;
+        public override T Get() => Static;
+        public override void Release(T item) { }
     }
 }

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from openstk.gfx.gfx_render import AABB, RenderPass
 
@@ -11,9 +12,9 @@ class Shader: pass
 class Camera: pass
 
 # forwards
-class Node: pass
-class Element: pass
-class SceneNode: pass
+# class Node: pass
+# class Element: pass
+# class SceneNode: pass
 
 # Octree
 class Octree:

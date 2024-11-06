@@ -1,11 +1,12 @@
+from __future__ import annotations
 import quaternion as quat, numpy as np
 from typing import NamedTuple
 from enum import Enum
 from openstk.gfx.util import _np_createFromQuaternion4x4, _np_createTranslation4x4
 
 # forwards
-class Bone: pass
-class FrameCache: pass
+# class Bone: pass
+# class FrameCache: pass
 
 # bone
 class Bone:

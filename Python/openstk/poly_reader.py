@@ -1,15 +1,7 @@
 import os, numpy as np
-from struct import unpack
+from struct import calcsize, unpack, iter_unpack
 from io import BytesIO
 from openstk.util import _throw
-
-def marshalPSize(c: str) -> int: return 2 ** ('cxbhiq'.index(c.lower()) - 2)
-def marshalS(c: str) -> int:
-    #if sizeOf == size else _throw(f'Sizes are different: {sizeOf}|{size}')
-    pass
-def marshalSArray(c: str) -> int:
-    #if sizeOf == size else _throw(f'Sizes are different: {sizeOf}|{size}')
-    pass
 
 # Reader
 class Reader:
@@ -111,24 +103,23 @@ class Reader:
     def readL32Encoding(self, encoding: str = None): return self.f.read(int.from_bytes(self.f.read(4), 'little')).decode('ascii' if not encoding else encoding)
     
     # struct : single  - https://docs.python.org/3/library/struct.html 
-    def readF(self, cls: object, factory: callable) -> object: return factory(self)
-    def readP(self, pat: str) -> object: size = marshalPSize(pat); return unpack(pat, self.f.read(size))[0]
-    def readS(self, cls: object, sizeOf: int = -1) -> object: pattern, size = cls.struct; return cls(unpack(pattern, self.f.read(size)))
-    # def readT(self, cls: object, sizeOf: int) -> object: return unpack(cls, self.f.read(size))[0]
+    def readF(self, factory: callable) -> object: return factory(self)
+    def readP(self, cls: callable, pat: str) -> object: cls = cls or (lambda x: x[0]); return cls(unpack(pat, self.f.read(calcsize(pat))))
+    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = cls.struct; return cls(unpack(pat, self.f.read(size)))
 
     # struct : array - factory
-    def readL8FArray(self, cls: object, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readByte())
-    def readL16FArray(self, cls: object, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readUInt16E(endian))
-    def readL32FArray(self, cls: object, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readUInt32E(endian))
-    def readC32FArray(self, cls: object, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(cls, factory, source.readCInt32E(endian))
-    def readFArray(self, cls: object, factory: callable, count: int) -> list[object]: return [self.readF(cls, factory) for x in range(count)] if count else []
+    def readL8FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, source.readByte())
+    def readL16FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, source.readUInt16E(endian))
+    def readL32FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, source.readUInt32E(endian))
+    def readC32FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, source.readCInt32E(endian))
+    def readFArray(self, factory: callable, count: int) -> list[object]: return [self.readF(factory) for x in range(count)] if count else []
 
     # struct : array - pattern / primative
-    def readL8PArray(self, pat: str) -> list[object]: return self.readPArray(pat, source.readByte())
-    def readL16PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readUInt16(endian))
-    def readL32PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readUInt32(endian))
-    def readC32PArray(self, pat: str, endian: bool = False) -> list[object]: return self.readPArray(pat, source.readCInt32(endian))
-    def readPArray(self, pat: str, count: int) -> list[object]: size = marshalPSize(pat); return unpack(f'{count}{pat}', self.f.read(size * count)) if count else []
+    def readL8PArray(self, cls: callable, pat: str) -> list[object]: return self.readPArray(cls, pat, source.readByte())
+    def readL16PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, source.readUInt16(endian))
+    def readL32PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, source.readUInt32(endian))
+    def readC32PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, source.readCInt32(endian))
+    def readPArray(self, cls: callable, pat: str, count: int) -> list[object]: cls = cls or (lambda x: x[0]); return [cls(x) for x in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
 
     # struct : array - struct
     def readL8SArray(self, cls: object, sizeOf: int = -1) -> list[object]: return self.readSArray(cls, sizeOf, source.readByte())

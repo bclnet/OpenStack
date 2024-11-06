@@ -1,9 +1,10 @@
+from __future__ import annotations
 import os
 from enum import Enum, Flag
 from openstk.poly import Reader, Writer, findType
 
 # forwards
-class DDS_HEADER: pass
+# class DDS_HEADER: pass
 
 #region Texture Enums
 

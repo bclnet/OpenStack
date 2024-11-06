@@ -48,15 +48,14 @@ namespace System
         {
             if (p[0] == '<') return source;
             var s = p.ToCharArray();
-            char c;
-            int _ = 0, cnt = 0, size;
+            char c; int _ = 0, cnt = 0, size;
             for (var k = 0; k < count; k++)
                 for (var i = 1; i < s.Length; i++)
                 {
                     c = s[i];
                     if (char.IsDigit(c)) { cnt = cnt * 10 + c - '0'; continue; }
                     else if (cnt == 0) cnt = 1;
-                    size = MarshalPSize(c);
+                    size = MarshalPSymbol(c);
                     if (size <= 0) _ += cnt;
                     else for (var j = 0; j < cnt; j++) { Array.Reverse(source, _, size); _ += size; }
                     cnt = 0;
@@ -78,14 +77,41 @@ namespace System
         #region MarshalP
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int MarshalPSize(char c) => (int)Math.Pow(2, "cxbhiq".IndexOf(char.ToLower(c)) - 2);
+        //public static int MarshalPSymbolSize(char c) => (int)Math.Pow(2, "cxbhiq".IndexOf(char.ToLower(c)) - 2);
+        public static int MarshalPSymbol(char c) => char.ToLower(c) switch
+        {
+            'c' or 'x' or 'b' or 's' => 1,
+            'h' => 2,
+            'i' or 'f' => 4,
+            'q' or 'd' => 8,
+            _ => throw new Exception($"Unknown PSymbol: {c}")
+        };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T MarshalP<T>(string p, Func<int, byte[]> bytesFunc) where T : struct
+        public static int MarshalPSize(string p)
         {
-            var s = MarshalPSize(p[0]);
+            var s = p.ToCharArray(); var sLen = s.Length;
+            char c = s[0];
+            if (sLen == 1) return MarshalPSymbol(c);
+            int _ = 0, cnt = 0, size;
+            for (var i = c == '<' || c == '>' ? 1 : 0; i < sLen; i++)
+            {
+                c = s[i];
+                if (char.IsDigit(c)) { cnt = cnt * 10 + c - 0x30; continue; }
+                else if (cnt == 0) cnt = 1;
+                size = MarshalPSymbol(c);
+                _ += size <= 0 ? cnt : size * cnt;
+                cnt = 0;
+            }
+            return _;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T MarshalP<T>(string pat, Func<int, byte[]> bytesFunc) where T : struct
+        {
+            var s = MarshalPSize(pat);
             var bytes = bytesFunc(s);
-            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
+            if (pat[0] == '>') bytes = MarshalSApply(bytes, pat);
             fixed (byte* _ = bytes) return Marshal.PtrToStructure<T>((IntPtr)_);
             //return MemoryMarshal.Cast<byte, T>(bytes2)[0];
         }
@@ -93,9 +119,9 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[] MarshalPArray<T>(string pat, Func<int, byte[]> bytesFunc, int count) where T : struct
         {
-            var (p, s) = (pat, MarshalPSize(pat[0]));
+            var s = MarshalPSize(pat);
             var bytes = bytesFunc(s);
-            if (p[0] == '>') bytes = MarshalSApply(bytes, p);
+            if (pat[0] == '>') bytes = MarshalSApply(bytes, pat);
             var typeOfT = typeof(T);
             var isEnum = typeOfT.IsEnum;
             var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
