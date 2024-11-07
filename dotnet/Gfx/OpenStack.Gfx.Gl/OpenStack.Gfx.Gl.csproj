@@ -16,11 +16,15 @@
   <ItemGroup>
     <None Remove="Shaders\plane.frag" />
     <None Remove="Shaders\plane.vert" />
+    <None Remove="Shaders\testtri.frag" />
+    <None Remove="Shaders\testtri.vert" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Shaders\plane.frag" />
     <EmbeddedResource Include="Shaders\plane.vert" />
+    <EmbeddedResource Include="Shaders\testtri.frag" />
+    <EmbeddedResource Include="Shaders\testtri.vert" />
   </ItemGroup>
 
   <ItemGroup>
