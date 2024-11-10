@@ -10,9 +10,10 @@ class IGenericPool(Generic[T]):
     def func(self, action: callable) -> object: pass
 
 class GenericPool(Generic[T]):
-    def __init__(self, factory: callable, retainInPool: int = 10):
+    def __init__(self, factory: callable, reset: callable = None, retainInPool: int = 10):
         self.items: list[T] = []
         self.factory: callable = factory
+        self.reset: callable = reset
         self.retainInPool: int = retainInPool
     def __enter__(self): return self
     def __exit__(self, *args):
@@ -22,7 +23,7 @@ class GenericPool(Generic[T]):
         return self.items.pop() if self.items else self.factory()
 
     def release(self, item: T) -> None:
-        if len(self.items) < self.retainInPool: self.items.append(item)
+        if len(self.items) < self.retainInPool: self.reset and self.reset(item); self.items.append(item)
         else: item.__exit__(None, None, None)
 
     def action(self, action: callable) -> None:
@@ -36,11 +37,11 @@ class GenericPool(Generic[T]):
         finally: self.release(item)
 
 class SinglePool(GenericPool, Generic[T]):
-    def __init__(self, single: T): self.single: T = single
+    def __init__(self, single: T, reset: callable = None): super().__init__(None, reset); self.single: T = single
     def get(self) -> None: return self.single
-    def release(self, item: T) -> None: self.single.__exit__(None, None, None)
+    def release(self, item: T) -> None: self.reset and self.reset(item); self.single.__exit__(None, None, None)
 
 class StaticPool(GenericPool, Generic[T]):
-    def __init__(self, single: T): self.static: T = static
+    def __init__(self, single: T, reset: callable = None): super().__init__(None, reset); self.static: T = static
     def get(self) -> None: return self.static
-    def release(self, item: T) -> None: pass
+    def release(self, item: T) -> None: self.reset and self.reset(item)

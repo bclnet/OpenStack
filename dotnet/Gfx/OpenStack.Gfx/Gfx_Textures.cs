@@ -925,7 +925,7 @@ namespace OpenStack.Gfx.Textures
         int Height { get; }
         int Depth { get; }
         int MipMaps { get; }
-        TextureFlags Flags { get; }
+        TextureFlags TexFlags { get; }
         (byte[] bytes, object format, Range[] spans) Begin(int platform);
         void End();
     }
