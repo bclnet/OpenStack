@@ -9,32 +9,33 @@ namespace OpenStack.Gfx.Textures
     public static class TextureHelper
     {
         public static (int, bool) GetBlockSize(object format)
-            => format is TextureGLFormat glFormat ? glFormat switch
-            {
-                TextureGLFormat.CompressedRgbaS3tcDxt1Ext => (8, true),
-                TextureGLFormat.CompressedRgbaS3tcDxt5Ext => (6, true),
-                TextureGLFormat.Rgba8 => (4, false),
-                TextureGLFormat.R16 => (2, false),
-                //TextureGLFormat.RG1616 => (4, false),
-                TextureGLFormat.Rgba16f => (8, false),
-                TextureGLFormat.R16f => (2, false),
-                //TextureGLFormat.RG1616F => (4, false),
-                //TextureGLFormat.RGBA16161616F => (8, false),
-                //TextureGLFormat.R32F => (4, false),
-                //TextureGLFormat.RG3232F => (8, false),
-                //TextureGLFormat.RGB323232F => (12, false),
-                //TextureGLFormat.RGBA32323232F => (16, false),
-                TextureGLFormat.CompressedRgbBptcUnsignedFloat => (16, true),
-                TextureGLFormat.CompressedRgbaBptcUnorm => (16, true),
-                TextureGLFormat.Intensity8 => (2, false),
-                TextureGLFormat.CompressedRgb8Etc2 => (8, true),
-                TextureGLFormat.CompressedRgba8Etc2Eac => (16, true),
-                //TextureGLFormat.BGRA8888 => (4, false),
-                TextureGLFormat.CompressedRedRgtc1 => (8, true),
-                _ => (1, false),
-            }
-            : format is ValueTuple<TextureGLFormat, TextureGLPixelFormat, TextureGLPixelType> glPixelFormat ? GetBlockSize(glPixelFormat.Item1)
-            : throw new ArgumentOutOfRangeException(nameof(format), $"{format}");
+            => throw new ArgumentOutOfRangeException(nameof(format), $"{format}");
+            //=> format is TextureGLFormat glFormat ? glFormat switch
+            //{
+            //    TextureGLFormat.CompressedRgbaS3tcDxt1Ext => (8, true),
+            //    TextureGLFormat.CompressedRgbaS3tcDxt5Ext => (6, true),
+            //    TextureGLFormat.Rgba8 => (4, false),
+            //    TextureGLFormat.R16 => (2, false),
+            //    //TextureGLFormat.RG1616 => (4, false),
+            //    TextureGLFormat.Rgba16f => (8, false),
+            //    TextureGLFormat.R16f => (2, false),
+            //    //TextureGLFormat.RG1616F => (4, false),
+            //    //TextureGLFormat.RGBA16161616F => (8, false),
+            //    //TextureGLFormat.R32F => (4, false),
+            //    //TextureGLFormat.RG3232F => (8, false),
+            //    //TextureGLFormat.RGB323232F => (12, false),
+            //    //TextureGLFormat.RGBA32323232F => (16, false),
+            //    TextureGLFormat.CompressedRgbBptcUnsignedFloat => (16, true),
+            //    TextureGLFormat.CompressedRgbaBptcUnorm => (16, true),
+            //    TextureGLFormat.Intensity8 => (2, false),
+            //    TextureGLFormat.CompressedRgb8Etc2 => (8, true),
+            //    TextureGLFormat.CompressedRgba8Etc2Eac => (16, true),
+            //    //TextureGLFormat.BGRA8888 => (4, false),
+            //    TextureGLFormat.CompressedRedRgtc1 => (8, true),
+            //    _ => (1, false),
+            //}
+            //: format is ValueTuple<TextureGLFormat, TextureGLPixelFormat, TextureGLPixelType> glPixelFormat ? GetBlockSize(glPixelFormat.Item1)
+            //: throw new ArgumentOutOfRangeException(nameof(format), $"{format}");
 
         public static int GetMipmapCount(int width, int height)
         {
