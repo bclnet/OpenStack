@@ -19,7 +19,7 @@ class TextureFlags(Flag):
     TEXTURE_ARRAY = 0x00000040
 
 # TextureFormat
-class TextureFormat(Enum):
+class TextureFormat(Flag):
     Unknown = 0
     I8 = 1
     L8 = 2
@@ -34,17 +34,18 @@ class TextureFormat(Enum):
     BGRA1555 = 11
     Compressed = 0x10000000
     DXT1 = 100 | Compressed
-    DXT3 = 101 | Compressed
-    DXT5 = 102 | Compressed
-    BC4 = 103 | Compressed
-    BC5 = 104 | Compressed
-    BC6H = 105 | Compressed
-    BC7 = 106 | Compressed
-    ETC2 = 107 | Compressed
-    ETC2_EAC = 108 | Compressed
+    DXT1A = 101 | Compressed
+    DXT3 = 102 | Compressed
+    DXT5 = 103 | Compressed
+    BC4 = 104 | Compressed
+    BC5 = 105 | Compressed
+    BC6H = 106 | Compressed
+    BC7 = 107 | Compressed
+    ETC2 = 108 | Compressed
+    ETC2_EAC = 109 | Compressed
 
 # TexturePixel
-class TexturePixel(Enum):
+class TexturePixel(Flag):
     Unknown = 0
     Byte = 1
     Short = 2
