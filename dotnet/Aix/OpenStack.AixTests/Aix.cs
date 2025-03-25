@@ -1,17 +1,16 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Aix.Aix
+namespace OpenStack.Aix.Aix;
+
+/// <summary>
+/// TestPlatformStats
+/// </summary>
+[TestClass]
+public class TestPlatformStats
 {
-    /// <summary>
-    /// TestPlatformStats
-    /// </summary>
-    [TestClass]
-    public class TestPlatformStats
+    [TestMethod]
+    public void Test_Init()
     {
-        [TestMethod]
-        public void Test_Init()
-        {
-            //Assert.AreEqual(0, PlatformStats.MaxTextureMaxAnisotropy);
-        }
+        //Assert.AreEqual(0, PlatformStats.MaxTextureMaxAnisotropy);
     }
 }

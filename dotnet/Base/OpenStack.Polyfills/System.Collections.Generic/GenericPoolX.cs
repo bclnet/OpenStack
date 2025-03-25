@@ -16,7 +16,7 @@ namespace System.Collections.Generic
         Task<TResult> FuncAsync<TResult>(Func<T, Task<TResult>> action);
     }
 
-    public class GenericPool<T>(Func<T> factory, Action<T> reset = null, int retainInPool = 10) : IGenericPool<T>, IDisposable where T : IDisposable
+    public class GenericPoolX<T>(Func<T> factory, Action<T> reset = null, int retainInPool = 10) : IGenericPool<T>, IDisposable where T : IDisposable
     {
         readonly ConcurrentBag<T> items = [];
         public readonly Func<T> Factory = factory;
@@ -64,14 +64,14 @@ namespace System.Collections.Generic
         }
     }
 
-    public class SinglePool<T>(T single, Action<T> reset = null) : GenericPool<T>(null, reset) where T : IDisposable
+    public class SinglePool<T>(T single, Action<T> reset = null) : GenericPoolX<T>(null, reset) where T : IDisposable
     {
         public readonly T Single = single;
         public override T Get() => Single;
         public override void Release(T item) { Single.Dispose(); }
     }
 
-    public class StaticPool<T>(T @static, Action<T> reset = null) : GenericPool<T>(null, reset) where T : IDisposable
+    public class StaticPool<T>(T @static, Action<T> reset = null) : GenericPoolX<T>(null, reset) where T : IDisposable
     {
         public readonly T Static = @static;
         public override T Get() => Static;

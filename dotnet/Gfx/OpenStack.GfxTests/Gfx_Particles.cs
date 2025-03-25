@@ -1,6 +1,4 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Particles
-{
-}
+namespace OpenStack.Gfx.Particles;

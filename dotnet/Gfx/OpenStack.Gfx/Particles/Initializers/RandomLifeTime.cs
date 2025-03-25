@@ -1,26 +1,25 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.Particles.Initializers
+namespace OpenStack.Gfx.Particles.Initializers;
+
+public class RandomLifeTime : IParticleInitializer
 {
-    public class RandomLifeTime : IParticleInitializer
+    readonly Random _random = new();
+    readonly float _lifetimeMin;
+    readonly float _lifetimeMax;
+
+    public RandomLifeTime(IDictionary<string, object> keyValues)
     {
-        readonly Random _random = new Random();
-        readonly float _lifetimeMin;
-        readonly float _lifetimeMax;
+        _lifetimeMin = keyValues.GetFloat("m_fLifetimeMin");
+        _lifetimeMax = keyValues.GetFloat("m_fLifetimeMax");
+    }
 
-        public RandomLifeTime(IDictionary<string, object> keyValues)
-        {
-            _lifetimeMin = keyValues.GetFloat("m_fLifetimeMin");
-            _lifetimeMax = keyValues.GetFloat("m_fLifetimeMax");
-        }
-
-        public Particle Initialize(ref Particle particle, ParticleSystemRenderState particleSystemRenderState)
-        {
-            var lifetime = _lifetimeMin + ((_lifetimeMax - _lifetimeMin) * (float)_random.NextDouble());
-            particle.ConstantLifetime = lifetime;
-            particle.Lifetime = lifetime;
-            return particle;
-        }
+    public Particle Initialize(ref Particle particle, ParticleSystemRenderState particleSystemRenderState)
+    {
+        var lifetime = _lifetimeMin + ((_lifetimeMax - _lifetimeMin) * (float)_random.NextDouble());
+        particle.ConstantLifetime = lifetime;
+        particle.Lifetime = lifetime;
+        return particle;
     }
 }

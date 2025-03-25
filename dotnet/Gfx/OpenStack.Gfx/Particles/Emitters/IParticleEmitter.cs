@@ -1,14 +1,13 @@
 using System;
 
-namespace OpenStack.Gfx.Particles.Emitters
+namespace OpenStack.Gfx.Particles.Emitters;
+
+public interface IParticleEmitter
 {
-    public interface IParticleEmitter
-    {
-        void Start(Action particleEmitCallback);
+    void Start(Action particleEmitCallback);
 #pragma warning disable CA1716 // Identifiers should not match keywords
-        void Stop();
+    void Stop();
 #pragma warning restore CA1716 // Identifiers should not match keywords
-        void Update(float frameTime);
-        bool IsFinished { get; }
-    }
+    void Update(float frameTime);
+    bool IsFinished { get; }
 }

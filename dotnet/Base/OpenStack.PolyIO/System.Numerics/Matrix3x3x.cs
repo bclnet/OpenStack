@@ -1,5 +1,5 @@
 ﻿////:ref https://referencesource.microsoft.com/#System.Numerics/System/Numerics/Matrix4x4.cs,48ce53b7e55d0436
-//namespace System.Numerics
+//namespace System.Numerics;
 //{
 //    /// <summary>
 //    /// A structure encapsulating a 3x3 matrix.

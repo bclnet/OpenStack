@@ -1,88 +1,87 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Gfx.Gl.Renders
+namespace OpenStack.Gfx.Gl.Renders;
+
+/// <summary>
+/// TestTextureRenderer
+/// </summary>
+[TestClass]
+public class TestTextureRenderer : TextureRenderer
 {
-    /// <summary>
-    /// TestTextureRenderer
-    /// </summary>
-    [TestClass]
-    public class TestTextureRenderer : TextureRenderer
+    #region base
+    public TestTextureRenderer() : base(null, 0, false) { }
+    #endregion
+
+    [TestMethod]
+    public void Test_Init()
     {
-        #region base
-        public TestTextureRenderer() : base(null, 0, false) { }
-        #endregion
-
-        [TestMethod]
-        public void Test_Init()
-        {
-            //Assert.AreEqual(0, Pitch);
-        }
-        //[TestMethod]
-        //public void Test_Event()
-        //{
-        //    Event(EventType.MouseEnter, null, null);
-        //    Event(EventType.MouseLeave, null, null);
-        //}
-        //[TestMethod]
-        //public void Test_SetViewport()
-        //{
-        //    SetViewport(0, 0, 100, 100);
-        //}
+        //Assert.AreEqual(0, Pitch);
     }
+    //[TestMethod]
+    //public void Test_Event()
+    //{
+    //    Event(EventType.MouseEnter, null, null);
+    //    Event(EventType.MouseLeave, null, null);
+    //}
+    //[TestMethod]
+    //public void Test_SetViewport()
+    //{
+    //    SetViewport(0, 0, 100, 100);
+    //}
+}
 
-    /// <summary>
-    /// TestMaterialRenderer
-    /// </summary>
-    [TestClass]
-    public class TestMaterialRenderer : MaterialRenderer
+/// <summary>
+/// TestMaterialRenderer
+/// </summary>
+[TestClass]
+public class TestMaterialRenderer : MaterialRenderer
+{
+    #region base
+    public TestMaterialRenderer() : base(null, null) { }
+    #endregion
+
+    [TestMethod]
+    public void Test_Init()
     {
-        #region base
-        public TestMaterialRenderer() : base(null, null) { }
-        #endregion
-
-        [TestMethod]
-        public void Test_Init()
-        {
-            //Assert.AreEqual(0, Pitch);
-        }
-        //[TestMethod]
-        //public void Test_Event()
-        //{
-        //    Event(EventType.MouseEnter, null, null);
-        //    Event(EventType.MouseLeave, null, null);
-        //}
-        //[TestMethod]
-        //public void Test_SetViewport()
-        //{
-        //    SetViewport(0, 0, 100, 100);
-        //}
+        //Assert.AreEqual(0, Pitch);
     }
+    //[TestMethod]
+    //public void Test_Event()
+    //{
+    //    Event(EventType.MouseEnter, null, null);
+    //    Event(EventType.MouseLeave, null, null);
+    //}
+    //[TestMethod]
+    //public void Test_SetViewport()
+    //{
+    //    SetViewport(0, 0, 100, 100);
+    //}
+}
 
-    /// <summary>
-    /// TestParticleGridRenderer
-    /// </summary>
-    [TestClass]
-    public class TestParticleGridRenderer : ParticleGridRenderer
+/// <summary>
+/// TestParticleGridRenderer
+/// </summary>
+[TestClass]
+public class TestParticleGridRenderer : ParticleGridRenderer
+{
+    #region base
+    public TestParticleGridRenderer() : base(null, 1f, 1) { }
+    #endregion
+
+    [TestMethod]
+    public void Test_Init()
     {
-        #region base
-        public TestParticleGridRenderer() : base(null, 1f, 1) { }
-        #endregion
-
-        [TestMethod]
-        public void Test_Init()
-        {
-            //Assert.AreEqual(0, Pitch);
-        }
-        //[TestMethod]
-        //public void Test_Event()
-        //{
-        //    Event(EventType.MouseEnter, null, null);
-        //    Event(EventType.MouseLeave, null, null);
-        //}
-        //[TestMethod]
-        //public void Test_SetViewport()
-        //{
-        //    SetViewport(0, 0, 100, 100);
-        //}
+        //Assert.AreEqual(0, Pitch);
     }
+    //[TestMethod]
+    //public void Test_Event()
+    //{
+    //    Event(EventType.MouseEnter, null, null);
+    //    Event(EventType.MouseLeave, null, null);
+    //}
+    //[TestMethod]
+    //public void Test_SetViewport()
+    //{
+    //    SetViewport(0, 0, 100, 100);
+    //}
 }

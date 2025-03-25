@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.Particles.Operators
-{
-    public class SpinUpdate : IParticleOperator
-    {
-#pragma warning disable CA1801
-        public SpinUpdate(IDictionary<string, object> keyValues) { }
-#pragma warning restore CA1801
+namespace OpenStack.Gfx.Particles.Operators;
 
-        public void Update(Span<Particle> particles, float frameTime, ParticleSystemRenderState particleSystemState)
-        {
-            for (var i = 0; i < particles.Length; ++i) particles[i].Rotation += particles[i].RotationSpeed * frameTime;
-        }
+#pragma warning disable CS9113
+public class SpinUpdate(IDictionary<string, object> keyValues) : IParticleOperator
+#pragma warning restore CS9113
+{
+    public void Update(Span<Particle> particles, float frameTime, ParticleSystemRenderState particleSystemState)
+    {
+        for (var i = 0; i < particles.Length; ++i) particles[i].Rotation += particles[i].RotationSpeed * frameTime;
     }
 }

@@ -1,3 +1,1 @@
-﻿namespace OpenStack.Gfx.Particles
-{
-}
+﻿namespace OpenStack.Gfx.Particles;

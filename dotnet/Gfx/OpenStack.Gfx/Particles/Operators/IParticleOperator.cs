@@ -1,9 +1,8 @@
 using System;
 
-namespace OpenStack.Gfx.Particles.Operators
+namespace OpenStack.Gfx.Particles.Operators;
+
+public interface IParticleOperator
 {
-    public interface IParticleOperator
-    {
-        void Update(Span<Particle> particles, float frameTime, ParticleSystemRenderState particleSystemState);
-    }
+    void Update(Span<Particle> particles, float frameTime, ParticleSystemRenderState particleSystemState);
 }

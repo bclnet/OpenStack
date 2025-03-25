@@ -1,10 +1,9 @@
-﻿namespace System.IO
+﻿namespace System.IO;
+
+/// <summary>
+/// IHaveStream
+/// </summary>
+public interface IHaveStream
 {
-    /// <summary>
-    /// IHaveStream
-    /// </summary>
-    public interface IHaveStream
-    {
-        Stream GetStream();
-    }
+    Stream GetStream();
 }

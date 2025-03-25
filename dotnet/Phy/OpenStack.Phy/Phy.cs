@@ -1,13 +1,12 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("OpenStack.AixTests")]
+[assembly: InternalsVisibleTo("OpenStack.PhyTests")]
 
-namespace OpenStack.Aix
+namespace OpenStack.Phy;
+
+/// <summary>
+/// IOpenPhy
+/// </summary>
+public interface IOpenPhy
 {
-    /// <summary>
-    /// IOpenAix
-    /// </summary>
-    public interface IOpenGfx
-    {
-    }
 }
