@@ -5,6 +5,10 @@ from openstk.poly_reader import Reader
 from openstk.poly_writer import Writer
 __all__ = ['unsafe', 'findType', 'IGenericPool', 'GenericPool', 'SinglePool', 'StaticPool', 'Reader', 'Writer']
 
+# ISource
+class ISource:
+    def loadFileObject(self, path: object, option: object = None, throwOnError: bool = True) -> object: pass
+
 # lumps
 class X_LumpON:
     offset: int

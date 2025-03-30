@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace OpenStack.Gfx.Textures;
+namespace OpenStack.Gfx.Texture;
 
 /// <summary>
 /// Texture helper

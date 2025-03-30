@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Stride" Version="4.2.0.2381" />
+	  <PackageReference Include="Stride.Engine" Version="4.2.0.2381" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Base\OpenStack\OpenStack.csproj" />
+	</ItemGroup>
+
+</Project>

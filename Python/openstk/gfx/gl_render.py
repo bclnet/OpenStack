@@ -318,9 +318,9 @@ class GLPickingTexture(IPickingTexture):
     colorHandle: int
     depthHandle: int
 
-    def __init__(self, graphic: IOpenGLGfx, onPicked: list[callable]):
-        self.shader, _ = graphic.createShader('vrf.picking', {})
-        self.debugShader, _ = graphic.createShader('vrf.picking', { 'F_DEBUG_PICKER': True })
+    def __init__(self, gfx: IOpenGLGfx3d, onPicked: list[callable]):
+        self.shader, _ = gfx.createShader('vrf.picking', {})
+        self.debugShader, _ = gfx.createShader('vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
         self.setup()
 
@@ -396,22 +396,25 @@ class GLRenderMaterial(RenderMaterial):
     def render(self, shader: Shader) -> None:
         # start at 1, texture unit 0 is reserved for the animation texture
         textureUnit = 1
-        uniformLocation: int
+        location: int
         for texture in self.textures:
-            uniformLocation = shader.getUniformLocation(texture.key)
-            if uniformLocation > -1:
+            location = shader.getUniformLocation(texture.key)
+            if location > -1:
                 glActiveTexture(GL_TEXTURE0 + textureUnit)
                 glBindTexture(GL_TEXTURE_2D, texture.Value)
-                glUniform1(uniformLocation, textureUnit)
+                glUniform1(location, textureUnit)
                 textureUnit += 1
         match self.material:
-            case p if isinstance(self.material, IParamMaterial):
+            case p if isinstance(self.material, MaterialMapProp):
+                for param in p.intParams:
+                    location = shader.getUniformLocation(param.key)
+                    if location > -1: glUniform1(location, param.value)
                 for param in p.floatParams:
-                    uniformLocation = shader.getUniformLocation(param.key)
-                    if uniformLocation > -1: glUniform1(uniformLocation, param.value)
+                    location = shader.getUniformLocation(param.key)
+                    if location > -1: glUniform1(location, param.value)
                 for param in p.vectorParams:
-                    uniformLocation = shader.getUniformLocation(param.key)
-                    if uniformLocation > -1: glUniform4(uniformLocation, np.array([param.value[0], param.value[1], param.value[2], param.value[3]]))
+                    location = shader.getUniformLocation(param.key)
+                    if location > -1: glUniform4(location, np.array([param.value[0], param.value[1], param.value[2], param.value[3]]))
         alphaReference: int = shader.getUniformLocation('g_flAlphaTestReference')
         if alphaReference > -1: glUniform1(alphaReference, alphaTestReference)
         if self.isBlended:

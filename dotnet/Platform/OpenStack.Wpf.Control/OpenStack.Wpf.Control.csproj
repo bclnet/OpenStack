@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OpenTK.NetStandard" Version="1.0.5.32" />
+		<PackageReference Include="OpenTK.NetStandard.GLControl" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\OpenStack.Gl\OpenStack.Gl.csproj" />
+		<ProjectReference Include="..\OpenStack.Godot\OpenStack.Godot.csproj" />
+		<ProjectReference Include="..\OpenStack.Ogre\OpenStack.Ogre.csproj" />
+		<ProjectReference Include="..\OpenStack.Sdl\OpenStack.Sdl.csproj" />
+		<ProjectReference Include="..\OpenStack.Unity\OpenStack.Unity.csproj" />
+	</ItemGroup>
+
+</Project>

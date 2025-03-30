@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Gfx.Textures;
+﻿namespace OpenStack.Gfx.Texture;
 
 #if false
 #region Unknown
