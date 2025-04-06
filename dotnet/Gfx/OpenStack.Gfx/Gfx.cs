@@ -3,7 +3,6 @@ using OpenStack.Gfx.Sprite;
 using OpenStack.Gfx.Texture;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ public abstract class Object2dBuilderBase<Object, Sprite>
 /// <summary>
 /// IObject2dManager
 /// </summary>
-public interface IObject2dManager<Object, Sprite>
+public interface IObjectSpriteManager<Object, Sprite>
 {
     (Object obj, object tag) CreateObject(object path);
     void PreloadObject(object path);
@@ -47,7 +46,7 @@ public interface IObject2dManager<Object, Sprite>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class Object2dManager<Object, Sprite>(ISource source, Object2dBuilderBase<Object, Sprite> builder) : IObject2dManager<Object, Sprite>
+public class ObjectSpriteManager<Object, Sprite>(ISource source, Object2dBuilderBase<Object, Sprite> builder) : IObjectSpriteManager<Object, Sprite>
 {
     readonly ISource Source = source;
     readonly Object2dBuilderBase<Object, Sprite> Builder = builder;
@@ -99,7 +98,7 @@ public abstract class Object3dBuilderBase<Object, Material, Texture>
 /// <summary>
 /// IObject3dManager
 /// </summary>
-public interface IObject3dManager<Object, Material, Texture>
+public interface IObjectModelManager<Object, Material, Texture>
 {
     (Object obj, object tag) CreateObject(object path);
     void PreloadObject(object path);
@@ -114,7 +113,7 @@ public interface IObject3dManager<Object, Material, Texture>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class Object3dManager<Object, Material, Texture>(ISource source, IMaterialManager<Material, Texture> materialManager, Object3dBuilderBase<Object, Material, Texture> builder) : IObject3dManager<Object, Material, Texture>
+public class ObjectModelManager<Object, Material, Texture>(ISource source, IMaterialManager<Material, Texture> materialManager, Object3dBuilderBase<Object, Material, Texture> builder) : IObjectModelManager<Object, Material, Texture>
 {
     readonly ISource Source = source;
     readonly IMaterialManager<Material, Texture> MaterialManager = materialManager;
@@ -608,39 +607,57 @@ public interface IOpenGfx
 }
 
 /// <summary>
-/// IOpenGfx2d
+/// IOpenGfx2dSprite
 /// </summary>
-public interface IOpenGfx2d : IOpenGfx
+public interface IOpenGfx2dSprite : IOpenGfx
 {
     void PreloadSprite(object path);
 }
 
 /// <summary>
-/// IOpenGfx2dAny
+/// IOpenGfx2dSprite
 /// </summary>
-public interface IOpenGfx2dAny<Object, Sprite> : IOpenGfx2d
+public interface IOpenGfx2dSprite<Object, Sprite> : IOpenGfx2dSprite
 {
     ISpriteManager<Sprite> SpriteManager { get; }
-    IObject2dManager<Object, Sprite> ObjectManager { get; }
+    IObjectSpriteManager<Object, Sprite> ObjectManager { get; }
+    Object CreateObject(object path);
+}
+
+/// <summary>
+/// IOpenGfx3dSprite
+/// </summary>
+public interface IOpenGfx3dSprite : IOpenGfx
+{
+    void PreloadSprite(object path);
+}
+
+/// <summary>
+/// IOpenGfx3dSprite
+/// </summary>
+public interface IOpenGfx3dSprite<Object, Sprite> : IOpenGfx3dSprite
+{
+    ISpriteManager<Sprite> SpriteManager { get; }
+    IObjectSpriteManager<Object, Sprite> ObjectManager { get; }
     Object CreateObject(object path);
 }
 
 /// <summary>
 /// IOpenGfx3d
 /// </summary>
-public interface IOpenGfx3d : IOpenGfx
+public interface IOpenGfx3dModel : IOpenGfx
 {
     void PreloadTexture(object path);
 }
 
 /// <summary>
-/// IOpenGfx3dAny
+/// IOpenGfx3dModel
 /// </summary>
-public interface IOpenGfx3dAny<Object, Material, Texture, Shader> : IOpenGfx3d
+public interface IOpenGfx3dModel<Object, Material, Texture, Shader> : IOpenGfx3dModel
 {
     ITextureManager<Texture> TextureManager { get; }
     IMaterialManager<Material, Texture> MaterialManager { get; }
-    IObject3dManager<Object, Material, Texture> ObjectManager { get; }
+    IObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     IShaderManager<Shader> ShaderManager { get; }
     Texture CreateTexture(object path, Range? level = null);
     Object CreateObject(object path);
@@ -653,6 +670,16 @@ public interface IOpenGfx3dAny<Object, Material, Texture, Shader> : IOpenGfx3d
 public static class GfxStats
 {
     public static int MaxTextureMaxAnisotropy;
+}
+
+/// <summary>
+/// GFX
+/// </summary>
+public static class GFX
+{
+    public const int X2dSprite = 0;
+    public const int X3dSprite = 1;
+    public const int X3dModel = 2;
 }
 
 /// <summary>

@@ -389,7 +389,7 @@ public class GLPickingTexture : IDisposable, IPickingTexture
     int colorHandle;
     int depthHandle;
 
-    public GLPickingTexture(IOpenGLGfx3d gfx, EventHandler<PickingResponse> onPicked)
+    public GLPickingTexture(OpenGLGfx3dModel gfx, EventHandler<PickingResponse> onPicked)
     {
         (Shader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>());
         (DebugShader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
@@ -539,9 +539,9 @@ public class GLRenderMaterial(MaterialPropShader material) : RenderMaterial(mate
 /// <summary>
 /// GLRenderableMesh
 /// </summary>
-public class GLRenderableMesh(IOpenGLGfx3d gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model)
+public class GLRenderableMesh(OpenGLGfx3dModel gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model)
 {
-    IOpenGLGfx3d Gfx;
+    OpenGLGfx3dModel Gfx;
 
     public override void SetRenderMode(string renderMode)
     {

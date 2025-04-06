@@ -10,9 +10,9 @@ namespace OpenStack.Sdl.Renderers;
 /// </summary>
 public class TestTriRenderer : Renderer
 {
-    readonly ISdlGfx2d Gfx;
+    readonly SdlGfx2dSprite Gfx;
 
-    public TestTriRenderer(ISdlGfx2d gfx, object obj)
+    public TestTriRenderer(SdlGfx2dSprite gfx, object obj)
     {
         Gfx = gfx;
     }
@@ -27,11 +27,11 @@ public class TestTriRenderer : Renderer
 /// </summary>
 public class SpriteRenderer : Renderer
 {
-    readonly ISdlGfx2d Gfx;
+    readonly SdlGfx2dSprite Gfx;
     readonly object Obj;
     readonly object Sprite;
 
-    public SpriteRenderer(ISdlGfx2d gfx, object obj)
+    public SpriteRenderer(SdlGfx2dSprite gfx, object obj)
     {
         Gfx = gfx;
         Obj = obj;

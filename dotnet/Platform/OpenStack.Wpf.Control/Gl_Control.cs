@@ -1,6 +1,7 @@
 using OpenStack.Gfx;
 using OpenStack.Gfx.Render;
 using OpenStack.Gfx.Texture;
+using OpenStack.Sfx;
 using OpenTK.Input;
 using System.Collections.Generic;
 using System.Windows;
@@ -20,14 +21,21 @@ public abstract class OpenGLControl : GLControl
     protected RendererWithViewport Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IOpenGfx), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
 
-    public IOpenGfx Gfx
+    public IList<IOpenGfx> Gfx
     {
-        get => GetValue(GfxProperty) as IOpenGfx;
+        get => GetValue(GfxProperty) as IList<IOpenGfx>;
         set => SetValue(GfxProperty, value);
+    }
+
+    public IList<IOpenSfx> Sfx
+    {
+        get => GetValue(SfxProperty) as IList<IOpenSfx>;
+        set => SetValue(SfxProperty, value);
     }
 
     public object Source

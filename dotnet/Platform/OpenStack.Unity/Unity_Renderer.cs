@@ -9,9 +9,9 @@ namespace OpenStack.Unity.Renderers;
 /// <summary>
 /// TestTriRenderer
 /// </summary>
-public class TestTriRenderer(IUnityGfx3d gfx, object obj) : Renderer
+public class TestTriRenderer(UnityGfx3dModel gfx, object obj) : Renderer
 {
-    readonly IUnityGfx3d Gfx = gfx;
+    readonly UnityGfx3dModel Gfx = gfx;
 }
 
 #endregion
@@ -27,9 +27,9 @@ public class TestTriRenderer(IUnityGfx3d gfx, object obj) : Renderer
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Fallout4.esm#Fallout4")));
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("Fallout4.esm#Fallout4VR")));
 
-public class CellRenderer(IUnityGfx3d gfx, object obj) : Renderer
+public class CellRenderer(UnityGfx3dModel gfx, object obj) : Renderer
 {
-    readonly IUnityGfx3d Gfx = gfx;
+    readonly UnityGfx3dModel Gfx = gfx;
     readonly object Obj = obj;
 
     public override void Start()
@@ -65,9 +65,9 @@ public class CellRenderer(IUnityGfx3d gfx, object obj) : Renderer
 
 #region EngineRenderer
 
-public class EngineRenderer(IUnityGfx3d gfx, object obj) : Renderer
+public class EngineRenderer(UnityGfx3dModel gfx, object obj) : Renderer
 {
-    readonly IUnityGfx3d Gfx = gfx;
+    readonly UnityGfx3dModel Gfx = gfx;
     readonly object Obj = obj;
 
     //object Engine;
@@ -106,9 +106,9 @@ public class EngineRenderer(IUnityGfx3d gfx, object obj) : Renderer
 
 #region ObjectRenderer
 
-public class ObjectRenderer(IUnityGfx3d gfx, object obj) : Renderer
+public class ObjectRenderer(UnityGfx3dModel gfx, object obj) : Renderer
 {
-    readonly IUnityGfx3d Gfx = gfx;
+    readonly UnityGfx3dModel Gfx = gfx;
     readonly object Obj = obj;
 
     public override void Start()
@@ -132,9 +132,9 @@ public class ObjectRenderer(IUnityGfx3d gfx, object obj) : Renderer
 /// <summary>
 /// TextureRenderer
 /// </summary>
-public class TextureRenderer(IUnityGfx3d gfx, object obj) : Renderer
+public class TextureRenderer(UnityGfx3dModel gfx, object obj) : Renderer
 {
-    readonly IUnityGfx3d Gfx = gfx;
+    readonly UnityGfx3dModel Gfx = gfx;
     readonly object Obj = obj;
 
     public override void Start()

@@ -261,17 +261,17 @@ public class UnityMaterialBuilder(ITextureManager<Texture2D> textureManager) : M
 #endif
 }
 
-// IUnityGfx2d
-public interface IUnityGfx2d : IOpenGfx2dAny<GameObject, Sprite> { }
+//public interface IUnityGfx2dSprite : IOpenGfx2dSpriteAny<GameObject, Sprite> { }
+//public interface IUnityGfx3dModel : IOpenGfx3dModelAny<GameObject, Material, Texture2D, XShader> { }
 
-// UnityGfx2d
-public class UnityGfx2d : IUnityGfx2d
+// UnityGfx2dSprite
+public class UnityGfx2dSprite : IOpenGfx2dSprite<GameObject, Sprite>
 {
     readonly ISource _source;
     readonly ISpriteManager<Sprite> _spriteManager;
-    readonly Object2dManager<GameObject, Sprite> _objectManager;
+    readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
 
-    public UnityGfx2d(ISource source)
+    public UnityGfx2dSprite(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
@@ -280,7 +280,7 @@ public class UnityGfx2d : IUnityGfx2d
 
     public ISource Source => _source;
     public ISpriteManager<Sprite> SpriteManager => _spriteManager;
-    public IObject2dManager<GameObject, Sprite> ObjectManager => _objectManager;
+    public IObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
     public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public GameObject CreateObject(object path) => throw new NotImplementedException();
@@ -289,31 +289,53 @@ public class UnityGfx2d : IUnityGfx2d
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// IUnityGfx3d
-public interface IUnityGfx3d : IOpenGfx3dAny<GameObject, Material, Texture2D, XShader> { }
+// UnityGfx3dSprite
+public class UnityGfx3dSprite : IOpenGfx3dSprite<GameObject, Sprite>
+{
+    readonly ISource _source;
+    readonly ISpriteManager<Sprite> _spriteManager;
+    readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
 
-// UnityGfx3d
-public class UnityGfx3d : IUnityGfx3d
+    public UnityGfx3dSprite(ISource source)
+    {
+        _source = source;
+        //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
+        //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
+    }
+
+    public ISource Source => _source;
+    public ISpriteManager<Sprite> SpriteManager => _spriteManager;
+    public IObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
+    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => throw new NotImplementedException();
+    public GameObject CreateObject(object path) => throw new NotImplementedException();
+    public void PreloadObject(object path) => throw new NotImplementedException();
+
+    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+}
+
+// UnityGfx3dModel
+public class UnityGfx3dModel : IOpenGfx3dModel<GameObject, Material, Texture2D, XShader>
 {
     readonly ISource _source;
     readonly ITextureManager<Texture2D> _textureManager;
     readonly IMaterialManager<Material, Texture2D> _materialManager;
-    readonly IObject3dManager<GameObject, Material, Texture2D> _objectManager;
+    readonly IObjectModelManager<GameObject, Material, Texture2D> _objectManager;
     readonly IShaderManager<XShader> _shaderManager;
 
-    public UnityGfx3d(ISource source)
+    public UnityGfx3dModel(ISource source)
     {
         _source = source;
         _textureManager = new TextureManager<Texture2D>(source, new UnityTextureBuilder());
         _materialManager = new MaterialManager<Material, Texture2D>(source, _textureManager, new UnityMaterialBuilder(_textureManager));
-        //_objectManager = new ObjectManager<GameObject, Material, Texture2D>(source, _materialManager, new UnityObjectBuilder(0));
+        //_objectManager = new ObjectModelManager<GameObject, Material, Texture2D>(source, _materialManager, new UnityObjectBuilder(0));
         _shaderManager = new ShaderManager<XShader>(source, new UnityShaderBuilder());
     }
 
     public ISource Source => _source;
     public ITextureManager<Texture2D> TextureManager => _textureManager;
     public IMaterialManager<Material, Texture2D> MaterialManager => _materialManager;
-    public IObject3dManager<GameObject, Material, Texture2D> ObjectManager => _objectManager;
+    public IObjectModelManager<GameObject, Material, Texture2D> ObjectManager => _objectManager;
     public IShaderManager<XShader> ShaderManager => _shaderManager;
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
@@ -325,9 +347,7 @@ public class UnityGfx3d : IUnityGfx3d
 }
 
 // UnitySfx
-public class UnitySfx(ISource source) : SystemSfx(source)
-{
-}
+public class UnitySfx(ISource source) : SystemSfx(source) { }
 
 // UnityPlatform
 public class UnityPlatform : Platform
@@ -339,8 +359,8 @@ public class UnityPlatform : Platform
         try
         {
             Tag = task.Result;
-            GfxFactory = source => false ? new UnityGfx2d(source) : new UnityGfx3d(source);
-            SfxFactory = source => new UnitySfx(source);
+            GfxFactory = source => [new UnityGfx2dSprite(source), new UnityGfx3dSprite(source), new UnityGfx3dModel(source)];
+            SfxFactory = source => [new UnitySfx(source)];
             AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;
             LogFormatFunc = UnityEngine.Debug.LogFormat;

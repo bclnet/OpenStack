@@ -14,16 +14,16 @@ public static class SdlExtensions { }
 // MISSING
 
 // ISdlGfx2d
-public interface ISdlGfx2d : IOpenGfx2dAny<object, object> { }
+//public interface ISdlGfx2dSprite : IOpenGfx2dSpriteAny<object, object> { }
 
-// SdlGfx2d
-public class SdlGfx2d : ISdlGfx2d
+// SdlGfx2dSprite
+public class SdlGfx2dSprite : IOpenGfx2dSprite<object, object>
 {
     readonly ISource _source;
     readonly ISpriteManager<object> _spriteManager;
-    readonly Object2dManager<object, object> _objectManager;
+    readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public SdlGfx2d(ISource source)
+    public SdlGfx2dSprite(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -32,7 +32,7 @@ public class SdlGfx2d : ISdlGfx2d
 
     public ISource Source => _source;
     public ISpriteManager<object> SpriteManager => _spriteManager;
-    public IObject2dManager<object, object> ObjectManager => _objectManager;
+    public IObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path) => throw new NotImplementedException();
@@ -50,7 +50,7 @@ public class SdlPlatform : Platform
     public static readonly Platform This = new SdlPlatform();
     SdlPlatform() : base("SD", "SDL 3")
     {
-        GfxFactory = source => false ? new SdlGfx2d(source) : null;
-        SfxFactory = source => new SdlSfx(source);
+        GfxFactory = source => [new SdlGfx2dSprite(source), null, null];
+        SfxFactory = source => [new SdlSfx(source)];
     }
 }

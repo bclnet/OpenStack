@@ -312,33 +312,48 @@ public class OpenGLMaterialBuilder(TextureManager<int> textureManager) : Materia
     }
 }
 
-/// <summary>
-/// IOpenGLGfx3d
-/// </summary>
-public interface IOpenGLGfx3d : IOpenGfx3dAny<object, GLRenderMaterial, int, Shader>
+// OpenGLGfx3dSprite
+public class OpenGLGfx3dSprite : IOpenGfx3dSprite<object, int>
 {
-    // cache
-    public GLMeshBufferCache MeshBufferCache { get; }
-    public QuadIndexBuffer QuadIndices { get; }
+    readonly ISource _source;
+    readonly ISpriteManager<int> _spriteManager;
+    readonly ObjectSpriteManager<object, int> _objectManager;
+
+    public OpenGLGfx3dSprite(ISource source)
+    {
+        _source = source;
+        //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
+        //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
+    }
+
+    public ISource Source => _source;
+    public ISpriteManager<int> SpriteManager => _spriteManager;
+    public IObjectSpriteManager<object, int> ObjectManager => _objectManager;
+    public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => throw new NotImplementedException();
+    public object CreateObject(object path) => throw new NotImplementedException();
+    public void PreloadObject(object path) => throw new NotImplementedException();
+
+    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
 /// <summary>
-/// OpenGLGfx3d
+/// OpenGLGfx3dModel
 /// </summary>
-public class OpenGLGfx3d : IOpenGLGfx3d
+public class OpenGLGfx3dModel : IOpenGfx3dModel<object, GLRenderMaterial, int, Shader>
 {
     readonly ISource _source;
     readonly TextureManager<int> _textureManager;
     readonly MaterialManager<GLRenderMaterial, int> _materialManager;
-    readonly Object3dManager<object, GLRenderMaterial, int> _objectManager;
+    readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
     readonly ShaderManager<Shader> _shaderManager;
 
-    public OpenGLGfx3d(ISource source)
+    public OpenGLGfx3dModel(ISource source)
     {
         _source = source;
         _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
         _materialManager = new MaterialManager<GLRenderMaterial, int>(source, _textureManager, new OpenGLMaterialBuilder(_textureManager));
-        _objectManager = new Object3dManager<object, GLRenderMaterial, int>(source, _materialManager, new OpenGLObjectBuilder());
+        _objectManager = new ObjectModelManager<object, GLRenderMaterial, int>(source, _materialManager, new OpenGLObjectBuilder());
         _shaderManager = new ShaderManager<Shader>(source, new OpenGLShaderBuilder());
         MeshBufferCache = new GLMeshBufferCache();
     }
@@ -346,7 +361,7 @@ public class OpenGLGfx3d : IOpenGLGfx3d
     public ISource Source => _source;
     public ITextureManager<int> TextureManager => _textureManager;
     public IMaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
-    public IObject3dManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
+    public IObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
     public IShaderManager<Shader> ShaderManager => _shaderManager;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
@@ -369,8 +384,8 @@ public class OpenGLPlatform : Platform
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL")
     {
-        GfxFactory = source => false ? null : new OpenGLGfx3d(source);
-        SfxFactory = source => new SystemSfx(source);
+        GfxFactory = source => [null, new OpenGLGfx3dSprite(source), new OpenGLGfx3dModel(source)];
+        SfxFactory = source => [new SystemSfx(source)];
     }
 }
 

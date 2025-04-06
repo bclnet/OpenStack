@@ -11,19 +11,41 @@ namespace OpenStack.Ogre;
 // OgreExtensions
 public static class OgreExtensions { }
 
-// IOgreGfx3d
-public interface IOgreGfx3d : IOpenGfx3dAny<object, object, object, object> { }
+// OgreGfx3dSprite
+public class OgreGfx3dSprite : IOpenGfx3dSprite<object, object>
+{
+    readonly ISource _source;
+    readonly ISpriteManager<object> _spriteManager;
+    readonly ObjectSpriteManager<object, object> _objectManager;
 
-// OgreGfx3d
-public class OgreGfx3d : IOgreGfx3d
+    public OgreGfx3dSprite(ISource source)
+    {
+        _source = source;
+        //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
+        //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
+    }
+
+    public ISource Source => _source;
+    public ISpriteManager<object> SpriteManager => _spriteManager;
+    public IObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => throw new NotImplementedException();
+    public object CreateObject(object path) => throw new NotImplementedException();
+    public void PreloadObject(object path) => throw new NotImplementedException();
+
+    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+}
+
+// OgreGfx3dModel
+public class OgreGfx3dModel : IOpenGfx3dModel<object, object, object, object>
 {
     readonly ISource _source;
     readonly ITextureManager<object> _textureManager;
     readonly MaterialManager<object, object> _materialManager;
-    readonly Object3dManager<object, object, object> _objectManager;
+    readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
 
-    public OgreGfx3d(ISource source)
+    public OgreGfx3dModel(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -36,7 +58,7 @@ public class OgreGfx3d : IOgreGfx3d
     public ISource Source => _source;
     public ITextureManager<object> TextureManager => _textureManager;
     public IMaterialManager<object, object> MaterialManager => _materialManager;
-    public IObject3dManager<object, object, object> ObjectManager => _objectManager;
+    public IObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public IShaderManager<object> ShaderManager => _shaderManager;
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
@@ -56,8 +78,8 @@ public class OgrePlatform : Platform
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre")
     {
-        GfxFactory = source => false ? null : new OgreGfx3d(source);
-        SfxFactory = source => new OgreSfx(source);
+        GfxFactory = source => [null, new OgreGfx3dSprite(source), new OgreGfx3dModel(source)];
+        SfxFactory = source => [new OgreSfx(source)];
     }
 }
 

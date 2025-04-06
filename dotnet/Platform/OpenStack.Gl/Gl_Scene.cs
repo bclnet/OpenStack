@@ -24,7 +24,7 @@ public class OctreeDebugRenderer<T> where T : class
     readonly bool Dynamic;
     int VertexCount;
 
-    public OctreeDebugRenderer(Octree<T> octree, IOpenGLGfx3d graphic, bool dynamic)
+    public OctreeDebugRenderer(Octree<T> octree, OpenGLGfx3dModel graphic, bool dynamic)
     {
         Octree = octree;
         Dynamic = dynamic;

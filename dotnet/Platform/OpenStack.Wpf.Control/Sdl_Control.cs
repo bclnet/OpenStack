@@ -1,4 +1,6 @@
 using OpenStack.Gfx;
+using OpenStack.Sfx;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -12,14 +14,21 @@ public abstract class SdlControl : UserControl
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IOpenGfx), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
+    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IOpenGfx[]), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
+    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IOpenSfx[]), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
 
-    public IOpenGfx Gfx
+    public IList<IOpenGfx> Gfx
     {
-        get => GetValue(GfxProperty) as IOpenGfx;
+        get => GetValue(GfxProperty) as IList<IOpenGfx>;
         set => SetValue(GfxProperty, value);
+    }
+
+    public IList<IOpenSfx> Sfx
+    {
+        get => GetValue(SfxProperty) as IList<IOpenSfx>;
+        set => SetValue(SfxProperty, value);
     }
 
     public object Source

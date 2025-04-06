@@ -63,12 +63,12 @@ public abstract class Platform(string id, string name)
     /// <summary>
     /// Gets the platforms gfx factory.
     /// </summary>
-    public Func<ISource, IOpenGfx> GfxFactory = source => null; // throw new Exception("No GfxFactory");
+    public Func<ISource, IOpenGfx[]> GfxFactory = source => null; // throw new Exception("No GfxFactory");
 
     /// <summary>
     /// Gets the platforms sfx factory.
     /// </summary>
-    public Func<ISource, IOpenSfx> SfxFactory = source => null; // throw new Exception("No SfxFactory");
+    public Func<ISource, IOpenSfx[]> SfxFactory = source => null; // throw new Exception("No SfxFactory");
 
     /// <summary>
     /// Gets the platforms assert func.
@@ -216,9 +216,7 @@ public static class PlatformX
 
 #region Test Platform
 
-public interface ITestGfx2d : IOpenGfx2d { }
-
-public class TestGfx2d(ISource source) : ITestGfx2d
+public class TestGfx2dSprite(ISource source) : IOpenGfx2dSprite
 {
     readonly ISource _source = source;
     public object Source => _source;
@@ -227,9 +225,16 @@ public class TestGfx2d(ISource source) : ITestGfx2d
     public void PreloadObject(object path) => throw new NotImplementedException();
 }
 
-public interface ITestGfx3d : IOpenGfx3d { }
+public class TestGfx3dSprite(ISource source) : IOpenGfx3dSprite
+{
+    readonly ISource _source = source;
+    public object Source => _source;
+    public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
+    public void PreloadSprite(object path) => throw new NotImplementedException();
+    public void PreloadObject(object path) => throw new NotImplementedException();
+}
 
-public class TestGfx3d(ISource source) : ITestGfx3d
+public class TestGfx3dModel(ISource source) : IOpenGfx3dModel
 {
     readonly ISource _source = source;
     public object Source => _source;
@@ -238,9 +243,7 @@ public class TestGfx3d(ISource source) : ITestGfx3d
     public void PreloadObject(object path) => throw new NotSupportedException();
 }
 
-public interface ITestSfx : IOpenSfx { }
-
-public class TestSfx(ISource source) : ITestSfx
+public class TestSfx(ISource source) : IOpenSfx
 {
     readonly ISource _source = source;
     public object Source => _source;
@@ -254,8 +257,8 @@ public class TestPlatform : Platform
     public static readonly Platform This = new TestPlatform();
     TestPlatform() : base("TT", "Test")
     {
-        GfxFactory = source => false ? new TestGfx2d(source) : new TestGfx2d(source);
-        SfxFactory = source => new TestSfx(source);
+        GfxFactory = source => [new TestGfx2dSprite(source), new TestGfx3dSprite(source), new TestGfx3dModel(source)];
+        SfxFactory = source => [new TestSfx(source)];
     }
 }
 

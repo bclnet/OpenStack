@@ -12,6 +12,8 @@ using System.Windows;
 using OpenStack.Gfx;
 using System.Threading;
 using Stride.CommunityToolkit.Engine;
+using OpenStack.Sfx;
+using System.Collections.Generic;
 
 namespace GameX.App.Explorer.Controls;
 
@@ -69,14 +71,21 @@ public abstract class StrideControl : UserControl
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IOpenGfx), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
+    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
+    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenSfx>), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
 
-    public IOpenGfx Gfx
+    public IList<IOpenGfx> Gfx
     {
-        get => GetValue(GfxProperty) as IOpenGfx3d;
+        get => GetValue(GfxProperty) as IList<IOpenGfx>;
         set => SetValue(GfxProperty, value);
+    }
+
+    public IList<IOpenSfx> Sfx
+    {
+        get => GetValue(SfxProperty) as IList<IOpenSfx>;
+        set => SetValue(SfxProperty, value);
     }
 
     public object Source
