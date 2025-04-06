@@ -53,12 +53,7 @@ public class GodotTextureBuilder : TextureBuilderBase<Texture>
 
     public override Texture CreateTexture(Texture reuse, ITexture source, System.Range? level = null)
     {
-        var (bytes, format, _) = source.Begin("ST");
-        try
-        {
-            return null;
-        }
-        finally { source.End(); }
+        throw new NotImplementedException();
     }
 
     public override Texture CreateSolidTexture(int width, int height, float[] pixels)

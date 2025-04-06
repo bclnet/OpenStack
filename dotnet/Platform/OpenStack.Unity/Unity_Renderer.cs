@@ -1,6 +1,7 @@
 ﻿using OpenStack.Gfx;
 using UnityEngine;
 using Renderer = OpenStack.Gfx.Renderer;
+using static OpenStack.Debug;
 
 namespace OpenStack.Unity.Renderers;
 

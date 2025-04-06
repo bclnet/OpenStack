@@ -13,15 +13,15 @@ using static OpenStack.Debug;
 
 namespace OpenStack.Gfx;
 
-#region Object2d
+#region ObjectSprite
 
 /// <summary>
-/// Object2dBuilderBase
+/// ObjectSpriteBuilderBase
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
 /// <typeparam name="Texture"></typeparam>
-public abstract class Object2dBuilderBase<Object, Sprite>
+public abstract class ObjectSpriteBuilderBase<Object, Sprite>
 {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
@@ -29,7 +29,7 @@ public abstract class Object2dBuilderBase<Object, Sprite>
 }
 
 /// <summary>
-/// IObject2dManager
+/// IObjectSpriteManager
 /// </summary>
 public interface IObjectSpriteManager<Object, Sprite>
 {
@@ -38,7 +38,7 @@ public interface IObjectSpriteManager<Object, Sprite>
 }
 
 /// <summary>
-/// Object2dManager
+/// ObjectSpriteManager
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
@@ -46,10 +46,10 @@ public interface IObjectSpriteManager<Object, Sprite>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class ObjectSpriteManager<Object, Sprite>(ISource source, Object2dBuilderBase<Object, Sprite> builder) : IObjectSpriteManager<Object, Sprite>
+public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder) : IObjectSpriteManager<Object, Sprite>
 {
     readonly ISource Source = source;
-    readonly Object2dBuilderBase<Object, Sprite> Builder = builder;
+    readonly ObjectSpriteBuilderBase<Object, Sprite> Builder = builder;
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
 
@@ -80,15 +80,15 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, Object2dBuilder
 
 #endregion
 
-#region Object3d
+#region ObjectModel
 
 /// <summary>
-/// Object3dBuilderBase
+/// ObjectModelBuilderBase
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
 /// <typeparam name="Texture"></typeparam>
-public abstract class Object3dBuilderBase<Object, Material, Texture>
+public abstract class ObjectModelBuilderBase<Object, Material, Texture>
 {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
@@ -96,7 +96,7 @@ public abstract class Object3dBuilderBase<Object, Material, Texture>
 }
 
 /// <summary>
-/// IObject3dManager
+/// IObjectModelManager
 /// </summary>
 public interface IObjectModelManager<Object, Material, Texture>
 {
@@ -105,7 +105,7 @@ public interface IObjectModelManager<Object, Material, Texture>
 }
 
 /// <summary>
-/// Object3dManager
+/// ObjectModelManager
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
@@ -113,11 +113,11 @@ public interface IObjectModelManager<Object, Material, Texture>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class ObjectModelManager<Object, Material, Texture>(ISource source, IMaterialManager<Material, Texture> materialManager, Object3dBuilderBase<Object, Material, Texture> builder) : IObjectModelManager<Object, Material, Texture>
+public class ObjectModelManager<Object, Material, Texture>(ISource source, IMaterialManager<Material, Texture> materialManager, ObjectModelBuilderBase<Object, Material, Texture> builder) : IObjectModelManager<Object, Material, Texture>
 {
     readonly ISource Source = source;
     readonly IMaterialManager<Material, Texture> MaterialManager = materialManager;
-    readonly Object3dBuilderBase<Object, Material, Texture> Builder = builder;
+    readonly ObjectModelBuilderBase<Object, Material, Texture> Builder = builder;
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
 

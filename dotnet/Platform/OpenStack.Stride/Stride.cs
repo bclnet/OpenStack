@@ -64,12 +64,7 @@ public class StrideTextureBuilder : TextureBuilderBase<Texture>
 
     public override Texture CreateTexture(Texture reuse, ITexture source, Range? level = null)
     {
-        var (bytes, format, _) = source.Begin("ST");
-        try
-        {
-            return null;
-        }
-        finally { source.End(); }
+        throw new NotImplementedException();
     }
 
     public override Texture CreateSolidTexture(int width, int height, float[] pixels)

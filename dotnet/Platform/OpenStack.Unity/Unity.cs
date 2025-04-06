@@ -9,6 +9,7 @@ using UnityEngine;
 using static OpenStack.Gfx.Texture.TextureFormat;
 using TextureFormat = UnityEngine.TextureFormat;
 using XShader = UnityEngine.Shader;
+using XRenderer = UnityEngine.Renderer;
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
@@ -54,8 +55,43 @@ public static class UnityExtensions
     }
 }
 
-// UnityObjectBuilder
-// MISSING
+// UnityObjectModelBuilder
+public class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D>
+{
+    GameObject _prefab;
+    readonly int _markerLayer = 0;
+
+    public override GameObject CreateNewObject(GameObject prefab) => GameObject.Instantiate(prefab);
+
+    public override GameObject CreateObject(object source, IMaterialManager<Material, Texture2D> materialManager)
+    {
+        //var abc = source.Begin("UN");
+        //try
+        //{
+        //}
+        //finally { source.End(); }
+        return null;
+
+        //var file = (NiFile)source;
+        //// Start pre-loading all the NIF's textures.
+        //foreach (var texturePath in file.GetTexturePaths())
+        //    materialManager.TextureManager.PreloadTexture(texturePath);
+        //var objBuilder = new NifObjectBuilder(file, materialManager, _markerLayer);
+        //var prefab = objBuilder.BuildObject();
+        //prefab.transform.parent = _prefab.transform;
+        //// Add LOD support to the prefab.
+        //var LODComponent = prefab.AddComponent<LODGroup>();
+        //LODComponent.SetLODs(new LOD[1] { new(0.015f, prefab.GetComponentsInChildren<XRenderer>()) });
+        //return prefab;
+    }
+
+    public override void EnsurePrefab()
+    {
+        if (_prefab != null) return;
+        _prefab = new GameObject("_Prefabs");
+        _prefab.SetActive(false);
+    }
+}
 
 // UnityShaderBuilder
 public class UnityShaderBuilder : ShaderBuilderBase<XShader>
@@ -76,57 +112,57 @@ public class UnityTextureBuilder : TextureBuilderBase<Texture2D>
 
     Texture2D CreateDefaultTexture() => new(4, 4);
 
-    public override Texture2D CreateTexture(Texture2D reuse, ITexture source, Range? range = null)
+    public override Texture2D CreateTexture(Texture2D reuse, ITexture source, Range? range = null) => source.Create("UN", x =>
     {
-        var (bytes, fmt, _) = source.Begin("UN");
-        try
+        switch (x)
         {
-            if (bytes == null) return DefaultTexture;
-            else if (fmt is ValueTuple<Gfx.Texture.TextureFormat, TexturePixel> z)
-            {
-                var (format, pixel) = z;
-                var s = (pixel & TexturePixel.Signed) != 0;
-                var f = (pixel & TexturePixel.Float) != 0;
-                var textureFormat = format switch
+            case Texture_Bytes t:
+                if (t.Bytes == null) return DefaultTexture;
+                else if (t.Format is ValueTuple<Gfx.Texture.TextureFormat, TexturePixel> z)
                 {
-                    DXT1 => TextureFormat.DXT1,
-                    DXT1A => default,
-                    DXT3 => default,
-                    DXT5 => TextureFormat.DXT5,
-                    BC4 => TextureFormat.BC4,
-                    BC5 => TextureFormat.BC5,
-                    BC6H => TextureFormat.BC6H,
-                    BC7 => TextureFormat.BC7,
-                    ETC2 => TextureFormat.ETC2_RGB,
-                    ETC2_EAC => TextureFormat.ETC2_RGBA8,
-                    I8 => default,
-                    L8 => default,
-                    R8 => TextureFormat.R8,
-                    R16 => f ? TextureFormat.RFloat : s ? TextureFormat.R16_SIGNED : TextureFormat.R16,
-                    RG16 => f ? TextureFormat.RGFloat : s ? TextureFormat.RG16_SIGNED : TextureFormat.RG16,
-                    RGB24 => f ? default : s ? TextureFormat.RGB24_SIGNED : TextureFormat.RGB24,
-                    RGB565 => TextureFormat.RGB565,
-                    RGBA32 => f ? TextureFormat.RGBAFloat : s ? TextureFormat.RGBA32_SIGNED : TextureFormat.RGBA32,
-                    ARGB32 => TextureFormat.ARGB32,
-                    BGRA32 => TextureFormat.BGRA32,
-                    BGRA1555 => default,
-                    _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{format}")
-                };
-                if (format == DXT3)
-                {
-                    textureFormat = TextureFormat.DXT5;
-                    TextureConvert.Dxt3ToDtx5(bytes, source.Width, source.Height, source.MipMaps);
+                    var (format, pixel) = z;
+                    var s = (pixel & TexturePixel.Signed) != 0;
+                    var f = (pixel & TexturePixel.Float) != 0;
+                    var textureFormat = format switch
+                    {
+                        DXT1 => TextureFormat.DXT1,
+                        DXT1A => default,
+                        DXT3 => default,
+                        DXT5 => TextureFormat.DXT5,
+                        BC4 => TextureFormat.BC4,
+                        BC5 => TextureFormat.BC5,
+                        BC6H => TextureFormat.BC6H,
+                        BC7 => TextureFormat.BC7,
+                        ETC2 => TextureFormat.ETC2_RGB,
+                        ETC2_EAC => TextureFormat.ETC2_RGBA8,
+                        I8 => default,
+                        L8 => default,
+                        R8 => TextureFormat.R8,
+                        R16 => f ? TextureFormat.RFloat : s ? TextureFormat.R16_SIGNED : TextureFormat.R16,
+                        RG16 => f ? TextureFormat.RGFloat : s ? TextureFormat.RG16_SIGNED : TextureFormat.RG16,
+                        RGB24 => f ? default : s ? TextureFormat.RGB24_SIGNED : TextureFormat.RGB24,
+                        RGB565 => TextureFormat.RGB565,
+                        RGBA32 => f ? TextureFormat.RGBAFloat : s ? TextureFormat.RGBA32_SIGNED : TextureFormat.RGBA32,
+                        ARGB32 => TextureFormat.ARGB32,
+                        BGRA32 => TextureFormat.BGRA32,
+                        BGRA1555 => default,
+                        _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{format}")
+                    };
+                    if (format == DXT3)
+                    {
+                        textureFormat = TextureFormat.DXT5;
+                        TextureConvert.Dxt3ToDtx5(t.Bytes, source.Width, source.Height, source.MipMaps);
+                    }
+                    var tex = new Texture2D(source.Width, source.Height, textureFormat, source.MipMaps, false);
+                    tex.LoadRawTextureData(t.Bytes);
+                    tex.Apply();
+                    tex.Compress(true);
+                    return tex;
                 }
-                var tex = new Texture2D(source.Width, source.Height, textureFormat, source.MipMaps, false);
-                tex.LoadRawTextureData(bytes);
-                tex.Apply();
-                tex.Compress(true);
-                return tex;
-            }
-            else throw new ArgumentOutOfRangeException(nameof(fmt), $"{fmt}");
+                else throw new ArgumentOutOfRangeException(nameof(t.Format), $"{t.Format}");
+            default: throw new ArgumentOutOfRangeException(nameof(x), $"{x}");
         }
-        finally { source.End(); }
-    }
+    });
 
     public override Texture2D CreateSolidTexture(int width, int height, float[] rgba) => new(width, height);
 
@@ -328,7 +364,7 @@ public class UnityGfx3dModel : IOpenGfx3dModel<GameObject, Material, Texture2D, 
         _source = source;
         _textureManager = new TextureManager<Texture2D>(source, new UnityTextureBuilder());
         _materialManager = new MaterialManager<Material, Texture2D>(source, _textureManager, new UnityMaterialBuilder(_textureManager));
-        //_objectManager = new ObjectModelManager<GameObject, Material, Texture2D>(source, _materialManager, new UnityObjectBuilder(0));
+        _objectManager = new ObjectModelManager<GameObject, Material, Texture2D>(source, _materialManager, new UnityObjectModelBuilder());
         _shaderManager = new ShaderManager<XShader>(source, new UnityShaderBuilder());
     }
 

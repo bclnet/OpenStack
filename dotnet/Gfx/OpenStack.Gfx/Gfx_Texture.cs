@@ -69,6 +69,16 @@ public enum TexturePixel : int
 #region ITexture
 
 /// <summary>
+/// Texture_Bytes
+/// </summary>
+public struct Texture_Bytes(byte[] bytes, object format, Range[] spans)
+{
+    public byte[] Bytes = bytes;
+    public object Format = format;
+    public Range[] Spans = spans;
+}
+
+/// <summary>
 /// ITexture
 /// </summary>
 public interface ITexture
@@ -78,8 +88,7 @@ public interface ITexture
     int Depth { get; }
     int MipMaps { get; }
     TextureFlags TexFlags { get; }
-    (byte[] bytes, object format, Range[] spans) Begin(string platform);
-    void End();
+    T Create<T>(string platform, Func<object, T> func);
 }
 
 /// <summary>
