@@ -105,7 +105,6 @@ public class TextureRenderer : Renderer
         //(meshRenderer.material, _) = Gfx.MaterialManager.CreateMaterial(new FixedMaterialInfo { MainFilePath = path });
         Parent.AddChild(obj);
         Log($"Done {obj}");
-
     }
 
     public override void Update(float deltaTime)

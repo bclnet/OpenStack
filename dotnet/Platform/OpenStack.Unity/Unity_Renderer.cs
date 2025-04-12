@@ -2,6 +2,7 @@
 using UnityEngine;
 using Renderer = OpenStack.Gfx.Renderer;
 using static OpenStack.Debug;
+using System.Collections.Generic;
 
 namespace OpenStack.Unity.Renderers;
 
@@ -150,11 +151,11 @@ public class TextureRenderer(UnityGfx3dModel gfx, object obj) : Renderer
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         obj.transform.rotation = Quaternion.Euler(-90f, 180f, -180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();
-        (meshRenderer.material, _) = Gfx.MaterialManager.CreateMaterial(new MaterialPropStandard { MainPath = path });
+        (meshRenderer.material, _) = Gfx.MaterialManager.CreateMaterial(new MaterialPropStandard { Textures = new Dictionary<string, string> { { "Main", path } } });
         return obj;
     }
 
-    void MakeCursor(string path) => Cursor.SetCursor(Gfx.TextureManager.CreateTexture(path).tex, Vector2.zero, CursorMode.Auto);
+    //void MakeCursor(string path) => Cursor.SetCursor((Texture2D)Gfx.TextureManager.CreateTexture(path).tex, Vector2.zero, CursorMode.Auto);
 }
 
 #endregion

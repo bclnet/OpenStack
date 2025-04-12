@@ -12,7 +12,28 @@ using XShader = Godot.Shader;
 namespace OpenStack.Godot;
 
 // GodotExtensions
-public static class GodotExtensions { }
+public static class GodotExtensions {
+    /// <summary>
+    /// ToGodot
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static Vector3 ToGodot(this System.Numerics.Vector3 source) => new(source.X, source.Z, source.Y);
+    /// <summary>
+    /// ToGodot
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static Quaternion ToGodot(this System.Numerics.Quaternion source) => new(source.X, source.Y, source.Z, source.W);
+
+    /// <summary>
+    /// Adds mesh colliders to every descandant object with a mesh filter but no mesh collider, including the object itself.
+    /// </summary>
+    public static void AddMissingMeshCollidersRecursively(this Node3D source, bool isStatic = true)
+    {
+        if (!isStatic) return;
+    }
+}
 
 // GodotObjectBuilder : MISSING
 
@@ -70,6 +91,61 @@ public class GodotTextureBuilder : TextureBuilderBase<Texture>
 }
 
 // GodotMaterialBuilder : MISSING
+
+
+// GodotModelApi
+public class GodotModelApi : ModelApi<Node3D, Material>
+{
+    public Node3D CreateObject(string name) => default;
+    public void SetParent(Node3D source, Node3D parent) => parent.AddChild(source);
+    public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale)
+    {
+        var transform = new Transform3D { Origin = position.ToGodot() };
+        source.Transform = transform;
+    }
+    public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Matrix4x4 rotation, System.Numerics.Vector3 localScale)
+    {
+        var transform = new Transform3D { Origin = position.ToGodot() };
+        source.Transform = transform;
+    }
+    public void AddMissingMeshCollidersRecursively(Node3D source, bool isStatic) => source.AddMissingMeshCollidersRecursively(isStatic);
+    public void SetLayerRecursively(Node3D source, int layer) { }
+
+    public object CreateMesh(object mesh)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic)
+    {
+        //source.AddComponent<MeshFilter>().mesh = (Mesh)mesh;
+        //var meshRenderer = source.AddComponent<MeshRenderer>();
+        //meshRenderer.material = material;
+        //meshRenderer.enabled = enabled;
+        //source.isStatic = isStatic;
+    }
+
+    public void AddSkinnedMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic)
+    {
+        //var skin = source.AddComponent<SkinnedMeshRenderer>();
+        //skin.sharedMesh = (Mesh)mesh;
+        //skin.bones = null;
+        //skin.rootBone = null;
+        //skin.sharedMaterial = material;
+        //skin.enabled = enabled;
+        //source.isStatic = isStatic;
+    }
+
+    public void AddMeshCollider(Node3D source, object mesh, bool isKinematic, bool isStatic)
+    {
+        //if (!isStatic)
+        //{
+        //    source.AddComponent<BoxCollider>();
+        //    source.AddComponent<Rigidbody>().isKinematic = isKinematic;
+        //}
+        //else source.AddComponent<MeshCollider>().sharedMesh = (Mesh)mesh;
+    }
+}
 
 //public interface IGodotGfx2dSprite : IOpenGfx2dSpriteAny<Node, Sprite2D> { }
 //public interface IGodotGfx3dModel : IOpenGfx3dModelAny<Node, Material, Texture, XShader> { }

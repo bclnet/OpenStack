@@ -3,6 +3,7 @@ using OpenStack.Gfx.Sprite;
 using OpenStack.Gfx.Texture;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -12,6 +13,75 @@ using static OpenStack.Debug;
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack.Gfx;
+
+#region Gfx
+
+/// <summary>
+/// GfxExtensions
+/// </summary>
+public static class GfxExtensions
+{
+}
+
+/*
+test modes (glAlphaFunc):
+000 GL_ALWAYS
+001 GL_LESS
+010 GL_EQUAL
+011 GL_LEQUAL
+100 GL_GREATER
+101 GL_NOTEQUAL
+110 GL_GEQUAL
+111 GL_NEVER
+*/
+/// <summary>
+/// GfxAlphaMode
+/// </summary>
+public enum GfxAlphaMode
+{
+    Always,
+    Less,
+    LEqual,
+    Equal,
+    GEqual,
+    Greater,
+    NotEqual,
+    Never
+}
+
+/*
+blend modes (glBlendFunc):
+0000 GL_ONE
+0001 GL_ZERO
+0010 GL_SRC_COLOR
+0011 GL_ONE_MINUS_SRC_COLOR
+0100 GL_DST_COLOR
+0101 GL_ONE_MINUS_DST_COLOR
+0110 GL_SRC_ALPHA
+0111 GL_ONE_MINUS_SRC_ALPHA
+1000 GL_DST_ALPHA
+1001 GL_ONE_MINUS_DST_ALPHA
+1010 GL_SRC_ALPHA_SATURATE
+*/
+/// <summary>
+/// GfxBlendMode
+/// </summary>
+public enum GfxBlendMode
+{
+    Zero,
+    One,
+    DstColor,
+    SrcColor,
+    OneMinusDstColor,
+    SrcAlpha,
+    OneMinusSrcColor,
+    DstAlpha,
+    OneMinusDstAlpha,
+    SrcAlphaSaturate,
+    OneMinusSrcAlpha
+}
+
+#endregion
 
 #region ObjectSprite
 
@@ -339,6 +409,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     public (Texture tex, object tag) CreateTexture(object path, Range? level = null)
     {
+        path = Source.FindPath<ITexture>(path);
         if (CachedTextures.TryGetValue(path, out var c)) return c;
         // load & cache the texture.
         var tag = path is ITexture z ? z : LoadTexture(path).Result;
@@ -349,6 +420,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     public (Texture tex, object tag) ReloadTexture(object path, Range? level = null)
     {
+        path = Source.FindPath<ITexture>(path);
         if (!CachedTextures.TryGetValue(path, out var c)) return (default, default);
         Builder.CreateTexture(c.tex, (ITexture)c.tag, level);
         return c;
@@ -356,6 +428,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     public void PreloadTexture(object path)
     {
+        path = Source.FindPath<ITexture>(path);
         if (CachedTextures.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<ITexture>(path);
@@ -363,6 +436,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     public void DeleteTexture(object path)
     {
+        path = Source.FindPath<ITexture>(path);
         if (!CachedTextures.TryGetValue(path, out var c)) return;
         Builder.DeleteTexture(c.tex);
         CachedTextures.Remove(path);
@@ -370,6 +444,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     async Task<ITexture> LoadTexture(object path)
     {
+        path = Source.FindPath<ITexture>(path);
         Assert(!CachedTextures.ContainsKey(path));
         PreloadTexture(path);
         var source = await PreloadTasks[path];
@@ -396,7 +471,6 @@ public interface IMaterial
 /// </summary>
 public class MaterialProp
 {
-    //public string Name;
     public object Tag;
 }
 
@@ -405,10 +479,29 @@ public class MaterialProp
 /// </summary>
 public class MaterialPropStandard : MaterialProp
 {
-    public string MainPath;
-    public string BumpPath;
+    public Dictionary<string, string> Textures = [];
+    //public string MainTexture => Textures.TryGetValue("Main", out var z) ? z : default;
+    //public string BumpTexture => Textures.TryGetValue("Bump", out var z) ? z : default;
+    // blend
     public bool AlphaBlended;
+    public GfxBlendMode SrcBlendMode;
+    public GfxBlendMode DstBlendMode;
+    // alpha
     public bool AlphaTest;
+    public float AlphaCutoff;
+}
+
+/// <summary>
+/// MaterialPropStandard2
+/// </summary>
+public class MaterialPropStandard2 : MaterialPropStandard
+{
+    public bool ZWrite;
+    public Color DiffuseColor;
+    public Color SpecularColor;
+    public Color EmissiveColor;
+    public float Glossiness;
+    public float Alpha;
 }
 
 /// <summary>
@@ -440,25 +533,6 @@ public class MaterialPropShaderV : MaterialPropShader
 /// MaterialTerrainProp
 /// </summary>
 public class MaterialTerrainProp : MaterialProp { }
-
-/// <summary>
-/// IFixedMaterial
-/// </summary>
-//public interface IFixedMaterial : MaterialProp
-//{
-//    string MainFilePath { get; }
-//    string DarkFilePath { get; }
-//    string DetailFilePath { get; }
-//    string GlossFilePath { get; }
-//    string GlowFilePath { get; }
-//    string BumpFilePath { get; }
-//    bool AlphaBlended { get; }
-//    int SrcBlendMode { get; }
-//    int DstBlendMode { get; }
-//    bool AlphaTest { get; }
-//    float AlphaCutoff { get; }
-//    bool ZWrite { get; }
-//}
 
 /// <summary>
 /// MaterialBuilderBase
@@ -543,6 +617,25 @@ public interface IParticleSystem
 #endregion
 
 #region Model
+
+/// <summary>
+/// ModelApi
+/// </summary>
+/// <typeparam name="Object"></typeparam>
+/// <typeparam name="Material"></typeparam>
+public interface ModelApi<Object, Material>
+{
+    Object CreateObject(string name);
+    object CreateMesh(object mesh);
+    void AddMeshRenderer(Object source, object mesh, Material material, bool enabled, bool isStatic);
+    void AddMeshCollider(Object source, object mesh, bool isKinematic, bool isStatic);
+    //
+    public void SetParent(Object source, Object parent);
+    void Transform(Object source, Vector3 position, Quaternion rotation, Vector3 localScale);
+    void Transform(Object source, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
+    public void AddMissingMeshCollidersRecursively(Object source, bool isStatic);
+    public void SetLayerRecursively(Object source, int layer);
+}
 
 /// <summary>
 /// IModel

@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\..\..\dotnet\Bethesda\GameX.Bethesda\GameX.Bethesda.csproj" />
 	  <ProjectReference Include="..\..\Base\OpenStack\OpenStack.csproj" />
 	</ItemGroup>
 
