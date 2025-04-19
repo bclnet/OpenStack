@@ -20,15 +20,15 @@ namespace OpenStack.Gl.Renderers;
 /// <summary>
 /// TestTriRenderer
 /// </summary>
-public class TestTriRenderer : RendererWithViewport
+public class TestTriRenderer : EginRenderer
 {
-    readonly OpenGLGfx3dModel Gfx;
+    readonly OpenGLGfxModel Gfx;
     readonly Shader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
-    public TestTriRenderer(OpenGLGfx3dModel gfx, object obj)
+    public TestTriRenderer(OpenGLGfxModel gfx, object obj)
     {
         Gfx = gfx;
         (Shader, ShaderTag) = Gfx.ShaderManager.CreateShader("testtri");
@@ -75,10 +75,10 @@ public class TestTriRenderer : RendererWithViewport
 /// <summary>
 /// TextureRenderer
 /// </summary>
-public class TextureRenderer : RendererWithViewport
+public class TextureRenderer : EginRenderer
 {
     const int FACTOR = 0;
-    readonly OpenGLGfx3dModel Gfx;
+    readonly OpenGLGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
     readonly int Texture;
@@ -89,7 +89,7 @@ public class TextureRenderer : RendererWithViewport
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
     int FrameDelay;
 
-    public TextureRenderer(OpenGLGfx3dModel gfx, object obj, Range level, bool background = false)
+    public TextureRenderer(OpenGLGfxModel gfx, object obj, Range level, bool background = false)
     {
         Gfx = gfx;
         Obj = obj;
@@ -170,16 +170,16 @@ public class TextureRenderer : RendererWithViewport
 /// <summary>
 /// MaterialRenderer
 /// </summary>
-public class MaterialRenderer : RendererWithViewport
+public class MaterialRenderer : EginRenderer
 {
-    readonly OpenGLGfx3dModel Gfx;
+    readonly OpenGLGfxModel Gfx;
     readonly GLRenderMaterial Material;
     readonly Shader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
-    public MaterialRenderer(OpenGLGfx3dModel gfx, object obj)
+    public MaterialRenderer(OpenGLGfxModel gfx, object obj)
     {
         Gfx = gfx;
         Gfx.TextureManager.DeleteTexture(obj);
@@ -255,7 +255,7 @@ public class MaterialRenderer : RendererWithViewport
 /// <summary>
 /// ParticleGridRenderer
 /// </summary>
-public class ParticleGridRenderer : RendererWithViewport
+public class ParticleGridRenderer : EginRenderer
 {
     readonly Shader Shader;
     readonly object ShaderTag;
@@ -263,7 +263,7 @@ public class ParticleGridRenderer : RendererWithViewport
     int VertexCount;
     public AABB BoundingBox { get; }
 
-    public ParticleGridRenderer(OpenGLGfx3dModel gfx, float cellWidth, int gridWidthInCells)
+    public ParticleGridRenderer(OpenGLGfxModel gfx, float cellWidth, int gridWidthInCells)
     {
         BoundingBox = new AABB(
             -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,
@@ -351,7 +351,7 @@ public class ParticleGridRenderer : RendererWithViewport
 
 #region ParticleRenderer
 
-public class ParticleRenderer : RendererWithViewport
+public class ParticleRenderer : EginRenderer
 {
     public IEnumerable<IParticleEmitter> Emitters = [];
     public IEnumerable<IParticleInitializer> Initializers = [];
@@ -370,7 +370,7 @@ public class ParticleRenderer : RendererWithViewport
         }
     }
 
-    readonly OpenGLGfx3dModel _gfx;
+    readonly OpenGLGfxModel _gfx;
     readonly List<ParticleRenderer> _childParticleRenderers;
     bool _hasStarted = false;
 
@@ -379,7 +379,7 @@ public class ParticleRenderer : RendererWithViewport
     ParticleSystemRenderState _systemRenderState;
 
     // TODO: Passing in position here was for testing, do it properly
-    public ParticleRenderer(OpenGLGfx3dModel gfx, IParticleSystem particleSystem, Vector3 pos = default)
+    public ParticleRenderer(OpenGLGfxModel gfx, IParticleSystem particleSystem, Vector3 pos = default)
     {
         _gfx = gfx;
         _childParticleRenderers = [];
@@ -570,7 +570,7 @@ public class SpritesParticleRenderer : IParticleRenderer
     QuadIndexBuffer QuadIndices;
     int VertexBufferHandle;
 
-    public SpritesParticleRenderer(IDictionary<string, object> keyValues, OpenGLGfx3dModel gfx)
+    public SpritesParticleRenderer(IDictionary<string, object> keyValues, OpenGLGfxModel gfx)
     {
         (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("vrf.particle.sprite");
         QuadIndices = gfx.QuadIndices;
@@ -821,7 +821,7 @@ public class TrailsParticleRenderer : IParticleRenderer
     readonly float MaxLength;
     readonly float LengthFadeInTime;
 
-    public TrailsParticleRenderer(IDictionary<string, object> keyValues, OpenGLGfx3dModel graphic)
+    public TrailsParticleRenderer(IDictionary<string, object> keyValues, OpenGLGfxModel graphic)
     {
         (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.trail", new Dictionary<string, bool>());
 

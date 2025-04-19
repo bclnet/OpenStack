@@ -11,14 +11,14 @@ namespace OpenStack.Unreal;
 // UnrealExtensions
 public static class UnrealExtensions { }
 
-// UnrealGfx3dSprite
-public class UnrealGfx3dSprite : IOpenGfx3dSprite<object, object>
+// UnrealGfxSprite3D
+public class UnrealGfxSprite3D : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
     readonly ISpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public UnrealGfx3dSprite(ISource source)
+    public UnrealGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -36,8 +36,8 @@ public class UnrealGfx3dSprite : IOpenGfx3dSprite<object, object>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// UnrealGfx3dModel
-public class UnrealGfx3dModel : IOpenGfx3dModel<object, object, object, object>
+// UnrealGfxModel
+public class UnrealGfxModel : IOpenGfxModel<object, object, object, object>
 {
     readonly ISource _source;
     readonly ITextureManager<object> _textureManager;
@@ -45,7 +45,7 @@ public class UnrealGfx3dModel : IOpenGfx3dModel<object, object, object, object>
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
 
-    public UnrealGfx3dModel(ISource source)
+    public UnrealGfxModel(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -76,9 +76,9 @@ public class UnrealSfx(ISource source) : SystemSfx(source) { }
 public class UnrealPlatform : Platform
 {
     public static readonly Platform This = new UnrealPlatform();
-    UnrealPlatform() : base("OG", "Unreal")
+    UnrealPlatform() : base("UR", "Unreal")
     {
-        GfxFactory = source => [null, new UnrealGfx3dSprite(source), new UnrealGfx3dModel(source)];
+        GfxFactory = source => [null, new UnrealGfxSprite3D(source), new UnrealGfxModel(source)];
         SfxFactory = source => [new UnrealSfx(source)];
     }
 }
@@ -87,5 +87,5 @@ public class UnrealPlatform : Platform
 public class UnrealShellPlatform : Platform
 {
     public static readonly Platform This = new UnrealShellPlatform();
-    UnrealShellPlatform() : base("OG", "Unreal") { }
+    UnrealShellPlatform() : base("UR", "Unreal") { }
 }

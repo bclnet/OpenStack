@@ -12,9 +12,9 @@ namespace OpenStack.Godot.Renderers;
 /// </summary>
 public class TestTriRenderer : Renderer
 {
-    readonly GodotGfx3dModel Gfx;
+    readonly GodotGfxModel Gfx;
 
-    public TestTriRenderer(Node parent, GodotGfx3dModel gfx, object obj)
+    public TestTriRenderer(Node parent, GodotGfxModel gfx, object obj)
     {
         Gfx = gfx;
     }
@@ -30,13 +30,13 @@ public class TestTriRenderer : Renderer
 public class TextureRenderer : Renderer
 {
     readonly Node Parent;
-    readonly GodotGfx3dModel Gfx;
+    readonly GodotGfxModel Gfx;
     readonly object Obj;
     readonly System.Range Level;
     readonly Texture Texture;
     int FrameDelay;
 
-    public TextureRenderer(Node parent, GodotGfx3dModel gfx, object obj, System.Range level)
+    public TextureRenderer(Node parent, GodotGfxModel gfx, object obj, System.Range level)
     {
         Parent = parent;
         Gfx = gfx;

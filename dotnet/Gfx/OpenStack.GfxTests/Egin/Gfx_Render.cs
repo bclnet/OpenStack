@@ -1,7 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenStack.Gfx;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Render;
+namespace OpenStack.GfxTests.Egin;
 
 /// <summary>
 /// TestCamera

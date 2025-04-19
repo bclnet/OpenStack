@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Gfx;
+namespace OpenStack.Gfx.Texture;
 
 /// <summary>
 /// TextureSequences

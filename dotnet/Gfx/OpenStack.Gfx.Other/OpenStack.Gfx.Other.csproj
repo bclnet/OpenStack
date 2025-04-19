@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="EmptyTexture.cs" />
+    <Compile Remove="GXColorExtensions.cs" />
+    <Compile Remove="TextureExtensions+PostProcess.cs" />
+    <Compile Remove="TextureExtensions.cs" />
+    <Compile Remove="Unused\Dds1.cs" />
+    <Compile Remove="Unused\Dds2.cs" />
+    <Compile Remove="Unused\DirectXExtensions.cs" />
+    <Compile Remove="Unused\DxtUtil.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Unused\EmptyTexture.cs" />
+    <None Include="Unused\GXColorExtensions.cs" />
+    <None Include="Unused\Dds1.cs" />
+    <None Include="Unused\Dds2.cs" />
+    <None Include="Unused\DirectXExtensions.cs" />
+    <None Include="Unused\DxtUtil.cs" />
+    <None Include="Unused\TextureExtensions+PostProcess.cs" />
+    <None Include="Unused\TextureExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenStack.Gfx\OpenStack.Gfx.csproj" />
+  </ItemGroup>
+
+</Project>

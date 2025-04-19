@@ -73,6 +73,7 @@ public abstract class StrideControl : UserControl
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenSfx>), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Gfx), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
 
@@ -86,6 +87,12 @@ public abstract class StrideControl : UserControl
     {
         get => GetValue(SfxProperty) as IList<IOpenSfx>;
         set => SetValue(SfxProperty, value);
+    }
+
+    public object Path
+    {
+        get => GetValue(PathProperty);
+        set => SetValue(PathProperty, value);
     }
 
     public object Source
@@ -102,7 +109,7 @@ public abstract class StrideControl : UserControl
 
     void OnSourceChanged()
     {
-        if (Gfx == null || Source == null || Type == null) return;
+        if (Gfx == null || Path == null || Source == null || Type == null) return;
         Renderer = CreateRenderer(); //this, Gfx3d as IStrideGfx3d, Source, Type);
         Renderer?.Start();
     }

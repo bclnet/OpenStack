@@ -12,9 +12,9 @@ namespace OpenStack.Ogre.Renderers;
 /// </summary>
 public class TestTriRenderer : Renderer
 {
-    readonly OgreGfx3dModel Gfx;
+    readonly OgreGfxModel Gfx;
 
-    public TestTriRenderer(OgreGfx3dModel gfx, object obj)
+    public TestTriRenderer(OgreGfxModel gfx, object obj)
     {
         Gfx = gfx;
     }
@@ -29,13 +29,13 @@ public class TestTriRenderer : Renderer
 /// </summary>
 public class TextureRenderer : Renderer
 {
-    readonly OgreGfx3dModel Gfx;
+    readonly OgreGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(OgreGfx3dModel gfx, object obj, Range level)
+    public TextureRenderer(OgreGfxModel gfx, object obj, Range level)
     {
         Gfx = gfx;
         Obj = obj;

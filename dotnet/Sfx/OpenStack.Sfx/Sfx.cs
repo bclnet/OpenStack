@@ -78,6 +78,8 @@ public class AudioManager<Audio>(ISource source, AudioBuilderBase<Audio> builder
 
 #endregion
 
+#region OpenSfx
+
 /// <summary>
 /// IOpenSfx
 /// </summary>
@@ -93,3 +95,5 @@ public interface IOpenSfxAny<Audio> : IOpenSfx
     IAudioManager<Audio> AudioManager { get; }
     Audio CreateAudio(object path);
 }
+
+#endregion

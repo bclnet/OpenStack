@@ -82,14 +82,14 @@ public class StrideTextureBuilder : TextureBuilderBase<Texture>
 
 // StrideMaterialBuilder : MISSING
 
-// StrideGfx3dSprite
-public class StrideGfx3dSprite : IOpenGfx3dSprite<object, object>
+// StrideGfxSprite3D
+public class StrideGfxSprite3D : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
     readonly ISpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public StrideGfx3dSprite(ISource source)
+    public StrideGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -107,8 +107,8 @@ public class StrideGfx3dSprite : IOpenGfx3dSprite<object, object>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// StrideGfx3dModel
-public class StrideGfx3dModel : IOpenGfx3dModel<Entity, Material, Texture, int>
+// StrideGfxModel
+public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int>
 {
     readonly ISource _source;
     readonly ITextureManager<Texture> _textureManager;
@@ -116,7 +116,7 @@ public class StrideGfx3dModel : IOpenGfx3dModel<Entity, Material, Texture, int>
     readonly ObjectModelManager<Entity, Material, Texture> _objectManager = default;
     readonly ShaderManager<int> _shaderManager = default;
 
-    public StrideGfx3dModel(ISource source)
+    public StrideGfxModel(ISource source)
     {
         _source = source;
         _textureManager = new TextureManager<Texture>(source, new StrideTextureBuilder());
@@ -151,7 +151,7 @@ public class StridePlatform : Platform
     {
         Log = GlobalLogger.GetLogger(typeof(StridePlatform).FullName);
         Log.Debug("Start loading MyTexture");
-        GfxFactory = source => [null, new StrideGfx3dSprite(source), new StrideGfx3dModel(source)];
+        GfxFactory = source => [null, new StrideGfxSprite3D(source), new StrideGfxModel(source)];
         SfxFactory = source => [new StrideSfx(source)];
         LogFunc = a => Log.Info(a);
         LogFormatFunc = (a, b) => Log.Info(string.Format(a, b));

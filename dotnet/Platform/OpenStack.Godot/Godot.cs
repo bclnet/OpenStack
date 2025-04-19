@@ -150,14 +150,14 @@ public class GodotModelApi : ModelApi<Node3D, Material>
 //public interface IGodotGfx2dSprite : IOpenGfx2dSpriteAny<Node, Sprite2D> { }
 //public interface IGodotGfx3dModel : IOpenGfx3dModelAny<Node, Material, Texture, XShader> { }
 
-// GodotGfx2dSprite
-public class GodotGfx2dSprite : IOpenGfx2dSprite<Node, Sprite2D>
+// GodotGfxSprite2D
+public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D>
 {
     readonly ISource _source;
     readonly ISpriteManager<Sprite2D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite2D> _objectManager;
 
-    public GodotGfx2dSprite(ISource source)
+    public GodotGfxSprite2D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -175,14 +175,14 @@ public class GodotGfx2dSprite : IOpenGfx2dSprite<Node, Sprite2D>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// GodotGfx3dSprite
-public class GodotGfx3dSprite : IOpenGfx3dSprite<Node, Sprite3D>
+// GodotGfxSprite3D
+public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D>
 {
     readonly ISource _source;
     readonly ISpriteManager<Sprite3D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite3D> _objectManager;
 
-    public GodotGfx3dSprite(ISource source)
+    public GodotGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -200,8 +200,8 @@ public class GodotGfx3dSprite : IOpenGfx3dSprite<Node, Sprite3D>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// GodotGfx3dModel
-public class GodotGfx3dModel : IOpenGfx3dModel<Node, Material, Texture, XShader>
+// GodotGfxModel
+public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader>
 {
     readonly ISource _source;
     readonly ISpriteManager<Sprite3D> _spriteManager;
@@ -210,7 +210,7 @@ public class GodotGfx3dModel : IOpenGfx3dModel<Node, Material, Texture, XShader>
     readonly ObjectModelManager<Node, Material, Texture> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
 
-    public GodotGfx3dModel(ISource source)
+    public GodotGfxModel(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -244,7 +244,7 @@ public class GodotPlatform : Platform
     public static readonly Platform This = new GodotPlatform();
     GodotPlatform() : base("GD", "Godot")
     {
-        GfxFactory = source => [new GodotGfx2dSprite(source), new GodotGfx3dSprite(source), new GodotGfx3dModel(source)];
+        GfxFactory = source => [new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source)];
         SfxFactory = source => [new GodotSfx(source)];
         LogFunc = a => GD.Print(a?.Replace("\r", ""));
         LogFormatFunc = (a, b) => GD.Print(string.Format(a, b)?.Replace("\r", ""));

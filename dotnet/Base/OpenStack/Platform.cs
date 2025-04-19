@@ -219,7 +219,7 @@ public static class PlatformX
 
 #region Test Platform
 
-public class TestGfx2dSprite(ISource source) : IOpenGfx2dSprite
+public class TestGfxSprite(ISource source) : IOpenGfxSprite
 {
     readonly ISource _source = source;
     public object Source => _source;
@@ -228,16 +228,7 @@ public class TestGfx2dSprite(ISource source) : IOpenGfx2dSprite
     public void PreloadObject(object path) => throw new NotImplementedException();
 }
 
-public class TestGfx3dSprite(ISource source) : IOpenGfx3dSprite
-{
-    readonly ISource _source = source;
-    public object Source => _source;
-    public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-}
-
-public class TestGfx3dModel(ISource source) : IOpenGfx3dModel
+public class TestGfxModel(ISource source) : IOpenGfxModel
 {
     readonly ISource _source = source;
     public object Source => _source;
@@ -260,28 +251,9 @@ public class TestPlatform : Platform
     public static readonly Platform This = new TestPlatform();
     TestPlatform() : base("TT", "Test")
     {
-        GfxFactory = source => [new TestGfx2dSprite(source), new TestGfx3dSprite(source), new TestGfx3dModel(source)];
+        GfxFactory = source => [new TestGfxSprite(source), new TestGfxSprite(source), new TestGfxModel(source)];
         SfxFactory = source => [new TestSfx(source)];
     }
 }
 
 #endregion
-
-/// <summary>
-/// The platform stats.
-/// </summary>
-//public class Stats
-//{
-//    //static readonly bool HighRes = System.Diagnostics.Stopwatch.IsHighResolution;
-//    //static readonly double HighFrequency = 1000.0 / Stopwatch.Frequency;
-//    //static readonly double LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
-//    //static readonly bool UseHrt = false;
-//    //public static bool UsingHighResolutionTiming => UseHrt && HighRes && !Unix;
-//    //public static long TickCount => (long)Ticks;
-//    //public static double Ticks => UseHrt && HighRes && !Unix ? System.Diagnostics.Stopwatch.GetTimestamp() * HighFrequency : DateTime.UtcNow.Ticks * LowFrequency;
-//    //public static readonly bool Is64Bit = Environment.Is64BitProcess;
-//    //public static bool MultiProcessor { get; private set; }
-//    //public static int ProcessorCount { get; private set; }
-//    //public static bool Unix { get; private set; }
-//    //public static bool VR { get; private set; }
-//}

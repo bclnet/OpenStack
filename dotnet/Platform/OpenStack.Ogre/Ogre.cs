@@ -11,14 +11,14 @@ namespace OpenStack.Ogre;
 // OgreExtensions
 public static class OgreExtensions { }
 
-// OgreGfx3dSprite
-public class OgreGfx3dSprite : IOpenGfx3dSprite<object, object>
+// OgreGfxSprite3D
+public class OgreGfxSprite3D : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
     readonly ISpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public OgreGfx3dSprite(ISource source)
+    public OgreGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -36,8 +36,8 @@ public class OgreGfx3dSprite : IOpenGfx3dSprite<object, object>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// OgreGfx3dModel
-public class OgreGfx3dModel : IOpenGfx3dModel<object, object, object, object>
+// OgreGfxModel
+public class OgreGfxModel : IOpenGfxModel<object, object, object, object>
 {
     readonly ISource _source;
     readonly ITextureManager<object> _textureManager;
@@ -45,7 +45,7 @@ public class OgreGfx3dModel : IOpenGfx3dModel<object, object, object, object>
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
 
-    public OgreGfx3dModel(ISource source)
+    public OgreGfxModel(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -78,7 +78,7 @@ public class OgrePlatform : Platform
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre")
     {
-        GfxFactory = source => [null, new OgreGfx3dSprite(source), new OgreGfx3dModel(source)];
+        GfxFactory = source => [null, new OgreGfxSprite3D(source), new OgreGfxModel(source)];
         SfxFactory = source => [new OgreSfx(source)];
     }
 }

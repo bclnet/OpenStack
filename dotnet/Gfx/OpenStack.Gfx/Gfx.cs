@@ -1,5 +1,3 @@
-using OpenStack.Gfx.Render;
-using OpenStack.Gfx.Sprite;
 using OpenStack.Gfx.Texture;
 using System;
 using System.Collections.Generic;
@@ -14,7 +12,7 @@ using static OpenStack.Debug;
 
 namespace OpenStack.Gfx;
 
-#region Gfx
+#region Extensions
 
 /// <summary>
 /// GfxExtensions
@@ -89,8 +87,7 @@ public enum GfxBlendMode
 /// ObjectSpriteBuilderBase
 /// </summary>
 /// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-/// <typeparam name="Texture"></typeparam>
+/// <typeparam name="Sprite"></typeparam>
 public abstract class ObjectSpriteBuilderBase<Object, Sprite>
 {
     public abstract void EnsurePrefab();
@@ -281,6 +278,18 @@ public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> bui
 #region Sprite
 
 /// <summary>
+/// ISprite
+/// </summary>
+public interface ISprite
+{
+    int Width { get; }
+    int Height { get; }
+    //TextureFlags TexFlags { get; }
+    (byte[] bytes, object format) Begin(string platform);
+    void End();
+}
+
+/// <summary>
 /// SpriteBuilderBase
 /// </summary>
 /// <typeparam name="Sprite"></typeparam>
@@ -354,6 +363,56 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
 #endregion
 
 #region Texture
+
+/// <summary>
+/// Texture_Bytes
+/// </summary>
+public struct Texture_Bytes(byte[] bytes, object format, Range[] spans)
+{
+    public byte[] Bytes = bytes;
+    public object Format = format;
+    public Range[] Spans = spans;
+}
+
+/// <summary>
+/// ITexture
+/// </summary>
+public interface ITexture
+{
+    int Width { get; }
+    int Height { get; }
+    int Depth { get; }
+    int MipMaps { get; }
+    TextureFlags TexFlags { get; }
+    T Create<T>(string platform, Func<object, T> func);
+}
+
+/// <summary>
+/// ITexture
+/// </summary>
+public interface ITextureSelect : ITexture
+{
+    void Select(int id);
+}
+
+/// <summary>
+/// ITextureFrames
+/// </summary>
+public interface ITextureFrames : ITexture
+{
+    int Fps { get; }
+    bool HasFrames { get; }
+    bool DecodeFrame();
+}
+
+/// <summary>
+/// ITextureFramesSelect
+/// </summary>
+public interface ITextureFramesSelect : ITextureFrames
+{
+    int FrameMax { get; }
+    void FrameSelect(int id);
+}
 
 /// <summary>
 /// TextureBuilderBase
@@ -619,6 +678,16 @@ public interface IParticleSystem
 #region Model
 
 /// <summary>
+/// IModel
+/// </summary>
+public interface IModel
+{
+    T Create<T>(string platform, Func<object, T> func);
+    //    IDictionary<string, object> Data { get; }
+    //    IVBIB RemapBoneIndices(IVBIB vbib, int meshIndex);
+}
+
+/// <summary>
 /// ModelApi
 /// </summary>
 /// <typeparam name="Object"></typeparam>
@@ -637,16 +706,9 @@ public interface ModelApi<Object, Material>
     public void SetLayerRecursively(Object source, int layer);
 }
 
-/// <summary>
-/// IModel
-/// </summary>
-public interface IModel
-{
-    IDictionary<string, object> Data { get; }
-    IVBIB RemapBoneIndices(IVBIB vbib, int meshIndex);
-}
-
 #endregion
+
+#region Renderer
 
 /// <summary>
 /// Renderer
@@ -680,14 +742,37 @@ public class Renderer : IDisposable
     public virtual void Dispose() { }
 }
 
+#endregion
+
+#region OpenGfx
+
 /// <summary>
-/// RendererWithViewport
+/// Gfx
 /// </summary>
-public abstract class RendererWithViewport : Renderer
+public static class Gfx
 {
-    //public virtual AABB BoundingBox { get; }
-    public virtual (int, int)? GetViewport((int, int) size) => default;
-    public abstract void Render(Camera camera, Pass pass);
+    public const int XSprite2D = 0;
+    public const int XSprite3D = 1;
+    public const int XModel = 2;
+}
+
+/// <summary>
+/// GfxStats
+/// </summary>
+public static class GfxStats
+{
+    public static int MaxTextureMaxAnisotropy;
+    //    //static readonly bool _HighRes = Stopwatch.IsHighResolution;
+    //    //static readonly double _HighFrequency = 1000.0 / Stopwatch.Frequency;
+    //    //static readonly double _LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
+    //    //static bool _UseHRT = false;
+    //    //public static bool UsingHighResolutionTiming => _UseHRT && _HighRes && !Unix;
+    //    //public static long TickCount => (long)Ticks;
+    //    //public static double Ticks => _UseHRT && _HighRes && !Unix ? Stopwatch.GetTimestamp() * _HighFrequency : DateTime.UtcNow.Ticks * _LowFrequency;
+    //    //public static readonly bool Is64Bit = Environment.Is64BitProcess;
+    //    //public static bool MultiProcessor { get; private set; }
+    //    //public static int ProcessorCount { get; private set; }
+    //    //public static bool Unix { get; private set; }
 }
 
 /// <summary>
@@ -700,17 +785,17 @@ public interface IOpenGfx
 }
 
 /// <summary>
-/// IOpenGfx2dSprite
+/// IOpenGfxSprite
 /// </summary>
-public interface IOpenGfx2dSprite : IOpenGfx
+public interface IOpenGfxSprite : IOpenGfx
 {
     void PreloadSprite(object path);
 }
 
 /// <summary>
-/// IOpenGfx2dSprite
+/// IOpenGfxSprite
 /// </summary>
-public interface IOpenGfx2dSprite<Object, Sprite> : IOpenGfx2dSprite
+public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite
 {
     ISpriteManager<Sprite> SpriteManager { get; }
     IObjectSpriteManager<Object, Sprite> ObjectManager { get; }
@@ -718,35 +803,17 @@ public interface IOpenGfx2dSprite<Object, Sprite> : IOpenGfx2dSprite
 }
 
 /// <summary>
-/// IOpenGfx3dSprite
+/// IOpenGfxModel
 /// </summary>
-public interface IOpenGfx3dSprite : IOpenGfx
-{
-    void PreloadSprite(object path);
-}
-
-/// <summary>
-/// IOpenGfx3dSprite
-/// </summary>
-public interface IOpenGfx3dSprite<Object, Sprite> : IOpenGfx3dSprite
-{
-    ISpriteManager<Sprite> SpriteManager { get; }
-    IObjectSpriteManager<Object, Sprite> ObjectManager { get; }
-    Object CreateObject(object path);
-}
-
-/// <summary>
-/// IOpenGfx3d
-/// </summary>
-public interface IOpenGfx3dModel : IOpenGfx
+public interface IOpenGfxModel : IOpenGfx
 {
     void PreloadTexture(object path);
 }
 
 /// <summary>
-/// IOpenGfx3dModel
+/// IOpenGfxModel
 /// </summary>
-public interface IOpenGfx3dModel<Object, Material, Texture, Shader> : IOpenGfx3dModel
+public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxModel
 {
     ITextureManager<Texture> TextureManager { get; }
     IMaterialManager<Material, Texture> MaterialManager { get; }
@@ -757,40 +824,4 @@ public interface IOpenGfx3dModel<Object, Material, Texture, Shader> : IOpenGfx3d
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
 }
 
-/// <summary>
-/// GfxStats
-/// </summary>
-public static class GfxStats
-{
-    public static int MaxTextureMaxAnisotropy;
-}
-
-/// <summary>
-/// GFX
-/// </summary>
-public static class GFX
-{
-    public const int X2dSprite = 0;
-    public const int X3dSprite = 1;
-    public const int X3dModel = 2;
-}
-
-/// <summary>
-/// PlatformStats
-/// </summary>
-//public static class PlatformStats
-//{
-//    //static readonly bool _HighRes = Stopwatch.IsHighResolution;
-//    //static readonly double _HighFrequency = 1000.0 / Stopwatch.Frequency;
-//    //static readonly double _LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
-//    //static bool _UseHRT = false;
-//    //public static bool UsingHighResolutionTiming => _UseHRT && _HighRes && !Unix;
-//    //public static long TickCount => (long)Ticks;
-//    //public static double Ticks => _UseHRT && _HighRes && !Unix ? Stopwatch.GetTimestamp() * _HighFrequency : DateTime.UtcNow.Ticks * _LowFrequency;
-//    //public static readonly bool Is64Bit = Environment.Is64BitProcess;
-//    //public static bool MultiProcessor { get; private set; }
-//    //public static int ProcessorCount { get; private set; }
-//    //public static bool Unix { get; private set; }
-
-//    public static int MaxTextureMaxAnisotropy;
-//}
+#endregion

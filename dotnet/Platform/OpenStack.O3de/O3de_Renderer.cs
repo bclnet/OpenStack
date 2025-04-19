@@ -1,5 +1,4 @@
 ﻿using OpenStack.Gfx;
-using OpenStack.Gfx.Texture;
 using System;
 using static OpenStack.Debug;
 
@@ -12,9 +11,9 @@ namespace OpenStack.O3de.Renderers;
 /// </summary>
 public class TestTriRenderer : Renderer
 {
-    readonly O3deGfx3dModel Gfx;
+    readonly O3deGfxModel Gfx;
 
-    public TestTriRenderer(O3deGfx3dModel gfx, object obj)
+    public TestTriRenderer(O3deGfxModel gfx, object obj)
     {
         Gfx = gfx;
     }
@@ -29,13 +28,13 @@ public class TestTriRenderer : Renderer
 /// </summary>
 public class TextureRenderer : Renderer
 {
-    readonly O3deGfx3dModel Gfx;
+    readonly O3deGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(O3deGfx3dModel gfx, object obj, Range level)
+    public TextureRenderer(O3deGfxModel gfx, object obj, Range level)
     {
         Gfx = gfx;
         Obj = obj;

@@ -17,7 +17,7 @@ public static class SdlExtensions { }
 //public interface ISdlGfx2dSprite : IOpenGfx2dSpriteAny<object, object> { }
 
 // SdlGfx2dSprite
-public class SdlGfx2dSprite : IOpenGfx2dSprite<object, object>
+public class SdlGfx2dSprite : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
     readonly ISpriteManager<object> _spriteManager;

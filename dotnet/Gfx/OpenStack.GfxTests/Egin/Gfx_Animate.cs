@@ -1,7 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenStack.Gfx.Animate;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Animate;
+namespace OpenStack.GfxTests.Egin;
 
 /// <summary>
 /// TestBone

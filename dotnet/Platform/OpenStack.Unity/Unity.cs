@@ -411,7 +411,7 @@ public class UnityModelApi : ModelApi<GameObject, Material>
 //public interface IUnityGfx3dModel : IOpenGfx3dModelAny<GameObject, Material, Texture, XShader> { }
 
 // UnityGfx2dSprite
-public class UnityGfx2dSprite : IOpenGfx2dSprite<GameObject, Sprite>
+public class UnityGfx2dSprite : IOpenGfxSprite<GameObject, Sprite>
 {
     readonly ISource _source;
     readonly ISpriteManager<Sprite> _spriteManager;
@@ -435,14 +435,14 @@ public class UnityGfx2dSprite : IOpenGfx2dSprite<GameObject, Sprite>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// UnityGfx3dSprite
-public class UnityGfx3dSprite : IOpenGfx3dSprite<GameObject, Sprite>
+// UnityGfxSprite3D
+public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite>
 {
     readonly ISource _source;
     readonly ISpriteManager<Sprite> _spriteManager;
     readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
 
-    public UnityGfx3dSprite(ISource source)
+    public UnityGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
@@ -460,8 +460,8 @@ public class UnityGfx3dSprite : IOpenGfx3dSprite<GameObject, Sprite>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// UnityGfx3dModel
-public class UnityGfx3dModel : IOpenGfx3dModel<GameObject, Material, Texture, XShader>
+// UnityGfxModel
+public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture, XShader>
 {
     readonly ISource _source;
     readonly ITextureManager<Texture> _textureManager;
@@ -469,7 +469,7 @@ public class UnityGfx3dModel : IOpenGfx3dModel<GameObject, Material, Texture, XS
     readonly IObjectModelManager<GameObject, Material, Texture> _objectManager;
     readonly IShaderManager<XShader> _shaderManager;
 
-    public UnityGfx3dModel(ISource source)
+    public UnityGfxModel(ISource source)
     {
         _source = source;
         _textureManager = new TextureManager<Texture>(source, new UnityTextureBuilder());
@@ -505,7 +505,7 @@ public class UnityPlatform : Platform
         try
         {
             Tag = task.Result;
-            GfxFactory = source => [new UnityGfx2dSprite(source), new UnityGfx3dSprite(source), new UnityGfx3dModel(source)];
+            GfxFactory = source => [new UnityGfx2dSprite(source), new UnityGfxSprite3D(source), new UnityGfxModel(source)];
             SfxFactory = source => [new UnitySfx(source)];
             AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;

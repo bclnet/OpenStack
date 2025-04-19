@@ -1,6 +1,6 @@
 ﻿using OpenStack.Gfx;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -11,14 +11,14 @@ namespace OpenStack.O3de;
 // O3deExtensions
 public static class O3deExtensions { }
 
-// O3deGfx3dSprite
-public class O3deGfx3dSprite : IOpenGfx3dSprite<object, object>
+// O3deGfxSprite3D
+public class O3deGfxSprite3D : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
     readonly ISpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public O3deGfx3dSprite(ISource source)
+    public O3deGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -36,8 +36,8 @@ public class O3deGfx3dSprite : IOpenGfx3dSprite<object, object>
     public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
 }
 
-// O3deGfx3dModel
-public class O3deGfx3dModel : IOpenGfx3dModel<object, object, object, object>
+// O3deGfxModel
+public class O3deGfxModel : IOpenGfxModel<object, object, object, object>
 {
     readonly ISource _source;
     readonly ITextureManager<object> _textureManager;
@@ -45,7 +45,7 @@ public class O3deGfx3dModel : IOpenGfx3dModel<object, object, object, object>
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
 
-    public O3deGfx3dModel(ISource source)
+    public O3deGfxModel(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -78,7 +78,7 @@ public class O3dePlatform : Platform
     public static readonly Platform This = new O3dePlatform();
     O3dePlatform() : base("O3", "O3de")
     {
-        GfxFactory = source => [null, new O3deGfx3dSprite(source), new O3deGfx3dModel(source)];
+        GfxFactory = source => [null, new O3deGfxSprite3D(source), new O3deGfxModel(source)];
         SfxFactory = source => [new O3deSfx(source)];
     }
 }

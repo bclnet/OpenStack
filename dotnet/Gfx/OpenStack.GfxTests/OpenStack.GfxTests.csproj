@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OpenStack.Gfx.Egin\OpenStack.Gfx.Egin.csproj" />
     <ProjectReference Include="..\OpenStack.Gfx\OpenStack.Gfx.csproj" />
   </ItemGroup>
 

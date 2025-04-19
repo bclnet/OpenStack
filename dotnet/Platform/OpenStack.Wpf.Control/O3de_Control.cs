@@ -5,7 +5,7 @@ using System.Windows;
 
 namespace OpenStack.Wpf.Control;
 
-public abstract class UnityControl : ShellControl
+public abstract class O3deControl : ShellControl
 {
     #region Binding
 
@@ -13,11 +13,11 @@ public abstract class UnityControl : ShellControl
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(UnityControl), new PropertyMetadata((d, e) => (d as UnityControl).OnSourceChanged()));
-    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(UnityControl), new PropertyMetadata((d, e) => (d as UnityControl).OnSourceChanged()));
-    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(UnityControl), new PropertyMetadata((d, e) => (d as UnityControl).OnSourceChanged()));
-    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(UnityControl), new PropertyMetadata((d, e) => (d as UnityControl).OnSourceChanged()));
-    public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(UnityControl), new PropertyMetadata((d, e) => (d as UnityControl).OnSourceChanged()));
+    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
+    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
+    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
+    public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
 
     public IList<IOpenGfx> Gfx
     {
@@ -58,3 +58,4 @@ public abstract class UnityControl : ShellControl
 
     #endregion
 }
+

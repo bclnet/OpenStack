@@ -12,9 +12,9 @@ namespace OpenStack.Stride.Renderers;
 /// </summary>
 public class TestTriRenderer : Renderer
 {
-    readonly StrideGfx3dModel Gfx;
+    readonly StrideGfxModel Gfx;
 
-    public TestTriRenderer(StrideGfx3dModel gfx, object obj)
+    public TestTriRenderer(StrideGfxModel gfx, object obj)
     {
         Gfx = gfx;
     }
@@ -29,13 +29,13 @@ public class TestTriRenderer : Renderer
 /// </summary>
 public class TextureRenderer : Renderer
 {
-    readonly StrideGfx3dModel Gfx;
+    readonly StrideGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(StrideGfx3dModel gfx, object obj, Range level)
+    public TextureRenderer(StrideGfxModel gfx, object obj, Range level)
     {
         Gfx = gfx;
         Obj = obj;

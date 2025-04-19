@@ -54,8 +54,8 @@ public static class ParticleControllerFactory
        };
 
     // Register particle renderers
-    static readonly IDictionary<string, Func<IDictionary<string, object>, OpenGLGfx3dModel, IParticleRenderer>> RendererDictionary
-       = new Dictionary<string, Func<IDictionary<string, object>, OpenGLGfx3dModel, IParticleRenderer>>
+    static readonly IDictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> RendererDictionary
+       = new Dictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>>
        {
            ["C_OP_RenderSprites"] = (rendererInfo, gfx) => new SpritesParticleRenderer(rendererInfo, gfx),
            ["C_OP_RenderTrails"] = (rendererInfo, gfx) => new TrailsParticleRenderer(rendererInfo, gfx),
@@ -86,7 +86,7 @@ public static class ParticleControllerFactory
         return false;
     }
 
-    public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, OpenGLGfx3dModel gfx, out IParticleRenderer renderer)
+    public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, OpenGLGfxModel gfx, out IParticleRenderer renderer)
     {
         if (RendererDictionary.TryGetValue(name, out var factory)) { renderer = factory(rendererInfo, gfx); return true; }
         renderer = default;

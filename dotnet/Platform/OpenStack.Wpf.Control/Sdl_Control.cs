@@ -16,6 +16,7 @@ public abstract class SdlControl : UserControl
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IOpenGfx[]), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IOpenSfx[]), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
 
@@ -29,6 +30,12 @@ public abstract class SdlControl : UserControl
     {
         get => GetValue(SfxProperty) as IList<IOpenSfx>;
         set => SetValue(SfxProperty, value);
+    }
+
+    public object Path
+    {
+        get => GetValue(PathProperty);
+        set => SetValue(PathProperty, value);
     }
 
     public object Source
@@ -45,7 +52,7 @@ public abstract class SdlControl : UserControl
 
     void OnSourceChanged()
     {
-        if (Gfx == null || Source == null || Type == null) return;
+        if (Gfx == null || Path == null || Source == null || Type == null) return;
         Renderer = CreateRenderer();
         Renderer?.Start();
     }

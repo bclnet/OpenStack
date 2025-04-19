@@ -18,11 +18,12 @@ public abstract class OpenGLControl : GLControl
     #region Binding
 
     protected object Obj;
-    protected RendererWithViewport Renderer;
+    protected EginRenderer Renderer;
     protected abstract Renderer CreateRenderer();
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
 
@@ -36,6 +37,12 @@ public abstract class OpenGLControl : GLControl
     {
         get => GetValue(SfxProperty) as IList<IOpenSfx>;
         set => SetValue(SfxProperty, value);
+    }
+
+    public object Path
+    {
+        get => GetValue(PathProperty);
+        set => SetValue(PathProperty, value);
     }
 
     public object Source
@@ -52,8 +59,8 @@ public abstract class OpenGLControl : GLControl
 
     void OnSourceChanged()
     {
-        if (Gfx == null || Source == null || Type == null) return;
-        Renderer = (RendererWithViewport)CreateRenderer();
+        if (Gfx == null || Path == null || Source == null || Type == null) return;
+        Renderer = (EginRenderer)CreateRenderer();
         Renderer?.Start();
         if (Source is ITextureSelect z2) z2.Select(Id);
         //Camera.SetLocation(new Vector3(200));

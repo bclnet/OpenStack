@@ -15,6 +15,7 @@ public abstract class OgreControl : ShellControl
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(OgreControl), new PropertyMetadata((d, e) => (d as OgreControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(OgreControl), new PropertyMetadata((d, e) => (d as OgreControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(OgreControl), new PropertyMetadata((d, e) => (d as OgreControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(OgreControl), new PropertyMetadata((d, e) => (d as OgreControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(OgreControl), new PropertyMetadata((d, e) => (d as OgreControl).OnSourceChanged()));
 
@@ -28,6 +29,12 @@ public abstract class OgreControl : ShellControl
     {
         get => GetValue(SfxProperty) as IList<IOpenSfx>;
         set => SetValue(SfxProperty, value);
+    }
+
+    public object Path
+    {
+        get => GetValue(PathProperty);
+        set => SetValue(PathProperty, value);
     }
 
     public object Source
@@ -44,7 +51,7 @@ public abstract class OgreControl : ShellControl
 
     void OnSourceChanged()
     {
-        if (Gfx == null || Source == null || Type == null) return;
+        if (Gfx == null || Path == null || Source == null || Type == null) return;
         Renderer = CreateRenderer();
         Renderer?.Start();
     }

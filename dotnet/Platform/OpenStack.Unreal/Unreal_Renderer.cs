@@ -12,9 +12,9 @@ namespace OpenStack.Unreal.Renderers;
 /// </summary>
 public class TestTriRenderer : Renderer
 {
-    readonly UnrealGfx3dModel Gfx;
+    readonly UnrealGfxModel Gfx;
 
-    public TestTriRenderer(UnrealGfx3dModel gfx, object obj)
+    public TestTriRenderer(UnrealGfxModel gfx, object obj)
     {
         Gfx = gfx;
     }
@@ -29,13 +29,13 @@ public class TestTriRenderer : Renderer
 /// </summary>
 public class TextureRenderer : Renderer
 {
-    readonly UnrealGfx3dModel Gfx;
+    readonly UnrealGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(UnrealGfx3dModel gfx, object obj, Range level)
+    public TextureRenderer(UnrealGfxModel gfx, object obj, Range level)
     {
         Gfx = gfx;
         Obj = obj;

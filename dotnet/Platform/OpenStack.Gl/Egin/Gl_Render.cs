@@ -1,6 +1,4 @@
 ﻿using OpenStack.Gfx;
-using OpenStack.Gfx.Render;
-using OpenStack.Gfx.Scene;
 using OpenStack.Gfx.Texture;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
@@ -237,7 +235,7 @@ public class GLMeshBufferCache
 /// </summary>
 public static class MeshBatchRenderer
 {
-    public static void Render(List<MeshBatchRequest> requests, Gfx.Scene.Scene.RenderContext context)
+    public static void Render(List<MeshBatchRequest> requests, Scene.RenderContext context)
     {
         // opaque: grouped by material
         if (context.RenderPass == Pass.Both || context.RenderPass == Pass.Opaque) DrawBatch(requests, context);
@@ -250,7 +248,7 @@ public static class MeshBatchRenderer
         }
     }
 
-    static void DrawBatch(IEnumerable<MeshBatchRequest> drawCalls, Gfx.Scene.Scene.RenderContext context)
+    static void DrawBatch(IEnumerable<MeshBatchRequest> drawCalls, Scene.RenderContext context)
     {
         GL.Enable(EnableCap.DepthTest);
         var viewProjectionMatrix = context.Camera.ViewProjectionMatrix.ToOpenTK();
@@ -389,7 +387,7 @@ public class GLPickingTexture : IDisposable, IPickingTexture
     int colorHandle;
     int depthHandle;
 
-    public GLPickingTexture(OpenGLGfx3dModel gfx, EventHandler<PickingResponse> onPicked)
+    public GLPickingTexture(OpenGLGfxModel gfx, EventHandler<PickingResponse> onPicked)
     {
         (Shader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>());
         (DebugShader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
@@ -539,9 +537,9 @@ public class GLRenderMaterial(MaterialPropShader material) : RenderMaterial(mate
 /// <summary>
 /// GLRenderableMesh
 /// </summary>
-public class GLRenderableMesh(OpenGLGfx3dModel gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model)
+public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model)
 {
-    OpenGLGfx3dModel Gfx;
+    OpenGLGfxModel Gfx;
 
     public override void SetRenderMode(string renderMode)
     {

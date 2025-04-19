@@ -2,6 +2,8 @@
 using MathNet.Numerics;
 using OpenStack.Gfx;
 using OpenStack.Gfx.Algorithms;
+
+//using OpenStack.Gfx.Algorithms;
 using OpenStack.Gfx.Texture;
 using OpenStack.Gl.Render;
 using OpenTK.Graphics.OpenGL;
@@ -317,14 +319,14 @@ public class OpenGLMaterialBuilder(TextureManager<int> textureManager) : Materia
     }
 }
 
-// OpenGLGfx3dSprite
-public class OpenGLGfx3dSprite : IOpenGfx3dSprite<object, int>
+// OpenGLGfxSprite3D
+public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int>
 {
     readonly ISource _source;
     readonly ISpriteManager<int> _spriteManager;
     readonly ObjectSpriteManager<object, int> _objectManager;
 
-    public OpenGLGfx3dSprite(ISource source)
+    public OpenGLGfxSprite3D(ISource source)
     {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -343,9 +345,9 @@ public class OpenGLGfx3dSprite : IOpenGfx3dSprite<object, int>
 }
 
 /// <summary>
-/// OpenGLGfx3dModel
+/// OpenGLGfxModel
 /// </summary>
-public class OpenGLGfx3dModel : IOpenGfx3dModel<object, GLRenderMaterial, int, Shader>
+public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shader>
 {
     readonly ISource _source;
     readonly TextureManager<int> _textureManager;
@@ -353,7 +355,7 @@ public class OpenGLGfx3dModel : IOpenGfx3dModel<object, GLRenderMaterial, int, S
     readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
     readonly ShaderManager<Shader> _shaderManager;
 
-    public OpenGLGfx3dModel(ISource source)
+    public OpenGLGfxModel(ISource source)
     {
         _source = source;
         _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
@@ -389,7 +391,7 @@ public class OpenGLPlatform : Platform
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL")
     {
-        GfxFactory = source => [null, new OpenGLGfx3dSprite(source), new OpenGLGfx3dModel(source)];
+        GfxFactory = source => [null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source)];
         SfxFactory = source => [new SystemSfx(source)];
     }
 }
