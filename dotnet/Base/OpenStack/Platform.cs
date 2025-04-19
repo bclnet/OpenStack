@@ -115,6 +115,8 @@ public class UnknownPlatform : Platform
 /// </summary>
 public static class PlatformX
 {
+    public static Action Hook;
+
     /// <summary>
     /// The platform OS.
     /// </summary>
@@ -159,6 +161,7 @@ public static class PlatformX
     /// </summary>
     public static Platform Activate(Platform platform)
     {
+        Hook?.Invoke(); Hook = null;
         if (platform == null || !platform.Enabled) platform = UnknownPlatform.This;
         Platforms.Add(platform);
         var current = Current;
