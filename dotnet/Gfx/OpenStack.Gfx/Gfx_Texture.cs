@@ -2,10 +2,10 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static OpenStack.Gfx.Texture.DXGI_FORMAT;
-using static OpenStack.Gfx.Texture.FourCC;
+using static OpenStack.Gfx.DXGI_FORMAT;
+using static OpenStack.Gfx.FourCC;
 
-namespace OpenStack.Gfx.Texture;
+namespace OpenStack.Gfx;
 
 #region Texture Enums
 
@@ -1060,9 +1060,8 @@ public enum DXGI_FORMAT : uint
 
 #endregion
 
+#region LEGACY
 #if false
-#region Legacy - Not Used
-
 /// <summary>
 /// TextureUnityFormat
 /// </summary>
@@ -1950,6 +1949,5 @@ public enum TextureGLPixelType
     /// </summary>
     Float32UnsignedInt248Rev = 0x8DAD
 }
-
-#endregion
 #endif
+#endregion

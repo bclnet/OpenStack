@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Gl;
+namespace OpenStack.Gfx.OpenGL;
 
 #region Shaders
 

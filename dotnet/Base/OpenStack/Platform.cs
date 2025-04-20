@@ -12,7 +12,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace OpenStack;
 
-#region IFileSystem
+#region FileSystem
 
 /// <summary>
 /// IFileSystem
@@ -115,12 +115,12 @@ public class UnknownPlatform : Platform
 /// </summary>
 public static class PlatformX
 {
-    public static Action Hook;
+    //public static Action Hook;
 
     /// <summary>
     /// The platform OS.
     /// </summary>
-    public enum OS { Windows, OSX, Linux, Android }
+    public enum OS { Unknown, Windows, OSX, Linux, Android }
 
     /// <summary>
     /// Gets the platform os.
@@ -129,7 +129,8 @@ public static class PlatformX
         : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OS.OSX
         : RuntimeInformation.OSDescription.StartsWith("android-") ? OS.Android
         : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OS.Linux
-        : throw new ArgumentOutOfRangeException(nameof(RuntimeInformation.IsOSPlatform), RuntimeInformation.OSDescription);
+        : OS.Unknown;
+        //: throw new ArgumentOutOfRangeException(nameof(RuntimeInformation.IsOSPlatform), RuntimeInformation.OSDescription);
 
     /// <summary>
     /// Gets the platform startups.
@@ -161,7 +162,7 @@ public static class PlatformX
     /// </summary>
     public static Platform Activate(Platform platform)
     {
-        Hook?.Invoke(); Hook = null;
+        //Hook?.Invoke(); Hook = null;
         if (platform == null || !platform.Enabled) platform = UnknownPlatform.This;
         Platforms.Add(platform);
         var current = Current;
@@ -224,8 +225,8 @@ public class TestGfxSprite(ISource source) : IOpenGfxSprite
     readonly ISource _source = source;
     public object Source => _source;
     public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
+    public void PreloadSprite(object path) => throw new NotSupportedException();
+    public void PreloadObject(object path) => throw new NotSupportedException();
 }
 
 public class TestGfxModel(ISource source) : IOpenGfxModel

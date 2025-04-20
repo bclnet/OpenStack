@@ -17,12 +17,12 @@ public class SystemAudioBuilder : AudioBuilderBase<object>
     public override void DeleteAudio(object audio) => throw new NotImplementedException();
 }
 
-#region SystemSfx
+#region OpenSfx
 
 /// <summary>
 /// SystemSfx
 /// </summary>
-public class SystemSfx(ISource source) : ISystemSfx
+public class SystemSfx(ISource source) : IOpenSfx<object>
 {
     readonly ISource _source = source;
     readonly AudioManager<object> _audioManager = new(source, new SystemAudioBuilder());
@@ -34,7 +34,7 @@ public class SystemSfx(ISource source) : ISystemSfx
 
 #endregion
 
-#region HostFileSystem
+#region FileSystem
 
 /// <summary>
 /// HostFileSystem
@@ -75,10 +75,6 @@ public class HostFileSystem : IFileSystem
     public BinaryWriter OpenWriter(string path) => null;
 }
 
-#endregion
-
-#region StandardFileSystem
-
 /// <summary>
 /// StandardFileSystem
 /// </summary>
@@ -98,10 +94,6 @@ public class StandardFileSystem(string root) : IFileSystem
     public BinaryWriter OpenWriter(string path) => new(File.Open(Path.Combine(Root, path), FileMode.Open, FileAccess.Write, FileShare.Write));
 }
 
-#endregion
-
-#region VirtualFileSystem
-
 /// <summary>
 /// VirtualFileSystem
 /// </summary>
@@ -120,10 +112,6 @@ public class VirtualFileSystem(IFileSystem @base, Dictionary<string, byte[]> vir
     public BinaryReader OpenReader(string path) => Virtuals.TryGetValue(path, out var z) ? new BinaryReader(z != null ? new MemoryStream(z) : new MemoryStream()) : Base.OpenReader(path);
     public BinaryWriter OpenWriter(string path) => throw new NotSupportedException();
 }
-
-#endregion
-
-#region ZipFileSystem
 
 /// <summary>
 /// ZipFileSystem
@@ -145,14 +133,10 @@ public class ZipFileSystem(string root, string path) : IFileSystem
         }).Select(x => x.FullName[skip..])];
     }
     public bool FileExists(string path) => Pak.GetEntry(Path.Combine(Root, path)) != null;
-    public (string path, long length) FileInfo(string path) { var e = Pak.GetEntry(Path.Combine(Root, path)); return e != null ? (e.Name, e.Length) : (null, 0); }
+    public (string path, long length) FileInfo(string path) { var x = Pak.GetEntry(Path.Combine(Root, path)); return x != null ? (x.Name, x.Length) : (null, 0); }
     public BinaryReader OpenReader(string path) => new(Pak.GetEntry(Path.Combine(Root, path)).Open());
     public BinaryWriter OpenWriter(string path) => throw new NotSupportedException();
 }
-
-#endregion
-
-#region ZipIsoFileSystem
 
 /// <summary>
 /// ZipIsoFileSystem
@@ -168,7 +152,7 @@ public class ZipIsoFileSystem(string root, string path) : IFileSystem
         return Pak.Entries.Where(x => matcher(x.Name)).Select(x => x.Name);
     }
     public bool FileExists(string path) => Pak.GetEntry(path) != null;
-    public (string path, long length) FileInfo(string path) { var e = Pak.GetEntry(path); return e != null ? (e.Name, e.Length) : (null, 0); }
+    public (string path, long length) FileInfo(string path) { var x = Pak.GetEntry(path); return x != null ? (x.Name, x.Length) : (null, 0); }
     public BinaryReader OpenReader(string path) => new(Pak.GetEntry(path).Open());
     public BinaryWriter OpenWriter(string path) => throw new NotSupportedException();
 }

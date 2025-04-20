@@ -47,9 +47,9 @@ public class AudioManager<Audio>(ISource source, AudioBuilderBase<Audio> builder
         if (CachedAudios.TryGetValue(path, out var c)) return c;
         // load & cache the audio.
         var tag = LoadAudio(path).Result;
-        var audio = tag != null ? Builder.CreateAudio(tag) : default;
-        CachedAudios[path] = (audio, tag);
-        return (audio, tag);
+        var obj = tag != null ? Builder.CreateAudio(tag) : default;
+        CachedAudios[path] = (obj, tag);
+        return (obj, tag);
     }
 
     public void PreloadAudio(object path)
@@ -70,9 +70,9 @@ public class AudioManager<Audio>(ISource source, AudioBuilderBase<Audio> builder
     {
         Assert(!CachedAudios.ContainsKey(path));
         PreloadAudio(path);
-        var source = await PreloadTasks[path];
+        var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return source;
+        return obj;
     }
 }
 
@@ -88,9 +88,9 @@ public interface IOpenSfx
 }
 
 /// <summary>
-/// IOpenGfxAny
+/// IOpenSfx
 /// </summary>
-public interface IOpenSfxAny<Audio> : IOpenSfx
+public interface IOpenSfx<Audio> : IOpenSfx
 {
     IAudioManager<Audio> AudioManager { get; }
     Audio CreateAudio(object path);

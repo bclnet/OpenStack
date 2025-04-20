@@ -1,6 +1,6 @@
 ﻿using OpenStack.Gfx;
-using OpenStack.Gfx.Render;
-using OpenStack.Gl.Render;
+using OpenStack.Gfx.Egin;
+using OpenStack.Gfx.OpenGL;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using static OpenStack.Gl.Render.GLCamera;
+using static OpenStack.Gfx.OpenGL.GLCamera;
 
 namespace OpenStack.Wpf.Control;
 
@@ -126,7 +126,7 @@ public class GLControl : OpenTK.GLControl
         if (extensions.Contains("GL_EXT_texture_filter_anisotropic"))
         {
             var maxTextureMaxAnisotropy = GL.GetInteger((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
-            GfxStats.MaxTextureMaxAnisotropy = maxTextureMaxAnisotropy;
+            GfxX.MaxTextureMaxAnisotropy = maxTextureMaxAnisotropy;
             Console.WriteLine($"MaxTextureMaxAnisotropyExt: {maxTextureMaxAnisotropy}");
         }
         else Console.Error.WriteLine("GL_EXT_texture_filter_anisotropic is not supported");

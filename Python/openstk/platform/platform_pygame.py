@@ -1,7 +1,6 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk.gfx.gfx import IFixedMaterial, IParamMaterial
-from openstk.gfx.gfx_texture import TextureFlags, TextureFormat, TexturePixel
+from openstk.gfx import TextureFlags, TextureFormat, TexturePixel
 from gamex.platform_system import SystemSfx
 from gamex.platform import ObjectBuilderBase, ObjectManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase, Platform
 
@@ -134,6 +133,6 @@ class PygameGfx(IPygameGfx):
 class PygamePlatform(Platform):
     def __init__(self):
         super().__init__('PG', 'Pygame')
-        self.gfxFactory = staticmethod(lambda source: PygameGfx(source))
-        self.sfxFactory = staticmethod(lambda source: SystemSfx(source))
+        self.gfxFactory = staticmethod(lambda source: [PygameGfx(source)])
+        self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 PygamePlatform.This = PygamePlatform()

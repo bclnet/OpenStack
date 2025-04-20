@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Gfx\Shaders\plane.frag" />
+    <None Remove="Gfx\Shaders\plane.vert" />
+    <None Remove="Gfx\Shaders\testtri.frag" />
+    <None Remove="Gfx\Shaders\testtri.vert" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Gfx\Shaders\plane.frag" />
+    <EmbeddedResource Include="Gfx\Shaders\plane.vert" />
+    <EmbeddedResource Include="Gfx\Shaders\testtri.frag" />
+    <EmbeddedResource Include="Gfx\Shaders\testtri.vert" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTK.NetStandard" Version="1.0.5.32" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Base\OpenStack\OpenStack.csproj" />
+    <ProjectReference Include="..\..\Gfx\OpenStack.Gfx.Egin\OpenStack.Gfx.Egin.csproj" />
+  </ItemGroup>
+
+</Project>

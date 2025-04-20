@@ -3,7 +3,7 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Gfx.Bitmap;
+namespace OpenStack.Gfx;
 
 /// <summary>
 /// DirectBitmap
@@ -11,7 +11,7 @@ namespace OpenStack.Gfx.Bitmap;
 public class DirectBitmap : IDisposable
 {
     bool Disposed;
-    public System.Drawing.Bitmap Bitmap;
+    public Bitmap Bitmap;
     public int[] Pixels;
     public int Height;
     public int Width;
@@ -23,7 +23,7 @@ public class DirectBitmap : IDisposable
         Height = height;
         Pixels = new int[width * height];
         PixelsHandle = GCHandle.Alloc(Pixels, GCHandleType.Pinned);
-        Bitmap = new System.Drawing.Bitmap(width, height, width * sizeof(int), PixelFormat.Format32bppPArgb, PixelsHandle.AddrOfPinnedObject());
+        Bitmap = new Bitmap(width, height, width * sizeof(int), PixelFormat.Format32bppPArgb, PixelsHandle.AddrOfPinnedObject());
     }
 
     public void Dispose()

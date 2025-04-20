@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenStack.Gl\OpenStack.Gl.csproj" />
+    <ProjectReference Include="..\OpenStack.OpenGL\OpenStack.OpenGL.csproj" />
   </ItemGroup>
 
 </Project>

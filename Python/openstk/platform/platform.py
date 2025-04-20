@@ -1,11 +1,9 @@
 from __future__ import annotations
-import os
+import os, sys
 from enum import Enum
 from openstk.poly import ISource
-# from openstk.gfx.gfx import ObjectBuilderBase, IObjectManager, MaterialBuilderBase, IMaterialManager, ShaderBuilderBase, IShaderManager, TextureBuilderBase, ITextureManager, PlatformStats
-# from openstk.gfx.gfx_render import IMaterial
-# from openstk.gfx.gfx_texture import ITexture
-# from openstk.sfx.sfx import AudioBuilderBase, IAudioManager
+# from openstk.gfx import ObjectModelBuilderBase, IObjectManager, MaterialBuilderBase, IMaterialManager, ShaderBuilderBase, IShaderManager, TextureBuilderBase, ITextureManager, PlatformStats
+# from openstk.sfx import AudioBuilderBase, IAudioManager
 
 #region FileSystem
 
@@ -15,6 +13,7 @@ class IFileSystem:
     def fileExists(self, path: str) -> bool: pass
     def fileInfo(self, path: str) -> (str, int): pass
     def openReader(self, path: str, mode: str = 'rb') -> Reader: pass
+    # def openWriter(self, path: str, mode: str = 'rb') -> Writer: pass
     def findPaths(self, path: str, searchPattern: str) -> str:
         if (expandStartIdx := searchPattern.find('(')) != -1 and \
             (expandMidIdx := searchPattern.find(':', expandStartIdx)) != -1 and \
@@ -35,8 +34,7 @@ class Platform:
     id: str = None
     name: str = None
     tag: str = None
-    gfx2dFactory: callable = None
-    gfx3dFactory: callable = None
+    gfxFactory: callable = None
     sfxFactory: callable = None
     logFunc: callable = lambda a: print(a)
     def __init__(self, id: str, name: str): self.id = id; self.name = name
@@ -51,17 +49,11 @@ UnknownPlatform.This = UnknownPlatform()
 # PlatformX
 class PlatformX:
     class OS(Enum):
+        Unknown = 0
         Windows = 1
         OSX = 2
         Linux = 3
         Android = 4
-
-    platformOS: OS = OS.Windows
-    platforms: set[object] = {UnknownPlatform.This}
-    inTestHost: bool = False
-    applicationPath = os.getcwd()
-    options = decodeOptions('.gamex')
-    current: Platform = None
 
     @staticmethod
     def activate(platform: Platform) -> None:
@@ -103,29 +95,47 @@ class PlatformX:
         f'{os.getenv("LOCALAPPDATA")}{path[14:]}' if lowerPath.startswith('%localappdata%') else \
         path
 
+    platformOS: OS = OS.Windows if sys.platform == 'win32' else \
+        OS.OSX if sys.platform == 'darwin' else \
+        OS.Linux if sys.platform.startswith('linux') else \
+        OS.Unknown
+    platforms: set[object] = { UnknownPlatform.This }
+    inTestHost: bool = 'unittest' in sys.modules.keys()
+    applicationPath = os.getcwd()
+    options = decodeOptions('.gamex')
+    current: Platform = None
+
 #endregion
 
 #region Test Platform
 
-# TestGfx2d
-class TestGfx2d:
-    def __init__(self, source): self._source = source
+# TestGfxSprite
+class TestGfxSprite:
+    source: object
+    def __init__(self, source): self.source = source
+    def loadFileObject(self, type: type, path: object): raise NotImplementedError()
+    def preloadSprite(self, path: object) -> None: raise NotImplementedError()
+    def preloadObject(self, path: object) -> None: raise NotImplementedError()
 
-# TestGfx3d
-class TestGfx3d:
-    def __init__(self, source): self._source = source
+# TestGfxModel
+class TestGfxModel:
+    source: object
+    def __init__(self, source): self.source = source
+    def loadFileObject(self, type: type, path: object): raise NotImplementedError()
+    def preloadTexture(self, path: object) -> None: raise NotImplementedError()
+    def preloadObject(self, path: object) -> None: raise NotImplementedError()
 
 # TestSfx
 class TestSfx:
-    def __init__(self, source): self._source = source
+    source: object
+    def __init__(self, source): self.source = source
 
 # TestPlatform
 class TestPlatform(Platform):
     def __init__(self):
         super().__init__('TT', 'Test')
-        self.gfx2dFactory = staticmethod(lambda source: TestGfx2d(source))
-        self.gfx3dFactory = staticmethod(lambda source: TestGfx3d(source))
-        self.sfxFactory = staticmethod(lambda source: TestSfx(source))
+        self.gfxFactory = staticmethod(lambda source: [TestGfxSprite(source), TestGfxSprite(source), TestGfxModel(source)])
+        self.sfxFactory = staticmethod(lambda source: [TestSfx(source)])
 TestPlatform.This = TestPlatform()
 
 #endregion

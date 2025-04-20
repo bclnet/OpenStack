@@ -2,9 +2,9 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Gfx.Render;
+namespace OpenStack.Gfx;
 
-#region Colorf
+#region Color
 
 /// <summary>
 /// Colorf
@@ -214,10 +214,6 @@ public struct Colorf : IEquatable<Colorf>
     }
 }
 
-#endregion
-
-#region Color32
-
 /// <summary>
 /// Color32
 /// </summary>
@@ -330,7 +326,7 @@ public unsafe static class Raster
             if (pbp == 3)
             {
                 if (bbp == 4)
-                    if (bbp == 4)
+                    if (alpha == null)
                         for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
                         {
                             var p = source[i] * 3;
@@ -340,15 +336,19 @@ public unsafe static class Raster
                             _[pi + 2] = palette[p + 2];
                             _[pi + 3] = 0xFF;
                         }
-                    else for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
+                    else
+                    {
+                        var a = alpha.Value;
+                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
                         {
                             var s = source[i]; var p = s * 3;
                             //if (p + 3 > palette.Length) continue;
                             _[pi + 0] = palette[p + 0];
                             _[pi + 1] = palette[p + 1];
                             _[pi + 2] = palette[p + 2];
-                            _[pi + 3] = s == alpha ? (byte)0x00 : (byte)0xFF;
+                            _[pi + 3] = s == a ? (byte)0x00 : (byte)0xFF;
                         }
+                    }
                 else if (bbp == 3)
                     for (int i = 0, pi = 0; i < source.Length; i++, pi += 3)
                     {

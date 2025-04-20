@@ -21,9 +21,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\OpenStack.Gl\OpenStack.Gl.csproj" />
 		<ProjectReference Include="..\OpenStack.Godot\OpenStack.Godot.csproj" />
 		<ProjectReference Include="..\OpenStack.Ogre\OpenStack.Ogre.csproj" />
+		<ProjectReference Include="..\OpenStack.OpenGL\OpenStack.OpenGL.csproj" />
 		<ProjectReference Include="..\OpenStack.Sdl\OpenStack.Sdl.csproj" />
 		<ProjectReference Include="..\OpenStack.Unity\OpenStack.Unity.csproj" />
 	</ItemGroup>

@@ -1,6 +1,5 @@
 using OpenStack.Gfx;
-using OpenStack.Gfx.Render;
-using OpenStack.Gfx.Texture;
+using OpenStack.Gfx.Egin;
 using OpenStack.Sfx;
 using OpenTK.Input;
 using System.Collections.Generic;

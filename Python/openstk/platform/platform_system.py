@@ -2,9 +2,11 @@
 from __future__ import annotations
 import os, io, pathlib
 from zipfile import ZipFile
-from openstk.poly import Reader
-from openstk.sfx.sys import ISystemSfx
-from gamex.platform import IFileSystem, PlatformX, AudioBuilderBase, AudioManager
+from openstk.poly import ISource, Reader
+from openstk.sfx import IOpenSfx2, AudioBuilderBase, AudioManager
+from openstk.platform import IFileSystem, PlatformX
+
+#region OpenSfx
 
 # SystemAudioBuilder
 class SystemAudioBuilder(AudioBuilderBase):
@@ -12,14 +14,17 @@ class SystemAudioBuilder(AudioBuilderBase):
     def deleteAudio(self, audio: object) -> None: raise NotImplementedError()
 
 # SystemSfx
-class SystemSfx(ISystemSfx):
-    source: PakFile
+class SystemSfx(IOpenSfx2):
+    source: ISource
     audioManager: AudioManager
-    def __init__(self, source: PakFile):
+    def __init__(self, source: ISource):
         self.source = source
         self.audioManager = AudioManager(source, SystemAudioBuilder())
     def createAudio(self, path: object) -> int: return self.audioManager.createAudio(path)[0]
 
+#endregion
+
+#region FileSystem
 
 # tag::HostFileSystem[]
 class HostFileSystem(IFileSystem):
@@ -59,12 +64,9 @@ class ZipFileSystem(IFileSystem):
     def __init__(self, root: str, path: str):
         self.pak = ZipFile(root)
         self.root = '' if not path else f'{path}/'
-    def glob(self, path: str, searchPattern: str) -> list[str]:
-        root = os.path.join(self.root, path)
-        skip = len(root)
-        return []
+    def glob(self, path: str, searchPattern: str) -> list[str]: root = os.path.join(self.root, path); skip = len(root); return []
     def fileExists(self, path: str) -> bool: return self.pak.read(os.path.join(self.root, path)) != None
-    def fileInfo(self, path: str) -> (str, int): e = self.pak.read(os.path.join(self.root, path)); return (e.name, e.length) if e else (None, 0)
+    def fileInfo(self, path: str) -> (str, int): x = self.pak.read(os.path.join(self.root, path)); return (x.name, x.length) if x else (None, 0)
     def openReader(self, path: str, mode: str = 'rb') -> Reader: return Reader(self.pak.read(os.path.join(self.root, path)))
 
 # tag::ZipIsoFileSystem[]
@@ -72,11 +74,10 @@ class ZipIsoFileSystem(IFileSystem):
     def __init__(self, root: str, path: str):
         self.pak = ZipFile(root)
         self.root = '' if not path else f'{path}/'
-    def glob(self, path: str, searchPattern: str) -> list[str]:
-        root = os.path.join(self.root, path)
-        skip = len(root)
-        return []
+    def glob(self, path: str, searchPattern: str) -> list[str]: root = os.path.join(self.root, path); skip = len(root); return []
     def fileExists(self, path: str) -> bool: return self.pak.read(path) != None
-    def fileInfo(self, path: str) -> (str, int): e = self.pak.read(path); return (e.name, e.length) if e else (None, 0)
+    def fileInfo(self, path: str) -> (str, int): x = self.pak.read(path); return (x.name, x.length) if x else (None, 0)
     def openReader(self, path: str, mode: str = 'rb') -> Reader: return Reader(self.pak.read(path))
 # end::ZipIsoFileSystem[]
+
+#endregion

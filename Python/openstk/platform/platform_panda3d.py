@@ -1,7 +1,6 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk.gfx.gfx import IFixedMaterial, IParamMaterial
-from openstk.gfx.gfx_texture import TextureFlags, TextureFormat, TexturePixel
+from openstk.gfx import TextureFlags, TextureFormat, TexturePixel
 from gamex.platform_system import SystemSfx
 from gamex.platform import ObjectBuilderBase, ObjectManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase, Platform
 
@@ -115,6 +114,6 @@ class Panda3dGfx(IPanda3dGfx):
 class Panda3dPlatform(Platform):
     def __init__(self):
         super().__init__('PD', 'Panda3D')
-        self.gfxFactory = staticmethod(lambda source: Panda3dGfx(source))
-        self.sfxFactory = staticmethod(lambda source: SystemSfx(source))
+        self.gfxFactory = staticmethod(lambda source: [Panda3dGfx(source)])
+        self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Panda3dPlatform.This = Panda3dPlatform()

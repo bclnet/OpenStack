@@ -1,4 +1,3 @@
-using OpenStack.Gfx.Texture;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,6 +12,17 @@ using static OpenStack.Debug;
 namespace OpenStack.Gfx;
 
 #region Extensions
+
+/// <summary>
+/// GfxX
+/// </summary>
+public static class GfxX
+{
+    public const int XSprite2D = 0;
+    public const int XSprite3D = 1;
+    public const int XModel = 2;
+    public static int MaxTextureMaxAnisotropy;
+}
 
 /// <summary>
 /// GfxExtensions
@@ -92,12 +102,14 @@ public abstract class ObjectSpriteBuilderBase<Object, Sprite>
 {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
-    public abstract Object CreateObject(object source);
+    public abstract Object CreateObject(object src);
 }
 
 /// <summary>
 /// IObjectSpriteManager
 /// </summary>
+/// <typeparam name="Object"></typeparam>
+/// <typeparam name="Sprite"></typeparam>
 public interface IObjectSpriteManager<Object, Sprite>
 {
     (Object obj, object tag) CreateObject(object path);
@@ -108,10 +120,8 @@ public interface IObjectSpriteManager<Object, Sprite>
 /// ObjectSpriteManager
 /// </summary>
 /// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-/// <typeparam name="Texture"></typeparam>
+/// <typeparam name="Sprite"></typeparam>
 /// <param name="source"></param>
-/// <param name="materialManager"></param>
 /// <param name="builder"></param>
 public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder) : IObjectSpriteManager<Object, Sprite>
 {
@@ -139,9 +149,9 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
     {
         Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
-        var source = await PreloadTasks[path];
+        var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return (Builder.CreateObject(source), source);
+        return (Builder.CreateObject(obj), obj);
     }
 }
 
@@ -159,12 +169,15 @@ public abstract class ObjectModelBuilderBase<Object, Material, Texture>
 {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
-    public abstract Object CreateObject(object source, IMaterialManager<Material, Texture> materialManager);
+    public abstract Object CreateObject(object src, IMaterialManager<Material, Texture> materialManager);
 }
 
 /// <summary>
 /// IObjectModelManager
 /// </summary>
+/// <typeparam name="Object"></typeparam>
+/// <typeparam name="Material"></typeparam>
+/// <typeparam name="Texture"></typeparam>
 public interface IObjectModelManager<Object, Material, Texture>
 {
     (Object obj, object tag) CreateObject(object path);
@@ -207,9 +220,9 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, IMate
     {
         Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
-        var source = await PreloadTasks[path];
+        var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return (Builder.CreateObject(source, MaterialManager), source);
+        return (Builder.CreateObject(obj, MaterialManager), obj);
     }
 }
 
@@ -284,9 +297,7 @@ public interface ISprite
 {
     int Width { get; }
     int Height { get; }
-    //TextureFlags TexFlags { get; }
-    (byte[] bytes, object format) Begin(string platform);
-    void End();
+    T Create<T>(string platform, Func<object, T> func);
 }
 
 /// <summary>
@@ -296,8 +307,8 @@ public interface ISprite
 public abstract class SpriteBuilderBase<Sprite>
 {
     public abstract Sprite DefaultSprite { get; }
-    public abstract Sprite CreateSprite(ISprite source);
-    public abstract void DeleteSprite(Sprite sprite);
+    public abstract Sprite CreateSprite(ISprite spr);
+    public abstract void DeleteSprite(Sprite spr);
 }
 
 /// <summary>
@@ -331,9 +342,9 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
         if (CachedSprites.TryGetValue(path, out var c)) return c;
         // load & cache the sprite.
         var tag = path is ISprite z ? z : LoadSprite(path).Result;
-        var sprite = tag != null ? Builder.CreateSprite(tag) : Builder.DefaultSprite;
-        CachedSprites[path] = (sprite, tag);
-        return (sprite, tag);
+        var obj = tag != null ? Builder.CreateSprite(tag) : Builder.DefaultSprite;
+        CachedSprites[path] = (obj, tag);
+        return (obj, tag);
     }
 
     public void PreloadSprite(object path)
@@ -354,9 +365,9 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
     {
         Assert(!CachedSprites.ContainsKey(path));
         PreloadSprite(path);
-        var source = await PreloadTasks[path];
+        var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return source;
+        return obj;
     }
 }
 
@@ -420,17 +431,12 @@ public interface ITextureFramesSelect : ITextureFrames
 /// <typeparam name="Texture"></typeparam>
 public abstract class TextureBuilderBase<Texture>
 {
-    public static int MaxTextureMaxAnisotropy
-    {
-        get => GfxStats.MaxTextureMaxAnisotropy;
-        set => GfxStats.MaxTextureMaxAnisotropy = value;
-    }
-
+    public static int MaxTextureMaxAnisotropy => GfxX.MaxTextureMaxAnisotropy;
     public abstract Texture DefaultTexture { get; }
-    public abstract Texture CreateTexture(Texture reuse, ITexture source, Range? level = null);
+    public abstract Texture CreateTexture(Texture reuse, ITexture tex, Range? level = null);
     public abstract Texture CreateSolidTexture(int width, int height, float[] rgba);
-    public abstract Texture CreateNormalMap(Texture texture, float strength);
-    public abstract void DeleteTexture(Texture texture);
+    public abstract Texture CreateNormalMap(Texture tex, float strength);
+    public abstract void DeleteTexture(Texture tex);
 }
 
 /// <summary>
@@ -439,7 +445,7 @@ public abstract class TextureBuilderBase<Texture>
 public interface ITextureManager<Texture>
 {
     Texture DefaultTexture { get; }
-    Texture CreateNormalMap(Texture texture, float strength);
+    Texture CreateNormalMap(Texture tex, float strength);
     Texture CreateSolidTexture(int width, int height, params float[] rgba);
     (Texture tex, object tag) CreateTexture(object path, Range? level = null);
     (Texture tex, object tag) ReloadTexture(object path, Range? level = null);
@@ -462,7 +468,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     public Texture CreateSolidTexture(int width, int height, params float[] rgba) => Builder.CreateSolidTexture(width, height, rgba);
 
-    public Texture CreateNormalMap(Texture source, float strength) => Builder.CreateNormalMap(source, strength);
+    public Texture CreateNormalMap(Texture tex, float strength) => Builder.CreateNormalMap(tex, strength);
 
     public Texture DefaultTexture => Builder.DefaultTexture;
 
@@ -472,9 +478,9 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
         if (CachedTextures.TryGetValue(path, out var c)) return c;
         // load & cache the texture.
         var tag = path is ITexture z ? z : LoadTexture(path).Result;
-        var texture = tag != null ? Builder.CreateTexture(default, tag, level) : Builder.DefaultTexture;
-        CachedTextures[path] = (texture, tag);
-        return (texture, tag);
+        var obj = tag != null ? Builder.CreateTexture(default, tag, level) : Builder.DefaultTexture;
+        CachedTextures[path] = (obj, tag);
+        return (obj, tag);
     }
 
     public (Texture tex, object tag) ReloadTexture(object path, Range? level = null)
@@ -506,9 +512,9 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
         path = Source.FindPath<ITexture>(path);
         Assert(!CachedTextures.ContainsKey(path));
         PreloadTexture(path);
-        var source = await PreloadTasks[path];
+        var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return source;
+        return obj;
     }
 }
 
@@ -521,39 +527,36 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 /// </summary>
 public interface IMaterial
 {
-    MaterialProp Begin(string platform);
-    void End();
+    T Create<T>(string platform, Func<object, T> func);
 }
 
 /// <summary>
 /// MaterialProp
 /// </summary>
-public class MaterialProp
+public abstract class MaterialProp
 {
     public object Tag;
 }
 
 /// <summary>
-/// MaterialPropStandard
+/// MaterialStdProp
 /// </summary>
-public class MaterialPropStandard : MaterialProp
+public class MaterialStdProp : MaterialProp
 {
     public Dictionary<string, string> Textures = [];
     //public string MainTexture => Textures.TryGetValue("Main", out var z) ? z : default;
     //public string BumpTexture => Textures.TryGetValue("Bump", out var z) ? z : default;
-    // blend
     public bool AlphaBlended;
     public GfxBlendMode SrcBlendMode;
     public GfxBlendMode DstBlendMode;
-    // alpha
     public bool AlphaTest;
     public float AlphaCutoff;
 }
 
 /// <summary>
-/// MaterialPropStandard2
+/// MaterialStd2Prop
 /// </summary>
-public class MaterialPropStandard2 : MaterialPropStandard
+public class MaterialStd2Prop : MaterialStdProp
 {
     public bool ZWrite;
     public Color DiffuseColor;
@@ -566,17 +569,17 @@ public class MaterialPropStandard2 : MaterialPropStandard
 /// <summary>
 /// MaterialPropShader
 /// </summary>
-public class MaterialPropShader : MaterialProp
+public class MaterialShaderProp : MaterialProp
 {
     public string ShaderName;
-    //public IDictionary<string, object> Data;
     public IDictionary<string, bool> ShaderArgs;
+    //public IDictionary<string, object> Data;
 }
 
 /// <summary>
 /// MaterialPropShaderV
 /// </summary>
-public class MaterialPropShaderV : MaterialPropShader
+public class MaterialShaderVProp : MaterialShaderProp
 {
     public Dictionary<string, long> IntParams;
     public Dictionary<string, float> FloatParams;
@@ -632,11 +635,11 @@ public class MaterialManager<Material, Texture>(ISource source, ITextureManager<
     {
         if (CachedMaterials.TryGetValue(path, out var c)) return c;
         // load & cache the material.
-        var source = path is MaterialProp z ? z : LoadMaterial(path).Result;
-        var material = source != null ? Builder.CreateMaterial(source) : Builder.DefaultMaterial;
-        var tag = source?.Tag;
-        CachedMaterials[path] = (material, tag);
-        return (material, tag);
+        var src = path is MaterialProp z ? z : LoadMaterial(path).Result;
+        var obj = src != null ? Builder.CreateMaterial(src) : Builder.DefaultMaterial;
+        var tag = src?.Tag;
+        CachedMaterials[path] = (obj, tag);
+        return (obj, tag);
     }
 
     public void PreloadMaterial(object path)
@@ -650,27 +653,10 @@ public class MaterialManager<Material, Texture>(ISource source, ITextureManager<
     {
         Assert(!CachedMaterials.ContainsKey(path));
         PreloadMaterial(path);
-        var source = await PreloadTasks[path];
+        var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return source;
+        return obj;
     }
-}
-
-#endregion
-
-#region Particles
-
-/// <summary>
-/// IParticleSystem
-/// </summary>
-public interface IParticleSystem
-{
-    IDictionary<string, object> Data { get; }
-    IEnumerable<IDictionary<string, object>> Renderers { get; }
-    IEnumerable<IDictionary<string, object>> Operators { get; }
-    IEnumerable<IDictionary<string, object>> Initializers { get; }
-    IEnumerable<IDictionary<string, object>> Emitters { get; }
-    IEnumerable<string> GetChildParticleNames(bool enabledOnly = false);
 }
 
 #endregion
@@ -683,27 +669,25 @@ public interface IParticleSystem
 public interface IModel
 {
     T Create<T>(string platform, Func<object, T> func);
-    //    IDictionary<string, object> Data { get; }
-    //    IVBIB RemapBoneIndices(IVBIB vbib, int meshIndex);
 }
 
 /// <summary>
-/// ModelApi
+/// IModelApi
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
-public interface ModelApi<Object, Material>
+public interface IModelApi<Object, Material>
 {
     Object CreateObject(string name);
     object CreateMesh(object mesh);
-    void AddMeshRenderer(Object source, object mesh, Material material, bool enabled, bool isStatic);
-    void AddMeshCollider(Object source, object mesh, bool isKinematic, bool isStatic);
+    void AddMeshRenderer(Object src, object mesh, Material material, bool enabled, bool isStatic);
+    void AddMeshCollider(Object src, object mesh, bool isKinematic, bool isStatic);
     //
-    public void SetParent(Object source, Object parent);
-    void Transform(Object source, Vector3 position, Quaternion rotation, Vector3 localScale);
-    void Transform(Object source, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
-    public void AddMissingMeshCollidersRecursively(Object source, bool isStatic);
-    public void SetLayerRecursively(Object source, int layer);
+    void SetParent(Object src, Object parent);
+    void Transform(Object src, Vector3 position, Quaternion rotation, Vector3 localScale);
+    void Transform(Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
+    void AddMissingMeshCollidersRecursively(Object src, bool isStatic);
+    void SetLayerRecursively(Object src, int layer);
 }
 
 #endregion
@@ -745,35 +729,6 @@ public class Renderer : IDisposable
 #endregion
 
 #region OpenGfx
-
-/// <summary>
-/// Gfx
-/// </summary>
-public static class Gfx
-{
-    public const int XSprite2D = 0;
-    public const int XSprite3D = 1;
-    public const int XModel = 2;
-}
-
-/// <summary>
-/// GfxStats
-/// </summary>
-public static class GfxStats
-{
-    public static int MaxTextureMaxAnisotropy;
-    //    //static readonly bool _HighRes = Stopwatch.IsHighResolution;
-    //    //static readonly double _HighFrequency = 1000.0 / Stopwatch.Frequency;
-    //    //static readonly double _LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
-    //    //static bool _UseHRT = false;
-    //    //public static bool UsingHighResolutionTiming => _UseHRT && _HighRes && !Unix;
-    //    //public static long TickCount => (long)Ticks;
-    //    //public static double Ticks => _UseHRT && _HighRes && !Unix ? Stopwatch.GetTimestamp() * _HighFrequency : DateTime.UtcNow.Ticks * _LowFrequency;
-    //    //public static readonly bool Is64Bit = Environment.Is64BitProcess;
-    //    //public static bool MultiProcessor { get; private set; }
-    //    //public static int ProcessorCount { get; private set; }
-    //    //public static bool Unix { get; private set; }
-}
 
 /// <summary>
 /// IOpenGfx
@@ -825,3 +780,21 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
 }
 
 #endregion
+
+/// <summary>
+/// GfxStats
+/// </summary>
+//public static class GfxStats
+//{
+//    //    //static readonly bool _HighRes = Stopwatch.IsHighResolution;
+//    //    //static readonly double _HighFrequency = 1000.0 / Stopwatch.Frequency;
+//    //    //static readonly double _LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
+//    //    //static bool _UseHRT = false;
+//    //    //public static bool UsingHighResolutionTiming => _UseHRT && _HighRes && !Unix;
+//    //    //public static long TickCount => (long)Ticks;
+//    //    //public static double Ticks => _UseHRT && _HighRes && !Unix ? Stopwatch.GetTimestamp() * _HighFrequency : DateTime.UtcNow.Ticks * _LowFrequency;
+//    //    //public static readonly bool Is64Bit = Environment.Is64BitProcess;
+//    //    //public static bool MultiProcessor { get; private set; }
+//    //    //public static int ProcessorCount { get; private set; }
+//    //    //public static bool Unix { get; private set; }
+//}

@@ -11,6 +11,6 @@ public class TestPlatformStats
     [TestMethod]
     public void Test_Init()
     {
-        Assert.AreEqual(0, GfxStats.MaxTextureMaxAnisotropy);
+        Assert.AreEqual(0, GfxX.MaxTextureMaxAnisotropy);
     }
 }

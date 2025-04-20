@@ -1,5 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OpenStack.Gfx.Animate;
+using OpenStack.Gfx.Egin;
 using System.Numerics;
 
 namespace OpenStack.GfxTests.Egin;

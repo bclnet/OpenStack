@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OpenStack.Gl.Renderers;
 
-namespace OpenStack.Gl.Renderer;
+namespace OpenStack.Gfx.OpenGL;
 
 /// <summary>
 /// TestTextureRenderer
