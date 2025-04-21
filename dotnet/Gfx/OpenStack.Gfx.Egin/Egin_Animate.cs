@@ -28,7 +28,7 @@ public class Bone
         Angle = rotation;
         // calculate matrices
         BindPose = Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
-        Matrix4x4.Invert(BindPose, out var inverseBindPose); InverseBindPose = inverseBindPose;
+        Matrix4x4.Invert(BindPose, out var InverseBindPose);
     }
 
     public void SetParent(Bone parent)
@@ -230,6 +230,7 @@ public class AnimationController
     float Time;
     bool ShouldUpdate;
     public bool IsPaused;
+
     public int Frame
     {
         get => ActiveAnimation != null && ActiveAnimation.FrameCount != 0

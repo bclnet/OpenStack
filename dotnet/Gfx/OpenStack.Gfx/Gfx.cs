@@ -11,24 +11,17 @@ using static OpenStack.Debug;
 
 namespace OpenStack.Gfx;
 
-#region Extensions
+#region GfX
 
 /// <summary>
-/// GfxX
+/// GfX
 /// </summary>
-public static class GfxX
+public static class GfX
 {
     public const int XSprite2D = 0;
     public const int XSprite3D = 1;
     public const int XModel = 2;
     public static int MaxTextureMaxAnisotropy;
-}
-
-/// <summary>
-/// GfxExtensions
-/// </summary>
-public static class GfxExtensions
-{
 }
 
 /*
@@ -431,7 +424,7 @@ public interface ITextureFramesSelect : ITextureFrames
 /// <typeparam name="Texture"></typeparam>
 public abstract class TextureBuilderBase<Texture>
 {
-    public static int MaxTextureMaxAnisotropy => GfxX.MaxTextureMaxAnisotropy;
+    public static int MaxTextureMaxAnisotropy => GfX.MaxTextureMaxAnisotropy;
     public abstract Texture DefaultTexture { get; }
     public abstract Texture CreateTexture(Texture reuse, ITexture tex, Range? level = null);
     public abstract Texture CreateSolidTexture(int width, int height, float[] rgba);
@@ -688,42 +681,6 @@ public interface IModelApi<Object, Material>
     void Transform(Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
     void AddMissingMeshCollidersRecursively(Object src, bool isStatic);
     void SetLayerRecursively(Object src, int layer);
-}
-
-#endregion
-
-#region Renderer
-
-/// <summary>
-/// Renderer
-/// </summary>
-public class Renderer : IDisposable
-{
-    /// <summary>
-    /// Pass
-    /// </summary>
-    public enum Pass { Both, Opaque, Translucent }
-
-    /// <summary>
-    /// Start
-    /// </summary>
-    public virtual void Start() { }
-
-    /// <summary>
-    /// Stop
-    /// </summary>
-    public virtual void Stop() { }
-
-    /// <summary>
-    /// Update
-    /// </summary>
-    /// <param name="deltaTime"></param>
-    public virtual void Update(float deltaTime) { }
-
-    /// <summary>
-    /// Dispose
-    /// </summary>
-    public virtual void Dispose() { }
 }
 
 #endregion

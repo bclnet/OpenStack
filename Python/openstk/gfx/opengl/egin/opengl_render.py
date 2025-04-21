@@ -21,7 +21,6 @@ class Camera: pass
 # class Shader: pass
 class AABB: pass
 
-
 #region Camera
 
 # GLCamera

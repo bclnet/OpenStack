@@ -19,7 +19,7 @@ namespace OpenStack;
 // StrideShaderBuilder : MISSING
 
 // StrideTextureBuilder
-public class StrideTextureBuilder : TextureBuilderBase<Texture>
+class StrideTextureBuilder : TextureBuilderBase<Texture>
 {
     Texture _defaultTexture;
     public override Texture DefaultTexture => _defaultTexture ??= CreateDefaultTexture();

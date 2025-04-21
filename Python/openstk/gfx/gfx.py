@@ -11,15 +11,12 @@ class Texture: pass
 
 #region Extensions
 
-# GfxX:
-class GfxX:
+# GfX:
+class GfX:
     XSprite2D = 0
     XSprite3D = 1
     XModel = 2
     maxTextureMaxAnisotropy: int = 0
-
-# GfxExtensions
-class GfxExtensions: pass
 
 # GfxAlphaMode
 class GfxAlphaMode(Enum):
@@ -284,7 +281,7 @@ class ITextureFrames(ITextureVideo):
 
 # TextureBuilderBase
 class TextureBuilderBase:
-    maxTextureMaxAnisotropy: int = GfxX.maxTextureMaxAnisotropy
+    maxTextureMaxAnisotropy: int = GfX.maxTextureMaxAnisotropy
     defaultTexture: Texture
     def createTexture(self, reuse: Texture, tex: ITexture, level: range = None) -> Texture: pass
     def createSolidTexture(self, width: int, height: int, rgba: list[float]) -> Texture: pass
@@ -468,17 +465,6 @@ class IModelApi:
 
 #endregion
 
-#region Renderer
-
-# Renderer
-class Renderer:
-    def start(self) -> None: pass
-    def stop(self) -> None: pass
-    def update(self, deltaTime: float) -> None: pass
-    def dispose(self) -> None: pass
-
-#endregion
-
 #region OpenGfx
 
 # IOpenGfx:
@@ -486,22 +472,22 @@ class IOpenGfx:
     def loadFileObject(self, type: type, path: object): pass
     def preloadObject(self, path: object) -> None: pass
 
-# IOpenGfxSprite
-class IOpenGfxSprite(IOpenGfx):
+# IOpenGfxSpriteX
+class IOpenGfxSpriteX(IOpenGfx):
     def preloadSprite(self, path: object) -> None: pass
 
-# IOpenGfxSprite2
-class IOpenGfxSprite2(IOpenGfxSprite):
+# IOpenGfxSprite
+class IOpenGfxSprite(IOpenGfxSpriteX):
     spriteManager: ISpriteManager
     objectManager: IObjectSpriteManager
     def createObject(self, path: object) -> Object: pass
 
-# IOpenGfxModel:
-class IOpenGfxModel:
+# IOpenGfxModelX:
+class IOpenGfxModelX:
     def preloadTexture(self, path: object) -> None: pass
 
-# IOpenGfxModel2
-class IOpenGfxModel2(IOpenGfxModel):
+# IOpenGfxModel
+class IOpenGfxModel(IOpenGfxModelX):
     textureManager: ITextureManager
     materialManager: IMaterialManager
     objectManager: IObjectManager

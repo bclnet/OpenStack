@@ -18,7 +18,7 @@ namespace OpenStack;
 /// <summary>
 /// OpenGLObjectBuilder
 /// </summary>
-public class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int>
+class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int>
 {
     public override void EnsurePrefab() { }
     public override object CreateNewObject(object prefab) => throw new NotImplementedException();
@@ -28,7 +28,7 @@ public class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMateri
 /// <summary>
 /// OpenGLShaderBuilder
 /// </summary>
-public class OpenGLShaderBuilder : ShaderBuilderBase<Shader>
+class OpenGLShaderBuilder : ShaderBuilderBase<Shader>
 {
     static readonly ShaderLoader _loader = new ShaderDebugLoader();
     public override Shader CreateShader(object path, IDictionary<string, bool> args = null) => _loader.CreateShader(path, args);
@@ -37,7 +37,7 @@ public class OpenGLShaderBuilder : ShaderBuilderBase<Shader>
 /// <summary>
 /// OpenGLTextureBuilder
 /// </summary>
-public unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
+unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
 {
     int _defaultTexture = -1;
     public override int DefaultTexture => _defaultTexture > -1 ? _defaultTexture : _defaultTexture = CreateDefaultTexture();
@@ -206,7 +206,7 @@ public unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
 /// <summary>
 /// OpenGLMaterialBuilder
 /// </summary>
-public class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilderBase<GLRenderMaterial, int>(textureManager)
+class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilderBase<GLRenderMaterial, int>(textureManager)
 {
     GLRenderMaterial _defaultMaterial;
     public override GLRenderMaterial DefaultMaterial => _defaultMaterial ??= CreateDefaultMaterial(-1);

@@ -18,7 +18,7 @@ namespace OpenStack;
 #region OpenGfx
 
 // UnityObjectModelBuilder
-public class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D>
+class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D>
 {
     GameObject _prefab;
 
@@ -53,13 +53,13 @@ public class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Materi
 }
 
 // UnityShaderBuilder
-public class UnityShaderBuilder : ShaderBuilderBase<XShader>
+class UnityShaderBuilder : ShaderBuilderBase<XShader>
 {
     public override XShader CreateShader(object path, IDictionary<string, bool> args = null) => XShader.Find((string)path);
 }
 
 // UnityTextureBuilder
-public class UnityTextureBuilder : TextureBuilderBase<Texture2D>
+class UnityTextureBuilder : TextureBuilderBase<Texture2D>
 {
     Texture2D _defaultTexture;
     public override Texture2D DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
@@ -153,7 +153,7 @@ public class UnityTextureBuilder : TextureBuilderBase<Texture2D>
 /// <summary>
 /// A material that uses the new Standard Shader.
 /// </summary>
-public class UnityMaterialBuilder(ITextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager)
+class UnityMaterialBuilder(ITextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager)
 {
     static readonly int BaseMap = XShader.PropertyToID("_BaseMap"), BumpMap = XShader.PropertyToID("_BumpMap"), Cutoff = XShader.PropertyToID("_Cutoff");
     static readonly XShader _litShader = XShader.Find("Universal Render Pipeline/Lit"), _terrainShader = XShader.Find("Nature/Terrain/Diffuse");

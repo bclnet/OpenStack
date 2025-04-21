@@ -1,14 +1,14 @@
 from __future__ import annotations
 import os, io, numpy as np
 from openstk.gfx import TextureFlags, TextureFormat, TexturePixel
-from gamex.platform_system import SystemSfx
-from gamex.platform import ObjectBuilderBase, ObjectManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase, Platform
+from openstk.gfx import IOpenGfxModel, Shader, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, ShaderBuilderBase, TextureBuilderBase, IMaterialManager
+from openstk.platform import Platform, SystemSfx
 
 # typedefs
 class IPanda3dGfx: pass
 
-# Panda3dObjectBuilder
-class Panda3dObjectBuilder(ObjectBuilderBase):
+# Panda3dObjectModelBuilder
+class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: IMaterialManager) -> object: raise NotImplementedError()
@@ -89,18 +89,18 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
             case _: raise Exception(f'Unknown: {key}')
 
 # Panda3dGfx
-class Panda3dGfx(IPanda3dGfx):
-    source: PakFile
-    textureManager: TextureManager
-    materialManager: MaterialManager
-    objectManager: ObjectManager
-    shaderManager: ShaderManager
+class Panda3dGfxModel(IOpenGfxModel):
+    source: ISource
+    textureManager: ITextureManager
+    materialManager: IMaterialManager
+    objectManager: IObjectModelManager
+    shaderManager: IShaderManager
 
-    def __init__(self, source: PakFile):
+    def __init__(self, source: ISource):
         self.source = source
         self.textureManager = TextureManager(source, Panda3dTextureBuilder())
         self.materialManager = MaterialManager(source, self.textureManager, Panda3dMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectManager(source, self.materialManager, Panda3dObjectBuilder())
+        self.objectManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
         self.shaderManager = ShaderManager(source, Panda3dShaderBuilder())
 
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
@@ -114,6 +114,6 @@ class Panda3dGfx(IPanda3dGfx):
 class Panda3dPlatform(Platform):
     def __init__(self):
         super().__init__('PD', 'Panda3D')
-        self.gfxFactory = staticmethod(lambda source: [Panda3dGfx(source)])
+        self.gfxFactory = staticmethod(lambda source: [None, None, Panda3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Panda3dPlatform.This = Panda3dPlatform()

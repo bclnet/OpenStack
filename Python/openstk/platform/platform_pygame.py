@@ -1,14 +1,19 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk.gfx import TextureFlags, TextureFormat, TexturePixel
-from gamex.platform_system import SystemSfx
-from gamex.platform import ObjectBuilderBase, ObjectManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase, Platform
+from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
+# from openstk.sfx import AudioBuilderBase, IAudioManager
+from openstk.platform import Platform, SystemSfx
 
 # typedefs
-class IPygameGfx: pass
+class ISource: pass
+class ITextureManager: pass
+class IMaterialManager: pass
+class IObjectModelManager: pass
+class IShaderManager: pass
 
-# PygameObjectBuilder
-class PygameObjectBuilder(ObjectBuilderBase):
+
+# PygameObjectModelBuilder
+class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: IMaterialManager) -> object: raise NotImplementedError()
@@ -106,19 +111,19 @@ class PygameMaterialBuilder(MaterialBuilderBase):
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')
 
-# PygameGfx
-class PygameGfx(IPygameGfx):
-    source: PakFile
-    textureManager: TextureManager
-    materialManager: MaterialManager
-    objectManager: ObjectManager
-    shaderManager: ShaderManager
+# PygameGfxModel
+class PygameGfxModel(IOpenGfxModel):
+    source: ISource
+    textureManager: ITextureManager
+    materialManager: IMaterialManager
+    objectManager: IObjectModelManager
+    shaderManager: IShaderManager
 
     def __init__(self, source: PakFile):
         self.source = source
         self.textureManager = TextureManager(source, PygameTextureBuilder())
         self.materialManager = MaterialManager(source, self.textureManager, PygameMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectManager(source, self.materialManager, PygameObjectBuilder())
+        self.objectManager = ObjectModelManager(source, self.materialManager, PygameObjectModelBuilder())
         self.shaderManager = ShaderManager(source, PygameShaderBuilder())
 
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
@@ -133,6 +138,6 @@ class PygameGfx(IPygameGfx):
 class PygamePlatform(Platform):
     def __init__(self):
         super().__init__('PG', 'Pygame')
-        self.gfxFactory = staticmethod(lambda source: [PygameGfx(source)])
+        self.gfxFactory = staticmethod(lambda source: [None, None, PygameGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 PygamePlatform.This = PygamePlatform()

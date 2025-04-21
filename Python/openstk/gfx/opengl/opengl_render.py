@@ -2,9 +2,8 @@ from __future__ import annotations
 import ctypes, numpy as np
 from enum import Enum
 from OpenGL.GL import *
-from openstk.gfx import IRenderer
-from openstk.gfx.egin import AABB, RenderPass
-from openstk.gfx.gl_render import GLRenderMaterial
+from openstk.gfx.egin import AABB, EginRenderer
+from openstk.gfx.opengl.egin import GLRenderMaterial
 
 sizeof_float = ctypes.sizeof(GLfloat)
 
@@ -16,7 +15,7 @@ class Camera: pass
 #region TestTriRenderer
 
 # TestTriRenderer
-class TestTriRenderer(IRenderer):
+class TestTriRenderer(EginRenderer):
     gfx: IOpenGLGfx
     texture: int
     shader: Shader
@@ -65,7 +64,7 @@ class TestTriRenderer(IRenderer):
 #region TextureRenderer
 
 # TextureRenderer
-class TextureRenderer(IRenderer):
+class TextureRenderer(EginRenderer):
     gfx: IOpenGLGfx
     texture: int
     shader: Shader
@@ -110,7 +109,7 @@ class TextureRenderer(IRenderer):
         glBindVertexArray(0) # unbind vao
         return vao
 
-    def render(self, camera: Camera, renderPass: RenderPass) -> None:
+    def render(self, camera: Camera, passx: Pass) -> None:
         if self.background: glClearColor(255, 255, 255, 255); glClear(GL_COLOR_BUFFER_BIT)
         glUseProgram(self.shader.program)
         glBindVertexArray(self.vao)
@@ -127,7 +126,7 @@ class TextureRenderer(IRenderer):
 #region MaterialRenderer
 
 # MaterialRenderer
-class MaterialRenderer(IRenderer):
+class MaterialRenderer(EginRenderer):
     gfx: IOpenGLGfx
     material: GLRenderMaterial
     shader: Shader
@@ -197,7 +196,7 @@ class MaterialRenderer(IRenderer):
 #region ParticleGridRenderer
 
 # ParticleGridRenderer
-class ParticleGridRenderer(IRenderer):
+class ParticleGridRenderer(EginRenderer):
     shader: Shader
     shaderTag: object
     vao: int

@@ -1,3 +1,1 @@
-from .gfx import *
-from .gfx_render import *
-from .gfx_texture import *
+from .opengl_render import *

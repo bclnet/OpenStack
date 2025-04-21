@@ -1,10 +1,10 @@
 from unittest import TestCase, main
-from gfx import GfxX
+from gfx import GfX
 
-# TestGfxX
-class TestGfxX(TestCase):
+# TestGfX
+class TestGfX(TestCase):
     def test__init__(self):
-        self.assertEqual(0, GfxX.maxTextureMaxAnisotropy)
+        self.assertEqual(0, GfX.maxTextureMaxAnisotropy)
 
 if __name__ == "__main__":
     main(verbosity=1)

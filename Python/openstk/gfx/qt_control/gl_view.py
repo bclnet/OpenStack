@@ -126,7 +126,7 @@ class OpenGLView(QOpenGLWidget):
             if extension not in extensions: extensions[extension] = None
         if 'GL_EXT_texture_filter_anisotropic' in extensions:
             maxTextureMaxAnisotropy = glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-            GfxX.maxTextureMaxAnisotropy = maxTextureMaxAnisotropy
+            GfX.maxTextureMaxAnisotropy = maxTextureMaxAnisotropy
             print(f'MaxTextureMaxAnisotropyExt: {maxTextureMaxAnisotropy}')
         else: print(f'GL_EXT_texture_filter_anisotropic is not supported')
 

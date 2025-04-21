@@ -126,7 +126,7 @@ public class GLControl : OpenTK.GLControl
         if (extensions.Contains("GL_EXT_texture_filter_anisotropic"))
         {
             var maxTextureMaxAnisotropy = GL.GetInteger((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
-            GfxX.MaxTextureMaxAnisotropy = maxTextureMaxAnisotropy;
+            GfX.MaxTextureMaxAnisotropy = maxTextureMaxAnisotropy;
             Console.WriteLine($"MaxTextureMaxAnisotropyExt: {maxTextureMaxAnisotropy}");
         }
         else Console.Error.WriteLine("GL_EXT_texture_filter_anisotropic is not supported");

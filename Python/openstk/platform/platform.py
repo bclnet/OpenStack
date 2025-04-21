@@ -2,8 +2,6 @@ from __future__ import annotations
 import os, sys
 from enum import Enum
 from openstk.poly import ISource
-# from openstk.gfx import ObjectModelBuilderBase, IObjectManager, MaterialBuilderBase, IMaterialManager, ShaderBuilderBase, IShaderManager, TextureBuilderBase, ITextureManager, PlatformStats
-# from openstk.sfx import AudioBuilderBase, IAudioManager
 
 #region FileSystem
 

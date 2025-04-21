@@ -12,10 +12,10 @@ class Bone:
     parent: Bone
     children: list[Bone] = []
     name: str
-    position: np.ndarray
+    position: np.ndarray #Vector3
     angle: quat.quaternion
-    bindPose: np.ndarray
-    inverseBindPose: np.ndarray
+    bindPose: np.ndarray #Matrix4x4
+    inverseBindPose: np.ndarray #Matrix4x4
 
     def __init__(self, index: int, name: str, position: np.ndarray, rotation: quat.quaternion):
         self.index = index
@@ -45,7 +45,7 @@ class ChannelAttribute(Enum):
 
 # FrameBone
 class FrameBone:
-    position: np.ndarray
+    position: np.ndarray #Vector3
     angle: quat.quaternion
     scale: float
 
@@ -156,6 +156,7 @@ class AnimationController:
     time: float
     shouldUpdate: bool
     isPaused: bool
+    
     @property
     def frame(self) -> int:
         return round(self.time * self.activeAnimation.fps) % self.activeAnimation.frameCount if self.activeAnimation and self.activeAnimation.frameCount != 0 else 0

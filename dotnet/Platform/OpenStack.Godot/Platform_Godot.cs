@@ -18,7 +18,7 @@ namespace OpenStack;
 // GodotShaderBuilder : MISSING
 
 // GodotTextureBuilder
-public class GodotTextureBuilder : TextureBuilderBase<Texture>
+class GodotTextureBuilder : TextureBuilderBase<Texture>
 {
     Texture _defaultTexture;
     public override Texture DefaultTexture => _defaultTexture ??= CreateDefaultTexture();

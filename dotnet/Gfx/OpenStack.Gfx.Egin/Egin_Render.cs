@@ -5,7 +5,6 @@ using System.Numerics;
 
 namespace OpenStack.Gfx.Egin;
 
-
 #region Model
 
 /// <summary>
@@ -43,7 +42,7 @@ public struct OnDiskBufferData
     {
         public string SemanticName;
         public int SemanticIndex;
-        public DXGI_FORMAT Format; //:TODO?
+        public DXGI_FORMAT Format;
         public uint Offset;
         public int Slot;
         public RenderSlotType SlotType;
@@ -240,7 +239,6 @@ public abstract class RenderMaterial
         {
             //case MaterialPropShader p: break;
             case MaterialShaderVProp p:
-                // #TODO: Fixed with interface
                 if (p.IntParams.ContainsKey("F_ALPHA_TEST") && p.IntParams["F_ALPHA_TEST"] == 1 && p.FloatParams.ContainsKey("g_flAlphaTestReference")) AlphaTestReference = p.FloatParams["g_flAlphaTestReference"];
                 IsToolsMaterial = p.IntAttributes.ContainsKey("tools.toolsmaterial");
                 IsBlended = (p.IntParams.ContainsKey("F_TRANSLUCENT") && p.IntParams["F_TRANSLUCENT"] == 1) || p.IntAttributes.ContainsKey("mapbuilder.water") || material.ShaderName == "vr_glass.vfx" || material.ShaderName == "tools_sprite.vfx";
@@ -326,7 +324,6 @@ public abstract class RenderableMesh
     protected IMesh Mesh;
     protected IVBIB VBIB;
 
-    // IVBIB IModel.RemapBoneIndices(IVBIB vbib, int meshIndex);
     public RenderableMesh(Action<RenderableMesh> action, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null)
     {
         action(this);

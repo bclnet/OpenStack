@@ -313,6 +313,42 @@ public struct Color32
 
 #endregion
 
+#region Renderer
+
+/// <summary>
+/// Renderer
+/// </summary>
+public class Renderer : IDisposable
+{
+    /// <summary>
+    /// Pass
+    /// </summary>
+    public enum Pass { Both, Opaque, Translucent }
+
+    /// <summary>
+    /// Start
+    /// </summary>
+    public virtual void Start() { }
+
+    /// <summary>
+    /// Stop
+    /// </summary>
+    public virtual void Stop() { }
+
+    /// <summary>
+    /// Update
+    /// </summary>
+    /// <param name="deltaTime"></param>
+    public virtual void Update(float deltaTime) { }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public virtual void Dispose() { }
+}
+
+#endregion
+
 #region Raster
 
 /// <summary>

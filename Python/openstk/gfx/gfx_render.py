@@ -1,7 +1,24 @@
 from __future__ import annotations
 import math, numpy as np
+from enum import Enum
 
 #region Color
+
+#endregion
+
+#region Renderer
+
+# Renderer
+class Renderer:
+    # Pass
+    class Pass(Enum):
+        Both = 0,
+        Opaque = 1,
+        Translucent = 2 # Blended
+    def start(self) -> None: pass
+    def stop(self) -> None: pass
+    def update(self, deltaTime: float) -> None: pass
+    def dispose(self) -> None: pass
 
 #endregion
 

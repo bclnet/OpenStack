@@ -1,14 +1,13 @@
 from __future__ import annotations
 import math, numpy as np
 from enum import Enum, Flag
-from openstk.gfx import Shader
+# from openstk.gfx import Shader
 from openstk.gfx.util import _throw, _np_normalize, _np_getTranslation4x4, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
 
 # typedefs
 class IMaterial: pass
 class IModel: pass
-# # typedefs
-# class Shader: pass
+class Shader: pass
 
 #region Model
 
@@ -189,7 +188,6 @@ class RenderMaterial:
         match material:
             case s if isinstance(material, IFixedMaterial): pass
             case p if isinstance(material, IParamMaterial):
-                # TODO: Fixed with interface
                 if 'F_ALPHA_TEST' in p.intParams and p.intParams['F_ALPHA_TEST'] == 1 and 'g_flAlphaTestReference' in p.floatParams: self.alphaTestReference = p.floatParams['g_flAlphaTestReference']
                 self.isToolsMaterial = 'tools.toolsmaterial' in p.intAttributes
                 self.isBlended = ('F_TRANSLUCENT' in p.intParams and p.IntParams['F_TRANSLUCENT'] == 1) or 'mapbuilder.water' in p.intAttributes or material.shaderName == 'vr_glass.vfx' or material.shaderName == 'tools_sprite.vfx'
@@ -254,7 +252,7 @@ class RenderableMesh:
     mesh: IMesh
     vbib: IVBIB
 
-    def __init__(self, action: callable, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
+    def __init__(self, action: callable, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IEginModel = None):
         action(self)
         self.mesh = mesh
         self.vbib = model.remapBoneIndices(mesh.vbib, meshIndex) if model else mesh.vbib
@@ -384,75 +382,11 @@ class Camera:
 
 #region Render
 
-# RenderPass
-class RenderPass(Enum):
-    Both = 0,
-    Opaque = 1,
-    Translucent = 2 # Blended
-
-# IRenderer
-class IRenderer:
-    boundingBox: AABB
-    def render(self, camera: Camera, renderPass: RenderPass) -> None: pass
-    def update(self, frameTime: float) -> None: pass
-
-# Raster
-class Raster:
-    @staticmethod
-    def copyPixelsByPalette(data: bytearray, bbp: int, source: bytes, palette: bytes, pbp: int):
-        pi = 0
-        if pbp == 3:
-            if bbp == 4:
-                for i, s in enumerate(source):
-                    p = s * 3
-                    data[pi + 0] = palette[p + 0]
-                    data[pi + 1] = palette[p + 1]
-                    data[pi + 2] = palette[p + 2]
-                    data[pi + 3] = 0xFF
-                    pi += 4
-            elif bbp == 3:
-                for i, s in enumerate(source):
-                    p = s * 3
-                    data[pi + 0] = palette[p + 0]
-                    data[pi + 1] = palette[p + 1]
-                    data[pi + 2] = palette[p + 2]
-                    pi += 3
-        elif pbp == 4:
-            if bbp == 4:
-                for i, s in enumerate(source):
-                    p = s * 4
-                    data[pi + 0] = palette[p + 0]
-                    data[pi + 1] = palette[p + 1]
-                    data[pi + 2] = palette[p + 2]
-                    data[pi + 3] = palette[p + 3]
-                    pi += 4
-            elif bbp == 3:
-                for i, s in enumerate(source):
-                    p = s * 4
-                    data[pi + 0] = palette[p + 0]
-                    data[pi + 1] = palette[p + 1]
-                    data[pi + 2] = palette[p + 2]
-                    pi += 3
-
-    @staticmethod
-    def copyPixelsByPaletteWithAlpha(data: bytearray, bbp: int, source: bytes, palette: bytes, pbp: int, alpha: int):
-        pi = 0
-        if pbp == 3:
-            if bbp == 4:
-                for i, s in enumerate(source):
-                    p = s * 3
-                    data[pi + 0] = palette[p + 0]
-                    data[pi + 1] = palette[p + 1]
-                    data[pi + 2] = palette[p + 2]
-                    data[pi + 3] = 0x00 if s == alpha else 0xFF
-                    pi += 4
-            elif bbp == 3:
-                for i, s in enumerate(source):
-                    p = s * 3
-                    data[pi + 0] = palette[p + 0]
-                    data[pi + 1] = palette[p + 1]
-                    data[pi + 2] = palette[p + 2]
-                    pi += 3
+# EginRenderer
+class EginRenderer:
+    # boundingBox: AABB
+    def getViewport(self, size: (int, int)) -> (int, int): pass
+    def render(self, camera: Camera, passx: Pass) -> None: pass
 
 #endregion
 
@@ -715,7 +649,7 @@ class Scene:
 
 # SceneNode
 class SceneNode:
-    _transform: np.ndarray
+    _transform: np.ndarray #Matrix4x4
     _localBoundingBox: AABB
     @property
     def transform(self) -> np.ndarray: return self._transform

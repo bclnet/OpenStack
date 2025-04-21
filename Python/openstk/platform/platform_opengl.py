@@ -6,17 +6,13 @@ from importlib import resources
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
 from openstk.poly import ISource
-from openstk.gfx import Shader
-# IObjectManager, IShaderManager, ITextureManager, 
-from openstk.gfx import TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, IMaterialManager, ShaderBuilderBase, TextureBuilderBase
-from openstk.gfx.gl import QuadIndexBuffer, GLMeshBufferCache, ShaderDebugLoader
-# from openstk.gfx.gl_render import GLRenderMaterial
-# from openstk.platform import SystemSfx, ObjectModelBuilderBase, ObjectManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase, Platform
+from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, Shader, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, IMaterialManager, ShaderBuilderBase, TextureBuilderBase
+from openstk.gfx.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
 # from openstk.sfx import AudioBuilderBase, IAudioManager
+from openstk.platform import Platform
 
 # typedefs
-# class GLMeshBufferCache: pass
-# class QuadIndexBuffer: pass
+class ShaderDebugLoader: pass
 
 #region Extensions
 
@@ -24,8 +20,8 @@ from openstk.gfx.gl import QuadIndexBuffer, GLMeshBufferCache, ShaderDebugLoader
 
 #region OpenGfx
 
-# OpenGLObjectBuilder
-class OpenGLObjectBuilder(ObjectModelBuilderBase):
+# OpenGLObjectModelBuilder
+class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: IMaterialManager) -> object: raise NotImplementedError()
@@ -218,15 +214,15 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
                 return m
             case _: raise Exception(f'Unknown: {path}')
 
-# OpenGLGfOpenGLGfxSprite3DxModel
-class OpenGLGfxSprite3D(IOpenGfxSprite2):
+# OpenGLGfxSprite3D
+class OpenGLGfxSprite3D(IOpenGfxSprite):
     source: ISource
     spriteManager: SpriteManager
     objectManager: ObjectSpriteManager
     def __init__(self, source: ISource):
         self.source = source
         # self.spriteManager = SpriteManager(source, OpenGLTextureBuilder())
-        # self.objectManager = ObjectManager(source, OpenGLObjectBuilder())
+        # self.objectManager = ObjectManager(source, OpenGLObjectModelBuilder())
 
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
@@ -235,7 +231,7 @@ class OpenGLGfxSprite3D(IOpenGfxSprite2):
     def loadFileObject(self, type: type, path: object) -> object: return self.source.loadFileObject(type, path)
 
 # OpenGLGfxModel
-class OpenGLGfxModel(IOpenGfxModel2):
+class OpenGLGfxModel(IOpenGfxModel):
     source: ISource
     textureManager: TextureManager
     materialManager: MaterialManager
@@ -245,7 +241,7 @@ class OpenGLGfxModel(IOpenGfxModel2):
         self.source = source
         self.textureManager = TextureManager(source, OpenGLTextureBuilder())
         self.materialManager = MaterialManager(source, self.textureManager, OpenGLMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectManager(source, self.materialManager, OpenGLObjectBuilder())
+        self.objectManager = ObjectManager(source, self.materialManager, OpenGLObjectModelBuilder())
         self.shaderManager = ShaderManager(source, OpenGLShaderBuilder())
         self.meshBufferCache = GLMeshBufferCache()
 
@@ -266,7 +262,7 @@ class OpenGLGfxModel(IOpenGfxModel2):
 class OpenGLPlatform(Platform):
     def __init__(self):
         super().__init__('GL', 'OpenGL')
-        self.gfxFactory = staticmethod(lambda source: [OpenGLGfx(source)])
+        self.gfxFactory = staticmethod(lambda source: [None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 OpenGLPlatform.This = OpenGLPlatform()
 
