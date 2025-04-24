@@ -6,8 +6,7 @@ namespace System.IO;
 /// <summary>
 /// IndentedTextWriter
 /// </summary>
-public class IndentedTextWriter : TextWriter
-{
+public class IndentedTextWriter : TextWriter {
     /// <summary>
     /// Specifies the default tab string. This field is constant.
     /// </summary>
@@ -20,8 +19,7 @@ public class IndentedTextWriter : TextWriter
     /// <summary>
     /// Initializes a new instance of the <see cref="IndentedTextWriter"/> class.
     /// </summary>
-    public IndentedTextWriter() : base(CultureInfo.InvariantCulture)
-    {
+    public IndentedTextWriter() : base(CultureInfo.InvariantCulture) {
         _writer = new StringWriter(CultureInfo.InvariantCulture);
         indentLevel = 0;
         indentPending = false;
@@ -39,8 +37,7 @@ public class IndentedTextWriter : TextWriter
     /// Gets or sets the new line character to use.
     /// </summary>
     /// <returns> The new line character to use. </returns>
-    public override string NewLine
-    {
+    public override string NewLine {
         get => _writer.NewLine;
         set => _writer.NewLine = value;
     }
@@ -49,8 +46,7 @@ public class IndentedTextWriter : TextWriter
     /// Gets or sets the number of spaces to indent.
     /// </summary>
     /// <returns> The number of spaces to indent. </returns>
-    public int Indent
-    {
+    public int Indent {
         get => indentLevel;
         set { if (value < 0) value = 0; indentLevel = value; }
     }
@@ -65,8 +61,7 @@ public class IndentedTextWriter : TextWriter
     /// <see cref="P:System.CodeDom.Compiler.IndentedTextWriter.Indent" />
     /// property.
     /// </summary>
-    protected virtual void OutputIndent()
-    {
+    protected virtual void OutputIndent() {
         if (!indentPending) return;
         for (var index = 0; index < indentLevel; ++index) _writer.Write(TabString);
         indentPending = false;

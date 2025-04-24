@@ -53,13 +53,8 @@ class ObjectSpriteBuilderBase:
     def createNewObject(self, prefab: Object) -> Object: pass
     def createObject(self, src: object) -> Object: pass
 
-# IObjectSpriteManager
-class IObjectSpriteManager:
-    def createObject(self, path: object) -> (Object, object): pass
-    def preloadObject(self, path: object) -> None: pass
-
 # ObjectSpriteManager
-class ObjectSpriteManager(IObjectSpriteManager):
+class ObjectSpriteManager:
     _source: ISource
     _builder: ObjectSpriteBuilderBase
     _cachedObjects: dict[object, (Object, object)] = {}
@@ -96,21 +91,16 @@ class ObjectSpriteManager(IObjectSpriteManager):
 class ObjectModelBuilderBase:
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: Object) -> Object: pass
-    def createObject(self, src: object, materialManager: IMaterialManager) -> Object: pass
-
-# IObjectModelManager
-class IObjectModelManager:
-    def createObject(self, path: object) -> (Object, object): pass
-    def preloadObject(self, path: object) -> None: pass
+    def createObject(self, src: object, materialManager: MaterialManager) -> Object: pass
 
 # ObjectModelManager
-class ObjectModelManager(IObjectModelManager):
+class ObjectModelManager:
     _source: ISource
-    _materialManager: IMaterialManager
+    _materialManager: MaterialManager
     _builder: ObjectModelBuilderBase
     _cachedObjects: dict[object, (Object, object)] = {}
     _preloadTasks: dict[object, object] = {}
-    def __init__(self, source: ISource, materialManager: IMaterialManager, builder: ObjectModelBuilderBase):
+    def __init__(self, source: ISource, materialManager: MaterialManager, builder: ObjectModelBuilderBase):
         self._source = source
         self._materialManager = materialManager
         self._builder = builder
@@ -167,12 +157,8 @@ class Shader:
 class ShaderBuilderBase:
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: pass
 
-# IShaderManager
-class IShaderManager:
-    def createShader(self, path: object, args: dict[str: bool] = None) -> (Shader, object): pass
-
 # ShaderManager
-class ShaderManager(IShaderManager):
+class ShaderManager:
     emptyArgs: dict[str, bool] = {}
     _source: ISource
     _builder: ShaderBuilderBase
@@ -199,15 +185,8 @@ class SpriteBuilderBase:
     def createSprite(self, spr: ISprite) -> Sprite: pass
     def deleteSprite(self, spr: Sprite) -> None: pass
 
-# ISpriteManager:
-class ISpriteManager:
-    defaultSprite: Sprite
-    def createSprite(self, path: object) -> (Sprite, object): pass
-    def preloadSprite(self, path: object) -> None: pass
-    def deleteSprite(self, path: object) -> None: pass
-
 # SpriteManager
-class SpriteManager(ISpriteManager):
+class SpriteManager:
     _source: ISource
     _builder: SpriteBuilderBase
     _cachedSprites: dict[object, (Sprite, object)] = {}
@@ -288,18 +267,8 @@ class TextureBuilderBase:
     def createNormalMap(self, tex: Texture, strength: float) -> Texture: pass
     def deleteTexture(self, tex: Texture) -> None: pass
 
-# ITextureManager:
-class ITextureManager:
-    defaultTexture: Texture
-    def createNormalMap(self, tex: Texture, strength: float) -> Texture: pass
-    def createSolidTexture(self, width: int, height: int, rgba: list[float]) -> Texture: pass
-    def createTexture(self, path: object, level: range = None) -> (Texture, object): pass
-    def reloadTexture(self, path: object, level: range = None) -> (Texture, object): pass
-    def preloadTexture(self, path: object) -> None: pass
-    def deleteTexture(self, path: object) -> None: pass
-
 # TextureManager
-class TextureManager(ITextureManager):
+class TextureManager:
     _source: ISource
     _builder: TextureBuilderBase
     _cachedTextures: dict[object, (Texture, object)] = {}
@@ -398,26 +367,20 @@ class MaterialTerrainProp(MaterialProp):
 
 # MaterialBuilderBase
 class MaterialBuilderBase:
-    textureManager : ITextureManager
+    textureManager : TextureManager
     normalGeneratorIntensity: float = 0.75
     defaultMaterial: Material
-    def __init__(self, textureManager: ITextureManager): self.textureManager = textureManager
+    def __init__(self, textureManager: TextureManager): self.textureManager = textureManager
     def createMaterial(self, path: object) -> Material: pass
 
-# IMaterialManager
-class IMaterialManager:
-    textureManager: ITextureManager
-    def createMaterial(self, path: object) -> (Material, object): pass
-    def preloadMaterial(self, path: object) -> None: pass
-
 # MaterialManager
-class MaterialManager(IMaterialManager):
+class MaterialManager:
     _source: ISource
     _builder: MaterialBuilderBase
     _cachedMaterials: dict[object, (Material, object)] = {}
     _preloadTasks: dict[object, object] = {}
-    textureManager: ITextureManager
-    def __init__(self, source: ISource, textureManager: ITextureManager, builder: MaterialBuilderBase):
+    textureManager: TextureManager
+    def __init__(self, source: ISource, textureManager: TextureManager, builder: MaterialBuilderBase):
         self._source = source
         self._textureManager = textureManager
         self._builder = builder
@@ -478,8 +441,8 @@ class IOpenGfxSpriteX(IOpenGfx):
 
 # IOpenGfxSprite
 class IOpenGfxSprite(IOpenGfxSpriteX):
-    spriteManager: ISpriteManager
-    objectManager: IObjectSpriteManager
+    spriteManager: SpriteManager
+    objectManager: ObjectSpriteManager
     def createObject(self, path: object) -> Object: pass
 
 # IOpenGfxModelX:
@@ -488,10 +451,10 @@ class IOpenGfxModelX:
 
 # IOpenGfxModel
 class IOpenGfxModel(IOpenGfxModelX):
-    textureManager: ITextureManager
-    materialManager: IMaterialManager
-    objectManager: IObjectManager
-    shaderManager: IShaderManager
+    textureManager: TextureManager
+    materialManager: MaterialManager
+    objectManager: ObjectModelManager
+    shaderManager: ShaderManager
     def createTexture(self, path: object, level: range = None) -> Texture: pass
     def createObject(self, path: object) -> Object: pass
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: pass

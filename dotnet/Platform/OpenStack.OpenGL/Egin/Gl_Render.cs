@@ -844,8 +844,8 @@ public static class ParticleControllerFactory
     static readonly IDictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> RendererDictionary
        = new Dictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>>
        {
-           ["C_OP_RenderSprites"] = (rendererInfo, gfx) => new SpritesParticleRenderer(rendererInfo, gfx),
-           ["C_OP_RenderTrails"] = (rendererInfo, gfx) => new TrailsParticleRenderer(rendererInfo, gfx),
+           ["C_OP_RenderSprites"] = (rendererInfo, gfx) => new OpenGLParticleRenderer.SpritesParticleRenderer(rendererInfo, gfx),
+           ["C_OP_RenderTrails"] = (rendererInfo, gfx) => new OpenGLParticleRenderer.TrailsParticleRenderer(rendererInfo, gfx),
        };
 
     public static bool TryCreateEmitter(string name, IDictionary<string, object> baseProperties, IDictionary<string, object> emitterInfo, out IParticleEmitter emitter)

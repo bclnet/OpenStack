@@ -7,6 +7,5 @@ namespace OpenStack.Phy;
 /// <summary>
 /// IOpenPhy
 /// </summary>
-public interface IOpenPhy
-{
+public interface IOpenPhy {
 }

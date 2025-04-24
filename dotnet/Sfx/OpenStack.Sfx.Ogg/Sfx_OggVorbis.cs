@@ -5,14 +5,12 @@ namespace OpenStack.Sfx.OggVorbis;
 
 #region Ogg
 
-public unsafe struct ogg_iovec_t
-{
+public unsafe struct ogg_iovec_t {
     public void* iov_base;
     public nuint iov_len;
 }
 
-public unsafe struct oggpack_buffer
-{
+public unsafe struct oggpack_buffer {
     public nint endbyte;
     public int endbit;
 
@@ -22,8 +20,7 @@ public unsafe struct oggpack_buffer
 }
 
 // ogg_page is used to encapsulate the data in one Ogg bitstream page
-public unsafe struct ogg_page
-{
+public unsafe struct ogg_page {
     public byte* header;
     public nint header_len;
     public byte* body;
@@ -31,8 +28,7 @@ public unsafe struct ogg_page
 }
 
 // ogg_stream_state contains the current encode/decode state of a logical Ogg bitstream
-public unsafe struct ogg_stream_state
-{
+public unsafe struct ogg_stream_state {
     public byte* body_data;         // bytes from packet bodies
     public nint body_storage;       // storage elements allocated
     public nint body_fill;          // elements stored; fill mark
@@ -57,8 +53,7 @@ public unsafe struct ogg_stream_state
 }
 
 // ogg_packet is used to encapsulate the data and metadata belonging to a single raw Ogg/Vorbis packet
-public unsafe struct ogg_packet
-{
+public unsafe struct ogg_packet {
     public byte* packet;
     public nint bytes;
     public nint b_o_s;
@@ -69,8 +64,7 @@ public unsafe struct ogg_packet
     public long packetno;           // sequence number for decode; the framing knows where there's a hole in the data, but we need coupling so that the codec (which is in a separate abstraction layer) also knows about the gap
 }
 
-public unsafe struct ogg_sync_state
-{
+public unsafe struct ogg_sync_state {
     public byte* data;
     public int storage;
     public int fill;
@@ -80,8 +74,7 @@ public unsafe struct ogg_sync_state
     public int bodybytes;
 }
 
-public static unsafe class Ogg
-{
+public static unsafe class Ogg {
     const string LibraryName = "ogg";
 
     // Ogg BITSTREAM PRIMITIVES: bitstream
@@ -173,8 +166,7 @@ public static unsafe class Ogg
 
 #region VorbisEnc
 
-public unsafe static partial class Vorbis
-{
+public unsafe static partial class Vorbis {
     [DllImport(LibraryName, ExactSpelling = true)] public static extern int vorbis_encode_init(vorbis_info* vi, nint channels, nint rate, nint max_bitrate, nint nominal_bitrate, nint min_bitrate);
     [DllImport(LibraryName, ExactSpelling = true)] public static extern int vorbis_encode_setup_managed(vorbis_info* vi, nint channels, nint rate, nint max_bitrate, nint nominal_bitrate, nint min_bitrate);
     [DllImport(LibraryName, ExactSpelling = true)] public static extern int vorbis_encode_setup_vbr(vorbis_info* vi, nint channels, nint rate, float quality);
@@ -184,8 +176,7 @@ public unsafe static partial class Vorbis
 }
 
 [Obsolete("This is a deprecated interface. Please use vorbis_encode_ctl() with the \ref ovectl_ratemanage2_arg struct and OV_ECTL_RATEMANAGE2_GET and \ref OV_ECTL_RATEMANAGE2_SET calls in new code.")]
-public unsafe struct ovectl_ratemanage_arg
-{
+public unsafe struct ovectl_ratemanage_arg {
     public int management_active;
     public nint bitrate_hard_min;
     public nint bitrate_hard_max;
@@ -196,8 +187,7 @@ public unsafe struct ovectl_ratemanage_arg
     public double bitrate_av_window_center;
 }
 
-public unsafe struct ovectl_ratemanage2_arg
-{
+public unsafe struct ovectl_ratemanage2_arg {
     public int management_active;
     public nint bitrate_limit_min_kbps;
     public nint bitrate_limit_max_kbps;
@@ -207,8 +197,7 @@ public unsafe struct ovectl_ratemanage2_arg
     public double bitrate_average_damping;
 }
 
-public unsafe static partial class Vorbis
-{
+public unsafe static partial class Vorbis {
     public const int OV_ECTL_RATEMANAGE2_GET = 0x14;
     public const int OV_ECTL_RATEMANAGE2_SET = 0x15;
     public const int OV_ECTL_LOWPASS_GET = 0x20;
@@ -228,8 +217,7 @@ public unsafe static partial class Vorbis
 #region VorbisFile
 
 [StructLayout(LayoutKind.Sequential)]
-public unsafe struct ov_callbacks
-{
+public unsafe struct ov_callbacks {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public unsafe delegate nint ReadFuncDelegate(byte* ptr, nint size, nint nmemb, object datasource);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public unsafe delegate int SeekFuncDelegate(object datasource, long offset, int whence);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] public unsafe delegate int CloseFuncDelegate(object datasource);
@@ -241,8 +229,7 @@ public unsafe struct ov_callbacks
     public IntPtr tell_func;
 }
 
-public unsafe static partial class Vorbis
-{
+public unsafe static partial class Vorbis {
     public const int NOTOPEN = 0;
     public const int PARTOPEN = 1;
     public const int OPENED = 2;
@@ -251,8 +238,7 @@ public unsafe static partial class Vorbis
 }
 
 [StructLayout(LayoutKind.Sequential)]
-public unsafe class OggVorbis_File
-{
+public unsafe class OggVorbis_File {
     public void* datasource;         // Pointer to a FILE *, etc.
     public int seekable;
     public long offset;
@@ -283,14 +269,12 @@ public unsafe class OggVorbis_File
 
     public ov_callbacks callbacks;
 
-    public void memset()
-    {
+    public void memset() {
         throw new NotImplementedException();
     }
 }
 
-public unsafe static partial class Vorbis
-{
+public unsafe static partial class Vorbis {
     [DllImport(LibraryName, ExactSpelling = true)] public static extern int ov_clear(OggVorbis_File vf);
     [DllImport(LibraryName, ExactSpelling = true)] public static extern int ov_fopen(string path, OggVorbis_File vf);
     [DllImport(LibraryName, ExactSpelling = true)] public static extern int ov_open(IntPtr f, OggVorbis_File vf, byte* initial, nint ibytes);
@@ -343,8 +327,7 @@ public unsafe static partial class Vorbis
 
 // vorbis_info contains all the setup information specific to the specific compression/decompression mode in progress(eg,
 // psychoacoustic settings, channel setup, options, codebook etc). vorbis_info and substructures are in backends.h.
-public unsafe struct vorbis_info
-{
+public unsafe struct vorbis_info {
     public int version;
     public int channels;
     public nint rate;
@@ -366,8 +349,7 @@ public unsafe struct vorbis_info
 }
 
 // vorbis_dsp_state buffers the current vorbis audio analysis/synthesis state.The DSP state belongs to a specific logical bitstream
-public unsafe struct vorbis_dsp_state
-{
+public unsafe struct vorbis_dsp_state {
     public int analysisp;
     public vorbis_info* vi;
 
@@ -396,8 +378,7 @@ public unsafe struct vorbis_dsp_state
     public void* backend_state;
 }
 
-public unsafe struct vorbis_block
-{
+public unsafe struct vorbis_block {
     // necessary stream state for linking to the framing abstraction
     public float** pcm;             // this is a pointer into local storage
     public oggpack_buffer obp;
@@ -431,15 +412,13 @@ public unsafe struct vorbis_block
 
 // vorbis_block is a single block of data to be processed as part of the analysis/synthesis stream; it belongs to a specific logical
 // bitstream, but is independent from other vorbis_blocks belonging to that logical bitstream.
-public unsafe struct alloc_chain
-{
+public unsafe struct alloc_chain {
     public void* ptr;
     public alloc_chain* next;
 }
 
 // the comments are not part of vorbis_info so that vorbis_info can be static storage
-public unsafe struct vorbis_comment
-{
+public unsafe struct vorbis_comment {
     public byte** user_comments;
     public int* comment_lengths;
     public int comments;
@@ -453,8 +432,7 @@ public unsafe struct vorbis_comment
 // The extra framing/packetizing is used in streaming formats, such as files.  Over the net (such as with UDP), the framing and
 // packetization aren't necessary as they're provided by the transport and the streaming layer is not used
 
-public unsafe static partial class Vorbis
-{
+public unsafe static partial class Vorbis {
     const string LibraryName = "vorbis";
 
     // Vorbis PRIMITIVES: general

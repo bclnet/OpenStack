@@ -131,7 +131,7 @@ public class GodotModelApi : IModelApi<Node3D, Material>
 public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D>
 {
     readonly ISource _source;
-    readonly ISpriteManager<Sprite2D> _spriteManager;
+    readonly SpriteManager<Sprite2D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite2D> _objectManager;
 
     public GodotGfxSprite2D(ISource source)
@@ -142,8 +142,8 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D>
     }
 
     public ISource Source => _source;
-    public ISpriteManager<Sprite2D> SpriteManager => _spriteManager;
-    public IObjectSpriteManager<Node, Sprite2D> ObjectManager => _objectManager;
+    public SpriteManager<Sprite2D> SpriteManager => _spriteManager;
+    public ObjectSpriteManager<Node, Sprite2D> ObjectManager => _objectManager;
     public Sprite2D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public Node CreateObject(object path) => throw new NotImplementedException();
@@ -155,7 +155,7 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D>
 public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D>
 {
     readonly ISource _source;
-    readonly ISpriteManager<Sprite3D> _spriteManager;
+    readonly SpriteManager<Sprite3D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite3D> _objectManager;
 
     public GodotGfxSprite3D(ISource source)
@@ -166,8 +166,8 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D>
     }
 
     public ISource Source => _source;
-    public ISpriteManager<Sprite3D> SpriteManager => _spriteManager;
-    public IObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
+    public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
+    public ObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
     public Sprite3D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public Node CreateObject(object path) => throw new NotImplementedException();
@@ -179,8 +179,8 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D>
 public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader>
 {
     readonly ISource _source;
-    readonly ISpriteManager<Sprite3D> _spriteManager;
-    readonly ITextureManager<Texture> _textureManager;
+    readonly SpriteManager<Sprite3D> _spriteManager;
+    readonly TextureManager<Texture> _textureManager;
     readonly MaterialManager<Material, Texture> _materialManager;
     readonly ObjectModelManager<Node, Material, Texture> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
@@ -196,11 +196,11 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader>
     }
 
     public ISource Source => _source;
-    public ISpriteManager<Sprite3D> SpriteManager => _spriteManager;
-    public ITextureManager<Texture> TextureManager => _textureManager;
-    public IMaterialManager<Material, Texture> MaterialManager => _materialManager;
-    public IObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
-    public IShaderManager<XShader> ShaderManager => _shaderManager;
+    public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
+    public TextureManager<Texture> TextureManager => _textureManager;
+    public MaterialManager<Material, Texture> MaterialManager => _materialManager;
+    public ObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
+    public ShaderManager<XShader> ShaderManager => _shaderManager;
     public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public Node CreateObject(object path) => throw new NotImplementedException();

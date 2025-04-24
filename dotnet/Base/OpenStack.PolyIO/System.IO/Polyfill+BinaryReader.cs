@@ -10,20 +10,17 @@ using static System.UnsafeX;
 
 namespace System.IO;
 
-public static partial class Polyfill
-{
+public static partial class Polyfill {
     #region Base
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void CopyTo(this BinaryReader source, Stream destination, bool resetAfter = true)
-    {
+    public static void CopyTo(this BinaryReader source, Stream destination, bool resetAfter = true) {
         source.BaseStream.CopyTo(destination);
         if (resetAfter) destination.Position = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] ReadToEnd(this BinaryReader source)
-    {
+    public static byte[] ReadToEnd(this BinaryReader source) {
         var length = (int)(source.BaseStream.Length - source.BaseStream.Position);
         return source.ReadBytes(length);
     }
@@ -34,8 +31,7 @@ public static partial class Polyfill
     //    source.Read(buffer, startIndex, (int)length);
     //}
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] ReadToZero(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null)
-    {
+    public static byte[] ReadToZero(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null) {
         if (ms == null) ms = new MemoryStream();
         else ms.SetLength(0);
         byte c; length = Math.Min(length, (int)(source.BaseStream.Length - source.BaseStream.Position));
@@ -50,23 +46,20 @@ public static partial class Polyfill
     #region Primitives
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static double ReadDoubleBigEndian(ReadOnlySpan<byte> source)
-    {
+    static double ReadDoubleBigEndian(ReadOnlySpan<byte> source) {
         return BitConverter.IsLittleEndian ?
             BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(MemoryMarshal.Read<long>(source))) :
             MemoryMarshal.Read<double>(source);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static float ReadSingleBigEndian(ReadOnlySpan<byte> source)
-    {
+    static float ReadSingleBigEndian(ReadOnlySpan<byte> source) {
         return BitConverter.IsLittleEndian ?
             BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(MemoryMarshal.Read<int>(source))) :
             MemoryMarshal.Read<float>(source);
     }
 
-    static ReadOnlySpan<byte> InternalRead(this BinaryReader source, Span<byte> buffer)
-    {
+    static ReadOnlySpan<byte> InternalRead(this BinaryReader source, Span<byte> buffer) {
         Debug.Assert(buffer.Length != 1, "length of 1 should use ReadByte.");
         source.Read(buffer);
         return buffer;
@@ -108,14 +101,12 @@ public static partial class Polyfill
     /// If the first MSB (0x80) is set and the second MSB (0x40) is 0, it's 2 bytes.<para />
     /// If both (0x80) and (0x40) are set, it's 4 bytes.
     /// </summary>
-    public static uint ReadCInt32(this BinaryReader source)
-    {
+    public static uint ReadCInt32(this BinaryReader source) {
         var b0 = source.ReadByte(); if ((b0 & 0x80) == 0) return b0;
         var b1 = source.ReadByte(); if ((b0 & 0x40) == 0) return (uint)(((b0 & 0x7F) << 8) | b1);
         var s = source.ReadUInt16(); return (uint)(((((b0 & 0x3F) << 8) | b1) << 16) | s);
     }
-    public static uint ReadCInt32X(this BinaryReader source, bool endian = true)
-    {
+    public static uint ReadCInt32X(this BinaryReader source, bool endian = true) {
         if (!endian) return source.ReadCInt32();
         throw new NotImplementedException();
     }
@@ -135,16 +126,14 @@ public static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader SkipAndAlign(this BinaryReader source, long count, int align = 4) { var offset = source.BaseStream.Position + count; source.BaseStream.Position = offset % align != 0 ? offset + align - (offset % align) : offset; return source; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader End(this BinaryReader source, long offset) { source.BaseStream.Seek(offset, SeekOrigin.End); return source; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Peek(this BinaryReader source, Action<BinaryReader> action, long offset = 0L, SeekOrigin origin = SeekOrigin.Current)
-    {
+    public static void Peek(this BinaryReader source, Action<BinaryReader> action, long offset = 0L, SeekOrigin origin = SeekOrigin.Current) {
         var pos = source.BaseStream.Position;
         source.BaseStream.Seek(offset, origin);
         action(source);
         source.BaseStream.Position = pos;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Peek<T>(this BinaryReader source, Func<BinaryReader, T> action, long offset = 0L, SeekOrigin origin = SeekOrigin.Current)
-    {
+    public static T Peek<T>(this BinaryReader source, Func<BinaryReader, T> action, long offset = 0L, SeekOrigin origin = SeekOrigin.Current) {
         var pos = source.BaseStream.Position;
         source.BaseStream.Seek(offset, origin);
         var value = action(source);
@@ -192,8 +181,7 @@ public static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
 
-    public static string ReadC32WString(this BinaryReader source)
-    {
+    public static string ReadC32WString(this BinaryReader source) {
         var length = source.ReadCInt32();
         if (length == 0) return null;
         var b = new StringBuilder();
@@ -299,12 +287,10 @@ public static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadC32YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadCInt32(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
 
 
-    public static string ReadZEncoding(this BinaryReader source, Encoding encoding)
-    {
+    public static string ReadZEncoding(this BinaryReader source, Encoding encoding) {
         var characterSize = encoding.GetByteCount("e");
         using var s = new MemoryStream();
-        while (true)
-        {
+        while (true) {
             var data = new byte[characterSize];
             source.Read(data, 0, characterSize);
             if (encoding.GetString(data, 0, characterSize) == "\0") break;
@@ -313,12 +299,10 @@ public static partial class Polyfill
         return encoding.GetString(s.ToArray());
     }
 
-    public static string[] ReadCStringArray(this BinaryReader source, int count, StringBuilder buf = null)
-    {
+    public static string[] ReadCStringArray(this BinaryReader source, int count, StringBuilder buf = null) {
         if (buf == null) buf = new StringBuilder();
         var list = new List<string>();
-        for (var i = 0; i < count; i++)
-        {
+        for (var i = 0; i < count; i++) {
             var c = source.ReadChar();
             while (c != 0) { buf.Append(c); c = source.ReadChar(); }
             list.Add(buf.ToString());
@@ -328,13 +312,11 @@ public static partial class Polyfill
     }
 
 
-    public static List<string> ReadZAStringList(this BinaryReader source, int length = int.MaxValue)
-    {
+    public static List<string> ReadZAStringList(this BinaryReader source, int length = int.MaxValue) {
         var buf = new MemoryStream();
         var list = new List<string>();
         byte c;
-        while (length > 0)
-        {
+        while (length > 0) {
             buf.SetLength(0);
             while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
             list.Add(Encoding.ASCII.GetString(buf.ToArray()));
@@ -342,8 +324,7 @@ public static partial class Polyfill
         return list;
     }
 
-    public static string ReadO32Encoding(this BinaryReader source, Encoding encoding)
-    {
+    public static string ReadO32Encoding(this BinaryReader source, Encoding encoding) {
         var currentOffset = source.BaseStream.Position;
         var offset = source.ReadUInt32();
         if (offset == 0) return string.Empty;
@@ -354,8 +335,7 @@ public static partial class Polyfill
     }
 
     //: TODO Use Encoding Method
-    public static string ReadO32UTF8(this BinaryReader source)
-    {
+    public static string ReadO32UTF8(this BinaryReader source) {
         var currentOffset = source.BaseStream.Position;
         var offset = source.ReadUInt32();
         if (offset == 0) return string.Empty;
@@ -414,8 +394,7 @@ public static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, source.ReadUInt16X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false)
-    {
+    public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) {
         var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
         for (var i = 0; i < count; i++) set.Add(keyFactory(source), valueFactory(source));
         return set;
@@ -426,8 +405,7 @@ public static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, source.ReadUInt16X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct
-    {
+    public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct {
         var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
         for (var i = 0; i < count; i++) set.Add(source.ReadP<TKey>(pat), valueFactory(source));
         return set;
@@ -438,8 +416,7 @@ public static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, source.ReadUInt16X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct
-    {
+    public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct {
         var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
         for (var i = 0; i < count; i++) set.Add(source.ReadS<TKey>(), valueFactory(source));
         return set;
@@ -462,16 +439,14 @@ public static partial class Polyfill
     #region Numerics
 
     //:ref https://docs.microsoft.com/en-us/windows/win32/direct3d11/floating-point-rules#16-bit-floating-point-rules
-    static float Byte2HexIntFracToFloat2(string hexString)
-    {
+    static float Byte2HexIntFracToFloat2(string hexString) {
         string sintPart = hexString[..2], sfracPart = hexString.Substring(2, 2);
         int intPart = Convert.ToSByte(sintPart, 16), num = short.Parse(sfracPart, NumberStyles.AllowHexSpecifier);
         var bytes = BitConverter.GetBytes(num);
         string binary = Convert.ToString(bytes[0], 2).PadLeft(8, '0'), binaryFracPart = binary;
         // convert Fractional Part
         var dec = 0f;
-        for (var i = 0; i < binaryFracPart.Length; i++)
-        {
+        for (var i = 0; i < binaryFracPart.Length; i++) {
             if (binaryFracPart[i] == '0') continue;
             dec += (float)Math.Pow(2, (i + 1) * (-1));
         }
@@ -521,8 +496,7 @@ public static partial class Polyfill
             w: source.ReadHalf());
 
     public static Matrix3x3 ReadMatrix3x3(this BinaryReader r)
-        => new Matrix3x3
-        {
+        => new Matrix3x3 {
             M11 = r.ReadSingle(),
             M12 = r.ReadSingle(),
             M13 = r.ReadSingle(),
@@ -535,8 +509,7 @@ public static partial class Polyfill
         };
 
     public static Matrix3x4 ReadMatrix3x4(this BinaryReader r)
-        => new Matrix3x4
-        {
+        => new Matrix3x4 {
             M11 = r.ReadSingle(),
             M12 = r.ReadSingle(),
             M13 = r.ReadSingle(),
@@ -554,12 +527,10 @@ public static partial class Polyfill
     /// <summary>
     /// Reads a column-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
-    public static Matrix4x4 ReadColumnMajorMatrix3x3(this BinaryReader source)
-    {
+    public static Matrix4x4 ReadColumnMajorMatrix3x3(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var columnIndex = 0; columnIndex < 4; columnIndex++)
-            for (var rowIndex = 0; rowIndex < 4; rowIndex++)
-            {
+            for (var rowIndex = 0; rowIndex < 4; rowIndex++) {
                 // If we're in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
                 if (rowIndex <= 2 && columnIndex <= 2) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
                 else matrix.Set(rowIndex, columnIndex, rowIndex == columnIndex ? 1f : 0f);
@@ -569,27 +540,23 @@ public static partial class Polyfill
     /// <summary>
     /// Reads a row-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
-    public static Matrix4x4 ReadRowMajorMatrix3x3(this BinaryReader source)
-    {
+    public static Matrix4x4 ReadRowMajorMatrix3x3(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var rowIndex = 0; rowIndex < 4; rowIndex++)
-            for (var columnIndex = 0; columnIndex < 4; columnIndex++)
-            {
+            for (var columnIndex = 0; columnIndex < 4; columnIndex++) {
                 // If we're in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
                 if (rowIndex <= 2 && columnIndex <= 2) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
                 else matrix.Set(rowIndex, columnIndex, rowIndex == columnIndex ? 1f : 0f);
             }
         return matrix;
     }
-    public static Matrix4x4 ReadColumnMajorMatrix4x4(this BinaryReader source)
-    {
+    public static Matrix4x4 ReadColumnMajorMatrix4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var columnIndex = 0; columnIndex < 4; columnIndex++)
             for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
         return matrix;
     }
-    public static Matrix4x4 ReadRowMajorMatrix4x4(this BinaryReader source)
-    {
+    public static Matrix4x4 ReadRowMajorMatrix4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var rowIndex = 0; rowIndex < 4; rowIndex++)
             for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
@@ -621,11 +588,9 @@ public static partial class Polyfill
     /// <summary>
     /// First reads a UInt16. If the MSB is set, it will be masked with 0x3FFF, shifted left 2 bytes, and then OR'd with the next UInt16. The sum is then added to knownType.
     /// </summary>
-    public static uint ReadAsDataIDOfKnownType(this BinaryReader source, uint knownType)
-    {
+    public static uint ReadAsDataIDOfKnownType(this BinaryReader source, uint knownType) {
         var value = source.ReadUInt16();
-        if ((value & 0x8000) != 0)
-        {
+        if ((value & 0x8000) != 0) {
             var lower = source.ReadUInt16();
             var higher = (value & 0x3FFF) << 16;
             return (uint)(knownType + (higher | lower));
@@ -636,8 +601,7 @@ public static partial class Polyfill
     /// <summary>
     /// Ensures stream is complete
     /// </summary>
-    public static void EnsureComplete(this BinaryReader source)
-    {
+    public static void EnsureComplete(this BinaryReader source) {
         if (source.BaseStream.Length != source.BaseStream.Position) throw new Exception("Not Complete");
     }
 

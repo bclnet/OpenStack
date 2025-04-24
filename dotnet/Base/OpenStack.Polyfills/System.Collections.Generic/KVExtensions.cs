@@ -2,15 +2,12 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace System.Collections.Generic
-{
-    public static class KVExtensions
-    {
+namespace System.Collections.Generic {
+    public static class KVExtensions {
         public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> source, TKey key, TValue defaultValue)
             => source.TryGetValue(key, out var z) ? z : defaultValue;
 
-        public static bool TryGet<T>(this IDictionary<string, object> source, string name, out T value, T defaultValue = default)
-        {
+        public static bool TryGet<T>(this IDictionary<string, object> source, string name, out T value, T defaultValue = default) {
             if (!source.TryGetValue(name, out var z)) { value = defaultValue; return false; }
             if (!typeof(T).IsArray) { if (z is T v) { value = v; return true; } }
             else { if (z is Array a) { value = (T)a.CastToArray(typeof(T).GetElementType()); return true; } }
@@ -43,8 +40,7 @@ namespace System.Collections.Generic
         public static long[] GetInt64Array(this IDictionary<string, object> source, string name)
             => source.TryGetValue(name, out var z) && z is Array v ? v.Cast<object>().Select(Convert.ToInt64).ToArray() : default;
 
-        public static ulong GetUInt64(this IDictionary<string, object> source, string name, ulong defaultValue = default)
-        {
+        public static ulong GetUInt64(this IDictionary<string, object> source, string name, ulong defaultValue = default) {
             unchecked { return source.TryGetValue(name, out var value) ? value is int i ? (ulong)i : Convert.ToUInt64(value) : defaultValue; }
         }
         public static ulong[] GetUInt64Array(this IDictionary<string, object> source, string name)
@@ -96,8 +92,7 @@ namespace System.Collections.Generic
             (float)Convert.ToDouble(v[2]),
             (float)Convert.ToDouble(v[3])) : default;
 
-        public static Matrix4x4 ToMatrix4x4(this IDictionary<string, object>[] source)
-        {
+        public static Matrix4x4 ToMatrix4x4(this IDictionary<string, object>[] source) {
             throw new ArgumentException();
             //var column1 = source[0].ToVector4();
             //var column2 = source[1].ToVector4();
@@ -106,8 +101,7 @@ namespace System.Collections.Generic
             //return new Matrix4x4(column1.X, column2.X, column3.X, column4.X, column1.Y, column2.Y, column3.Y, column4.Y, column1.Z, column2.Z, column3.Z, column4.Z, column1.W, column2.W, column3.W, column4.W);
         }
 
-        public static string Print(IDictionary<string, object> source, int indent = 0)
-        {
+        public static string Print(IDictionary<string, object> source, int indent = 0) {
             var b = new StringBuilder();
             var space = new string(' ', indent * 4);
             foreach (var kvp in source)

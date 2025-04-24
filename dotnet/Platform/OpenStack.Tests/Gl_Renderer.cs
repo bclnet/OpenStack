@@ -6,12 +6,8 @@ namespace OpenStack.Gfx.OpenGL;
 /// TestTextureRenderer
 /// </summary>
 [TestClass]
-public class TestTextureRenderer : TextureRenderer
+public class TestTextureRenderer() : OpenGLTextureRenderer(null, 0, default, default)
 {
-    #region base
-    public TestTextureRenderer() : base(null, 0, default, default) { }
-    #endregion
-
     [TestMethod]
     public void Test_Init()
     {
@@ -34,12 +30,8 @@ public class TestTextureRenderer : TextureRenderer
 /// TestMaterialRenderer
 /// </summary>
 [TestClass]
-public class TestMaterialRenderer : MaterialRenderer
+public class TestMaterialRenderer() : OpenGLMaterialRenderer(null, null)
 {
-    #region base
-    public TestMaterialRenderer() : base(null, null) { }
-    #endregion
-
     [TestMethod]
     public void Test_Init()
     {
@@ -59,15 +51,11 @@ public class TestMaterialRenderer : MaterialRenderer
 }
 
 /// <summary>
-/// TestParticleGridRenderer
+/// TestGridRenderer
 /// </summary>
 [TestClass]
-public class TestParticleGridRenderer : ParticleGridRenderer
+public class TestGridRenderer() : OpenGLGridRenderer(null, 1f, 1)
 {
-    #region base
-    public TestParticleGridRenderer() : base(null, 1f, 1) { }
-    #endregion
-
     [TestMethod]
     public void Test_Init()
     {

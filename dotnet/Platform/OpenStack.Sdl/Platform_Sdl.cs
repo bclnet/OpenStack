@@ -16,7 +16,7 @@ namespace OpenStack;
 public class SdlGfxSprite2D : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
-    readonly ISpriteManager<object> _spriteManager;
+    readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
     public SdlGfxSprite2D(ISource source)
@@ -27,8 +27,8 @@ public class SdlGfxSprite2D : IOpenGfxSprite<object, object>
     }
 
     public ISource Source => _source;
-    public ISpriteManager<object> SpriteManager => _spriteManager;
-    public IObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public SpriteManager<object> SpriteManager => _spriteManager;
+    public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path) => throw new NotImplementedException();

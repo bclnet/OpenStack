@@ -1,12 +1,9 @@
-namespace System.Drawing
-{
+namespace System.Drawing {
     /// <summary>
     /// ColorX
     /// </summary>
-    public static class ColorX
-    {
-        public static string ToRGBA(uint color)
-        {
+    public static class ColorX {
+        public static string ToRGBA(uint color) {
             // palette colors are natively stored in ARGB format
             var a = color >> 24;
             var r = (color >> 16) & 0xFF;

@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenStack.Sfx.Al.Extensions.SOFT.DeviceClock;
 
-public class DeviceClock : ALBase
-{
+public class DeviceClock : ALBase {
     /// <summary>
     /// The name of this AL extension.
     /// </summary>
@@ -72,8 +71,7 @@ public class DeviceClock : ALBase
 
 #region Enums
 
-public enum GetInteger64
-{
+public enum GetInteger64 {
     /// <summary>
     /// The audio device clock time, expressed
     /// in nanoseconds.
@@ -97,8 +95,7 @@ public enum GetInteger64
     DeviceClockLatency = 0x1602,
 }
 
-public enum SourceDouble
-{
+public enum SourceDouble {
     /// <summary>
     /// AL_SEC_OFFSET_LATENCY_SOFT
     /// <br/>
@@ -115,8 +112,7 @@ public enum SourceDouble
     SecOffsetClock = 0x1203,
 }
 
-public enum SourceInteger64
-{
+public enum SourceInteger64 {
     /// <summary>
     /// AL_SAMPLE_OFFSET_CLOCK_SOFT
     /// <br/>

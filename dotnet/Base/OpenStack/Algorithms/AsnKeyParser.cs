@@ -4,35 +4,30 @@ using System.Security.Cryptography;
 
 namespace OpenStack.Algorithms;
 
-public sealed class BerDecodeException : Exception
-{
+public sealed class BerDecodeException : Exception {
     readonly int _position;
     public BerDecodeException(string message, int position) : base(message) => _position = position;
     public BerDecodeException(string message, int position, Exception ex) : base(message, ex) => _position = position;
     public override string Message => $"{base.Message} (Position {_position})";
 }
 
-public class AsnKeyParser(ICollection<byte> contents)
-{
+public class AsnKeyParser(ICollection<byte> contents) {
     readonly AsnParser _parser = new(contents);
 
-    public static byte[] TrimLeadingZero(byte[] values)
-    {
+    public static byte[] TrimLeadingZero(byte[] values) {
         byte[] r;
         if (0x00 == values[0] && values.Length > 1) { r = new byte[values.Length - 1]; Array.Copy(values, 1, r, 0, values.Length - 1); }
         else { r = new byte[values.Length]; Array.Copy(values, r, values.Length); }
         return r;
     }
 
-    public static bool EqualOid(byte[] first, byte[] second)
-    {
+    public static bool EqualOid(byte[] first, byte[] second) {
         if (first.Length != second.Length) return false;
         for (var i = 0; i < first.Length; i++) if (first[i] != second[i]) return false;
         return true;
     }
 
-    public RSAParameters ParseRSAPublicKey()
-    {
+    public RSAParameters ParseRSAPublicKey() {
         var parameters = new RSAParameters();
         // Current value, Sanity Check, Checkpoint
         var position = _parser.CurrentPosition();
@@ -79,13 +74,11 @@ public class AsnKeyParser(ICollection<byte> contents)
     }
 }
 
-public class AsnParser
-{
+public class AsnParser {
     readonly int _initialCount;
     readonly List<byte> _octets;
 
-    public AsnParser(ICollection<byte> values)
-    {
+    public AsnParser(ICollection<byte> values) {
         _octets = [.. values];
         _initialCount = _octets.Count;
     }
@@ -96,12 +89,10 @@ public class AsnParser
     public int RemainingBytes()
         => _octets.Count;
 
-    int GetLength()
-    {
+    int GetLength() {
         var length = 0;
         var position = CurrentPosition(); // Checkpoint
-        try
-        {
+        try {
             var b = GetNextOctet();
             if (b == (b & 0x7f)) return b;
             var i = b & 0x7f;
@@ -112,11 +103,9 @@ public class AsnParser
         return length;
     }
 
-    public byte[] Next()
-    {
+    public byte[] Next() {
         var position = CurrentPosition();
-        try
-        {
+        try {
             var b = GetNextOctet();
             var length = GetLength();
             if (length > RemainingBytes()) throw new BerDecodeException($"Incorrect Size. Specified: {length}, Remaining: {RemainingBytes()}", position);
@@ -125,21 +114,18 @@ public class AsnParser
         catch (ArgumentOutOfRangeException ex) { throw new BerDecodeException("Error Parsing Key", position, ex); }
     }
 
-    byte GetNextOctet()
-    {
+    byte GetNextOctet() {
         var position = CurrentPosition();
         if (RemainingBytes() == 0) throw new BerDecodeException($"Incorrect Size. Specified: {1}, Remaining: {RemainingBytes()}", position);
         var b = GetOctets(1)[0];
         return b;
     }
 
-    byte[] GetOctets(int octetCount)
-    {
+    byte[] GetOctets(int octetCount) {
         var position = CurrentPosition();
         if (octetCount > RemainingBytes()) throw new BerDecodeException($"Incorrect Size. Specified: {octetCount}, Remaining: {RemainingBytes()}", position);
         var values = new byte[octetCount];
-        try
-        {
+        try {
             _octets.CopyTo(0, values, 0, octetCount);
             _octets.RemoveRange(0, octetCount);
         }
@@ -150,11 +136,9 @@ public class AsnParser
     public bool IsNextNull()
         => _octets[0] == 0x05;
 
-    public int NextNull()
-    {
+    public int NextNull() {
         var position = CurrentPosition();
-        try
-        {
+        try {
             var b = GetNextOctet();
             if (b != 0) throw new BerDecodeException($"Expected Null. Specified Identifier: {b}", position);
             b = GetNextOctet(); // Next octet must be 0
@@ -164,11 +148,9 @@ public class AsnParser
         catch (ArgumentOutOfRangeException ex) { throw new BerDecodeException("Error Parsing Key", position, ex); }
     }
 
-    public int NextSequence()
-    {
+    public int NextSequence() {
         var position = CurrentPosition();
-        try
-        {
+        try {
             var b = GetNextOctet();
             if (b != 0x30) throw new BerDecodeException($"Expected Sequence. Specified Identifier: {b}", position);
             var length = GetLength();
@@ -178,11 +160,9 @@ public class AsnParser
         catch (ArgumentOutOfRangeException ex) { throw new BerDecodeException("Error Parsing Key", position, ex); }
     }
 
-    public int NextBitString()
-    {
+    public int NextBitString() {
         var position = CurrentPosition();
-        try
-        {
+        try {
             var b = GetNextOctet();
             if (b != 0x03) throw new BerDecodeException($"Expected Bit String. Specified Identifier: {b}", position);
             var length = GetLength();
@@ -193,11 +173,9 @@ public class AsnParser
         catch (ArgumentOutOfRangeException ex) { throw new BerDecodeException("Error Parsing Key", position, ex); }
     }
 
-    public byte[] NextInteger()
-    {
+    public byte[] NextInteger() {
         var position = CurrentPosition();
-        try
-        {
+        try {
             var b = GetNextOctet();
             if (b != 0x02) throw new BerDecodeException($"Expected Integer. Specified Identifier: {b}", position);
             var length = GetLength();
@@ -207,11 +185,9 @@ public class AsnParser
         catch (ArgumentOutOfRangeException ex) { throw new BerDecodeException("Error Parsing Key", position, ex); }
     }
 
-    public byte[] NextOID()
-    {
+    public byte[] NextOID() {
         var position = CurrentPosition();
-        try
-        {
+        try {
             var b = GetNextOctet();
             if (b != 0x06) throw new BerDecodeException($"Expected Object Identifier. Specified Identifier: {b}", position);
             var length = GetLength();

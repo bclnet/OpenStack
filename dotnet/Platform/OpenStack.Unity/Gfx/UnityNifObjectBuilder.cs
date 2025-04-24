@@ -7,7 +7,7 @@ using Object = UnityEngine.GameObject;
 
 namespace OpenStack.Gfx.Unity;
 
-public class UnityNifObjectBuilder(Binary_Nif source, IMaterialManager<Material, Texture2D> materialManager, bool isStatic)
+public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, Texture2D> materialManager, bool isStatic)
 {
     const int YardInMWUnits = 64;
     const float MeterInYards = 1.09361f;
@@ -16,7 +16,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, IMaterialManager<Material,
     const bool KinematicRigidbody = false;
 
     readonly Binary_Nif _source = source;
-    readonly IMaterialManager<Material, Texture2D> _materialManager = materialManager;
+    readonly MaterialManager<Material, Texture2D> _materialManager = materialManager;
     readonly bool _isStatic = isStatic;
 
     public Object BuildObject()

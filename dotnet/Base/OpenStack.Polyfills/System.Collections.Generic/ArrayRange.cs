@@ -1,30 +1,25 @@
 ﻿using static System.Diagnostics.Debug;
 
-namespace System.Collections.Generic
-{
+namespace System.Collections.Generic {
     /// <summary>
     /// A reference to a range of elements in a non-null array.
     /// </summary>
-    public struct ArrayRange<T> : IEnumerable<T>
-    {
+    public struct ArrayRange<T> : IEnumerable<T> {
         #region Enumerator
 
         /// <summary>
         /// An enumerator for the elements in an array range.
         /// </summary>
-        public struct Enumerator : IEnumerator<T>
-        {
+        public struct Enumerator : IEnumerator<T> {
             ArrayRange<T> _arrayRange;
             int _currentIndex;
 
-            public Enumerator(ArrayRange<T> arrayRange)
-            {
+            public Enumerator(ArrayRange<T> arrayRange) {
                 _arrayRange = arrayRange;
                 _currentIndex = arrayRange.offset - 1; // Enumerators start positioned before the first element.
             }
 
-            public void Dispose()
-            {
+            public void Dispose() {
                 _arrayRange = new ArrayRange<T>();
                 _currentIndex = -1;
             }
@@ -43,8 +38,7 @@ namespace System.Collections.Generic
         /// Constructs an ArrayRange referring to an entire array.
         /// </summary>
         /// <param name="array">A non-null array.</param>
-        public ArrayRange(T[] array)
-        {
+        public ArrayRange(T[] array) {
             Assert(array != null);
             this.array = array;
             offset = 0;
@@ -56,8 +50,7 @@ namespace System.Collections.Generic
         /// <param name="array">A non-null array.</param>
         /// <param name="offset">A nonnegative offset.</param>
         /// <param name="length">A nonnegative length.</param>
-        public ArrayRange(T[] array, int offset, int length)
-        {
+        public ArrayRange(T[] array, int offset, int length) {
             Assert(array != null && offset >= 0 && length >= 0 && (offset + length) <= array.Length);
             this.array = array;
             this.offset = offset;

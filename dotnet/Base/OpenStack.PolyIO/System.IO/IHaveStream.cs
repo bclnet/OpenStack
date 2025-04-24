@@ -3,7 +3,6 @@
 /// <summary>
 /// IHaveStream
 /// </summary>
-public interface IHaveStream
-{
+public interface IHaveStream {
     Stream GetStream();
 }

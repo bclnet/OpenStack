@@ -9,8 +9,7 @@ namespace OpenStack.Sfx.Al;
 /// <summary>
 /// This is a base class for OpenAL APIs that are using DllImport and want to resolve different dll names on different platforms.
 /// </summary>
-public abstract class ALBase
-{
+public abstract class ALBase {
     /// <summary>
     /// This needs to be called before trying to use any OpenAL functions.
     /// This should be done in the static constructor of any class that DllImports OpenAL functions.
@@ -24,11 +23,9 @@ public abstract class ALBase
     /// <typeparam name="TDelegate">The delegate type to create.</typeparam>
     /// <param name="name">The name of the AL proc.</param>
     /// <returns>The created delegate.</returns>
-    public static TDelegate LoadDelegate<TDelegate>(string name) where TDelegate : Delegate
-    {
+    public static TDelegate LoadDelegate<TDelegate>(string name) where TDelegate : Delegate {
         var ptr = AL.GetProcAddress(name);
-        if (ptr == IntPtr.Zero)
-        {
+        if (ptr == IntPtr.Zero) {
             // If we can't load the function for whatever reason we dynamically generate a delegate to give the user an error message that is actually understandable.
             var invoke = typeof(TDelegate).GetMethod("Invoke");
             var returnType = invoke.ReturnType;
@@ -44,11 +41,9 @@ public abstract class ALBase
         else return Marshal.GetDelegateForFunctionPointer<TDelegate>(ptr);
     }
 
-    public static TDelegate LoadDelegate<TDelegate>(ALDevice device, string name) where TDelegate : Delegate
-    {
+    public static TDelegate LoadDelegate<TDelegate>(ALDevice device, string name) where TDelegate : Delegate {
         var ptr = ALC.GetProcAddress(device, name);
-        if (ptr == IntPtr.Zero)
-        {
+        if (ptr == IntPtr.Zero) {
             // If we can't load the function for whatever reason we dynamically generate a delegate to give the user an error message that is actually understandable.
             var invoke = typeof(TDelegate).GetMethod("Invoke");
             var returnType = invoke.ReturnType;

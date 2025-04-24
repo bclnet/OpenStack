@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenStack.Sfx.Al.Extensions.EXT.Float32;
 
-public class EXTFloat32 : ALBase
-{
+public class EXTFloat32 : ALBase {
     /// <summary>
     /// The name of this AL extension.
     /// </summary>
@@ -59,8 +58,7 @@ public class EXTFloat32 : ALBase
 /// <summary>
 /// Defines valid format specifiers for sound samples. This covers the additions from the multi-channel buffers extension.
 /// </summary>
-public enum FloatBufferFormat
-{
+public enum FloatBufferFormat {
     /// <summary>
     /// 1 Channel, single-precision floating-point data.
     /// </summary>

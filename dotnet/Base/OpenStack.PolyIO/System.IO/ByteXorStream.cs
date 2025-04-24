@@ -1,20 +1,17 @@
 namespace System.IO;
 
-public class ByteXorStream : Stream
-{
+public class ByteXorStream : Stream {
     public Stream Stream;
     public byte Byte;
 
-    public ByteXorStream(Stream stream, byte @byte)
-    {
+    public ByteXorStream(Stream stream, byte @byte) {
         Stream = stream;
         Byte = @byte;
     }
 
     public override void Flush() => Stream.Flush();
 
-    public override int Read(byte[] buffer, int offset, int count)
-    {
+    public override int Read(byte[] buffer, int offset, int count) {
         var read = Stream.Read(buffer, offset, count);
         for (var i = 0; i < read; i++) buffer[i] ^= Byte;
         return read;
@@ -24,8 +21,7 @@ public class ByteXorStream : Stream
 
     public override void SetLength(long value) => Stream.SetLength(value);
 
-    public override void Write(byte[] buffer, int offset, int count)
-    {
+    public override void Write(byte[] buffer, int offset, int count) {
         for (var i = 0; i < count; i++) buffer[offset + i] ^= Byte;
         Stream.Write(buffer, offset, count);
     }
@@ -38,8 +34,7 @@ public class ByteXorStream : Stream
 
     public override long Length => Stream.Length;
 
-    public override long Position
-    {
+    public override long Position {
         get => Stream.Position;
         set => Stream.Position = value;
     }

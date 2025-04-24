@@ -1,17 +1,18 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk.gfx import TextureFlags, TextureFormat, TexturePixel
-from openstk.gfx import IOpenGfxModel, Shader, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, ShaderBuilderBase, TextureBuilderBase, IMaterialManager
+from openstk.gfx import IOpenGfxModel, Shader, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, ShaderBuilderBase, TextureBuilderBase, MaterialManager
 from openstk.platform import Platform, SystemSfx
 
 # typedefs
 class IPanda3dGfx: pass
 
+#region OpenGfx
+
 # Panda3dObjectModelBuilder
 class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
-    def createObject(self, path: object, materialManager: IMaterialManager) -> object: raise NotImplementedError()
+    def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # Panda3dShaderBuilder
 class Panda3dShaderBuilder(ShaderBuilderBase):
@@ -91,10 +92,10 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
 # Panda3dGfx
 class Panda3dGfxModel(IOpenGfxModel):
     source: ISource
-    textureManager: ITextureManager
-    materialManager: IMaterialManager
-    objectManager: IObjectModelManager
-    shaderManager: IShaderManager
+    textureManager: TextureManager
+    materialManager: MaterialManager
+    objectManager: ObjectModelManager
+    shaderManager: ShaderManager
 
     def __init__(self, source: ISource):
         self.source = source
@@ -117,3 +118,5 @@ class Panda3dPlatform(Platform):
         self.gfxFactory = staticmethod(lambda source: [None, None, Panda3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Panda3dPlatform.This = Panda3dPlatform()
+
+#endregion

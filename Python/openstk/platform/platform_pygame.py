@@ -1,22 +1,18 @@
 from __future__ import annotations
 import os, io, numpy as np
 from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
-# from openstk.sfx import AudioBuilderBase, IAudioManager
 from openstk.platform import Platform, SystemSfx
 
 # typedefs
 class ISource: pass
-class ITextureManager: pass
-class IMaterialManager: pass
-class IObjectModelManager: pass
-class IShaderManager: pass
 
+#region OpenGfx
 
 # PygameObjectModelBuilder
 class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
-    def createObject(self, path: object, materialManager: IMaterialManager) -> object: raise NotImplementedError()
+    def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # PygameShaderBuilder
 class PygameShaderBuilder(ShaderBuilderBase):
@@ -114,10 +110,10 @@ class PygameMaterialBuilder(MaterialBuilderBase):
 # PygameGfxModel
 class PygameGfxModel(IOpenGfxModel):
     source: ISource
-    textureManager: ITextureManager
-    materialManager: IMaterialManager
-    objectManager: IObjectModelManager
-    shaderManager: IShaderManager
+    textureManager: TextureManager
+    materialManager: MaterialManager
+    objectManager: ObjectModelManager
+    shaderManager: ShaderManager
 
     def __init__(self, source: PakFile):
         self.source = source
@@ -141,3 +137,5 @@ class PygamePlatform(Platform):
         self.gfxFactory = staticmethod(lambda source: [None, None, PygameGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 PygamePlatform.This = PygamePlatform()
+
+#endregion

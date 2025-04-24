@@ -9,8 +9,7 @@ namespace System;
 /// It occupies only 16 bits, which are split into 1 Sign bit, 5 Exponent bits and 10 Mantissa bits.
 /// </summary>
 [Serializable, StructLayout(LayoutKind.Sequential)]
-public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormattable, IEquatable<HalfFloat>
-{
+public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormattable, IEquatable<HalfFloat> {
     /// <summary>The size in bytes for an instance of the HalfFloat struct.</summary>
     public const int SizeInBytes = 2;
     /// <summary>Smallest positive half</summary>
@@ -47,8 +46,7 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
     /// </summary>
     /// <param name="f">32-bit single-precision floating-point number.</param>
     /// <param name="throwOnError">Enable checks that will throw if the conversion result is not meaningful.</param>
-    public HalfFloat(float f, bool throwOnError) : this(f)
-    {
+    public HalfFloat(float f, bool throwOnError) : this(f) {
         if (!throwOnError) return;
         // handle cases that cause overflow rather than silently ignoring it
         if (f > MaxValue) throw new ArithmeticException("HalfFloat: Positive maximum value exceeded.");
@@ -72,8 +70,7 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
     /// <param name="throwOnError">Enable checks that will throw if the conversion result is not meaningful.</param>
     public HalfFloat(double d, bool throwOnError) : this((float)d, throwOnError) { }
 
-    ushort SingleToHalf(int si32)
-    {
+    ushort SingleToHalf(int si32) {
         // Our floating point number, F, is represented by the bit pattern in integer i.
         // Disassemble that bit pattern into the sign, S, the exponent, E, and the significand, M.
         // Shift S into the position where it will go in in the resulting half number.
@@ -81,8 +78,7 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
         int sign = (si32 >> 16) & 0x00008000, exponent = ((si32 >> 23) & 0x000000ff) - (127 - 15), mantissa = si32 & 0x007fffff;
 
         // Now reassemble S, E and M into a half:
-        if (exponent <= 0)
-        {
+        if (exponent <= 0) {
             // E is less than -10. The absolute value of F is less than HalfFloat.MinValue (F may be a small normalized float, a denormalized float or a zero).
             // We convert F to a half zero with the same sign as F.
             if (exponent < -10) return (ushort)sign;
@@ -99,20 +95,17 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
             // Assemble the half from S, E (==zero) and M.
             return (ushort)(sign | mantissa);
         }
-        else if (exponent == 0xff - (127 - 15))
-        {
+        else if (exponent == 0xff - (127 - 15)) {
             // F is an infinity; convert F to a half infinity with the same sign as F.
             if (mantissa == 0) return (ushort)(sign | 0x7c00);
-            else
-            {
+            else {
                 // F is a NAN; we produce a half NAN that preserves the sign bit and the 10 leftmost bits of the significand of F, with one exception: If the 10 leftmost bits are all zero, the NAN would turn 
                 // into an infinity, so we have to set at least one bit in the significand.
                 mantissa >>= 13;
                 return (ushort)(sign | 0x7c00 | mantissa | ((mantissa == 0) ? 1 : 0));
             }
         }
-        else
-        {
+        else {
             // E is greater than zero.  F is a normalized float. We try to convert F to a normalized half.
             // Round to M to the nearest 10-bit value. In case of a tie, round to the nearest even value.
             mantissa = mantissa + 0x00000fff + ((mantissa >> 13) & 1);
@@ -128,23 +121,19 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
     /// <returns>A single-precision floating-point number.</returns>
     public float ToSingle() { var i = HalfToFloat(bits); return *(float*)&i; }
 
-    int HalfToFloat(ushort ui16)
-    {
+    int HalfToFloat(ushort ui16) {
         int sign = (ui16 >> 15) & 0x00000001, exponent = (ui16 >> 10) & 0x0000001f, mantissa = ui16 & 0x000003ff;
 
-        if (exponent == 0)
-        {
+        if (exponent == 0) {
             // Plus or minus zero
             if (mantissa == 0) return sign << 31;
-            else
-            {
+            else {
                 // Denormalized number -- renormalize it
                 while ((mantissa & 0x00000400) == 0) { mantissa <<= 1; exponent -= 1; }
                 exponent += 1; mantissa &= ~0x00000400;
             }
         }
-        else if (exponent == 31)
-        {
+        else if (exponent == 31) {
             // Positive or negative infinity
             if (mantissa == 0) return (sign << 31) | 0x7f800000;
             // Nan -- preserve sign and significand bits
@@ -230,8 +219,7 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
     /// </summary>
     /// <param name="other">System.HalfFloat object to compare to this instance..</param>
     /// <returns>True, if other is equal to this instance; false otherwise.</returns>
-    public bool Equals(HalfFloat other)
-    {
+    public bool Equals(HalfFloat other) {
         short aInt, bInt;
         unchecked { aInt = (short)other.bits; }
         unchecked { bInt = (short)bits; }
@@ -289,8 +277,7 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
     /// <param name="s">String representation of the number to convert.</param>
     /// <param name="result">The HalfFloat instance to write to.</param>
     /// <returns>Success.</returns>
-    public static bool TryParse(string s, out HalfFloat result)
-    {
+    public static bool TryParse(string s, out HalfFloat result) {
         var b = float.TryParse(s, out var f);
         result = (HalfFloat)f;
         return b;
@@ -302,8 +289,7 @@ public unsafe struct HalfFloat : ISerializable, IComparable<HalfFloat>, IFormatt
     /// <param name="provider">Culture-specific formatting information.</param>
     /// <param name="result">The HalfFloat instance to write to.</param>
     /// <returns>Success.</returns>
-    public static bool TryParse(string s, System.Globalization.NumberStyles style, IFormatProvider provider, out HalfFloat result)
-    {
+    public static bool TryParse(string s, System.Globalization.NumberStyles style, IFormatProvider provider, out HalfFloat result) {
         var b = float.TryParse(s, style, provider, out var f);
         result = (HalfFloat)f;
         return b;

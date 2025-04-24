@@ -6,8 +6,7 @@ using static System.UnsafeX;
 
 namespace System.IO;
 
-public unsafe static partial class Polyfill
-{
+public unsafe static partial class Polyfill {
     #region Base
 
     #endregion
@@ -15,15 +14,13 @@ public unsafe static partial class Polyfill
     #region Primitives
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static void WriteDoubleBigEndian(Span<byte> source, double value)
-    {
+    static void WriteDoubleBigEndian(Span<byte> source, double value) {
         if (BitConverter.IsLittleEndian) { var tmp = BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits(value)); MemoryMarshal.Write(source, ref tmp); }
         else MemoryMarshal.Write(source, ref value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static void WriteSingleBigEndian(Span<byte> source, float value)
-    {
+    static void WriteSingleBigEndian(Span<byte> source, float value) {
         if (BitConverter.IsLittleEndian) { var tmp = BinaryPrimitives.ReverseEndianness(BitConverter.SingleToInt32Bits(value)); MemoryMarshal.Write(source, ref tmp); }
         else MemoryMarshal.Write(source, ref value);
     }
@@ -51,12 +48,10 @@ public unsafe static partial class Polyfill
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void WriteX(this BinaryWriter source, ulong value, bool endian) { if (endian) source.WriteE(value); else source.Write(value); }
 
     // primatives : specialized
-    public static void WriteCInt32(this BinaryWriter source, uint value)
-    {
+    public static void WriteCInt32(this BinaryWriter source, uint value) {
         throw new NotImplementedException();
     }
-    public static void WriteCInt32X(this BinaryWriter source, uint value, bool endian = true)
-    {
+    public static void WriteCInt32X(this BinaryWriter source, uint value, bool endian = true) {
         if (!endian) source.WriteCInt32(value);
         throw new NotImplementedException();
     }
@@ -79,8 +74,7 @@ public unsafe static partial class Polyfill
 
     #region String
 
-    public static void WriteZASCII(this BinaryWriter source, string value, int length = int.MaxValue)
-    {
+    public static void WriteZASCII(this BinaryWriter source, string value, int length = int.MaxValue) {
         source.Write(Encoding.ASCII.GetBytes(value));
         source.Write((byte)0);
     }

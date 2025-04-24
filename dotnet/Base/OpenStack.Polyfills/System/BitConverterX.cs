@@ -3,10 +3,8 @@ using System.Runtime.InteropServices;
 using SystemX;
 using static System.BitConverter;
 
-namespace System
-{
-    public static class BitConverterX
-    {
+namespace System {
+    public static class BitConverterX {
         #region Half
 
         /// <summary>
@@ -27,8 +25,7 @@ namespace System
         /// <returns>A half-precision floating-point value representing the converted bytes.</returns>
         /// <exception cref="ArgumentOutOfRangeException">The length of <paramref name="value"/> is less than 2.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe Half ToHalf(ReadOnlySpan<byte> value)
-        {
+        public static unsafe Half ToHalf(ReadOnlySpan<byte> value) {
             if (value.Length < sizeof(Half))
                 throw new ArgumentOutOfRangeException(nameof(value));
             return Unsafe.ReadUnaligned<Half>(ref MemoryMarshal.GetReference(value));

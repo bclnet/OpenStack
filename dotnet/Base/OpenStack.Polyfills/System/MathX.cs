@@ -2,10 +2,8 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace System
-{
-    public static class MathX
-    {
+namespace System {
+    public static class MathX {
         //public const int SizeOfVector2 = sizeof(float) * 2;
         //public const int SizeOfVector3 = sizeof(float) * 3;
         //public const int SizeOfVector4 = sizeof(float) * 4;
@@ -51,8 +49,7 @@ namespace System
 
         public static float Lerp(float a, float b, float t) => a + ((b - a) * Clamp(t));
 
-        public static float LerpAngle(float a, float b, float t)
-        {
+        public static float LerpAngle(float a, float b, float t) {
             var num = Repeat(b - a, 360f);
             if (num > 180f)
                 num -= 360f;
@@ -85,8 +82,7 @@ namespace System
 
         #endregion
 
-        public static int NextPower(int value, int power = 2)
-        {
+        public static int NextPower(int value, int power = 2) {
             var newValue = 1;
             if ((power % 2) != 0)
                 throw new NotImplementedException();
@@ -102,15 +98,13 @@ namespace System
         /// <param name="bitCount">The number of bits to extract. Cannot exceed 64.</param>
         /// <param name="bytes">A big-endian byte array.</param>
         /// <returns>A ulong containing the right-shifted extracted bits.</returns>
-        public static ulong GetBits(uint bitOffset, uint bitCount, byte[] bytes)
-        {
+        public static ulong GetBits(uint bitOffset, uint bitCount, byte[] bytes) {
             Debug.Assert(bitCount <= 64 && (bitOffset + bitCount) <= (8 * bytes.Length));
             var bits = 0UL;
             var remainingBitCount = bitCount;
             var byteIndex = bitOffset / 8;
             var bitIndex = bitOffset - (8 * byteIndex);
-            while (remainingBitCount > 0)
-            {
+            while (remainingBitCount > 0) {
                 // Read bits from the byte array.
                 var numBitsLeftInByte = 8 - bitIndex;
                 var numBitsReadNow = Math.Min(remainingBitCount, numBitsLeftInByte);
@@ -183,13 +177,11 @@ namespace System
         /// <param name="startIndex">The 1D index of the top left element in the portion of the 2D array we want to flip.</param>
         /// <param name="rows">The number of rows in the sub-array.</param>
         /// <param name="bytesPerRow">The number of columns in the sub-array.</param>
-        public static void Flip2DSubArrayVertically<T>(T[] source, int startIndex, int rows, int bytesPerRow)
-        {
+        public static void Flip2DSubArrayVertically<T>(T[] source, int startIndex, int rows, int bytesPerRow) {
             Debug.Assert(startIndex >= 0 && rows >= 0 && bytesPerRow >= 0 && (startIndex + (rows * bytesPerRow)) <= source.Length);
             var tmpRow = new T[bytesPerRow];
             var lastRowIndex = rows - 1;
-            for (var rowIndex = 0; rowIndex < (rows / 2); rowIndex++)
-            {
+            for (var rowIndex = 0; rowIndex < (rows / 2); rowIndex++) {
                 var otherRowIndex = lastRowIndex - rowIndex;
                 var rowStartIndex = startIndex + (rowIndex * bytesPerRow);
                 var otherRowStartIndex = startIndex + (otherRowIndex * bytesPerRow);

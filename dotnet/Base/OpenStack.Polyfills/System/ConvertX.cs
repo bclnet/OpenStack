@@ -1,9 +1,7 @@
 ﻿using System.Globalization;
 
-namespace System
-{
-    public static class ConvertX
-    {
+namespace System {
+    public static class ConvertX {
         public static bool ToBoolean(string value) { bool.TryParse(value, out var b); return b; }
         public static double ToDouble(string value) { double.TryParse(value, out var d); return d; }
         public static TimeSpan ToTimeSpan(string value) { TimeSpan.TryParse(value, out var t); return t; }

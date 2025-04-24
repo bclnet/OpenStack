@@ -6,11 +6,9 @@ namespace OpenStack.Sfx.Sfx;
 /// TestPlatformStats
 /// </summary>
 [TestClass]
-public class TestPlatformStats
-{
+public class TestPlatformStats {
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         //Assert.AreEqual(0, PlatformStats.MaxTextureMaxAnisotropy);
     }
 }

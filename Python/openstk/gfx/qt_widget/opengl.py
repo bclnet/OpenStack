@@ -1,13 +1,13 @@
-import sys, os, time
+import time
 from OpenGL.GL import *
 from OpenGL.raw.GL.EXT.texture_filter_anisotropic import GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QSurfaceFormat, QPainter, QColor
-from PyQt6.QtOpenGLWidgets import QOpenGLWidget
+from PyQt6.QtOpenGLWidgets import QOpenGLWidget as QOpenGLWidgetX
 from PyQt6.QtOpenGL import QOpenGLBuffer, QOpenGLShader, QOpenGLShaderProgram, QOpenGLTexture, QOpenGLDebugLogger, QOpenGLDebugMessage
-from openstk.gfx import Gfx, MouseState, KeyboardState
-from openstk.gfx.gl_render import GLCamera, GLDebugCamera
+from openstk.gfx import MouseState, KeyboardState
+from openstk.gfx.opengl.egin import GLCamera, GLDebugCamera
 
 # https://forum.qt.io/topic/137468/a-few-basic-changes-in-pyqt6-and-pyside6-regarding-shader-based-opengl-graphics
 # https://github.com/8Observer8/falling-collada-cube-bullet-physics-opengl33-pyqt6/blob/master/main.py
@@ -18,8 +18,8 @@ def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
     if msg.severity().value >= QOpenGLDebugMessage.Severity.LowSeverity.value: return
     print(f'OpenGL: {msg.type().name[:-4]}:{msg.severity().name[:-8]} - {msg.message()}')
 
-# OpenGLView
-class OpenGLView(QOpenGLWidget):
+# QOpenGLWidget
+class QOpenGLWidget(QOpenGLWidgetX):
     timer: QTimer
     camera: GLCamera
     viewportChanged: bool = False

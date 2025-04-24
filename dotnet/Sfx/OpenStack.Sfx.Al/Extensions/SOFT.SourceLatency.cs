@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenStack.Sfx.Al.Extensions.SOFT.SourceLatency;
 
-public class SourceLatency : ALBase
-{
+public class SourceLatency : ALBase {
     /// <summary>
     /// The name of this AL extension.
     /// </summary>
@@ -60,8 +59,7 @@ public class SourceLatency : ALBase
 
 #region Enums
 
-public enum SourceLatencyVector2i
-{
+public enum SourceLatencyVector2i {
     /// <summary>
     /// The playback position, expressed in fixed-point samples,
     /// along with the playback latency, expressed in nanoseconds (1/1000000000ths
@@ -71,8 +69,7 @@ public enum SourceLatencyVector2i
     SampleOffsetLatency = 0x1200,
 }
 
-public enum SourceLatencyVector2d
-{
+public enum SourceLatencyVector2d {
     /// <summary>
     /// The playback position, along with the playback latency, both
     /// expressed in seconds. This attribute is read-only.

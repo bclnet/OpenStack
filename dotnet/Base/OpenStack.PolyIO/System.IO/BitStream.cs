@@ -3,16 +3,14 @@ using System.Runtime.CompilerServices;
 
 namespace System.IO;
 
-public class BitStream
-{
+public class BitStream {
     uint bitbuf; // holds between 16 and 32 bits
     int bitcount; // how many bits does bitbuf hold?
     byte[] source;
     int p;
     int pend;
 
-    public BitStream(byte[] source)
-    {
+    public BitStream(byte[] source) {
         bitbuf = source.Length >= 0 ? lword(source, 0) : 0;
         bitcount = 16;
         this.source = source;
@@ -23,8 +21,7 @@ public class BitStream
     public int Remain => pend - p;
 
     // Fixes up a bit stream after literals have been read out of the data stream.
-    public void Fix()
-    {
+    public void Fix() {
         bitcount -= 16;
         bitbuf &= (uint)((1 << bitcount) - 1); // remove the top 16 bits
         var remain = pend - p;
@@ -37,12 +34,10 @@ public class BitStream
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public uint Peek(uint mask) => bitbuf & mask;
 
     // Advances the bit stream. Checks pend for proper buffer pointers range.
-    public void Advance(int n)
-    {
+    public void Advance(int n) {
         bitbuf >>= n;
         bitcount -= n;
-        if (bitcount < 16)
-        {
+        if (bitcount < 16) {
             p += 2;
             var remain = pend - p;
             if (remain > 1) bitbuf |= lword(source, p) << bitcount;
@@ -53,8 +48,7 @@ public class BitStream
 
     // Reads some bits in one go (ie the above two routines combined).
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public uint Read(uint mask, int n)
-    {
+    public uint Read(uint mask, int n) {
         var result = Peek(mask);
         Advance(n);
         return result;

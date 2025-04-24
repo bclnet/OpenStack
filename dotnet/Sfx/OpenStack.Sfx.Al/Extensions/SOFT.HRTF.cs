@@ -2,8 +2,7 @@
 
 namespace OpenStack.Sfx.Al.Extensions.SOFT.HRTF;
 
-public class HRTF : ALBase
-{
+public class HRTF : ALBase {
     /// <summary>
     /// The name of this AL extension.
     /// </summary>

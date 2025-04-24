@@ -1,12 +1,10 @@
 ﻿using System;
 
-namespace OpenStack
-{
+namespace OpenStack {
     /// <summary>
     /// Debug
     /// </summary>
-    public class Debug
-    {
+    public class Debug {
         public static Action<bool> AssertFunc;
         public static Action<string> LogFunc;
         public static Action<string, object[]> LogFormatFunc;

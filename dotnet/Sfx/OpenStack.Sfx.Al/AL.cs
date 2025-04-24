@@ -8,8 +8,7 @@ namespace OpenStack.Sfx.Al;
 /// <summary>
 /// Provides access to the OpenAL 1.1 flat API.
 /// </summary>
-public partial class AL : ALBase
-{
+public partial class AL : ALBase {
     internal const string Lib = nameof(AL);
     internal const CallingConvention ALCallingConvention = CallingConvention.Cdecl;
 
@@ -155,8 +154,7 @@ public partial class AL : ALBase
     /// <param name="param">The name of the attribute to be set.</param>
     /// <param name="at">A Math.Vector3 for the At-Vector.</param>
     /// <param name="up">A Math.Vector3 for the Up-Vector.</param>
-    public static void Listener(ALListenerfv param, ref Vector3 at, ref Vector3 up)
-    {
+    public static void Listener(ALListenerfv param, ref Vector3 at, ref Vector3 up) {
         Span<float> data = stackalloc float[6];
         data[0] = at.X;
         data[1] = at.Y;
@@ -214,8 +212,7 @@ public partial class AL : ALBase
     /// <param name="param">the name of the attribute to be retrieved: ALListenerfv.Orientation.</param>
     /// <param name="at">A Math.Vector3 for the At-Vector.</param>
     /// <param name="up">A Math.Vector3 for the Up-Vector.</param>
-    public static void GetListener(ALListenerfv param, out Vector3 at, out Vector3 up)
-    {
+    public static void GetListener(ALListenerfv param, out Vector3 at, out Vector3 up) {
         Span<float> values = stackalloc float[6];
         GetListener(param, ref values[0]);
 
@@ -622,8 +619,7 @@ public partial class AL : ALBase
     /// <param name="sid">The name of the source to unqueue buffers from.</param>
     /// <param name="numEntries">The number of buffers to be unqueued.</param>
     /// <returns>The unqueued buffers.</returns>
-    public static int[] SourceUnqueueBuffers(int sid, int numEntries)
-    {
+    public static int[] SourceUnqueueBuffers(int sid, int numEntries) {
         if (numEntries <= 0) throw new ArgumentOutOfRangeException(nameof(numEntries), "Must be greater than zero.");
         var b = new int[numEntries];
         SourceUnqueueBuffers(sid, numEntries, b);
@@ -868,15 +864,13 @@ public partial class AL : ALBase
 #region Enums
 
 /// <summary>A list of valid Enable/Disable/IsEnabled parameters.</summary>
-public enum ALCapability : int
-{
+public enum ALCapability : int {
     /// <summary>Currently no state toggles exist for vanilla OpenAL and no Extension uses it.</summary>
     Invalid = -1,
 }
 
 /// <summary>A list of valid 32-bit Float Listener/GetListener parameters.</summary>
-public enum ALListenerf : int
-{
+public enum ALListenerf : int {
     /// <summary>Indicate the gain (Volume amplification) applied. Type: float Range: [0.0f - ? ] A value of 1.0 means un-attenuated/unchanged. Each division by 2 equals an attenuation of -6dB. Each multiplicaton with 2 equals an amplification of +6dB. A value of 0.0f is interpreted as zero volume and the channel is effectively disabled.</summary>
     Gain = 0x100A,
     /// <summary>(EFX Extension) This setting is critical if Air Absorption effects are enabled because the amount of Air Absorption applied is directly related to the real-world distance between the Source and the Listener. centimeters 0.01f meters 1.0f kilometers 1000.0f Range [float.MinValue .. float.MaxValue] Default: 1.0f</summary>
@@ -884,8 +878,7 @@ public enum ALListenerf : int
 }
 
 /// <summary>A list of valid Math.Vector3 Listener/GetListener parameters.</summary>
-public enum ALListener3f : int
-{
+public enum ALListener3f : int {
     /// <summary>Specify the current location in three dimensional space. OpenAL, like OpenGL, uses a right handed coordinate system, where in a frontal default view X (thumb) points right, Y points up (index finger), and Z points towards the viewer/camera (middle finger). To switch from a left handed coordinate system, flip the sign on the Z coordinate. Listener position is always in the world coordinate system.</summary>
     Position = 0x1004,
     /// <summary>Specify the current velocity in three dimensional space.</summary>
@@ -893,15 +886,13 @@ public enum ALListener3f : int
 }
 
 /// <summary>A list of valid float[] Listener/GetListener parameters.</summary>
-public enum ALListenerfv : int
-{
+public enum ALListenerfv : int {
     /// <summary>Indicate Listener orientation. Expects two Vector3, At followed by Up.</summary>
     Orientation = 0x100F,
 }
 
 /// <summary>A list of valid 32-bit Float Source/GetSource parameters.</summary>
-public enum ALSourcef : int
-{
+public enum ALSourcef : int {
     /// <summary>Source specific reference distance. Type: float Range: [0.0f - float.PositiveInfinity] At 0.0f, no distance attenuation occurs. Type: float Default: 1.0f.</summary>
     ReferenceDistance = 0x1020,
     /// <summary>Indicate distance above which Sources are not attenuated using the inverse clamped distance model. Default: float.PositiveInfinity Type: float Range: [0.0f - float.PositiveInfinity]</summary>
@@ -933,8 +924,7 @@ public enum ALSourcef : int
 }
 
 /// <summary>A list of valid Math.Vector3 Source/GetSource parameters.</summary>
-public enum ALSource3f : int
-{
+public enum ALSource3f : int {
     /// <summary>Specify the current location in three dimensional space. OpenAL, like OpenGL, uses a right handed coordinate system, where in a frontal default view X (thumb) points right, Y points up (index finger), and Z points towards the viewer/camera (middle finger). To switch from a left handed coordinate system, flip the sign on the Z coordinate. Listener position is always in the world coordinate system.</summary>
     Position = 0x1004,
     /// <summary>Specify the current velocity in three dimensional space.</summary>
@@ -944,8 +934,7 @@ public enum ALSource3f : int
 }
 
 /// <summary>A list of valid 8-bit boolean Source/GetSource parameters.</summary>
-public enum ALSourceb : int
-{
+public enum ALSourceb : int {
     /// <summary>Indicate that the Source has relative coordinates. Type: bool Range: [True, False]</summary>
     SourceRelative = 0x202,
     /// <summary>Indicate whether the Source is looping. Type: bool Range: [True, False] Default: False.</summary>
@@ -959,8 +948,7 @@ public enum ALSourceb : int
 }
 
 /// <summary>A list of valid Int32 Source parameters.</summary>
-public enum ALSourcei : int
-{
+public enum ALSourcei : int {
     /// <summary>The playback position, expressed in bytes.</summary>
     ByteOffset = 0x1026,  // AL_EXT_OFFSET extension.
     /// <summary>The playback position, expressed in samples.</summary>
@@ -974,8 +962,7 @@ public enum ALSourcei : int
 }
 
 /// <summary>A list of valid 3x Int32 Source/GetSource parameters.</summary>
-public enum ALSource3i : int
-{
+public enum ALSource3i : int {
     /// <summary>Specify the current location in three dimensional space. OpenAL, like OpenGL, uses a right handed coordinate system, where in a frontal default view X (thumb) points right, Y points up (index finger), and Z points towards the viewer/camera (middle finger). To switch from a left handed coordinate system, flip the sign on the Z coordinate. Listener position is always in the world coordinate system.</summary>
     Position = 0x1004,
     /// <summary>Specify the current velocity in three dimensional space.</summary>
@@ -987,8 +974,7 @@ public enum ALSource3i : int
 }
 
 /// <summary>A list of valid Int32 GetSource parameters.</summary>
-public enum ALGetSourcei : int
-{
+public enum ALGetSourcei : int {
     /// <summary>The playback position, expressed in bytes. AL_EXT_OFFSET Extension.</summary>
     ByteOffset = 0x1026,
     /// <summary>The playback position, expressed in samples. AL_EXT_OFFSET Extension.</summary>
@@ -1012,8 +998,7 @@ public enum ALGetSourcei : int
 //}
 
 /// <summary>Source state information, can be retrieved by AL.Source() with ALSourcei.SourceState.</summary>
-public enum ALSourceState : int
-{
+public enum ALSourceState : int {
     /// <summary>Default State when loaded, can be manually set with AL.SourceRewind().</summary>
     Initial = 0x1011,
     /// <summary>The source is currently playing.</summary>
@@ -1025,8 +1010,7 @@ public enum ALSourceState : int
 }
 
 /// <summary>Source type information,  can be retrieved by AL.Source() with ALSourcei.SourceType.</summary>
-public enum ALSourceType : int
-{
+public enum ALSourceType : int {
     /// <summary>Source is Static if a Buffer has been attached using AL.Source with the parameter Sourcei.Buffer.</summary>
     Static = 0x1028,
     /// <summary>Source is Streaming if one or more Buffers have been attached using AL.SourceQueueBuffers</summary>
@@ -1036,8 +1020,7 @@ public enum ALSourceType : int
 }
 
 /// <summary>Sound samples: Format specifier.</summary>
-public enum ALFormat : int
-{
+public enum ALFormat : int {
     /// <summary>1 Channel, 8 bits per sample.</summary>
     Mono8 = 0x1100,
     /// <summary>1 Channel, 16 bits per sample.</summary>
@@ -1103,8 +1086,7 @@ public enum ALFormat : int
 }
 
 /// <summary>A list of valid Int32 GetBuffer parameters.</summary>
-public enum ALGetBufferi : int
-{
+public enum ALGetBufferi : int {
     /// <summary>Sound sample's frequency, in units of hertz [Hz]. This is the number of samples per second. Half of the sample frequency marks the maximum significant frequency component.</summary>
     Frequency = 0x2001,
     /// <summary>Bit depth of the buffer. Should be 8 or 16.</summary>
@@ -1117,8 +1099,7 @@ public enum ALGetBufferi : int
 }
 
 /// <summary>Buffer state. Not supported for public use (yet).</summary>
-public enum ALBufferState : int
-{
+public enum ALBufferState : int {
     /// <summary>Buffer state. Not supported for public use (yet).</summary>
     Unused = 0x2010,
     /// <summary>Buffer state. Not supported for public use (yet).</summary>
@@ -1128,8 +1109,7 @@ public enum ALBufferState : int
 }
 
 /// <summary>Returned by AL.GetError.</summary>
-public enum ALError : int
-{
+public enum ALError : int {
     /// <summary>No OpenAL Error.</summary>
     NoError = 0,
     /// <summary>Invalid Name paramater passed to OpenAL call.</summary>
@@ -1149,8 +1129,7 @@ public enum ALError : int
 }
 
 /// <summary>A list of valid string AL.Get() parameters.</summary>
-public enum ALGetString : int
-{
+public enum ALGetString : int {
     /// <summary>Gets the Vendor name.</summary>
     Vendor = 0xB001,
     /// <summary>Gets the driver version.</summary>
@@ -1162,8 +1141,7 @@ public enum ALGetString : int
 }
 
 /// <summary>A list of valid 32-bit Float AL.Get() parameters.</summary>
-public enum ALGetFloat : int
-{
+public enum ALGetFloat : int {
     /// <summary>Doppler scale. Default 1.0f</summary>
     DopplerFactor = 0xC000,
     /// <summary>Tweaks speed of propagation. This functionality is deprecated.</summary>
@@ -1173,15 +1151,13 @@ public enum ALGetFloat : int
 }
 
 /// <summary>A list of valid Int32 AL.Get() parameters.</summary>
-public enum ALGetInteger : int
-{
+public enum ALGetInteger : int {
     /// <summary>See enum ALDistanceModel.</summary><see cref="ALDistanceModel"/>
     DistanceModel = 0xD000,
 }
 
 /// <summary>Used by AL.DistanceModel(), the distance model can be retrieved by AL.Get() with ALGetInteger.DistanceModel.</summary>
-public enum ALDistanceModel : int
-{
+public enum ALDistanceModel : int {
     /// <summary>Bypasses all distance attenuation calculation for all Sources.</summary>
     None = 0,
     /// <summary>InverseDistance is equivalent to the IASIG I3DL2 model with the exception that ALSourcef.ReferenceDistance does not imply any clamping.</summary>
@@ -1202,8 +1178,7 @@ public enum ALDistanceModel : int
 
 #region Context
 
-public struct ALContext : IEquatable<ALContext>
-{
+public struct ALContext : IEquatable<ALContext> {
     public static readonly ALContext Null = new(IntPtr.Zero);
     public IntPtr Handle;
     public ALContext(IntPtr handle) => Handle = handle;
@@ -1222,8 +1197,7 @@ public struct ALContext : IEquatable<ALContext>
 /// <summary>
 /// Opaque handle to an OpenAL device.
 /// </summary>
-public struct ALDevice : IEquatable<ALDevice>
-{
+public struct ALDevice : IEquatable<ALDevice> {
     public static readonly ALDevice Null = new(IntPtr.Zero);
     public IntPtr Handle;
     public ALDevice(IntPtr handle) => Handle = handle;

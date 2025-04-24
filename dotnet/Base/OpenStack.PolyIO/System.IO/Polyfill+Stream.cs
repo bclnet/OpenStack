@@ -1,11 +1,9 @@
 ﻿namespace System.IO;
 
-public static partial class Polyfill
-{
+public static partial class Polyfill {
     #region Read
 
-    public static byte[] ReadAllBytes(this Stream stream)
-    {
+    public static byte[] ReadAllBytes(this Stream stream) {
         using var s = new MemoryStream();
         var oldPosition = stream.Position;
         stream.Position = 0;

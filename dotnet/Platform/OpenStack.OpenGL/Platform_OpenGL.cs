@@ -22,7 +22,7 @@ class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int
 {
     public override void EnsurePrefab() { }
     public override object CreateNewObject(object prefab) => throw new NotImplementedException();
-    public override object CreateObject(object path, IMaterialManager<GLRenderMaterial, int> materialManager) => throw new NotImplementedException();
+    public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager) => throw new NotImplementedException();
 }
 
 /// <summary>
@@ -267,8 +267,8 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int>
     }
 
     public ISource Source => _source;
-    public ISpriteManager<int> SpriteManager => _spriteManager;
-    public IObjectSpriteManager<object, int> ObjectManager => _objectManager;
+    public SpriteManager<int> SpriteManager => _spriteManager;
+    public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
     public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
     public object CreateObject(object path) => throw new NotImplementedException();
@@ -298,10 +298,10 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     }
 
     public ISource Source => _source;
-    public ITextureManager<int> TextureManager => _textureManager;
-    public IMaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
-    public IObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
-    public IShaderManager<Shader> ShaderManager => _shaderManager;
+    public TextureManager<int> TextureManager => _textureManager;
+    public MaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
+    public ObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
+    public ShaderManager<Shader> ShaderManager => _shaderManager;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
     public object CreateObject(object path) => _objectManager.CreateObject(path).obj;

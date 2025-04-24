@@ -1,14 +1,11 @@
 ﻿using System.Numerics;
 
-namespace MathNet.Numerics.LinearAlgebra
-{
-    public static class NumericsExtensions
-    {
+namespace MathNet.Numerics.LinearAlgebra {
+    public static class NumericsExtensions {
         public static Vector<float> ToMathVector3(this Vector3 s) { var r = Vector<float>.Build.Dense(3); r[0] = s.X; r[1] = s.Y; r[2] = s.Z; return r; }
         public static Vector3 ToVector3(this Vector3 s, Vector<float> vector) => new Vector3 { X = vector[0], Y = vector[1], Z = vector[2] };
 
-        public static Matrix<float> ToMathMatrix(this Matrix3x3 s)
-        {
+        public static Matrix<float> ToMathMatrix(this Matrix3x3 s) {
             var r = Matrix<float>.Build.Dense(3, 3);
             r[0, 0] = s.M11;
             r[0, 1] = s.M12;
@@ -21,8 +18,7 @@ namespace MathNet.Numerics.LinearAlgebra
             r[2, 2] = s.M33;
             return r;
         }
-        public static Matrix3x3 ToMatrix3x3(this Matrix<float> matrix) => new Matrix3x3
-        {
+        public static Matrix3x3 ToMatrix3x3(this Matrix<float> matrix) => new Matrix3x3 {
             M11 = matrix[0, 0],
             M12 = matrix[0, 1],
             M13 = matrix[0, 2],
@@ -34,8 +30,7 @@ namespace MathNet.Numerics.LinearAlgebra
             M33 = matrix[2, 2]
         };
 
-        public static Matrix<float> ToMathMatrix(this Matrix4x4 s)
-        {
+        public static Matrix<float> ToMathMatrix(this Matrix4x4 s) {
             var r = Matrix<float>.Build.Dense(4, 4);
             r[0, 0] = s.M11;
             r[0, 1] = s.M12;
@@ -55,8 +50,7 @@ namespace MathNet.Numerics.LinearAlgebra
             r[3, 3] = s.M44;
             return r;
         }
-        public static Matrix4x4 ToMatrix4x4(this Matrix<float> matrix) => new Matrix4x4
-        {
+        public static Matrix4x4 ToMatrix4x4(this Matrix<float> matrix) => new Matrix4x4 {
             M11 = matrix[0, 0],
             M12 = matrix[0, 1],
             M13 = matrix[0, 2],

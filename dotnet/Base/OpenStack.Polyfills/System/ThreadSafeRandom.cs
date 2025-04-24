@@ -1,17 +1,14 @@
 using System.Threading;
 
-namespace System
-{
-    public static class SecureRandom
-    {
+namespace System {
+    public static class SecureRandom {
         static Random _random = new Random();
         public static int RandomValue(int low, int high) => _random.Next(low, high + 1);
     }
 
     // important class, ensure unit tests pass for this
     // todo: implement exactly the way AC handles it.. which we'll never know unless we get original source code
-    public static class ThreadSafeRandom
-    {
+    public static class ThreadSafeRandom {
         static readonly ThreadLocal<Random> random = new ThreadLocal<Random>(() => new Random());
 
         /// <summary>

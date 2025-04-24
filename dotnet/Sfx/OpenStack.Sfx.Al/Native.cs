@@ -7,21 +7,17 @@ namespace OpenStack.Sfx.Al;
 /// <summary>
 /// Provides a base for ApiContext so that it can register dll intercepts.
 /// </summary>
-internal static class ALLoader
-{
+internal static class ALLoader {
     static readonly OpenALLibraryNameContainer ALLibraryNameContainer = new OpenALLibraryNameContainer();
     static bool RegisteredResolver = false;
     static ALLoader() => RegisterDllResolver();
 
-    internal static void RegisterDllResolver()
-    {
+    internal static void RegisterDllResolver() {
         if (!RegisteredResolver) { NativeLibrary.SetDllImportResolver(typeof(ALLoader).Assembly, ImportResolver); RegisteredResolver = true; }
     }
 
-    static IntPtr ImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
-    {
-        if (libraryName == AL.Lib || libraryName == ALC.Lib)
-        {
+    static IntPtr ImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath) {
+        if (libraryName == AL.Lib || libraryName == ALC.Lib) {
             var libName = ALLibraryNameContainer.GetLibraryName();
             if (!NativeLibrary.TryLoad(libName, assembly, searchPath, out var libHandle))
                 throw new DllNotFoundException($"Could not load the dll '{libName}' (this load is intercepted, specified in DllImport as '{libraryName}').");
@@ -34,8 +30,7 @@ internal static class ALLoader
 /// <summary>
 /// Contains the library name of OpenAL.
 /// </summary>
-public class OpenALLibraryNameContainer
-{
+public class OpenALLibraryNameContainer {
     /// <summary>
     /// Gets the library name to use on Windows.
     /// </summary>
@@ -56,8 +51,7 @@ public class OpenALLibraryNameContainer
     /// Gets the library name to use on iOS.
     /// </summary>
     public string IOS => MacOS;
-    public string GetLibraryName()
-    {
+    public string GetLibraryName() {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) return RuntimeInformation.IsOSPlatform(OSPlatform.Create("ANDROID")) ? Android : Linux;
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return Windows;
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) return RuntimeInformation.IsOSPlatform(OSPlatform.Create("IOS")) ? IOS : MacOS;
@@ -65,15 +59,13 @@ public class OpenALLibraryNameContainer
     }
 }
 
-internal class ConstCharPtrMarshaler : ICustomMarshaler
-{
+internal class ConstCharPtrMarshaler : ICustomMarshaler {
     static readonly ConstCharPtrMarshaler Instance = new ConstCharPtrMarshaler();
     public void CleanUpManagedData(object ManagedObj) { }
     public void CleanUpNativeData(IntPtr pNativeData) { }
     public int GetNativeDataSize() => IntPtr.Size;
     public IntPtr MarshalManagedToNative(object ManagedObj)
-        => ManagedObj switch
-        {
+        => ManagedObj switch {
             string str => Marshal.StringToHGlobalAnsi(str),
             _ => throw new ArgumentException($"{nameof(ConstCharPtrMarshaler)} only supports marshaling of strings. Got '{ManagedObj.GetType()}'"),
         };

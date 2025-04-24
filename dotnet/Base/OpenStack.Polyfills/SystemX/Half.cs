@@ -14,14 +14,12 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace SystemX
-{
+namespace SystemX {
     // ===================================================================================================
     // Portions of the code implemented below are based on the 'Berkeley SoftFloat Release 3e' algorithms.
     // ===================================================================================================
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Half : IComparable, IFormattable, IComparable<Half>, IEquatable<Half>
-    {
+    public readonly struct Half : IComparable, IFormattable, IComparable<Half>, IEquatable<Half> {
         private const NumberStyles DefaultParseStyle = NumberStyles.Float | NumberStyles.AllowThousands;
 
         //
@@ -102,18 +100,15 @@ namespace SystemX
 
         private ushort Significand => (ushort)((m_value & SignificandMask) >> SignificandShift);
 
-        public static bool operator <(Half left, Half right)
-        {
-            if (IsNaN(left) || IsNaN(right))
-            {
+        public static bool operator <(Half left, Half right) {
+            if (IsNaN(left) || IsNaN(right)) {
                 // IEEE defines that NaN is unordered with respect to everything, including itself.
                 return false;
             }
 
             var leftIsNegative = IsNegative(left);
 
-            if (leftIsNegative != IsNegative(right))
-            {
+            if (leftIsNegative != IsNegative(right)) {
                 // When the signs of left and right differ, we know that left is less than right if it is
                 // the negative value. The exception to this is if both values are zero, in which case IEEE
                 // says they should be equal, even if the signs differ.
@@ -125,18 +120,15 @@ namespace SystemX
 
         public static bool operator >(Half left, Half right) => right < left;
 
-        public static bool operator <=(Half left, Half right)
-        {
-            if (IsNaN(left) || IsNaN(right))
-            {
+        public static bool operator <=(Half left, Half right) {
+            if (IsNaN(left) || IsNaN(right)) {
                 // IEEE defines that NaN is unordered with respect to everything, including itself.
                 return false;
             }
 
             var leftIsNegative = IsNegative(left);
 
-            if (leftIsNegative != IsNegative(right))
-            {
+            if (leftIsNegative != IsNegative(right)) {
                 // When the signs of left and right differ, we know that left is less than right if it is
                 // the negative value. The exception to this is if both values are zero, in which case IEEE
                 // says they should be equal, even if the signs differ.
@@ -148,10 +140,8 @@ namespace SystemX
 
         public static bool operator >=(Half left, Half right) => right <= left;
 
-        public static bool operator ==(Half left, Half right)
-        {
-            if (IsNaN(left) || IsNaN(right))
-            {
+        public static bool operator ==(Half left, Half right) {
+            if (IsNaN(left) || IsNaN(right)) {
                 // IEEE defines that NaN is not equal to anything, including itself.
                 return false;
             }
@@ -184,8 +174,7 @@ namespace SystemX
 
         /// <summary>Determines whether the specified value is normal.</summary>
         // This is probably not worth inlining, it has branches and should be rarely called
-        public static bool IsNormal(Half value)
-        {
+        public static bool IsNormal(Half value) {
             int absValue = StripSign(value);
             return absValue < PositiveInfinityBits // is finite
                    && absValue != 0 // is not zero
@@ -198,8 +187,7 @@ namespace SystemX
 
         /// <summary>Determines whether the specified value is subnormal.</summary>
         // This is probably not worth inlining, it has branches and should be rarely called
-        public static bool IsSubnormal(Half value)
-        {
+        public static bool IsSubnormal(Half value) {
             int absValue = StripSign(value);
             return absValue < PositiveInfinityBits // is finite
                    && absValue != 0 // is not zero
@@ -207,10 +195,8 @@ namespace SystemX
         }
 
         public static Half Parse
-            (string s, NumberStyles style = DefaultParseStyle, IFormatProvider? formatProvider = null)
-        {
-            if (s is null)
-            {
+            (string s, NumberStyles style = DefaultParseStyle, IFormatProvider? formatProvider = null) {
+            if (s is null) {
                 throw new ArgumentNullException(nameof(s));
             }
 
@@ -247,35 +233,28 @@ namespace SystemX
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort StripSign(Half value) => (ushort)(value.m_value & ~SignMask);
 
-        public int CompareTo(object? obj)
-        {
-            if (!(obj is Half))
-            {
+        public int CompareTo(object? obj) {
+            if (!(obj is Half)) {
                 return obj is null ? 1 : throw new ArgumentException("The given argument is not a half.", nameof(obj));
             }
 
             return CompareTo((Half)obj);
         }
 
-        public int CompareTo(Half other)
-        {
-            if ((short)m_value < (short)other.m_value)
-            {
+        public int CompareTo(Half other) {
+            if ((short)m_value < (short)other.m_value) {
                 return -1;
             }
 
-            if ((short)m_value > (short)other.m_value)
-            {
+            if ((short)m_value > (short)other.m_value) {
                 return 1;
             }
 
-            if (m_value == other.m_value)
-            {
+            if (m_value == other.m_value) {
                 return 0;
             }
 
-            if (IsNaN(this))
-            {
+            if (IsNaN(this)) {
                 return IsNaN(other) ? 0 : -1;
             }
 
@@ -287,10 +266,8 @@ namespace SystemX
 
         public bool Equals(Half other) => this == other || IsNaN(this) && IsNaN(other);
 
-        public override int GetHashCode()
-        {
-            if (IsNaNOrZero(this))
-            {
+        public override int GetHashCode() {
+            if (IsNaNOrZero(this)) {
                 // All NaNs should have the same hash code, as should both Zeros.
                 return m_value & PositiveInfinityBits;
             }
@@ -371,8 +348,7 @@ namespace SystemX
         //[CLSCompliant(false)]
         //public static implicit operator Half(sbyte value) => (int)value;
 
-        public static explicit operator Half(float value)
-        {
+        public static explicit operator Half(float value) {
             const int singleMaxExponent = 0xFF;
 
             var floatInt = Helpers.ToUInt32(value);
@@ -380,8 +356,7 @@ namespace SystemX
             var exp = (int)(floatInt & Helpers.SingleExponentMask) >> Helpers.SingleExponentShift;
             var sig = floatInt & Helpers.SingleSignificandMask;
 
-            if (exp == singleMaxExponent)
-            {
+            if (exp == singleMaxExponent) {
                 if (sig != 0) // NaN
                 {
                     return Helpers.CreateHalfNaN(sign, (ulong)sig << 41); // Shift the significand bits to the left end
@@ -392,16 +367,14 @@ namespace SystemX
 
             var sigHalf = (sig >> 9) | ((sig & 0x1FFU) != 0 ? 1U : 0U); // RightShiftJam
 
-            if ((exp | (int)sigHalf) == 0)
-            {
+            if ((exp | (int)sigHalf) == 0) {
                 return new Half(sign, 0, 0);
             }
 
             return new Half(RoundPackToHalf(sign, (short)(exp - 0x71), (ushort)(sigHalf | 0x4000)));
         }
 
-        public static explicit operator Half(double value)
-        {
+        public static explicit operator Half(double value) {
             const int doubleMaxExponent = 0x7FF;
 
             var doubleInt = Helpers.ToUInt64(value);
@@ -409,8 +382,7 @@ namespace SystemX
             var exp = (int)((doubleInt & Helpers.DoubleExponentMask) >> Helpers.DoubleExponentShift);
             var sig = doubleInt & Helpers.DoubleSignificandMask;
 
-            if (exp == doubleMaxExponent)
-            {
+            if (exp == doubleMaxExponent) {
                 if (sig != 0) // NaN
                 {
                     return Helpers.CreateHalfNaN(sign, sig << 12); // Shift the significand bits to the left end
@@ -420,8 +392,7 @@ namespace SystemX
             }
 
             var sigHalf = (uint)Helpers.ShiftRightJam(sig, 38);
-            if ((exp | (int)sigHalf) == 0)
-            {
+            if ((exp | (int)sigHalf) == 0) {
                 return new Half(sign, 0, 0);
             }
 
@@ -530,26 +501,21 @@ namespace SystemX
         //[CLSCompliant(false)]
         //public static explicit operator sbyte(Half value) => (sbyte)(int)value;
 
-        public static implicit operator float(Half value)
-        {
+        public static implicit operator float(Half value) {
             var sign = IsNegative(value);
             int exp = value.Exponent;
             uint sig = value.Significand;
 
-            if (exp == MaxExponent)
-            {
-                if (sig != 0)
-                {
+            if (exp == MaxExponent) {
+                if (sig != 0) {
                     return Helpers.CreateSingleNaN(sign, (ulong)sig << 54);
                 }
 
                 return sign ? float.NegativeInfinity : float.PositiveInfinity;
             }
 
-            if (exp == 0)
-            {
-                if (sig == 0)
-                {
+            if (exp == 0) {
+                if (sig == 0) {
                     return Helpers.CreateSingle(sign ? Helpers.SingleSignMask : 0); // Positive / Negative zero
                 }
 
@@ -560,26 +526,21 @@ namespace SystemX
             return Helpers.CreateSingle(sign, (byte)(exp + 0x70), sig << 13);
         }
 
-        public static implicit operator double(Half value)
-        {
+        public static implicit operator double(Half value) {
             var sign = IsNegative(value);
             int exp = value.Exponent;
             uint sig = value.Significand;
 
-            if (exp == MaxExponent)
-            {
-                if (sig != 0)
-                {
+            if (exp == MaxExponent) {
+                if (sig != 0) {
                     return Helpers.CreateDoubleNaN(sign, (ulong)sig << 54);
                 }
 
                 return sign ? double.NegativeInfinity : double.PositiveInfinity;
             }
 
-            if (exp == 0)
-            {
-                if (sig == 0)
-                {
+            if (exp == 0) {
+                if (sig == 0) {
                     return Helpers.CreateDouble(sign ? Helpers.DoubleSignMask : 0); // Positive / Negative zero
                 }
 
@@ -596,15 +557,12 @@ namespace SystemX
 
         public static Half operator +(Half value) => value;
 
-        private static ushort RoundPackToHalf(bool sign, short exp, ushort sig)
-        {
+        private static ushort RoundPackToHalf(bool sign, short exp, ushort sig) {
             const int roundIncrement = 0x8; // Depends on rounding mode but it's always towards closest / ties to even
             var roundBits = sig & 0xF;
 
-            if ((uint)exp >= 0x1D)
-            {
-                if (exp < 0)
-                {
+            if ((uint)exp >= 0x1D) {
+                if (exp < 0) {
                     sig = (ushort)Helpers.ShiftRightJam(sig, -exp);
                     exp = 0;
                 }
@@ -617,22 +575,19 @@ namespace SystemX
             sig = (ushort)((sig + roundIncrement) >> 4);
             sig &= (ushort)~(((roundBits ^ 8) != 0 ? 0 : 1) & 1);
 
-            if (sig == 0)
-            {
+            if (sig == 0) {
                 exp = 0;
             }
 
             return new Half(sign, (ushort)exp, sig).m_value;
         }
 
-        private static (int Exp, uint Sig) NormSubnormalF16Sig(uint sig)
-        {
+        private static (int Exp, uint Sig) NormSubnormalF16Sig(uint sig) {
             var shiftDist = Helpers.LeadingZeroCount(sig) - 16 - 5; // No LZCNT for 16-bit
             return (1 - shiftDist, sig << shiftDist);
         }
 
-        private class Helpers
-        {
+        private class Helpers {
             public const ulong DoubleSignMask = 0x80000000_00000000;
             public const int DoubleSignShift = 63;
             public const long DoubleExponentMask = 0x7FF00000_00000000;
@@ -691,8 +646,7 @@ namespace SystemX
 
             // Significand bits should be shifted towards to the left end before calling these methods
             // Creates Quiet NaN if significand == 0
-            public static Half CreateHalfNaN(bool sign, ulong significand)
-            {
+            public static Half CreateHalfNaN(bool sign, ulong significand) {
                 const uint NaNBits = HalfExponentMask | 0x200; // Most significant significand bit
 
                 var signInt = (sign ? 1U : 0U) << HalfSignShift;
@@ -701,8 +655,7 @@ namespace SystemX
                 return CreateHalf((ushort)(signInt | NaNBits | sigInt));
             }
 
-            public static float CreateSingleNaN(bool sign, ulong significand)
-            {
+            public static float CreateSingleNaN(bool sign, ulong significand) {
                 const uint NaNBits = SingleExponentMask | 0x400000; // Most significant significand bit
 
                 var signInt = (sign ? 1U : 0U) << SingleSignShift;
@@ -711,8 +664,7 @@ namespace SystemX
                 return CreateSingle(signInt | NaNBits | sigInt);
             }
 
-            public static double CreateDoubleNaN(bool sign, ulong significand)
-            {
+            public static double CreateDoubleNaN(bool sign, ulong significand) {
                 const ulong NaNBits = DoubleExponentMask | 0x80000_00000000; // Most significant significand bit
 
                 var signInt = (sign ? 1UL : 0UL) << DoubleSignShift;
@@ -739,11 +691,9 @@ namespace SystemX
             /// </summary>
             /// <param name="value">The value.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int LeadingZeroCount(uint value)
-            {
+            public static int LeadingZeroCount(uint value) {
                 // Unguarded fallback contract is 0->31
-                if (value == 0)
-                {
+                if (value == 0) {
                     return 32;
                 }
 
@@ -756,12 +706,10 @@ namespace SystemX
             /// </summary>
             /// <param name="value">The value.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int LeadingZeroCount(ulong value)
-            {
+            public static int LeadingZeroCount(ulong value) {
                 var hi = (uint)(value >> 32);
 
-                if (hi == 0)
-                {
+                if (hi == 0) {
                     return 32 + LeadingZeroCount((uint)value);
                 }
 
@@ -774,8 +722,7 @@ namespace SystemX
             /// Does not directly use any hardware intrinsics, nor does it incur branching.
             /// </summary>
             /// <param name="value">The value.</param>
-            private static int Log2SoftwareFallback(uint value)
-            {
+            private static int Log2SoftwareFallback(uint value) {
                 // No AggressiveInlining due to large method size
                 // Has conventional contract 0->0 (Log(0) is undefined)
 

@@ -7,8 +7,7 @@ namespace OpenStack.Sfx.Al.Extensions.Creative.EFX;
 /// <summary>
 /// Exposes the functions of the Effects Extension.
 /// </summary>
-public class EFX : ALBase
-{
+public class EFX : ALBase {
     /// <summary>
     /// The EFX extension name.
     /// </summary>
@@ -896,8 +895,7 @@ public class EFX : ALBase
     /// <param name="effect">The effect.</param>
     /// <param name="param">The named property.</param>
     /// <param name="value">The value to set the property to.</param>
-    public static void GetEffect(int effect, EffectVector3 param, out Vector3 value)
-    {
+    public static void GetEffect(int effect, EffectVector3 param, out Vector3 value) {
         // This is so the compiler won't complain
         value.Y = 0;
         value.Z = 0;
@@ -1016,8 +1014,7 @@ public class EFX : ALBase
 /// <summary>
 /// A list of valid 32-bit Float Effect/GetEffect parameters.
 /// </summary>
-public enum EffectFloat
-{
+public enum EffectFloat {
     /// <summary>
     /// Reverb Modal Density controls the coloration of the late reverb. Lowering the value adds more coloration to
     /// the late reverb. Range [0.0f .. 1.0f] Default: 1.0f
@@ -1387,8 +1384,7 @@ public enum EffectFloat
 /// <summary>
 /// A list of valid Int32 Effect/GetEffect parameters.
 /// </summary>
-public enum EffectInteger
-{
+public enum EffectInteger {
     /// <summary>
     /// This property sets the waveform shape of the low-frequency oscillator that controls the delay time of the
     /// delayed signals. Unit: (0) Sinusoid, (1) Triangle Range [0 .. 1] Default: 1
@@ -1487,8 +1483,7 @@ public enum EffectInteger
 /// <summary>
 /// A list of valid <see cref="float"/> AuxiliaryEffectSlot/GetAuxiliaryEffectSlot parameters.
 /// </summary>
-public enum EffectSlotFloat
-{
+public enum EffectSlotFloat {
     /// <summary>
     /// Range [0.0f .. 1.0f]
     /// Default: 1.0f
@@ -1502,8 +1497,7 @@ public enum EffectSlotFloat
 /// <summary>
 /// A list of valid <see cref="int"/> AuxiliaryEffectSlot/GetAuxiliaryEffectSlot parameters.
 /// </summary>
-public enum EffectSlotInteger
-{
+public enum EffectSlotInteger {
     /// <summary>
     /// This property is used to attach an Effect object to the Auxiliary Effect Slot object. After the attachment,
     /// the Auxiliary Effect Slot object will contain the effect type and have the same effect parameters that were
@@ -1522,8 +1516,7 @@ public enum EffectSlotInteger
 /// <summary>
 /// Effect type definitions to be used with EfxEffecti.EffectType.
 /// </summary>
-public enum EffectType
-{
+public enum EffectType {
     /// <summary>
     /// No Effect, disable. This Effect type is used when an Effect object is initially created.
     /// </summary>
@@ -1595,8 +1588,7 @@ public enum EffectType
 /// <summary>
 /// A list of valid Math.Vector3 Effect/GetEffect parameters.
 /// </summary>
-public enum EffectVector3
-{
+public enum EffectVector3 {
     /// <summary>
     /// Reverb Pan does for the Reverb what Reflections Pan does for the Reflections. Unit: Vector3 of length 0f to 1f
     /// Default: {0.0f, 0.0f, 0.0f}
@@ -1614,8 +1606,7 @@ public enum EffectVector3
 /// <summary>
 /// Defines new context attributes.
 /// </summary>
-public enum EFXContextAttributes
-{
+public enum EFXContextAttributes {
     /// <summary>
     /// Default: 2
     ///
@@ -1630,8 +1621,7 @@ public enum EFXContextAttributes
 /// <summary>
 /// Defines new integer properties on the OpenAL context.
 /// </summary>
-public enum EFXContextInteger
-{
+public enum EFXContextInteger {
     /// <summary>
     /// This property can be used by the application to retrieve the Major version number of the
     /// Effects Extension supported by this OpenAL implementation. As this is a Context property is should be
@@ -1658,8 +1648,7 @@ public enum EFXContextInteger
 /// <summary>
 /// A list of valid <see cref="float"/> Listener/GetListener parameters.
 /// </summary>
-public enum EFXListenerFloat
-{
+public enum EFXListenerFloat {
     /// <summary>
     /// centimeters 0.01f
     /// meters 1.0f
@@ -1676,8 +1665,7 @@ public enum EFXListenerFloat
 /// <summary>
 /// A list of valid <see cref="bool"/> Source/GetSource parameters.
 /// </summary>
-public enum EFXSourceBoolean
-{
+public enum EFXSourceBoolean {
     /// <summary>
     /// Default: True
     ///
@@ -1708,8 +1696,7 @@ public enum EFXSourceBoolean
 /// <summary>
 /// A list of valid <see cref="float"/> Source/GetSource parameters.
 /// </summary>
-public enum EFXSourceFloat
-{
+public enum EFXSourceFloat {
     /// <summary>
     /// Range [0.0f .. 10.0f]
     /// Default: 0.0f
@@ -1742,8 +1729,7 @@ public enum EFXSourceFloat
 /// <summary>
 /// A list of valid <see cref="int"/> Source/GetSource parameters.
 /// </summary>
-public enum EFXSourceInteger
-{
+public enum EFXSourceInteger {
     /// <summary>
     /// This Source property is used to apply filtering on the direct-path (dry signal) of a Source.
     /// </summary>
@@ -1753,8 +1739,7 @@ public enum EFXSourceInteger
 /// <summary>
 /// A list of valid <see cref="int"/> Source/GetSource parameters.
 /// </summary>
-public enum EFXSourceInteger3
-{
+public enum EFXSourceInteger3 {
     /// <summary>
     /// This Source property is used to establish connections between Sources and Auxiliary Effect
     /// Slots. For a Source to feed an Effect that has been loaded into an Auxiliary Effect Slot the application must
@@ -1767,8 +1752,7 @@ public enum EFXSourceInteger3
 /// <summary>
 /// A list of valid <see cref="float"/> Filter/GetFilter parameters.
 /// </summary>
-public enum FilterFloat
-{
+public enum FilterFloat {
     /// <summary>
     /// Range [0.0f .. 1.0f] Default: 1.0f
     /// </summary>
@@ -1802,8 +1786,7 @@ public enum FilterFloat
 /// <summary>
 /// A list of valid <see cref="int"/> Filter/GetFilter parameters.
 /// </summary>
-public enum FilterInteger
-{
+public enum FilterInteger {
     /// <summary>
     /// Used with the enum EfxFilterType as Parameter to select a filter logic.
     /// </summary>
@@ -1813,8 +1796,7 @@ public enum FilterInteger
 /// <summary>
 /// Filter type definitions to be used with EfxFilteri.FilterType.
 /// </summary>
-public enum FilterType
-{
+public enum FilterType {
     /// <summary>
     /// No Filter, disable. This Filter type is used when a Filter object is initially created.
     /// </summary>
@@ -1838,8 +1820,7 @@ public enum FilterType
 /// effect that will be heard. If these two parameters are set to different phonemes, the filtering effect will morph
 /// between the two settings at a rate specified by EfxEffectf.VocalMorpherRate.
 /// </summary>
-public enum FormantFilterSettings
-{
+public enum FormantFilterSettings {
     /// <summary>
     /// The A phoneme of the vocal morpher.
     /// </summary>
@@ -1966,8 +1947,7 @@ public enum FormantFilterSettings
 /// May be passed at context construction time to indicate the number of desired auxiliary effect slot sends per
 /// source.
 /// </summary>
-public enum MaxAuxiliarySends
-{
+public enum MaxAuxiliarySends {
     /// <summary>
     /// Will chose a reliably working parameter.
     /// </summary>
@@ -1997,8 +1977,7 @@ public enum MaxAuxiliarySends
 /// <summary>
 /// A set of reverb presets that can be used with the extension.
 /// </summary>
-public static class ReverbPresets
-{
+public static class ReverbPresets {
     /// <summary>
     /// A reverb preset (approximating a generic location).
     /// </summary>
@@ -5419,8 +5398,7 @@ public static class ReverbPresets
 /// <summary>
 /// Defines a set of predefined reverb properties.
 /// </summary>
-public struct ReverbProperties
-{
+public struct ReverbProperties {
     /// <summary>
     /// Gets the preset value for <see cref="EffectFloat.ReverbDensity"/>.
     /// </summary>
@@ -5587,8 +5565,7 @@ public struct ReverbProperties
         float lfReference,
         float roomRolloffFactor,
         int decayHFLimit
-    )
-    {
+    ) {
         Density = density;
         Diffusion = diffusion;
         Gain = gain;
@@ -5620,8 +5597,7 @@ public struct ReverbProperties
 #region Ranges
 
 // Effect parameter ranges and defaults.
-public class EffectRanges
-{
+public class EffectRanges {
     // Standard reverb effect
     public const float ReverbMinDensity = 0f;
     public const float ReverbMaxDensity = 1f;
@@ -5999,8 +5975,7 @@ public class EffectRanges
 }
 
 // Filter ranges and defaults.
-public class FilterRanges
-{
+public class FilterRanges {
     // Lowpass filter
     public const float LowpassMinGain = 0f;
     public const float LowpassMaxGain = 1f;
@@ -6034,16 +6009,14 @@ public class FilterRanges
 }
 
 // Listener parameter value ranges and defaults.
-public class ListenerRanges
-{
+public class ListenerRanges {
     public const float MinMetersPerUnit = float.MinValue;
     public const float MaxMetersPerUnit = float.MaxValue;
     public const float DefaultMetersPerUnit = 1f;
 }
 
 // Source parameter value ranges and defaults.
-public class SourceRanges
-{
+public class SourceRanges {
     public const float MinAirAbsorptionFactor = 0f;
     public const float MaxAirAbsorptionFactor = 10f;
     public const float DefaultAirAbsorptionFactor = 0f;

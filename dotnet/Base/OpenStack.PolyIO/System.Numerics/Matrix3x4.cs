@@ -6,8 +6,7 @@ namespace System.Numerics;
 /// </summary>
 public struct Matrix3x4(float m11, float m12, float m13, float m14,
          float m21, float m22, float m23, float m24,
-         float m31, float m32, float m33, float m34) : IEquatable<Matrix3x4>
-{
+         float m31, float m32, float m33, float m34) : IEquatable<Matrix3x4> {
     public float M11 = m11;
     public float M12 = m12;
     public float M13 = m13;
@@ -21,10 +20,9 @@ public struct Matrix3x4(float m11, float m12, float m13, float m14,
     public float M33 = m33;
     public float M34 = m34;
 
-    public Vector3 Translation { 
+    public Vector3 Translation {
         get => new(M14, M24, M34);
-        set 
-        {
+        set {
             M14 = value.X;
             M24 = value.Y;
             M34 = value.Z;
@@ -38,11 +36,9 @@ public struct Matrix3x4(float m11, float m12, float m13, float m14,
     /// </summary>
     /// <param name="quaternion">The source Quaternion.</param>
     /// <returns>The rotation matrix.</returns>
-    public static Matrix3x4 CreateFromQuaternion(Quaternion quaternion)
-    {
+    public static Matrix3x4 CreateFromQuaternion(Quaternion quaternion) {
         var rot = quaternion.ConvertToRotationMatrix();
-        return new()
-        {
+        return new() {
             M11 = rot.M11,
             M12 = rot.M12,
             M13 = rot.M13,
@@ -58,8 +54,7 @@ public struct Matrix3x4(float m11, float m12, float m13, float m14,
         };
     }
 
-    public static Matrix3x4 CreateFromParts(Quaternion quaternion, Vector3 translation)
-    {
+    public static Matrix3x4 CreateFromParts(Quaternion quaternion, Vector3 translation) {
         var result = CreateFromQuaternion(quaternion);
         result.Translation = translation;
 
@@ -67,8 +62,7 @@ public struct Matrix3x4(float m11, float m12, float m13, float m14,
     }
 
     public Matrix4x4 ConvertToTransformMatrix()
-        => new()
-        {
+        => new() {
             M11 = M11,
             M12 = M12,
             M13 = M13,

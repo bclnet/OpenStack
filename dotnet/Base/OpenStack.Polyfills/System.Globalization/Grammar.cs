@@ -1,12 +1,9 @@
-namespace System.Globalization
-{
+namespace System.Globalization {
     /// <summary>
     /// Grammar
     /// </summary>
-    public static class Grammar
-    {
-        public static bool StartsWithVowel(this string s)
-        {
+    public static class Grammar {
+        public static bool StartsWithVowel(this string s) {
             if (string.IsNullOrEmpty(s)) return false;
             var firstLetter = s.ToLower()[0];
             return "aeiou".IndexOf(firstLetter) >= 0;
@@ -34,8 +31,7 @@ namespace System.Globalization
         /// </summary>
         /// <param name="s">The integer to convert</param>
         /// <returns>Returns a string of the ordinal suffix</returns>
-        public static string ToOrdinalSuffix(this int s)
-        {
+        public static string ToOrdinalSuffix(this int s) {
             // TODO: this only handles English ordinals - in future we may wish to consider the culture
             // note, we are allowing zeroth - http://en.wikipedia.org/wiki/Zeroth
             if (s < 0) throw new ArgumentOutOfRangeException(nameof(s), "Ordinal numbers cannot be negative");
@@ -43,8 +39,7 @@ namespace System.Globalization
             // first check special case, if the result ends in 11, 12, 13, should be th
             switch (s % 100) { case 11: case 12: case 13: return "th"; }
             // else we just check the last digit
-            return (s % 10) switch
-            {
+            return (s % 10) switch {
                 1 => "st",
                 2 => "nd",
                 3 => "rd",

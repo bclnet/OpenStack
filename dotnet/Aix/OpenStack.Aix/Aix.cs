@@ -7,6 +7,5 @@ namespace OpenStack.Aix;
 /// <summary>
 /// IOpenAix
 /// </summary>
-public interface IOpenAix
-{
+public interface IOpenAix {
 }

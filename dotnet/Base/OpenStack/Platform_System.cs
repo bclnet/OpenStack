@@ -11,8 +11,7 @@ namespace OpenStack;
 /// <summary>
 /// SystemAudioBuilder
 /// </summary>
-public class SystemAudioBuilder : AudioBuilderBase<object>
-{
+public class SystemAudioBuilder : AudioBuilderBase<object> {
     public override object CreateAudio(object path) => throw new NotImplementedException();
     public override void DeleteAudio(object audio) => throw new NotImplementedException();
 }
@@ -22,13 +21,12 @@ public class SystemAudioBuilder : AudioBuilderBase<object>
 /// <summary>
 /// SystemSfx
 /// </summary>
-public class SystemSfx(ISource source) : IOpenSfx<object>
-{
+public class SystemSfx(ISource source) : IOpenSfx<object> {
     readonly ISource _source = source;
     readonly AudioManager<object> _audioManager = new(source, new SystemAudioBuilder());
 
     public ISource Source => _source;
-    public IAudioManager<object> AudioManager => _audioManager;
+    public AudioManager<object> AudioManager => _audioManager;
     public object CreateAudio(object path) => _audioManager.CreateAudio(path).aud;
 }
 
@@ -39,10 +37,8 @@ public class SystemSfx(ISource source) : IOpenSfx<object>
 /// <summary>
 /// HostFileSystem
 /// </summary>
-public class HostFileSystem : IFileSystem
-{
-    public HostFileSystem(Uri uri)
-    {
+public class HostFileSystem : IFileSystem {
+    public HostFileSystem(Uri uri) {
         if (uri == null) throw new ArgumentNullException(nameof(uri));
         var pathOrPattern = uri.LocalPath;
         var searchPattern = Path.GetFileName(pathOrPattern);
@@ -63,8 +59,7 @@ public class HostFileSystem : IFileSystem
         //}
         //return new[] { searchPattern };
     }
-    public IEnumerable<string> Glob(string path, string searchPattern)
-    {
+    public IEnumerable<string> Glob(string path, string searchPattern) {
         var matcher = new Matcher();
         matcher.AddIncludePatterns([searchPattern]);
         return matcher.GetResultsInFullPath(searchPattern).ToList();
@@ -78,12 +73,10 @@ public class HostFileSystem : IFileSystem
 /// <summary>
 /// StandardFileSystem
 /// </summary>
-public class StandardFileSystem(string root) : IFileSystem
-{
+public class StandardFileSystem(string root) : IFileSystem {
     readonly string Root = root; readonly int Skip = root.Length + 1;
 
-    public IEnumerable<string> Glob(string path, string searchPattern)
-    {
+    public IEnumerable<string> Glob(string path, string searchPattern) {
         var matcher = new Matcher();
         matcher.AddIncludePatterns([string.IsNullOrEmpty(searchPattern) ? "**/*" : searchPattern]);
         return [.. matcher.GetResultsInFullPath(Path.Combine(Root, path)).Select(x => x[Skip..])];
@@ -97,13 +90,11 @@ public class StandardFileSystem(string root) : IFileSystem
 /// <summary>
 /// VirtualFileSystem
 /// </summary>
-public class VirtualFileSystem(IFileSystem @base, Dictionary<string, byte[]> virtuals) : IFileSystem
-{
+public class VirtualFileSystem(IFileSystem @base, Dictionary<string, byte[]> virtuals) : IFileSystem {
     readonly IFileSystem Base = @base;
     readonly Dictionary<string, byte[]> Virtuals = virtuals;
 
-    public IEnumerable<string> Glob(string path, string searchPattern)
-    {
+    public IEnumerable<string> Glob(string path, string searchPattern) {
         var matcher = PlatformX.CreateMatcher(searchPattern);
         return Virtuals.Keys.Where(matcher).Concat(Base.Glob(path, searchPattern));
     }
@@ -116,13 +107,11 @@ public class VirtualFileSystem(IFileSystem @base, Dictionary<string, byte[]> vir
 /// <summary>
 /// ZipFileSystem
 /// </summary>
-public class ZipFileSystem(string root, string path) : IFileSystem
-{
+public class ZipFileSystem(string root, string path) : IFileSystem {
     readonly ZipArchive Pak = ZipFile.Open(root, ZipArchiveMode.Read);
     readonly string Root = string.IsNullOrEmpty(path) ? string.Empty : $"{path}{Path.AltDirectorySeparatorChar}";
 
-    public IEnumerable<string> Glob(string path, string searchPattern)
-    {
+    public IEnumerable<string> Glob(string path, string searchPattern) {
         var root = Path.Combine(Root, path);
         var skip = root.Length;
         var matcher = PlatformX.CreateMatcher(searchPattern);
@@ -141,13 +130,11 @@ public class ZipFileSystem(string root, string path) : IFileSystem
 /// <summary>
 /// ZipIsoFileSystem
 /// </summary>
-public class ZipIsoFileSystem(string root, string path) : IFileSystem
-{
+public class ZipIsoFileSystem(string root, string path) : IFileSystem {
     readonly ZipArchive Pak = ZipFile.Open(root, ZipArchiveMode.Read);
     readonly string Root = path;
 
-    public IEnumerable<string> Glob(string path, string searchPattern)
-    {
+    public IEnumerable<string> Glob(string path, string searchPattern) {
         var matcher = PlatformX.CreateMatcher(searchPattern);
         return Pak.Entries.Where(x => matcher(x.Name)).Select(x => x.Name);
     }

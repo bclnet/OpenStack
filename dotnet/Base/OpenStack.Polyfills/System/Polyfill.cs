@@ -4,14 +4,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace System
-{
-    public static class Polyfill
-    {
+namespace System {
+    public static class Polyfill {
         #region Convert Color
 
-        public static uint FromBGR555(this ushort bgr555, bool addAlpha = true)
-        {
+        public static uint FromBGR555(this ushort bgr555, bool addAlpha = true) {
             var a = addAlpha ? (byte)0xFF : (byte)0;
             var r = (byte)Math.Min(((bgr555 & 0x7C00) >> 10) * 8, byte.MaxValue);
             var g = (byte)Math.Min(((bgr555 & 0x03E0) >> 5) * 8, byte.MaxValue);
@@ -34,32 +31,28 @@ namespace System
         /// <summary>
         /// Calculates the minimum and maximum values of an array.
         /// </summary>
-        public static void GetExtrema(this float[] source, out float min, out float max)
-        {
+        public static void GetExtrema(this float[] source, out float min, out float max) {
             min = float.MaxValue; max = float.MinValue;
             foreach (var element in source) { min = Math.Min(min, element); max = Math.Max(max, element); }
         }
         /// <summary>
         /// Calculates the minimum and maximum values of a 2D array.
         /// </summary>
-        public static void GetExtrema(this float[,] source, out float min, out float max)
-        {
+        public static void GetExtrema(this float[,] source, out float min, out float max) {
             min = float.MaxValue; max = float.MinValue;
             foreach (var element in source) { min = Math.Min(min, element); max = Math.Max(max, element); }
         }
         /// <summary>
         /// Calculates the minimum and maximum values of a 3D array.
         /// </summary>
-        public static void GetExtrema(this float[,,] source, out float min, out float max)
-        {
+        public static void GetExtrema(this float[,,] source, out float min, out float max) {
             min = float.MaxValue; max = float.MinValue;
             foreach (var element in source) { min = Math.Min(min, element); max = Math.Max(max, element); }
         }
 
         #endregion
 
-        public static T GetAttributeOfType<T>(this Enum enumVal) where T : System.Attribute
-        {
+        public static T GetAttributeOfType<T>(this Enum enumVal) where T : System.Attribute {
             var memInfo = enumVal.GetType().GetMember(enumVal.ToString());
             var attributes = memInfo[0].GetCustomAttributes(typeof(T), false);
             return attributes.Length > 0 ? (T)attributes[0] : null;
@@ -75,8 +68,7 @@ namespace System
         /// Returns the # of bits set in a Flags enum
         /// </summary>
         /// <param name="enumVal">The enum uint value</param>
-        public static int EnumNumFlags(uint enumVal)
-        {
+        public static int EnumNumFlags(uint enumVal) {
             var cnt = 0;
             while (enumVal != 0) { enumVal &= enumVal - 1; cnt++; } // remove the next set bit
             return cnt;
@@ -89,8 +81,7 @@ namespace System
         public static bool EnumHasMultiple(uint enumVal)
             => (enumVal & (enumVal - 1)) != 0;
 
-        public static string GetEnumDescription(this Type source, string value)
-        {
+        public static string GetEnumDescription(this Type source, string value) {
             var name = Enum.GetNames(source).FirstOrDefault(f => f.Equals(value, StringComparison.OrdinalIgnoreCase));
             if (name == null) return string.Empty;
             var field = source.GetField(name);
@@ -98,8 +89,7 @@ namespace System
             return attributes.Length > 0 ? attributes[0].Description : value.ToString();
         }
 
-        public static bool Equals(this string source, byte[] bytes)
-        {
+        public static bool Equals(this string source, byte[] bytes) {
             if (bytes.Length != source.Length) return false;
             for (var i = 0; i < bytes.Length; i++) if (bytes[i] != source[i]) return false;
             return true;
@@ -117,8 +107,7 @@ namespace System
         public static object CastToArray(this IEnumerable source, Type type)
             => Enumerable_ToArrayMethod.MakeGenericMethod(type).Invoke(null, new[] { Enumerable_CastMethod.MakeGenericMethod(type).Invoke(null, new[] { source }) });
 
-        public static string Reverse(this string s)
-        {
+        public static string Reverse(this string s) {
             var charArray = s.ToCharArray();
             Array.Reverse(charArray);
             return new string(charArray);

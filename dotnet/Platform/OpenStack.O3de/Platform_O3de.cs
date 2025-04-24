@@ -14,7 +14,7 @@ namespace OpenStack;
 public class O3deGfxSprite3D : IOpenGfxSprite<object, object>
 {
     readonly ISource _source;
-    readonly ISpriteManager<object> _spriteManager;
+    readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
     public O3deGfxSprite3D(ISource source)
@@ -25,8 +25,8 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object>
     }
 
     public ISource Source => _source;
-    public ISpriteManager<object> SpriteManager => _spriteManager;
-    public IObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public SpriteManager<object> SpriteManager => _spriteManager;
+    public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path) => throw new NotImplementedException();
@@ -38,7 +38,7 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object>
 public class O3deGfxModel : IOpenGfxModel<object, object, object, object>
 {
     readonly ISource _source;
-    readonly ITextureManager<object> _textureManager;
+    readonly TextureManager<object> _textureManager;
     readonly MaterialManager<object, object> _materialManager;
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
@@ -54,10 +54,10 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object>
     }
 
     public ISource Source => _source;
-    public ITextureManager<object> TextureManager => _textureManager;
-    public IMaterialManager<object, object> MaterialManager => _materialManager;
-    public IObjectModelManager<object, object, object> ObjectManager => _objectManager;
-    public IShaderManager<object> ShaderManager => _shaderManager;
+    public TextureManager<object> TextureManager => _textureManager;
+    public MaterialManager<object, object> MaterialManager => _materialManager;
+    public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
+    public ShaderManager<object> ShaderManager => _shaderManager;
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public object CreateObject(object path) => throw new NotImplementedException();

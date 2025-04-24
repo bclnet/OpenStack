@@ -4,8 +4,7 @@ namespace System.IO;
 /// A <see cref="PartialInputStream"/> is an <see cref="InflaterInputStream"/>
 /// whose data is only a part or subsection of a file.
 /// </summary>
-public class PartialInputStream : Stream
-{
+public class PartialInputStream : Stream {
     Stream _baseStream;
     readonly long _start;
     readonly long _length;
@@ -18,8 +17,7 @@ public class PartialInputStream : Stream
     /// <param name="source">The <see cref="Stream"/> containing the underlying stream to use for IO.</param>
     /// <param name="start">The start of the partial data.</param>
     /// <param name="length">The length of the partial data.</param>
-    public PartialInputStream(Stream source, long start, long length)
-    {
+    public PartialInputStream(Stream source, long start, long length) {
         _start = start;
         _length = length;
         _baseStream = source;
@@ -31,8 +29,7 @@ public class PartialInputStream : Stream
     /// Read a byte from this stream.
     /// </summary>
     /// <returns>Returns the byte read or -1 on end of stream.</returns>
-    public override int ReadByte()
-    {
+    public override int ReadByte() {
         // -1 is the correct value at end of stream.
         if (_readPos >= _end) return -1;
         lock (_baseStream) { _baseStream.Seek(_readPos++, SeekOrigin.Begin); return _baseStream.ReadByte(); }
@@ -53,12 +50,9 @@ public class PartialInputStream : Stream
     /// <exception cref="System.ArgumentNullException">buffer is null. </exception>
     /// <exception cref="System.IO.IOException">An I/O error occurs. </exception>
     /// <exception cref="System.ArgumentOutOfRangeException">offset or count is negative. </exception>
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        lock (_baseStream)
-        {
-            if (count > _end - _readPos)
-            {
+    public override int Read(byte[] buffer, int offset, int count) {
+        lock (_baseStream) {
+            if (count > _end - _readPos) {
                 count = (int)(_end - _readPos);
                 if (count == 0) return 0;
             }
@@ -104,11 +98,9 @@ public class PartialInputStream : Stream
     /// <exception cref="System.IO.IOException">An I/O error occurs. </exception>
     /// <exception cref="System.NotSupportedException">The stream does not support seeking, such as if the stream is constructed from a pipe or console output. </exception>
     /// <exception cref="System.ObjectDisposedException">Methods were called after the stream was closed. </exception>
-    public override long Seek(long offset, SeekOrigin origin)
-    {
+    public override long Seek(long offset, SeekOrigin origin) {
         var newPos = _readPos;
-        switch (origin)
-        {
+        switch (origin) {
             case SeekOrigin.Begin: newPos = _start + offset; break;
             case SeekOrigin.Current: newPos = _readPos + offset; break;
             case SeekOrigin.End: newPos = _end + offset; break;
@@ -134,11 +126,9 @@ public class PartialInputStream : Stream
     /// <exception cref="System.IO.IOException">An I/O error occurs. </exception>
     /// <exception cref="System.NotSupportedException">The stream does not support seeking. </exception>
     /// <exception cref="System.ObjectDisposedException">Methods were called after the stream was closed. </exception>
-    public override long Position
-    {
+    public override long Position {
         get => _readPos - _start;
-        set
-        {
+        set {
             var newPos = _start + value;
             if (newPos < _start) throw new ArgumentException("Negative position is invalid");
             else if (newPos > _end) throw new InvalidOperationException("Cannot seek past end");

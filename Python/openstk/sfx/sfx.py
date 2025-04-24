@@ -9,14 +9,8 @@ class AudioBuilderBase:
     def createAudio(self, path: object) -> Audio: pass
     def deleteAudio(self, audio: Audio) -> None: pass
 
-# IAudioManager
-class IAudioManager:
-    def createAudio(self, path: object) -> (Audio, object): pass
-    def preloadAudio(self, path: object) -> None: pass
-    def deleteAudio(self, path: object) -> None: pass
-
 # AudioManager
-class AudioManager(IAudioManager):
+class AudioManager:
     _source: ISource
     _builder: AudioBuilderBase
     _cachedAudios: dict[object, (Audio, object)] = {}
@@ -55,5 +49,5 @@ class IOpenSfx: pass
 
 # IOpenSfx2
 class IOpenSfx2(IOpenSfx):
-    audioManager: IAudioManager
+    audioManager: AudioManager
     def createAudio(self, path: object) -> Audio: pass

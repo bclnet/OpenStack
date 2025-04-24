@@ -6,8 +6,7 @@ namespace OpenStack.Sfx.Al.Extensions;
 /// <summary>
 /// Exposes the API in the EnumerateAll extension.
 /// </summary>
-public class EnumerateAll : ALBase
-{
+public class EnumerateAll : ALBase {
     /// <summary>
     /// The name of this AL extension.
     /// </summary>
@@ -55,8 +54,7 @@ public class EnumerateAll : ALBase
 /// <summary>
 /// Defines available parameters for <see cref="EnumerateAll.GetString(ALDevice, GetEnumerateAllContextString)" />.
 /// </summary>
-public enum GetEnumerateAllContextString
-{
+public enum GetEnumerateAllContextString {
     /// <summary>
     /// Gets the specifier for the default device.
     /// </summary>
@@ -70,8 +68,7 @@ public enum GetEnumerateAllContextString
 /// <summary>
 /// Defines available parameters for <see cref="EnumerateAll.GetStringList(ALDevice, GetEnumerateAllContextStringList)" />.
 /// </summary>
-public enum GetEnumerateAllContextStringList
-{
+public enum GetEnumerateAllContextStringList {
     /// <summary>
     /// Gets the specifier strings for all available devices.
     /// </summary>

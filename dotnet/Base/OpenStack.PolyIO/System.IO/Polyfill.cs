@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace System.IO;
 
-public static partial class Polyfill
-{
+public static partial class Polyfill {
     #region Lump
 
     // lumps
@@ -25,8 +24,7 @@ public static partial class Polyfill
     #region BoundBox
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct X_BoundBox
-    {
+    public struct X_BoundBox {
         public Vector3 Min;                // minimum values of X,Y,Z
         public Vector3 Max;                // maximum values of X,Y,Z
     }

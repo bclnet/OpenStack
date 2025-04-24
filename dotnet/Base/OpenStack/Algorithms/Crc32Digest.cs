@@ -3,8 +3,7 @@
 /// <summary>
 /// A utility class to compute CRC32.
 /// </summary>
-public static class Crc32Digest
-{
+public static class Crc32Digest {
     /// <summary>
     /// CRC polynomial 0xEDB88320.
     /// </summary>
@@ -69,8 +68,7 @@ public static class Crc32Digest
     /// </summary>
     /// <param name="buffer">The array of bytes to compute the checksum for.</param>
     /// <returns>The computed checksum.</returns>
-    public static uint Compute(byte[] buffer)
-    {
+    public static uint Compute(byte[] buffer) {
         var crc = 0xFFFFFFFFU;
         for (var i = 0; i < buffer.Length; i++) crc = (crc >> 8) ^ Table[buffer[i] ^ (crc & 0xff)];
         return ~crc;

@@ -6,8 +6,7 @@ using System.Runtime.InteropServices;
 namespace OpenStack.Sfx.Al;
 
 /// <summary>Alc = Audio Library Context.</summary>
-public class ALC : ALBase
-{
+public class ALC : ALBase {
     internal const string Lib = AL.Lib;
     internal const CallingConvention AlcCallingConv = CallingConvention.Cdecl;
 
@@ -394,13 +393,11 @@ public class ALC : ALBase
     /// </summary>
     /// <param name="alList">A pointer to the AL list. Usually returned from GetStringList like AL functions.</param>
     /// <returns>The string list.</returns>
-    internal static unsafe List<string> ALStringListToList(byte* alList)
-    {
+    internal static unsafe List<string> ALStringListToList(byte* alList) {
         if (alList == (byte*)0) return new List<string>();
         var b = new List<string>();
         var currentPos = alList;
-        while (true)
-        {
+        while (true) {
             var currentString = Marshal.PtrToStringAnsi(new IntPtr(currentPos));
             if (string.IsNullOrEmpty(currentString)) break;
             b.Add(currentString);
@@ -415,8 +412,7 @@ public class ALC : ALBase
 /// <summary>
 /// Defines available context attributes.
 /// </summary>
-public enum AlcContextAttributes : int
-{
+public enum AlcContextAttributes : int {
     /// <summary>Followed by System.Int32 Hz</summary>
     Frequency = 0x1007,
     /// <summary>Followed by System.Int32 Hz</summary>
@@ -434,8 +430,7 @@ public enum AlcContextAttributes : int
 /// <summary>
 /// Defines OpenAL context errors.
 /// </summary>
-public enum AlcError : int
-{
+public enum AlcError : int {
     /// <summary>There is no current error.</summary>
     NoError = 0,
     /// <summary>No Device. The device handle or specifier names an inaccessible driver/server.</summary>
@@ -453,8 +448,7 @@ public enum AlcError : int
 /// <summary>
 /// Defines available parameters for <see cref="ALC.GetString(ALDevice, AlcGetString)"/>.
 /// </summary>
-public enum AlcGetString : int
-{
+public enum AlcGetString : int {
     /// <summary>The specifier string for the default device.</summary>
     DefaultDeviceSpecifier = 0x1004,
     /// <summary>A list of available context extensions separated by spaces.</summary>
@@ -475,8 +469,7 @@ public enum AlcGetString : int
 /// <summary>
 /// Defines available parameters for <see cref="ALC.GetString(ALDevice, AlcGetStringList)"/>.
 /// </summary>
-public enum AlcGetStringList : int
-{
+public enum AlcGetStringList : int {
     /// <summary>The name of the specified capture device, or a list of all available capture devices if no capture device is specified. ALC_EXT_CAPTURE_EXT </summary>
     CaptureDeviceSpecifier = 0x310,
     /// <summary>The specifier strings for all available devices. ALC_ENUMERATION_EXT</summary>
@@ -488,8 +481,7 @@ public enum AlcGetStringList : int
 /// <summary>
 /// Defines available parameters for <see cref="ALC.GetInteger(ALDevice, AlcGetInteger, int, int[])"/>.
 /// </summary>
-public enum AlcGetInteger : int
-{
+public enum AlcGetInteger : int {
     /// <summary>The specification revision for this implementation (major version). NULL is an acceptable device.</summary>
     MajorVersion = 0x1000,
     /// <summary>The specification revision for this implementation (minor version). NULL is an acceptable device.</summary>
@@ -511,8 +503,7 @@ public enum AlcGetInteger : int
 /// <summary>
 /// Defines available parameters for <see cref="ALC.GetString(ALDevice, GetEnumerationString)" />.
 /// </summary>
-public enum GetEnumerationString
-{
+public enum GetEnumerationString {
     /// <summary>
     /// Gets the specifier for the default device. ALC_ENUMERATION_EXT
     /// </summary>
@@ -536,8 +527,7 @@ public enum GetEnumerationString
 /// <summary>
 /// Defines available parameters for <see cref="ALC.GetStringListPtr(ALDevice, GetEnumerationStringList)" />.
 /// </summary>
-public enum GetEnumerationStringList
-{
+public enum GetEnumerationStringList {
     /// <summary>
     /// Gets the specifier strings for all available output devices.
     /// Can also be used to get the specifier for a specific device, see <see cref="GetEnumerationString.DeviceSpecifier"/>. ALC_ENUMERATION_EXT
@@ -557,8 +547,7 @@ public enum GetEnumerationStringList
 /// <summary>
 /// Convenience class for handling ALContext attributes.
 /// </summary>
-public class ALContextAttributes
-{
+public class ALContextAttributes {
     /// <summary>
     /// Gets or sets the output buffer frequency in Hz.
     /// This does not actually change any AL state. To apply these attributes see <see cref="ALC.CreateContext(ALDevice, ALContextAttributes)"/>.
@@ -611,8 +600,7 @@ public class ALContextAttributes
     /// <param name="stereoSources">The number of stereo sources available. Not guaranteed.</param>
     /// <param name="refresh">The refresh interval in Hz.</param>
     /// <param name="sync">If the context is synchronous.</param>
-    public ALContextAttributes(int? frequency, int? monoSources, int? stereoSources, int? refresh, bool? sync)
-    {
+    public ALContextAttributes(int? frequency, int? monoSources, int? stereoSources, int? refresh, bool? sync) {
         Frequency = frequency;
         MonoSources = monoSources;
         StereoSources = stereoSources;
@@ -625,13 +613,11 @@ public class ALContextAttributes
     /// Alternativly, consider using the more convenient <see cref="ALC.CreateContext(ALDevice, ALContextAttributes)"/> overload.
     /// </summary>
     /// <returns>The attibute list in the form of a span.</returns>
-    public int[] CreateAttributeArray()
-    {
+    public int[] CreateAttributeArray() {
         // The number of members * 2 + AdditionalAttributes
         var attributeList = new int[(5 * 2) + (AdditionalAttributes?.Length ?? 0) + 1];
         var index = 0;
-        void AddAttribute(int? value, AlcContextAttributes attribute)
-        {
+        void AddAttribute(int? value, AlcContextAttributes attribute) {
             if (value != null) { attributeList[index++] = (int)attribute; attributeList[index++] = value ?? default; }
         }
         AddAttribute(Frequency, AlcContextAttributes.Frequency);
@@ -650,14 +636,11 @@ public class ALContextAttributes
     /// </summary>
     /// <param name="attributeArray">The AL context attribute list.</param>
     /// <returns>The parsed <see cref="AlcContextAttributes"/> object.</returns>
-    internal static ALContextAttributes FromArray(int[] attributeArray)
-    {
+    internal static ALContextAttributes FromArray(int[] attributeArray) {
         var extra = new List<int>();
         var attributes = new ALContextAttributes();
-        void ParseAttribute(int @enum, int value)
-        {
-            switch (@enum)
-            {
+        void ParseAttribute(int @enum, int value) {
+            switch (@enum) {
                 case (int)AlcContextAttributes.Frequency: attributes.Frequency = value; break;
                 case (int)AlcContextAttributes.MonoSources: attributes.MonoSources = value; break;
                 case (int)AlcContextAttributes.StereoSources: attributes.StereoSources = value; break;
@@ -694,8 +677,7 @@ public class ALContextAttributes
 /// <summary>
 /// Handle to an OpenAL capture device.
 /// </summary>
-public struct ALCaptureDevice : IEquatable<ALCaptureDevice>
-{
+public struct ALCaptureDevice : IEquatable<ALCaptureDevice> {
     public static readonly ALCaptureDevice Null = new(IntPtr.Zero);
     public IntPtr Handle;
     public ALCaptureDevice(IntPtr handle) => Handle = handle;

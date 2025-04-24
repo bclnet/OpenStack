@@ -99,24 +99,13 @@ public abstract class ObjectSpriteBuilderBase<Object, Sprite>
 }
 
 /// <summary>
-/// IObjectSpriteManager
-/// </summary>
-/// <typeparam name="Object"></typeparam>
-/// <typeparam name="Sprite"></typeparam>
-public interface IObjectSpriteManager<Object, Sprite>
-{
-    (Object obj, object tag) CreateObject(object path);
-    void PreloadObject(object path);
-}
-
-/// <summary>
 /// ObjectSpriteManager
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Sprite"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder) : IObjectSpriteManager<Object, Sprite>
+public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder)
 {
     readonly ISource Source = source;
     readonly ObjectSpriteBuilderBase<Object, Sprite> Builder = builder;
@@ -162,19 +151,7 @@ public abstract class ObjectModelBuilderBase<Object, Material, Texture>
 {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
-    public abstract Object CreateObject(object src, IMaterialManager<Material, Texture> materialManager);
-}
-
-/// <summary>
-/// IObjectModelManager
-/// </summary>
-/// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-/// <typeparam name="Texture"></typeparam>
-public interface IObjectModelManager<Object, Material, Texture>
-{
-    (Object obj, object tag) CreateObject(object path);
-    void PreloadObject(object path);
+    public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager);
 }
 
 /// <summary>
@@ -186,10 +163,10 @@ public interface IObjectModelManager<Object, Material, Texture>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class ObjectModelManager<Object, Material, Texture>(ISource source, IMaterialManager<Material, Texture> materialManager, ObjectModelBuilderBase<Object, Material, Texture> builder) : IObjectModelManager<Object, Material, Texture>
+public class ObjectModelManager<Object, Material, Texture>(ISource source, MaterialManager<Material, Texture> materialManager, ObjectModelBuilderBase<Object, Material, Texture> builder)
 {
     readonly ISource Source = source;
-    readonly IMaterialManager<Material, Texture> MaterialManager = materialManager;
+    readonly MaterialManager<Material, Texture> MaterialManager = materialManager;
     readonly ObjectModelBuilderBase<Object, Material, Texture> Builder = builder;
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
@@ -256,20 +233,12 @@ public abstract class ShaderBuilderBase<Shader>
 }
 
 /// <summary>
-/// IShaderManager
-/// </summary>
-public interface IShaderManager<Shader>
-{
-    public (Shader sha, object tag) CreateShader(object path, IDictionary<string, bool> args = null);
-}
-
-/// <summary>
 /// ShaderManager
 /// </summary>
 /// <typeparam name="Shader"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> builder) : IShaderManager<Shader>
+public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> builder)
 {
     static readonly Dictionary<string, bool> EmptyArgs = [];
     readonly ISource Source = source;
@@ -305,23 +274,12 @@ public abstract class SpriteBuilderBase<Sprite>
 }
 
 /// <summary>
-/// ISpriteManager
-/// </summary>
-public interface ISpriteManager<Sprite>
-{
-    Sprite DefaultSprite { get; }
-    (Sprite spr, object tag) CreateSprite(object path);
-    void PreloadSprite(object path);
-    void DeleteSprite(object path);
-}
-
-/// <summary>
 /// SpriteManager
 /// </summary>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> builder) : ISpriteManager<Sprite>
+public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> builder)
 {
     readonly ISource Source = source;
     readonly SpriteBuilderBase<Sprite> Builder = builder;
@@ -433,26 +391,12 @@ public abstract class TextureBuilderBase<Texture>
 }
 
 /// <summary>
-/// ITextureManager
-/// </summary>
-public interface ITextureManager<Texture>
-{
-    Texture DefaultTexture { get; }
-    Texture CreateNormalMap(Texture tex, float strength);
-    Texture CreateSolidTexture(int width, int height, params float[] rgba);
-    (Texture tex, object tag) CreateTexture(object path, Range? level = null);
-    (Texture tex, object tag) ReloadTexture(object path, Range? level = null);
-    void PreloadTexture(object path);
-    void DeleteTexture(object path);
-}
-
-/// <summary>
 /// TextureManager
 /// </summary>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture> builder) : ITextureManager<Texture>
+public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture> builder)
 {
     readonly ISource Source = source;
     readonly TextureBuilderBase<Texture> Builder = builder;
@@ -595,34 +539,24 @@ public class MaterialTerrainProp : MaterialProp { }
 /// <typeparam name="Material"></typeparam>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="textureManager"></param>
-public abstract class MaterialBuilderBase<Material, Texture>(ITextureManager<Texture> textureManager)
+public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Texture> textureManager)
 {
-    protected ITextureManager<Texture> TextureManager = textureManager;
+    protected TextureManager<Texture> TextureManager = textureManager;
     public float? NormalGeneratorIntensity = 0.75f;
     public abstract Material DefaultMaterial { get; }
     public abstract Material CreateMaterial(object path);
 }
 
 /// <summary>
-/// IMaterialManager
-/// </summary>
-public interface IMaterialManager<Material, Texture>
-{
-    ITextureManager<Texture> TextureManager { get; }
-    (Material mat, object tag) CreateMaterial(object path);
-    void PreloadMaterial(object path);
-}
-
-/// <summary>
 /// Manages loading and instantiation of materials.
 /// </summary>
-public class MaterialManager<Material, Texture>(ISource source, ITextureManager<Texture> textureManager, MaterialBuilderBase<Material, Texture> builder) : IMaterialManager<Material, Texture>
+public class MaterialManager<Material, Texture>(ISource source, TextureManager<Texture> textureManager, MaterialBuilderBase<Material, Texture> builder)
 {
     readonly ISource Source = source;
     readonly MaterialBuilderBase<Material, Texture> Builder = builder;
     readonly Dictionary<object, (Material material, object tag)> CachedMaterials = [];
     readonly Dictionary<object, Task<MaterialProp>> PreloadTasks = [];
-    public ITextureManager<Texture> TextureManager { get; } = textureManager;
+    public TextureManager<Texture> TextureManager { get; } = textureManager;
 
     public (Material mat, object tag) CreateMaterial(object path)
     {
@@ -709,8 +643,8 @@ public interface IOpenGfxSprite : IOpenGfx
 /// </summary>
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite
 {
-    ISpriteManager<Sprite> SpriteManager { get; }
-    IObjectSpriteManager<Object, Sprite> ObjectManager { get; }
+    SpriteManager<Sprite> SpriteManager { get; }
+    ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
     Object CreateObject(object path);
 }
 
@@ -727,10 +661,10 @@ public interface IOpenGfxModel : IOpenGfx
 /// </summary>
 public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxModel
 {
-    ITextureManager<Texture> TextureManager { get; }
-    IMaterialManager<Material, Texture> MaterialManager { get; }
-    IObjectModelManager<Object, Material, Texture> ObjectManager { get; }
-    IShaderManager<Shader> ShaderManager { get; }
+    TextureManager<Texture> TextureManager { get; }
+    MaterialManager<Material, Texture> MaterialManager { get; }
+    ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
+    ShaderManager<Shader> ShaderManager { get; }
     Texture CreateTexture(object path, Range? level = null);
     Object CreateObject(object path);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);

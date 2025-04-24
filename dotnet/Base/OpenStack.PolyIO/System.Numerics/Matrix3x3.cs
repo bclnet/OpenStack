@@ -7,8 +7,7 @@ namespace System.Numerics;
 /// <summary>
 /// A structure encapsulating a 3x3 matrix.
 /// </summary>
-public struct Matrix3x3 : IEquatable<Matrix3x3>
-{
+public struct Matrix3x3 : IEquatable<Matrix3x3> {
     #region Public Fields
 
     /// <summary>
@@ -66,8 +65,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// Gets the copy.
     /// </summary>
     /// <returns>copy of the matrix33</returns>
-    public Matrix3x3 GetCopy() => new()
-    {
+    public Matrix3x3 GetCopy() => new() {
         M11 = M11,
         M12 = M12,
         M13 = M13,
@@ -83,8 +81,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// Gets the transpose.
     /// </summary>
     /// <returns>copy of the matrix33</returns>
-    public Matrix3x3 Transpose => new()
-    {
+    public Matrix3x3 Transpose => new() {
         M11 = M11,
         M12 = M21,
         M13 = M31,
@@ -101,8 +98,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="vector">The vector.</param>
     /// <returns></returns>
-    public Vector3 Mult(Vector3 vector) => new()
-    {
+    public Vector3 Mult(Vector3 vector) => new() {
         X = (vector.X * M11) + (vector.Y * M21) + (vector.Z * M31),
         Y = (vector.X * M12) + (vector.Y * M22) + (vector.Z * M32),
         Z = (vector.X * M13) + (vector.Y * M23) + (vector.Z * M33)
@@ -116,10 +112,8 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <returns>
     ///   <c>true</c> if [is scale rotation]; otherwise, <c>false</c>.
     /// </returns>
-    public bool IsScaleRotation
-    {
-        get
-        {
+    public bool IsScaleRotation {
+        get {
             var mat = this * Transpose;
             if (Math.Abs(mat.M12) + Math.Abs(mat.M13)
                 + Math.Abs(mat.M21) + Math.Abs(mat.M23)
@@ -132,17 +126,14 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// Get the scale, assuming IsScaleRotation is true
     /// </summary>
     /// <returns></returns>
-    public Vector3 GetScale()
-    {
+    public Vector3 GetScale() {
         var mat = this * Transpose;
-        var scale = new Vector3
-        {
+        var scale = new Vector3 {
             X = (float)Math.Pow(mat.M11, 0.5f),
             Y = (float)Math.Pow(mat.M22, 0.5f),
             Z = (float)Math.Pow(mat.M33, 0.5f)
         };
-        if (GetDeterminant() < 0)
-        {
+        if (GetDeterminant() < 0) {
             scale.X = 0 - scale.X;
             scale.Y = 0 - scale.Y;
             scale.Z = 0 - scale.Z;
@@ -157,10 +148,8 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <returns></returns>
     public Vector3 GetScaleRotation() => GetScale();
 
-    public bool IsRotation
-    {
-        get
-        {
+    public bool IsRotation {
+        get {
             // NOTE: 0.01 instead of CgfFormat.EPSILON to work around bad files
             if (!IsScaleRotation) return false;
             var scale = GetScale();
@@ -176,7 +165,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
 
     #endregion
 
-    static readonly Matrix3x3 _identity = new    (
+    static readonly Matrix3x3 _identity = new(
         1f, 0f, 0f,
         0f, 1f, 0f,
         0f, 0f, 1f
@@ -199,11 +188,9 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <summary>
     /// Gets or sets the translation component of this matrix.
     /// </summary>
-    public Vector2 Translation
-    {
+    public Vector2 Translation {
         get => new(M31, M32);
-        set
-        {
+        set {
             M31 = value.X;
             M32 = value.Y;
         }
@@ -214,8 +201,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     public Matrix3x3(float m11, float m12, float m13,
                      float m21, float m22, float m23,
-                     float m31, float m32, float m33)
-    {
+                     float m31, float m32, float m33) {
         M11 = m11;
         M12 = m12;
         M13 = m13;
@@ -233,8 +219,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// Constructs a Matrix3x3 from the given Matrix3x2.
     /// </summary>
     /// <param name="value">The source Matrix3x2.</param>
-    public Matrix3x3(Matrix3x2 value)
-    {
+    public Matrix3x3(Matrix3x2 value) {
         M11 = value.M11;
         M12 = value.M12;
         M13 = 0f;
@@ -251,8 +236,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="position">The amount to translate in each axis.</param>
     /// <returns>The translation matrix.</returns>
-    public static Matrix3x3 CreateTranslation(Vector2 position)
-    {
+    public static Matrix3x3 CreateTranslation(Vector2 position) {
         Matrix3x3 result;
 
         result.M11 = 1.0f;
@@ -274,8 +258,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="xPosition">The amount to translate on the X-axis.</param>
     /// <param name="yPosition">The amount to translate on the Y-axis.</param>
     /// <returns>The translation matrix.</returns>
-    public static Matrix3x3 CreateTranslation(float xPosition, float yPosition)
-    {
+    public static Matrix3x3 CreateTranslation(float xPosition, float yPosition) {
         Matrix3x3 result;
 
         result.M11 = 1.0f;
@@ -297,8 +280,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="xScale">Value to scale by on the X-axis.</param>
     /// <param name="yScale">Value to scale by on the Y-axis.</param>
     /// <returns>The scaling matrix.</returns>
-    public static Matrix3x3 CreateScale(float xScale, float yScale)
-    {
+    public static Matrix3x3 CreateScale(float xScale, float yScale) {
         Matrix3x3 result;
 
         result.M11 = xScale;
@@ -321,8 +303,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="yScale">Value to scale by on the Y-axis.</param>
     /// <param name="centerPoint">The center point.</param>
     /// <returns>The scaling matrix.</returns>
-    public static Matrix3x3 CreateScale(float xScale, float yScale, Vector2 centerPoint)
-    {
+    public static Matrix3x3 CreateScale(float xScale, float yScale, Vector2 centerPoint) {
         Matrix3x3 result;
 
         float tx = centerPoint.X * (1 - xScale);
@@ -346,8 +327,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="scales">The vector containing the amount to scale by on each axis.</param>
     /// <returns>The scaling matrix.</returns>
-    public static Matrix3x3 CreateScale(Vector2 scales)
-    {
+    public static Matrix3x3 CreateScale(Vector2 scales) {
         Matrix3x3 result;
 
         result.M11 = scales.X;
@@ -369,8 +349,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="scales">The vector containing the amount to scale by on each axis.</param>
     /// <param name="centerPoint">The center point.</param>
     /// <returns>The scaling matrix.</returns>
-    public static Matrix3x3 CreateScale(Vector2 scales, Vector2 centerPoint)
-    {
+    public static Matrix3x3 CreateScale(Vector2 scales, Vector2 centerPoint) {
         Matrix3x3 result;
 
         float tx = centerPoint.X * (1 - scales.X);
@@ -394,8 +373,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="scale">The uniform scaling factor.</param>
     /// <returns>The scaling matrix.</returns>
-    public static Matrix3x3 CreateScale(float scale)
-    {
+    public static Matrix3x3 CreateScale(float scale) {
         Matrix3x3 result;
 
         result.M11 = scale;
@@ -417,8 +395,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="scale">The uniform scaling factor.</param>
     /// <param name="centerPoint">The center point.</param>
     /// <returns>The scaling matrix.</returns>
-    public static Matrix3x3 CreateScale(float scale, Vector2 centerPoint)
-    {
+    public static Matrix3x3 CreateScale(float scale, Vector2 centerPoint) {
         Matrix3x3 result;
 
         float tx = centerPoint.X * (1 - scale);
@@ -442,8 +419,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="radians">The amount, in radians, by which to rotate around the X-axis.</param>
     /// <returns>The rotation matrix.</returns>
-    public static Matrix3x3 CreateRotationX(float radians)
-    {
+    public static Matrix3x3 CreateRotationX(float radians) {
         Matrix3x3 result;
 
         float c = (float)Math.Cos(radians);
@@ -471,8 +447,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="radians">The amount, in radians, by which to rotate around the X-axis.</param>
     /// <param name="centerPoint">The center point.</param>
     /// <returns>The rotation matrix.</returns>
-    public static Matrix3x3 CreateRotationX(float radians, Vector2 centerPoint)
-    {
+    public static Matrix3x3 CreateRotationX(float radians, Vector2 centerPoint) {
         Matrix3x3 result;
 
         float c = (float)Math.Cos(radians);
@@ -501,8 +476,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// Calculates the determinant of the matrix.
     /// </summary>
     /// <returns>The determinant of the matrix.</returns>
-    public float GetDeterminant()
-    {
+    public float GetDeterminant() {
         var det2_12_01 = M21 * M22 - M22 * M31;
         var det2_12_02 = M21 * M23 - M23 * M31;
         var det2_12_12 = M22 * M23 - M23 * M32;
@@ -515,8 +489,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="matrix">The source matrix to invert.</param>
     /// <param name="result">If successful, contains the inverted matrix.</param>
     /// <returns>True if the source matrix could be inverted; False otherwise.</returns>
-    public static bool Invert(Matrix3x3 matrix, out Matrix3x3 result)
-    {
+    public static bool Invert(Matrix3x3 matrix, out Matrix3x3 result) {
         // 18+3+9 = 30 multiplications
         //			 1 division
         result = new Matrix3x3(); double det, invDet;
@@ -548,8 +521,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="value">The source matrix.</param>
     /// <returns>The negated matrix.</returns>
-    public static Matrix3x3 Negate(Matrix3x3 value)
-    {
+    public static Matrix3x3 Negate(Matrix3x3 value) {
         Matrix3x3 result;
 
         result.M11 = -value.M11;
@@ -571,8 +543,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The first source matrix.</param>
     /// <param name="value2">The second source matrix.</param>
     /// <returns>The resulting matrix.</returns>
-    public static Matrix3x3 Add(Matrix3x3 value1, Matrix3x3 value2)
-    {
+    public static Matrix3x3 Add(Matrix3x3 value1, Matrix3x3 value2) {
         Matrix3x3 result;
 
         result.M11 = value1.M11 + value2.M11;
@@ -594,8 +565,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The first source matrix.</param>
     /// <param name="value2">The second source matrix.</param>
     /// <returns>The result of the subtraction.</returns>
-    public static Matrix3x3 Subtract(Matrix3x3 value1, Matrix3x3 value2)
-    {
+    public static Matrix3x3 Subtract(Matrix3x3 value1, Matrix3x3 value2) {
         Matrix3x3 result;
 
         result.M11 = value1.M11 - value2.M11;
@@ -617,8 +587,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The first source matrix.</param>
     /// <param name="value2">The second source matrix.</param>
     /// <returns>The result of the multiplication.</returns>
-    public static Matrix3x3 Multiply(Matrix3x3 value1, Matrix3x3 value2)
-    {
+    public static Matrix3x3 Multiply(Matrix3x3 value1, Matrix3x3 value2) {
         Matrix3x3 result;
 
         // First row
@@ -645,8 +614,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The source matrix.</param>
     /// <param name="value2">The scaling factor.</param>
     /// <returns>The scaled matrix.</returns>
-    public static Matrix3x3 Multiply(Matrix3x3 value1, float value2)
-    {
+    public static Matrix3x3 Multiply(Matrix3x3 value1, float value2) {
         Matrix3x3 result;
 
         result.M11 = value1.M11 * value2;
@@ -667,8 +635,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// </summary>
     /// <param name="value">The source matrix.</param>
     /// <returns>The negated matrix.</returns>
-    public static Matrix3x3 operator -(Matrix3x3 value)
-    {
+    public static Matrix3x3 operator -(Matrix3x3 value) {
         Matrix3x3 m;
 
         m.M11 = -value.M11;
@@ -690,8 +657,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The first source matrix.</param>
     /// <param name="value2">The second source matrix.</param>
     /// <returns>The resulting matrix.</returns>
-    public static Matrix3x3 operator +(Matrix3x3 value1, Matrix3x3 value2)
-    {
+    public static Matrix3x3 operator +(Matrix3x3 value1, Matrix3x3 value2) {
         Matrix3x3 m;
 
         m.M11 = value1.M11 + value2.M11;
@@ -713,8 +679,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The first source matrix.</param>
     /// <param name="value2">The second source matrix.</param>
     /// <returns>The result of the subtraction.</returns>
-    public static Matrix3x3 operator -(Matrix3x3 value1, Matrix3x3 value2)
-    {
+    public static Matrix3x3 operator -(Matrix3x3 value1, Matrix3x3 value2) {
         Matrix3x3 m;
 
         m.M11 = value1.M11 - value2.M11;
@@ -736,8 +701,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The first source matrix.</param>
     /// <param name="value2">The second source matrix.</param>
     /// <returns>The result of the multiplication.</returns>
-    public static Matrix3x3 operator *(Matrix3x3 value1, Matrix3x3 value2)
-    {
+    public static Matrix3x3 operator *(Matrix3x3 value1, Matrix3x3 value2) {
         Matrix3x3 m;
 
         // First row
@@ -764,8 +728,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// <param name="value1">The source matrix.</param>
     /// <param name="value2">The scaling factor.</param>
     /// <returns>The scaled matrix.</returns>
-    public static Matrix3x3 operator *(Matrix3x3 value1, float value2)
-    {
+    public static Matrix3x3 operator *(Matrix3x3 value1, float value2) {
         Matrix3x3 m;
 
         m.M11 = value1.M11 * value2;
@@ -827,8 +790,7 @@ public struct Matrix3x3 : IEquatable<Matrix3x3>
     /// Returns a String representing this matrix instance.
     /// </summary>
     /// <returns>The string representation.</returns>
-    public override string ToString()
-    {
+    public override string ToString() {
         var ci = CultureInfo.CurrentCulture;
         return string.Format(ci, "{{ {{M11:{0} M12:{1} M13:{2}}} {{M21:{3} M22:{4} M23:{5}}} {{M31:{6} M32:{7} M33:{8}}} }}",
         M11.ToString(ci), M12.ToString(ci), M13.ToString(ci),

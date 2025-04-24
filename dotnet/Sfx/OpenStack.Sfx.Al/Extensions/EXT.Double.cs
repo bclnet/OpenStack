@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenStack.Sfx.Al.Extensions.EXT.Double;
 
-public class EXTDouble : ALBase
-{
+public class EXTDouble : ALBase {
     /// <summary>
     /// The name of this AL extension.
     /// </summary>
@@ -59,8 +58,7 @@ public class EXTDouble : ALBase
 /// <summary>
 /// Defines valid format specifiers for sound samples. This covers the additions from the multi-channel buffers extension.
 /// </summary>
-public enum DoubleBufferFormat
-{
+public enum DoubleBufferFormat {
     /// <summary>
     /// 1 Channel, double-precision floating-point data.
     /// </summary>

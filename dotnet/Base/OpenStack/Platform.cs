@@ -17,8 +17,7 @@ namespace OpenStack;
 /// <summary>
 /// IFileSystem
 /// </summary>
-public interface IFileSystem
-{
+public interface IFileSystem {
     IEnumerable<string> Glob(string path, string searchPattern);
     bool FileExists(string path);
     (string path, long length) FileInfo(string path);
@@ -33,8 +32,7 @@ public interface IFileSystem
 /// <summary>
 /// Gets the platform.
 /// </summary>
-public abstract class Platform(string id, string name)
-{
+public abstract class Platform(string id, string name) {
     /// <summary>
     /// Gets the active.
     /// </summary>
@@ -88,8 +86,7 @@ public abstract class Platform(string id, string name)
     /// <summary>
     /// Activates the platform.
     /// </summary>
-    public virtual void Activate()
-    {
+    public virtual void Activate() {
         Debug.AssertFunc = AssertFunc;
         Debug.LogFunc = LogFunc;
         Debug.LogFormatFunc = LogFormatFunc;
@@ -104,8 +101,7 @@ public abstract class Platform(string id, string name)
 /// <summary>
 /// UnknownPlatform
 /// </summary>
-public class UnknownPlatform : Platform
-{
+public class UnknownPlatform : Platform {
     public static readonly Platform This = new UnknownPlatform();
     UnknownPlatform() : base("UK", "Unknown") { }
 }
@@ -113,8 +109,7 @@ public class UnknownPlatform : Platform
 /// <summary>
 /// PlatformX
 /// </summary>
-public static class PlatformX
-{
+public static class PlatformX {
     //public static Action Hook;
 
     /// <summary>
@@ -130,7 +125,7 @@ public static class PlatformX
         : RuntimeInformation.OSDescription.StartsWith("android-") ? OS.Android
         : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OS.Linux
         : OS.Unknown;
-        //: throw new ArgumentOutOfRangeException(nameof(RuntimeInformation.IsOSPlatform), RuntimeInformation.OSDescription);
+    //: throw new ArgumentOutOfRangeException(nameof(RuntimeInformation.IsOSPlatform), RuntimeInformation.OSDescription);
 
     /// <summary>
     /// Gets the platform startups.
@@ -160,14 +155,12 @@ public static class PlatformX
     /// <summary>
     /// Activates a platform.
     /// </summary>
-    public static Platform Activate(Platform platform)
-    {
+    public static Platform Activate(Platform platform) {
         //Hook?.Invoke(); Hook = null;
         if (platform == null || !platform.Enabled) platform = UnknownPlatform.This;
         Platforms.Add(platform);
         var current = Current;
-        if (current != platform)
-        {
+        if (current != platform) {
             current?.Deactivate();
             platform?.Activate();
             Current = platform;
@@ -180,27 +173,23 @@ public static class PlatformX
     /// </summary>
     /// <param name="searchPattern">The searchPattern.</param>
     /// <returns></returns>
-    public static Func<string, bool> CreateMatcher(string searchPattern)
-    {
+    public static Func<string, bool> CreateMatcher(string searchPattern) {
         if (string.IsNullOrEmpty(searchPattern)) return x => true;
         var wildcardCount = searchPattern.Count(x => x.Equals('*'));
         if (wildcardCount <= 0) return x => x.Equals(searchPattern, StringComparison.CurrentCultureIgnoreCase);
-        else if (wildcardCount == 1)
-        {
+        else if (wildcardCount == 1) {
             var newPattern = searchPattern.Replace("*", "");
             if (searchPattern.StartsWith("*")) return x => x.EndsWith(newPattern, StringComparison.CurrentCultureIgnoreCase);
             else if (searchPattern.EndsWith("*")) return x => x.StartsWith(newPattern, StringComparison.CurrentCultureIgnoreCase);
         }
         var regexPattern = $"^{Regex.Escape(searchPattern).Replace("\\*", ".*")}$";
-        return x =>
-        {
+        return x => {
             try { return Regex.IsMatch(x, regexPattern); }
             catch { return false; }
         };
     }
 
-    public static Dictionary<object, object> DecodeOptions(string file)
-    {
+    public static Dictionary<object, object> DecodeOptions(string file) {
         var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), file);
         return File.Exists(path)
             ? (Dictionary<object, object>)new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build()
@@ -220,8 +209,7 @@ public static class PlatformX
 
 #region Test Platform
 
-public class TestGfxSprite(ISource source) : IOpenGfxSprite
-{
+public class TestGfxSprite(ISource source) : IOpenGfxSprite {
     readonly ISource _source = source;
     public object Source => _source;
     public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
@@ -229,8 +217,7 @@ public class TestGfxSprite(ISource source) : IOpenGfxSprite
     public void PreloadObject(object path) => throw new NotSupportedException();
 }
 
-public class TestGfxModel(ISource source) : IOpenGfxModel
-{
+public class TestGfxModel(ISource source) : IOpenGfxModel {
     readonly ISource _source = source;
     public object Source => _source;
     public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
@@ -238,8 +225,7 @@ public class TestGfxModel(ISource source) : IOpenGfxModel
     public void PreloadObject(object path) => throw new NotSupportedException();
 }
 
-public class TestSfx(ISource source) : IOpenSfx
-{
+public class TestSfx(ISource source) : IOpenSfx {
     readonly ISource _source = source;
     public object Source => _source;
 }
@@ -247,11 +233,9 @@ public class TestSfx(ISource source) : IOpenSfx
 /// <summary>
 /// TestPlatform
 /// </summary>
-public class TestPlatform : Platform
-{
+public class TestPlatform : Platform {
     public static readonly Platform This = new TestPlatform();
-    TestPlatform() : base("TT", "Test")
-    {
+    TestPlatform() : base("TT", "Test") {
         GfxFactory = source => [new TestGfxSprite(source), new TestGfxSprite(source), new TestGfxModel(source)];
         SfxFactory = source => [new TestSfx(source)];
     }
