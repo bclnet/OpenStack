@@ -6,11 +6,9 @@ namespace OpenStack.Gfx.OpenGL;
 /// TestTextureRenderer
 /// </summary>
 [TestClass]
-public class TestTextureRenderer() : OpenGLTextureRenderer(null, 0, default, default)
-{
+public class TestTextureRenderer() : OpenGLTextureRenderer(null, 0, default, default) {
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         //Assert.AreEqual(0, Pitch);
     }
     //[TestMethod]
@@ -30,11 +28,9 @@ public class TestTextureRenderer() : OpenGLTextureRenderer(null, 0, default, def
 /// TestMaterialRenderer
 /// </summary>
 [TestClass]
-public class TestMaterialRenderer() : OpenGLMaterialRenderer(null, null)
-{
+public class TestMaterialRenderer() : OpenGLMaterialRenderer(null, null) {
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         //Assert.AreEqual(0, Pitch);
     }
     //[TestMethod]
@@ -54,11 +50,9 @@ public class TestMaterialRenderer() : OpenGLMaterialRenderer(null, null)
 /// TestGridRenderer
 /// </summary>
 [TestClass]
-public class TestGridRenderer() : OpenGLGridRenderer(null, 1f, 1)
-{
+public class TestGridRenderer() : OpenGLGridRenderer(null, 1f, 1) {
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         //Assert.AreEqual(0, Pitch);
     }
     //[TestMethod]

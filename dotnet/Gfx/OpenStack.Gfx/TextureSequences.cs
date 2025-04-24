@@ -7,13 +7,11 @@ namespace OpenStack.Gfx;
 /// TextureSequences
 /// </summary>
 /// <seealso cref="System.Collections.Generic.List{OpenStack.Gfx.TextureSequences.Sequence}" />
-public class TextureSequences : List<TextureSequences.Sequence>
-{
+public class TextureSequences : List<TextureSequences.Sequence> {
     /// <summary>
     /// Frame
     /// </summary>
-    public class Frame
-    {
+    public class Frame {
         /// <summary>
         /// Gets or sets the images.
         /// </summary>
@@ -34,8 +32,7 @@ public class TextureSequences : List<TextureSequences.Sequence>
     /// <summary>
     /// Image
     /// </summary>
-    public class Image
-    {
+    public class Image {
         /// <summary>
         /// Gets or sets the cropped min.
         /// </summary>
@@ -83,8 +80,7 @@ public class TextureSequences : List<TextureSequences.Sequence>
     /// <summary>
     /// Sequence
     /// </summary>
-    public class Sequence
-    {
+    public class Sequence {
         /// <summary>
         /// Gets or sets the frames.
         /// </summary>

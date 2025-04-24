@@ -7,24 +7,20 @@ namespace OpenStack.Gfx.Bitmap;
 /// TestDirectBitmap
 /// </summary>
 [TestClass]
-public class TestDirectBitmap : DirectBitmap
-{
+public class TestDirectBitmap : DirectBitmap {
     public TestDirectBitmap() : base(100, 100) { }
 
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         Assert.AreEqual(100, Width);
         Assert.AreEqual(100, Height);
     }
     [TestMethod]
-    public void Test_SetPixel()
-    {
+    public void Test_SetPixel() {
         SetPixel(0, 0, Color.Aqua);
     }
     [TestMethod]
-    public void Test_GetPixel()
-    {
+    public void Test_GetPixel() {
         var actual = GetPixel(0, 0);
         Assert.AreEqual(0, actual.R);
         Assert.AreEqual(0, actual.G);
@@ -32,8 +28,7 @@ public class TestDirectBitmap : DirectBitmap
         Assert.AreEqual(0, actual.A);
     }
     [TestMethod]
-    public void Test_Save()
-    {
+    public void Test_Save() {
         Save("path");
     }
 }

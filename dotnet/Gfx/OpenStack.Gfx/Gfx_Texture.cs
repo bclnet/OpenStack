@@ -13,8 +13,7 @@ namespace OpenStack.Gfx;
 /// TextureFlags
 /// </summary>
 [Flags]
-public enum TextureFlags : int
-{
+public enum TextureFlags : int {
     SUGGEST_CLAMPS = 0x00000001,
     SUGGEST_CLAMPT = 0x00000002,
     SUGGEST_CLAMPU = 0x00000004,
@@ -25,8 +24,7 @@ public enum TextureFlags : int
 }
 
 [Flags]
-public enum TextureFormat : int
-{
+public enum TextureFormat : int {
     Unknown = 0,
     I8 = 1,
     L8 = 2,
@@ -53,8 +51,7 @@ public enum TextureFormat : int
 }
 
 [Flags]
-public enum TexturePixel : int
-{
+public enum TexturePixel : int {
     Unknown = 0,
     Byte = 1,
     Short = 2,
@@ -72,8 +69,7 @@ public enum TexturePixel : int
 /// <summary>
 /// FourCC
 /// </summary>
-public enum FourCC : uint
-{
+public enum FourCC : uint {
     DXT1 = 0x31545844, // DXT1
     DXT2 = 0x32545844, // DXT2
     DXT3 = 0x33545844, // DXT3
@@ -90,8 +86,7 @@ public enum FourCC : uint
 /// Values which indicate what type of data is in the surface
 /// </summary>
 [Flags]
-public enum DDPF : uint
-{
+public enum DDPF : uint {
     /// <summary>
     /// Texture contains alpha data; dwRGBAlphaBitMask contains valid data
     /// </summary>
@@ -126,8 +121,7 @@ public enum DDPF : uint
 /// Surface pixel format.
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct DDS_PIXELFORMAT
-{
+public struct DDS_PIXELFORMAT {
     public const int SizeOf = 32;
     /// <summary>
     /// Struct
@@ -173,8 +167,7 @@ public struct DDS_PIXELFORMAT
 // https://docs.microsoft.com/en-us/windows/win32/direct3ddds/dds-header-dxt10
 // https://docs.microsoft.com/en-us/windows/win32/api/d3d10/ne-d3d10-d3d10_resource_dimension
 
-public enum DDS_ALPHA_MODE : uint
-{
+public enum DDS_ALPHA_MODE : uint {
     ALPHA_MODE_UNKNOWN = 0,
     ALPHA_MODE_STRAIGHT = 1,
     ALPHA_MODE_PREMULTIPLIED = 2,
@@ -183,8 +176,7 @@ public enum DDS_ALPHA_MODE : uint
 }
 
 [Flags]
-public enum D3D10_RESOURCE_DIMENSION : uint
-{
+public enum D3D10_RESOURCE_DIMENSION : uint {
     /// <summary>
     /// Resource is of unknown type
     /// </summary>
@@ -211,8 +203,7 @@ public enum D3D10_RESOURCE_DIMENSION : uint
 /// DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct DDS_HEADER_DXT10
-{
+public struct DDS_HEADER_DXT10 {
     /// <summary>
     /// Struct
     /// </summary>
@@ -250,8 +241,7 @@ public struct DDS_HEADER_DXT10
 /// Flags to indicate which members contain valid data
 /// </summary>
 [Flags]
-public enum DDSD : uint
-{
+public enum DDSD : uint {
     /// <summary>
     /// Required in every .dds file
     /// </summary>
@@ -295,8 +285,7 @@ public enum DDSD : uint
 /// Specifies the complexity of the surfaces stored
 /// </summary>
 [Flags]
-public enum DDSCAPS : uint
-{
+public enum DDSCAPS : uint {
     /// <summary>
     /// Optional; must be used on any file that contains more than one surface (a mipmap, a cubic environment map, or mipmapped volume texture)
     /// </summary>
@@ -318,8 +307,7 @@ public enum DDSCAPS : uint
 /// Additional detail about the surfaces stored
 /// </summary>
 [Flags]
-public enum DDSCAPS2 : uint
-{
+public enum DDSCAPS2 : uint {
     /// <summary>
     /// Required for a cube map
     /// </summary>
@@ -366,8 +354,7 @@ public enum DDSCAPS2 : uint
 /// Describes a DDS file header
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public unsafe struct DDS_HEADER
-{
+public unsafe struct DDS_HEADER {
     /// <summary>
     /// Struct
     /// </summary>
@@ -443,8 +430,7 @@ public unsafe struct DDS_HEADER
     /// <summary>
     /// Verifies this instance
     /// </summary>
-    public readonly void Verify()
-    {
+    public readonly void Verify() {
         if (dwSize != 124) throw new FormatException($"Invalid DDS file header size: {dwSize}.");
         else if (!dwFlags.HasFlag(DDSD.HEIGHT | DDSD.WIDTH)) throw new FormatException($"Invalid DDS file flags: {dwFlags}.");
         else if (!dwCaps.HasFlag(DDSCAPS.TEXTURE)) throw new FormatException($"Invalid DDS file caps: {dwCaps}.");
@@ -458,10 +444,8 @@ public unsafe struct DDS_HEADER
     /// https://github.com/BinomialLLC/basis_universal/wiki/OpenGL-texture-format-enums-table
     /// https://www.g-truc.net/post-0335.html
     /// https://www.reedbeta.com/blog/understanding-bcn-texture-compression-formats/
-    public static (DDS_HEADER header, DDS_HEADER_DXT10? headerDxt10, (object type, int blockSize, object value) format, byte[] bytes) Read(BinaryReader r, bool readMagic = true)
-    {
-        if (readMagic)
-        {
+    public static (DDS_HEADER header, DDS_HEADER_DXT10? headerDxt10, (object type, int blockSize, object value) format, byte[] bytes) Read(BinaryReader r, bool readMagic = true) {
+        if (readMagic) {
             var magic = r.ReadUInt32();
             if (magic != MAGIC) throw new FormatException($"Invalid DDS file magic: \"{magic}\".");
         }
@@ -469,8 +453,7 @@ public unsafe struct DDS_HEADER
         header.Verify();
         ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
         var headerDxt10 = ddspf.dwFourCC == DX10 ? (DDS_HEADER_DXT10?)r.ReadS<DDS_HEADER_DXT10>() : null;
-        var format = ddspf.dwFourCC switch
-        {
+        var format = ddspf.dwFourCC switch {
             0 => MakeFormat(ref ddspf),
             //DXT1 => (DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
             //DXT3 => (DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
@@ -478,8 +461,7 @@ public unsafe struct DDS_HEADER
             DXT1 => (DXT1, 8, (TextureFormat.DXT1, TexturePixel.Unknown)),
             DXT3 => (DXT3, 16, (TextureFormat.DXT3, TexturePixel.Unknown)),
             DXT5 => (DXT5, 16, (TextureFormat.DXT5, TexturePixel.Unknown)),
-            DX10 => (headerDxt10?.dxgiFormat) switch
-            {
+            DX10 => (headerDxt10?.dxgiFormat) switch {
                 //BC1_UNORM => (BC1_UNORM, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
                 //BC1_UNORM_SRGB => (BC1_UNORM_SRGB, 8, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureGLFormat.CompressedSrgbS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
                 //BC2_UNORM => (BC2_UNORM, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
@@ -518,13 +500,11 @@ public unsafe struct DDS_HEADER
         return (header, headerDxt10, format, r.ReadToEnd());
     }
 
-    public static void Write(BinaryWriter w, DDS_HEADER header, DDS_HEADER_DXT10? headerDxt10, byte[] bytes, bool writeMagic = true)
-    {
+    public static void Write(BinaryWriter w, DDS_HEADER header, DDS_HEADER_DXT10? headerDxt10, byte[] bytes, bool writeMagic = true) {
         header.Verify();
         if (writeMagic) w.Write(MAGIC);
         w.WriteS(header);
-        if (header.ddspf.dwFourCC == DX10)
-        {
+        if (header.ddspf.dwFourCC == DX10) {
             if (headerDxt10 == null) throw new ArgumentNullException(nameof(headerDxt10));
             w.WriteS(headerDxt10.Value);
         }
@@ -540,15 +520,12 @@ public unsafe struct DDS_HEADER
     static (object type, int blockSize, object value) MakeFormat(ref DDS_PIXELFORMAT f) => ("Raw", (int)f.dwRGBBitCount >> 2, (TextureFormat.RGBA32, TexturePixel.Unknown));
 }
 
-public static unsafe class TextureConvert
-{
+public static unsafe class TextureConvert {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static void Dxt3BlockToDtx5Block(byte* p) { byte a0 = p[0], a1 = p[1], a2 = p[1], a3 = p[1], a4 = p[1], a5 = p[1], a6 = p[1], a7 = p[1]; }
 
-    public static void Dxt3ToDtx5(byte[] data, int width, int height, int mipMaps)
-    {
-        fixed (byte* data_ = data)
-        {
+    public static void Dxt3ToDtx5(byte[] data, int width, int height, int mipMaps) {
+        fixed (byte* data_ = data) {
             var p = data_;
             var count = ((width + 3) / 4) * ((height + 3) / 4);
             while (count-- != 0) Dxt3BlockToDtx5Block(p += 16);
@@ -566,8 +543,7 @@ public static unsafe class TextureConvert
 /// <summary>
 /// DirectX Graphics Infrastructure formats
 /// </summary>
-public enum DXGI_FORMAT : uint
-{
+public enum DXGI_FORMAT : uint {
     /// <summary>
     /// The format is not known.
     /// </summary>

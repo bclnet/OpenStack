@@ -8,8 +8,7 @@ namespace OpenStack.Gfx.Unity;
 /// <summary>
 /// TestTriRenderer
 /// </summary>
-public class TestTriRenderer(UnityGfxModel gfx, object obj) : Renderer
-{
+public class TestTriRenderer(UnityGfxModel gfx, object obj) : Renderer {
     readonly UnityGfxModel Gfx = gfx;
 }
 
@@ -26,13 +25,11 @@ public class TestTriRenderer(UnityGfxModel gfx, object obj) : Renderer
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Fallout4.esm#Fallout4")));
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("Fallout4.esm#Fallout4VR")));
 
-public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer
-{
+public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
     readonly UnityGfxModel Gfx = gfx;
     readonly object Obj = obj;
 
-    public override void Start()
-    {
+    public override void Start() {
         //TestLoadCell(new Vector3(((-2 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, ((-1 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters));
         //TestLoadCell(new Vector3((-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
         //TestLoadCell(new Vector3(0 * ConvertUtils.ExteriorCellSideLengthInMeters, 0, 0 * ConvertUtils.ExteriorCellSideLengthInMeters));
@@ -64,8 +61,7 @@ public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer
 
 #region EngineRenderer
 
-public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer
-{
+public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
     readonly UnityGfxModel Gfx = gfx;
     readonly object Obj = obj;
 
@@ -78,8 +74,7 @@ public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer
     //    //Engine?.Dispose();
     //}
 
-    public override void Start()
-    {
+    public override void Start() {
         //var assetUri = new Uri("http://192.168.1.3/ASSETS/Morrowind/Morrowind.bsa#Morrowind");
         //var dataUri = new Uri("http://192.168.1.3/ASSETS/Morrowind/Morrowind.esm#Morrowind");
 
@@ -105,13 +100,11 @@ public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer
 
 #region ObjectRenderer
 
-public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer
-{
+public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
     readonly UnityGfxModel Gfx = gfx;
     readonly object Obj = obj;
 
-    public override void Start()
-    {
+    public override void Start() {
         var path = Obj is string z ? z : null;
         if (!string.IsNullOrEmpty(path)) MakeObject(path);
     }
@@ -131,20 +124,17 @@ public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer
 /// <summary>
 /// TextureRenderer
 /// </summary>
-public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer
-{
+public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer {
     readonly UnityGfxModel Gfx = gfx;
     readonly object Obj = obj;
 
-    public override void Start()
-    {
+    public override void Start() {
         var path = Obj is string z ? z : null;
         if (!string.IsNullOrEmpty(path)) MakeTexture(path);
         //if (!string.IsNullOrEmpty(path)) MakeCursor(path);
     }
 
-    GameObject MakeTexture(string path)
-    {
+    GameObject MakeTexture(string path) {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         obj.transform.rotation = Quaternion.Euler(-90f, 180f, -180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();

@@ -18,16 +18,14 @@ namespace OpenStack.Gfx.OpenGL;
 /// <summary>
 /// OpenGLExtensions
 /// </summary>
-public static class OpenGLExtensions
-{
+public static class OpenGLExtensions {
     public static OpenTK.Vector3 ToOpenTK(this Vector3 vec) => new(vec.X, vec.Y, vec.Z);
     public static OpenTK.Vector4 ToOpenTK(this Vector4 vec) => new(vec.X, vec.Y, vec.Z, vec.W);
     public static OpenTK.Matrix4 ToOpenTK(this Matrix4x4 m) => new(m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44);
 }
 
 // RenderPrimitiveType
-public enum RenderPrimitiveType
-{
+public enum RenderPrimitiveType {
     RENDER_PRIM_POINTS = 0x0,
     RENDER_PRIM_LINES = 0x1,
     RENDER_PRIM_LINES_WITH_ADJACENCY = 0x2,
@@ -80,19 +78,16 @@ public enum RenderPrimitiveType
 /// <summary>
 /// ShaderLoader
 /// </summary>
-public abstract class ShaderLoader
-{
+public abstract class ShaderLoader {
     const int ShaderSeed = 0x13141516;
 
     readonly Dictionary<uint, Shader> CachedShaders = [];
     readonly Dictionary<string, List<string>> ShaderDefines = [];
 
-    uint CalculateShaderCacheHash(string name, IDictionary<string, bool> args)
-    {
+    uint CalculateShaderCacheHash(string name, IDictionary<string, bool> args) {
         var b = new StringBuilder(); b.AppendLine(name);
         var parameters = ShaderDefines[name].Intersect(args.Keys);
-        foreach (var key in parameters)
-        {
+        foreach (var key in parameters) {
             b.AppendLine(key);
             b.AppendLine(args[key] ? "t" : "f");
         }
@@ -103,15 +98,13 @@ public abstract class ShaderLoader
 
     protected abstract string GetShaderSource(string name);
 
-    public Shader CreateShader(object path, IDictionary<string, bool> args)
-    {
+    public Shader CreateShader(object path, IDictionary<string, bool> args) {
         var name = (string)path;
         var cache = !name.StartsWith("#");
         var shaderFileName = GetShaderFileByName(name);
 
         // cache
-        if (cache && ShaderDefines.ContainsKey(shaderFileName))
-        {
+        if (cache && ShaderDefines.ContainsKey(shaderFileName)) {
             var shaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
             if (CachedShaders.TryGetValue(shaderCacheHash, out var c)) return c;
         }
@@ -129,8 +122,7 @@ public abstract class ShaderLoader
         }
         GL.CompileShader(vertexShader);
         GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out var shaderStatus);
-        if (shaderStatus != 1)
-        {
+        if (shaderStatus != 1) {
             GL.GetShaderInfoLog(vertexShader, out var vsInfo);
             throw new Exception($"Error setting up Vertex Shader \"{name}\": {vsInfo}");
         }
@@ -145,8 +137,7 @@ public abstract class ShaderLoader
         }
         GL.CompileShader(fragmentShader);
         GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out shaderStatus);
-        if (shaderStatus != 1)
-        {
+        if (shaderStatus != 1) {
             GL.GetShaderInfoLog(fragmentShader, out var fsInfo);
             throw new Exception($"Error setting up Fragment Shader \"{name}\": {fsInfo}");
         }
@@ -156,8 +147,7 @@ public abstract class ShaderLoader
         var renderModes = defines.Where(k => k.StartsWith(RenderMode)).Select(k => k[RenderMode.Length..]).ToList();
 
         // build shader
-        var shader = new Shader(GL.GetUniformLocation, GL.GetAttribLocation)
-        {
+        var shader = new Shader(GL.GetUniformLocation, GL.GetAttribLocation) {
             Name = name,
             Parameters = args,
             Program = GL.CreateProgram(),
@@ -172,16 +162,14 @@ public abstract class ShaderLoader
         GL.DeleteShader(vertexShader);
         GL.DetachShader(shader.Program, fragmentShader);
         GL.DeleteShader(fragmentShader);
-        if (linkStatus != 1)
-        {
+        if (linkStatus != 1) {
             GL.GetProgramInfoLog(shader.Program, out var linkInfo);
             throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus})");
         }
 
 #if !DEBUG_SHADERS || !DEBUG
         // cache shader
-        if (cache)
-        {
+        if (cache) {
             ShaderDefines[shaderFileName] = defines;
             var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
             CachedShaders[newShaderCacheHash] = shader;
@@ -196,14 +184,12 @@ public abstract class ShaderLoader
         => ResolveIncludes(UpdateDefines(source, args));
 
     // Update default defines with possible overrides from the model
-    static string UpdateDefines(string source, IDictionary<string, bool> args)
-    {
+    static string UpdateDefines(string source, IDictionary<string, bool> args) {
         // find all #define param_(paramName) (paramValue) using regex
         var defines = Regex.Matches(source, @"#define param_(\S*?) (\S*?)\s*?\n");
         foreach (Match define in defines)
             // check if this parameter is in the arguments
-            if (args.TryGetValue(define.Groups[1].Value, out var value))
-            {
+            if (args.TryGetValue(define.Groups[1].Value, out var value)) {
                 // overwrite default value
                 var index = define.Groups[2].Index;
                 var length = define.Groups[2].Length;
@@ -213,11 +199,9 @@ public abstract class ShaderLoader
     }
 
     // Remove any #includes from the shader and replace with the included code
-    string ResolveIncludes(string source)
-    {
+    string ResolveIncludes(string source) {
         var includes = Regex.Matches(source, @"#include ""([^""]*?)"";?\s*\n");
-        foreach (Match define in includes)
-        {
+        foreach (Match define in includes) {
             // read included code
             var includedCode = GetShaderSource(define.Groups[1].Value);
             // recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
@@ -229,8 +213,7 @@ public abstract class ShaderLoader
         return source;
     }
 
-    static List<string> FindDefines(string source)
-    {
+    static List<string> FindDefines(string source) {
         var defines = Regex.Matches(source, @"#define param_(\S+)");
         return defines.Cast<Match>().Select(_ => _.Groups[1].Value).ToList();
     }
@@ -239,15 +222,12 @@ public abstract class ShaderLoader
 /// <summary>
 /// ShaderDebugLoader
 /// </summary>
-public class ShaderDebugLoader : ShaderLoader
-{
+public class ShaderDebugLoader : ShaderLoader {
     const string ShaderDirectory = "OpenStack.OpenGL.Gfx.Shaders";
 
     // Map shader names to shader files
-    protected override string GetShaderFileByName(string name)
-    {
-        switch (name)
-        {
+    protected override string GetShaderFileByName(string name) {
+        switch (name) {
             case "plane": return "plane";
             case "testtri": return "testtri";
             case "vrf.error": return "error";
@@ -269,8 +249,7 @@ public class ShaderDebugLoader : ShaderLoader
         }
     }
 
-    protected override string GetShaderSource(string name)
-    {
+    protected override string GetShaderSource(string name) {
 #if DEBUG_SHADERS && DEBUG
         var stream = File.Open(GetShaderDiskPath(name), FileMode.Open);
 #else

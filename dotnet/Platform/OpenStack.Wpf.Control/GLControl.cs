@@ -15,8 +15,7 @@ using static OpenStack.Gfx.OpenGL.GLCamera;
 
 namespace OpenStack.Wpf.Control;
 
-public class GLControl : OpenTK.GLControl
-{
+public class GLControl : OpenTK.GLControl {
     public static bool ShowConsole;
     public GLCamera Camera;
     readonly Stopwatch Watch = new();
@@ -24,8 +23,7 @@ public class GLControl : OpenTK.GLControl
     public bool ViewportChanged = true;
     public int DeltaTime;
 
-    public GLControl(TimeSpan? interval = null)
-    {
+    public GLControl(TimeSpan? interval = null) {
         interval ??= new TimeSpan(10); //TODO Remove this
         if (ShowConsole && !IsInDesignMode) ConsoleManager.Show();
         IsVisibleChanged += OnIsVisibleChanged;
@@ -33,8 +31,7 @@ public class GLControl : OpenTK.GLControl
         if (interval != null) { Timer = new() { Interval = interval.Value }; Timer.Tick += OnTimerTick; Timer.Start(); }
     }
 
-    protected override void Dispose(bool disposing)
-    {
+    protected override void Dispose(bool disposing) {
         if (Timer != null) { Timer.Tick -= OnTimerTick; Timer.Stop(); }
         Watch.Stop();
         IsVisibleChanged -= OnIsVisibleChanged;
@@ -58,8 +55,7 @@ public class GLControl : OpenTK.GLControl
 
     #region Tick
 
-    public virtual void Tick(int? deltaTime = null)
-    {
+    public virtual void Tick(int? deltaTime = null) {
         DeltaTime = deltaTime ?? (int)Watch.ElapsedMilliseconds; Watch.Restart();
         var mouseState = OpenTK.Input.Mouse.GetState(); var keyboardState = OpenTK.Input.Keyboard.GetState();
         Camera.Tick(DeltaTime);
@@ -75,8 +71,7 @@ public class GLControl : OpenTK.GLControl
 
     protected virtual void SetViewport(int x, int y, int width, int height) { Camera.SetViewport(x, y, width, height); ViewportChanged = false; }
 
-    protected override void OnRender(DrawingContext drawingContext)
-    {
+    protected override void OnRender(DrawingContext drawingContext) {
         if (!HasValidContext || Visibility != Visibility.Visible) { base.OnRender(drawingContext); return; }
         if (ViewportChanged) SetViewport(0, 0, (int)ActualWidth, (int)ActualHeight);
         Tick();
@@ -84,8 +79,7 @@ public class GLControl : OpenTK.GLControl
         SwapBuffers();
     }
 
-    protected virtual void Render()
-    {
+    protected virtual void Render() {
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         Render(Camera, DeltaTime);
@@ -100,8 +94,7 @@ public class GLControl : OpenTK.GLControl
     protected override void AttachHandle(HandleRef hwnd) { base.AttachHandle(hwnd); if (!HasValidContext) return; InitializeGL(); }
     protected override void DestroyHandle(HandleRef hwnd) { base.DestroyHandle(hwnd); }
 
-    void InitializeGL()
-    {
+    void InitializeGL() {
         MakeCurrent();
         CheckGL();
         InitGL();
@@ -110,21 +103,18 @@ public class GLControl : OpenTK.GLControl
     }
 
     static bool _checkGLCalled;
-    void CheckGL()
-    {
+    void CheckGL() {
         if (_checkGLCalled) return;
         _checkGLCalled = true;
         Console.WriteLine($"OpenGL version: {GL.GetString(StringName.Version)}");
         Console.WriteLine($"OpenGL vendor: {GL.GetString(StringName.Vendor)}");
         Console.WriteLine($"GLSL version: {GL.GetString(StringName.ShadingLanguageVersion)}");
         var extensions = new HashSet<string>();
-        for (var i = 0; i < GL.GetInteger(GetPName.NumExtensions); i++)
-        {
+        for (var i = 0; i < GL.GetInteger(GetPName.NumExtensions); i++) {
             var extension = GL.GetString(StringNameIndexed.Extensions, i);
             if (!extensions.Contains(extension)) extensions.Add(extension);
         }
-        if (extensions.Contains("GL_EXT_texture_filter_anisotropic"))
-        {
+        if (extensions.Contains("GL_EXT_texture_filter_anisotropic")) {
             var maxTextureMaxAnisotropy = GL.GetInteger((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt);
             GfX.MaxTextureMaxAnisotropy = maxTextureMaxAnisotropy;
             Console.WriteLine($"MaxTextureMaxAnisotropyExt: {maxTextureMaxAnisotropy}");

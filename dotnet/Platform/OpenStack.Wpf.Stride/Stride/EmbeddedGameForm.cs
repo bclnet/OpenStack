@@ -9,8 +9,7 @@ namespace Stride.Editor.Engine;
 /// A specialization of <see cref="GameForm"/> that is able to forward keyboard and mousewheel events to an associated <see cref="GameEngineHost"/>.
 /// </summary>
 [System.ComponentModel.DesignerCategory("")]
-public class EmbeddedGameForm : GameForm
-{
+public class EmbeddedGameForm : GameForm {
     public EmbeddedGameForm() => enableFullscreenToggle = false;
 
     /// <summary>
@@ -20,11 +19,9 @@ public class EmbeddedGameForm : GameForm
     public GameEngineHost Host { get; set; }
 
     /// <inheritdoc/>
-    protected override void WndProc(ref System.Windows.Forms.Message m)
-    {
+    protected override void WndProc(ref System.Windows.Forms.Message m) {
         if (Host != null)
-            switch (m.Msg)
-            {
+            switch (m.Msg) {
                 case NativeHelper.WM_KEYDOWN:
                 case NativeHelper.WM_KEYUP:
                 case NativeHelper.WM_MOUSEWHEEL:

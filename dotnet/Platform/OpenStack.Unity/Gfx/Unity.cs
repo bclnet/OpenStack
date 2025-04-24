@@ -6,8 +6,7 @@ namespace OpenStack.Gfx.Unity;
 #region Extensions
 
 // UnityExtensions
-public static class UnityExtensions
-{
+public static class UnityExtensions {
     // NifUtils
     /// <summary>
     /// ToUnity
@@ -27,8 +26,7 @@ public static class UnityExtensions
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static Matrix4x4 ToUnityRotation(this System.Numerics.Matrix4x4 source) => new()
-    {
+    public static Matrix4x4 ToUnityRotation(this System.Numerics.Matrix4x4 source) => new() {
         m00 = source.M11,
         m01 = source.M13,
         m02 = source.M12,
@@ -76,8 +74,7 @@ public static class UnityExtensions
     /// <summary>
     /// Sets the layer of an object and all of it's descendants.
     /// </summary>
-    public static void SetLayerRecursively(this GameObject source, int layer)
-    {
+    public static void SetLayerRecursively(this GameObject source, int layer) {
         source.layer = layer;
         foreach (Transform childTransform in source.transform)
             SetLayerRecursively(childTransform.gameObject, layer);
@@ -86,8 +83,7 @@ public static class UnityExtensions
     /// <summary>
     /// Adds mesh colliders to every descandant object with a mesh filter but no mesh collider, including the object itself.
     /// </summary>
-    public static void AddMissingMeshCollidersRecursively(this GameObject source, bool isStatic = true)
-    {
+    public static void AddMissingMeshCollidersRecursively(this GameObject source, bool isStatic = true) {
         if (!isStatic) return;
         MeshFilter filter;
         if (source.GetComponent<Collider>() == null && (filter = source.GetComponent<MeshFilter>()) != null && filter.mesh != null)

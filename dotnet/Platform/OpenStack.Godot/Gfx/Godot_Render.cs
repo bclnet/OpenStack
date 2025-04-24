@@ -9,12 +9,10 @@ namespace OpenStack.Gfx.Godot;
 /// <summary>
 /// TestTriRenderer
 /// </summary>
-public class TestTriRenderer : Renderer
-{
+public class TestTriRenderer : Renderer {
     readonly GodotGfxModel Gfx;
 
-    public TestTriRenderer(Node parent, GodotGfxModel gfx, object obj)
-    {
+    public TestTriRenderer(Node parent, GodotGfxModel gfx, object obj) {
         Gfx = gfx;
     }
 }
@@ -26,8 +24,7 @@ public class TestTriRenderer : Renderer
 /// <summary>
 /// TextureRenderer
 /// </summary>
-public class TextureRenderer : Renderer
-{
+public class TextureRenderer : Renderer {
     readonly Node Parent;
     readonly GodotGfxModel Gfx;
     readonly object Obj;
@@ -35,8 +32,7 @@ public class TextureRenderer : Renderer
     readonly XTexture Texture;
     int FrameDelay;
 
-    public TextureRenderer(Node parent, GodotGfxModel gfx, object obj, System.Range level)
-    {
+    public TextureRenderer(Node parent, GodotGfxModel gfx, object obj, System.Range level) {
         Parent = parent;
         Gfx = gfx;
         Obj = obj;
@@ -45,8 +41,7 @@ public class TextureRenderer : Renderer
         Texture = Gfx.TextureManager.CreateTexture(obj, level).tex;
     }
 
-    public override void Start()
-    {
+    public override void Start() {
         var path = Obj is string z ? z : null;
         if (string.IsNullOrEmpty(path)) return;
 
@@ -94,8 +89,7 @@ public class TextureRenderer : Renderer
         var mesh = surfaceTool.Commit();
         //var mesh = new ArrayMesh();
         //mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles)
-        var obj = new MeshInstance3D
-        {
+        var obj = new MeshInstance3D {
             Name = "Texture",
             Mesh = mesh,
         };
@@ -106,8 +100,7 @@ public class TextureRenderer : Renderer
         Log($"Done {obj}");
     }
 
-    public override void Update(float deltaTime)
-    {
+    public override void Update(float deltaTime) {
         if (Obj is not ITextureFrames obj || Gfx == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;

@@ -1,5 +1,4 @@
-﻿//#define DEBUG_SHADERS
-using OpenStack.Gfx;
+﻿using OpenStack.Gfx;
 using OpenStack.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -18,8 +17,7 @@ namespace OpenStack;
 /// <summary>
 /// OpenGLObjectBuilder
 /// </summary>
-class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int>
-{
+class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int> {
     public override void EnsurePrefab() { }
     public override object CreateNewObject(object prefab) => throw new NotImplementedException();
     public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager) => throw new NotImplementedException();
@@ -28,8 +26,7 @@ class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int
 /// <summary>
 /// OpenGLShaderBuilder
 /// </summary>
-class OpenGLShaderBuilder : ShaderBuilderBase<Shader>
-{
+class OpenGLShaderBuilder : ShaderBuilderBase<Shader> {
     static readonly ShaderLoader _loader = new ShaderDebugLoader();
     public override Shader CreateShader(object path, IDictionary<string, bool> args = null) => _loader.CreateShader(path, args);
 }
@@ -37,13 +34,11 @@ class OpenGLShaderBuilder : ShaderBuilderBase<Shader>
 /// <summary>
 /// OpenGLTextureBuilder
 /// </summary>
-unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
-{
+unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
     int _defaultTexture = -1;
     public override int DefaultTexture => _defaultTexture > -1 ? _defaultTexture : _defaultTexture = CreateDefaultTexture();
 
-    public void Release()
-    {
+    public void Release() {
         if (_defaultTexture > -1) { GL.DeleteTexture(_defaultTexture); _defaultTexture = -1; }
     }
 
@@ -69,8 +64,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override int CreateTexture(int reuse, ITexture tex, Range? level2 = null)
-    {
+    public override int CreateTexture(int reuse, ITexture tex, Range? level2 = null) {
         var id = reuse != 0 ? reuse : GL.GenTexture();
         var numMipMaps = Math.Max(1, tex.MipMaps);
         (int start, int stop) level = (level2?.Start.Value ?? 0, numMipMaps);
@@ -81,19 +75,15 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, level.stop - 1);
 
         // create
-        return tex.Create("GL", x =>
-        {
-            switch (x)
-            {
+        return tex.Create("GL", x => {
+            switch (x) {
                 case Texture_Bytes t:
                     var (bytes, fmt, spans) = (t.Bytes, t.Format, t.Spans);
                     // decode
-                    bool CompressedTexImage2D(ITexture tex, (int start, int stop) level, InternalFormat internalFormat)
-                    {
+                    bool CompressedTexImage2D(ITexture tex, (int start, int stop) level, InternalFormat internalFormat) {
                         int width = tex.Width, height = tex.Height;
                         if (t.Spans != null)
-                            for (var l = level.start; l < level.stop; l++)
-                            {
+                            for (var l = level.start; l < level.stop; l++) {
                                 var span = spans[l];
                                 if (span.Start.Value < 0) return false;
                                 var pixels = bytes.AsSpan(span);
@@ -102,12 +92,10 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
                         else fixed (byte* data = bytes) GL.CompressedTexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, bytes.Length, (IntPtr)data);
                         return true;
                     }
-                    bool TexImage2D(ITexture tex, (int start, int stop) level, PixelInternalFormat internalFormat, PixelFormat format, PixelType type)
-                    {
+                    bool TexImage2D(ITexture tex, (int start, int stop) level, PixelInternalFormat internalFormat, PixelFormat format, PixelType type) {
                         int width = tex.Width, height = tex.Height;
                         if (spans != null)
-                            for (var l = level.start; l < level.stop; l++)
-                            {
+                            for (var l = level.start; l < level.stop; l++) {
                                 var span = spans[l];
                                 if (span.Start.Value < 0) return false;
                                 var pixels = bytes.AsSpan(span);
@@ -118,15 +106,12 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
                     }
                     // process
                     if (bytes == null) return DefaultTexture;
-                    else if (fmt is ValueTuple<TextureFormat, TexturePixel> z)
-                    {
+                    else if (fmt is ValueTuple<TextureFormat, TexturePixel> z) {
                         var (formatx, pixel) = z;
                         var s = (pixel & TexturePixel.Signed) != 0;
                         var f = (pixel & TexturePixel.Float) != 0;
-                        if ((formatx & Compressed) != 0)
-                        {
-                            var internalFormat = formatx switch
-                            {
+                        if ((formatx & Compressed) != 0) {
+                            var internalFormat = formatx switch {
                                 DXT1 => s ? InternalFormat.CompressedSrgbS3tcDxt1Ext : InternalFormat.CompressedRgbS3tcDxt1Ext,
                                 DXT1A => s ? InternalFormat.CompressedSrgbAlphaS3tcDxt1Ext : InternalFormat.CompressedRgbaS3tcDxt1Ext,
                                 DXT3 => s ? InternalFormat.CompressedSrgbAlphaS3tcDxt3Ext : InternalFormat.CompressedRgbaS3tcDxt3Ext,
@@ -141,10 +126,8 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
                             };
                             if (internalFormat == 0 || !CompressedTexImage2D(tex, level, internalFormat)) return DefaultTexture;
                         }
-                        else
-                        {
-                            var (internalFormat, format, type) = formatx switch
-                            {
+                        else {
+                            var (internalFormat, format, type) = formatx switch {
                                 I8 => (PixelInternalFormat.Intensity8, PixelFormat.Red, PixelType.UnsignedByte),
                                 L8 => (PixelInternalFormat.Luminance, PixelFormat.Luminance, PixelType.UnsignedByte),
                                 R8 => (PixelInternalFormat.R8, PixelFormat.Red, PixelType.UnsignedByte),
@@ -164,14 +147,12 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
                     else throw new ArgumentOutOfRangeException(nameof(fmt), $"{fmt}");
 
                     // texture
-                    if (MaxTextureMaxAnisotropy >= 4)
-                    {
+                    if (MaxTextureMaxAnisotropy >= 4) {
                         GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, MaxTextureMaxAnisotropy);
                         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
                         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                     }
-                    else
-                    {
+                    else {
                         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
                         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
                     }
@@ -184,8 +165,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
         });
     }
 
-    public override int CreateSolidTexture(int width, int height, float[] pixels)
-    {
+    public override int CreateSolidTexture(int width, int height, float[] pixels) {
         var id = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, id);
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, pixels);
@@ -206,28 +186,23 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int>
 /// <summary>
 /// OpenGLMaterialBuilder
 /// </summary>
-class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilderBase<GLRenderMaterial, int>(textureManager)
-{
+class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilderBase<GLRenderMaterial, int>(textureManager) {
     GLRenderMaterial _defaultMaterial;
     public override GLRenderMaterial DefaultMaterial => _defaultMaterial ??= CreateDefaultMaterial(-1);
 
-    GLRenderMaterial CreateDefaultMaterial(int type)
-    {
+    GLRenderMaterial CreateDefaultMaterial(int type) {
         var m = new GLRenderMaterial(null);
         m.Textures["g_tColor"] = TextureManager.DefaultTexture;
         m.Material.ShaderName = "vrf.error";
         return m;
     }
 
-    public override GLRenderMaterial CreateMaterial(object path)
-    {
+    public override GLRenderMaterial CreateMaterial(object path) {
         var m = new GLRenderMaterial(path as MaterialShaderProp);
-        switch (path)
-        {
+        switch (path) {
             case MaterialShaderVProp p:
                 foreach (var tex in p.TextureParams) m.Textures[tex.Key] = TextureManager.CreateTexture($"{tex.Value}_c").tex;
-                if (p.IntParams.ContainsKey("F_SOLID_COLOR") && p.IntParams["F_SOLID_COLOR"] == 1)
-                {
+                if (p.IntParams.ContainsKey("F_SOLID_COLOR") && p.IntParams["F_SOLID_COLOR"] == 1) {
                     var a = p.VectorParams["g_vColorTint"];
                     m.Textures["g_tColor"] = TextureManager.CreateSolidTexture(1, 1, a.X, a.Y, a.Z, a.W);
                 }
@@ -236,8 +211,7 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
                 // Since our shaders only use g_tColor, we have to find at least one texture to use here
                 if (m.Textures["g_tColor"] == TextureManager.DefaultTexture)
                     foreach (var name in new[] { "g_tColor2", "g_tColor1", "g_tColorA", "g_tColorB", "g_tColorC" })
-                        if (m.Textures.ContainsKey(name))
-                        {
+                        if (m.Textures.ContainsKey(name)) {
                             m.Textures["g_tColor"] = m.Textures[name];
                             break;
                         }
@@ -253,14 +227,12 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
 }
 
 // OpenGLGfxSprite3D
-public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int>
-{
+public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     readonly ISource _source;
     readonly SpriteManager<int> _spriteManager;
     readonly ObjectSpriteManager<object, int> _objectManager;
 
-    public OpenGLGfxSprite3D(ISource source)
-    {
+    public OpenGLGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<int>(source, new OpenGLSpriteBuilder());
         //_objectManager = new ObjectSpriteManager<object, int>(source, new OpenGLObjectBuilder());
@@ -279,16 +251,14 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int>
 /// <summary>
 /// OpenGLGfxModel
 /// </summary>
-public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shader>
-{
+public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shader> {
     readonly ISource _source;
     readonly TextureManager<int> _textureManager;
     readonly MaterialManager<GLRenderMaterial, int> _materialManager;
     readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
     readonly ShaderManager<Shader> _shaderManager;
 
-    public OpenGLGfxModel(ISource source)
-    {
+    public OpenGLGfxModel(ISource source) {
         _source = source;
         _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
         _materialManager = new MaterialManager<GLRenderMaterial, int>(source, _textureManager, new OpenGLMaterialBuilder(_textureManager));
@@ -318,11 +288,9 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
 /// <summary>
 /// OpenGLPlatform
 /// </summary>
-public class OpenGLPlatform : Platform
-{
+public class OpenGLPlatform : Platform {
     public static readonly Platform This = new OpenGLPlatform();
-    OpenGLPlatform() : base("GL", "OpenGL")
-    {
+    OpenGLPlatform() : base("GL", "OpenGL") {
         GfxFactory = source => [null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source)];
         SfxFactory = source => [new SystemSfx(source)];
     }

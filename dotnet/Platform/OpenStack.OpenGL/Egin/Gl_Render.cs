@@ -1,8 +1,5 @@
 ﻿using OpenStack.Gfx.Egin;
-using OpenStack.Gfx.Particles;
-using OpenStack.Gfx.Particles.Emitters;
-using OpenStack.Gfx.Particles.Initializers;
-using OpenStack.Gfx.Particles.Operators;
+using OpenStack.Gfx.Egin.Particles;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
@@ -18,12 +15,10 @@ namespace OpenStack.Gfx.OpenGL;
 /// <summary>
 /// GLCamera
 /// </summary>
-public abstract class GLCamera : Camera
-{
+public abstract class GLCamera : Camera {
     public bool MouseOverRenderArea;
 
-    public enum EventType
-    {
+    public enum EventType {
         MouseEnter,
         MouseLeave,
         MouseMove,
@@ -34,10 +29,8 @@ public abstract class GLCamera : Camera
         KeyRelease
     }
 
-    public void Event(EventType type, object e, object arg)
-    {
-        switch (type)
-        {
+    public void Event(EventType type, object e, object arg) {
+        switch (type) {
             case EventType.MouseEnter: MouseOverRenderArea = true; break;
             case EventType.MouseLeave: MouseOverRenderArea = false; break;
         }
@@ -51,8 +44,7 @@ public abstract class GLCamera : Camera
 /// <summary>
 /// GLDebugCamera
 /// </summary>
-public class GLDebugCamera : GLCamera
-{
+public class GLDebugCamera : GLCamera {
     bool MouseDragging;
     Vector2 MouseDelta;
     Vector2 MousePreviousPosition;
@@ -60,8 +52,7 @@ public class GLDebugCamera : GLCamera
     MouseState MouseState;
     int ScrollWheelDelta;
 
-    public override void Tick(int deltaTime)
-    {
+    public override void Tick(int deltaTime) {
         if (!MouseOverRenderArea) return;
 
         // use the keyboard state to update position
@@ -74,21 +65,18 @@ public class GLDebugCamera : GLCamera
         RecalculateMatrices();
     }
 
-    public override void HandleInput(MouseState mouseState, KeyboardState keyboardState)
-    {
+    public override void HandleInput(MouseState mouseState, KeyboardState keyboardState) {
         ScrollWheelDelta += mouseState.ScrollWheelValue - MouseState.ScrollWheelValue;
         MouseState = mouseState;
         KeyboardState = keyboardState;
-        if (!MouseOverRenderArea || mouseState.LeftButton == ButtonState.Released)
-        {
+        if (!MouseOverRenderArea || mouseState.LeftButton == ButtonState.Released) {
             MouseDragging = false;
             MouseDelta = default;
             if (!MouseOverRenderArea) return;
         }
 
         // drag
-        if (mouseState.LeftButton == ButtonState.Pressed)
-        {
+        if (mouseState.LeftButton == ButtonState.Pressed) {
             if (!MouseDragging) { MouseDragging = true; MousePreviousPosition = new Vector2(mouseState.X, mouseState.Y); }
             var mouseNewCoords = new Vector2(mouseState.X, mouseState.Y);
             MouseDelta.X = mouseNewCoords.X - MousePreviousPosition.X;
@@ -97,8 +85,7 @@ public class GLDebugCamera : GLCamera
         }
     }
 
-    public void HandleInputTick(float deltaTime)
-    {
+    public void HandleInputTick(float deltaTime) {
         var speed = CAMERASPEED * deltaTime;
 
         // double speed if shift is pressed
@@ -124,30 +111,25 @@ public class GLDebugCamera : GLCamera
 /// <summary>
 /// GLMeshBuffers
 /// </summary>
-public class GLMeshBuffers
-{
+public class GLMeshBuffers {
     public Buffer[] VertexBuffers;
     public Buffer[] IndexBuffers;
 
-    public struct Buffer
-    {
+    public struct Buffer {
         public uint Handle;
         public long Size;
     }
 
-    public GLMeshBuffers(IVBIB vbib)
-    {
+    public GLMeshBuffers(IVBIB vbib) {
         VertexBuffers = new Buffer[vbib.VertexBuffers.Count];
         IndexBuffers = new Buffer[vbib.IndexBuffers.Count];
-        for (var i = 0; i < vbib.VertexBuffers.Count; i++)
-        {
+        for (var i = 0; i < vbib.VertexBuffers.Count; i++) {
             VertexBuffers[i].Handle = (uint)GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBuffers[i].Handle);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vbib.VertexBuffers[i].ElementCount * vbib.VertexBuffers[i].ElementSizeInBytes), vbib.VertexBuffers[i].Data, BufferUsageHint.StaticDraw);
             GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out VertexBuffers[i].Size);
         }
-        for (var i = 0; i < vbib.IndexBuffers.Count; i++)
-        {
+        for (var i = 0; i < vbib.IndexBuffers.Count; i++) {
             IndexBuffers[i].Handle = (uint)GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBuffers[i].Handle);
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(vbib.IndexBuffers[i].ElementCount * vbib.IndexBuffers[i].ElementSizeInBytes), vbib.IndexBuffers[i].Data, BufferUsageHint.StaticDraw);
@@ -159,13 +141,11 @@ public class GLMeshBuffers
 /// <summary>
 /// GLMeshBufferCache
 /// </summary>
-public class GLMeshBufferCache
-{
+public class GLMeshBufferCache {
     Dictionary<IVBIB, GLMeshBuffers> _gpuBuffers = [];
     Dictionary<VAOKey, uint> _vertexArrayObjects = [];
 
-    struct VAOKey
-    {
+    struct VAOKey {
         public GLMeshBuffers VBIB;
         public Shader Shader;
         public uint VertexIndex;
@@ -173,8 +153,7 @@ public class GLMeshBufferCache
         public uint BaseVertex;
     }
 
-    public GLMeshBuffers GetVertexIndexBuffers(IVBIB vbib)
-    {
+    public GLMeshBuffers GetVertexIndexBuffers(IVBIB vbib) {
         // cache
         if (_gpuBuffers.TryGetValue(vbib, out var z)) return z;
         // build
@@ -183,11 +162,9 @@ public class GLMeshBufferCache
         return newGpuVbib;
     }
 
-    public uint GetVertexArrayObject(IVBIB vbib, Shader shader, uint vtxIndex, uint idxIndex, uint baseVertex)
-    {
+    public uint GetVertexArrayObject(IVBIB vbib, Shader shader, uint vtxIndex, uint idxIndex, uint baseVertex) {
         var gpuVbib = GetVertexIndexBuffers(vbib);
-        var vaoKey = new VAOKey
-        {
+        var vaoKey = new VAOKey {
             VBIB = gpuVbib,
             Shader = shader,
             VertexIndex = vtxIndex,
@@ -205,8 +182,7 @@ public class GLMeshBufferCache
         var curVertexBuffer = vbib.VertexBuffers[(int)vtxIndex];
         var texCoordNum = 0;
         var colorNum = 0;
-        foreach (var attribute in curVertexBuffer.Attributes)
-        {
+        foreach (var attribute in curVertexBuffer.Attributes) {
             var attributeName = $"v{attribute.SemanticName}";
             if (attribute.SemanticName == "TEXCOORD" && texCoordNum++ > 0) attributeName += texCoordNum;
             else if (attribute.SemanticName == "COLOR" && colorNum++ > 0) attributeName += colorNum;
@@ -217,13 +193,11 @@ public class GLMeshBufferCache
         return newVaoHandle;
     }
 
-    static void BindVertexAttrib(OnDiskBufferData.Attribute attribute, string attributeName, int shaderProgram, int stride, uint baseVertex)
-    {
+    static void BindVertexAttrib(OnDiskBufferData.Attribute attribute, string attributeName, int shaderProgram, int stride, uint baseVertex) {
         var attributeLocation = GL.GetAttribLocation(shaderProgram, attributeName);
         if (attributeLocation == -1) return; // Ignore this attribute if it is not found in the shader
         GL.EnableVertexAttribArray(attributeLocation);
-        switch (attribute.Format)
-        {
+        switch (attribute.Format) {
             case DXGI_FORMAT.R32G32B32_FLOAT: GL.VertexAttribPointer(attributeLocation, 3, VertexAttribPointerType.Float, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             case DXGI_FORMAT.R8G8B8A8_UNORM: GL.VertexAttribPointer(attributeLocation, 4, VertexAttribPointerType.UnsignedByte, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             case DXGI_FORMAT.R32G32_FLOAT: GL.VertexAttribPointer(attributeLocation, 2, VertexAttribPointerType.Float, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
@@ -242,23 +216,19 @@ public class GLMeshBufferCache
 /// <summary>
 /// MeshBatchRenderer
 /// </summary>
-public static class MeshBatchRenderer
-{
-    public static void Render(List<MeshBatchRequest> requests, Scene.RenderContext context)
-    {
+public static class MeshBatchRenderer {
+    public static void Render(List<MeshBatchRequest> requests, Scene.RenderContext context) {
         // opaque: grouped by material
         if (context.RenderPass == Pass.Both || context.RenderPass == Pass.Opaque) DrawBatch(requests, context);
         // blended: in reverse order
-        if (context.RenderPass == Pass.Both || context.RenderPass == Pass.Translucent)
-        {
+        if (context.RenderPass == Pass.Both || context.RenderPass == Pass.Translucent) {
             var holder = new MeshBatchRequest[1]; // holds the one request we render at a time
             requests.Sort((a, b) => -a.DistanceFromCamera.CompareTo(b.DistanceFromCamera));
             foreach (var request in requests) { holder[0] = request; DrawBatch(holder, context); }
         }
     }
 
-    static void DrawBatch(IEnumerable<MeshBatchRequest> drawCalls, Scene.RenderContext context)
-    {
+    static void DrawBatch(IEnumerable<MeshBatchRequest> drawCalls, Scene.RenderContext context) {
         GL.Enable(EnableCap.DepthTest);
         var viewProjectionMatrix = context.Camera.ViewProjectionMatrix.ToOpenTK();
         var cameraPosition = context.Camera.Location.ToOpenTK();
@@ -268,8 +238,7 @@ public static class MeshBatchRenderer
         var groupedDrawCalls = context.ReplacementShader == null
            ? drawCalls.GroupBy(a => a.Call.Shader)
            : drawCalls.GroupBy(a => context.ReplacementShader);
-        foreach (var shaderGroup in groupedDrawCalls)
-        {
+        foreach (var shaderGroup in groupedDrawCalls) {
             var shader = shaderGroup.Key;
             var uniformLocationAnimated = shader.GetUniformLocation("bAnimated");
             var uniformLocationAnimationTexture = shader.GetUniformLocation("animationTexture");
@@ -286,13 +255,11 @@ public static class MeshBatchRenderer
             GL.UniformMatrix4(shader.GetUniformLocation("uProjectionViewMatrix"), false, ref viewProjectionMatrix);
 
             // materials
-            foreach (var materialGroup in shaderGroup.GroupBy(a => a.Call.Material))
-            {
+            foreach (var materialGroup in shaderGroup.GroupBy(a => a.Call.Material)) {
                 var material = materialGroup.Key;
                 if (!context.ShowDebug && material.IsToolsMaterial) continue;
                 material.Render(shader);
-                foreach (var request in materialGroup)
-                {
+                foreach (var request in materialGroup) {
                     var transform = request.Transform.ToOpenTK();
                     GL.UniformMatrix4(uniformLocationTransform, false, ref transform);
                     if (uniformLocationObjectId != 1) GL.Uniform1(uniformLocationObjectId, request.NodeId);
@@ -301,8 +268,7 @@ public static class MeshBatchRenderer
                     if (uniformLocationAnimated != -1) GL.Uniform1(uniformLocationAnimated, request.Mesh.AnimationTexture.HasValue ? 1.0f : 0.0f);
 
                     // push animation texture to the shader (if it supports it)
-                    if (request.Mesh.AnimationTexture.HasValue)
-                    {
+                    if (request.Mesh.AnimationTexture.HasValue) {
                         if (uniformLocationAnimationTexture != -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, request.Mesh.AnimationTexture.Value); GL.Uniform1(uniformLocationAnimationTexture, 0); }
                         if (uniformLocationNumBones != -1) { var v = (float)Math.Max(1, request.Mesh.AnimationTextureSize - 1); GL.Uniform1(uniformLocationNumBones, v); }
                     }
@@ -323,17 +289,14 @@ public static class MeshBatchRenderer
 /// <summary>
 /// QuadIndexBuffer
 /// </summary>
-public class QuadIndexBuffer
-{
+public class QuadIndexBuffer {
     public int GLHandle;
 
-    public QuadIndexBuffer(int size)
-    {
+    public QuadIndexBuffer(int size) {
         GLHandle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, GLHandle);
         var indices = new ushort[size];
-        for (var i = 0; i < size / 6; ++i)
-        {
+        for (var i = 0; i < size / 6; ++i) {
             indices[(i * 6) + 0] = (ushort)((i * 4) + 0);
             indices[(i * 6) + 1] = (ushort)((i * 4) + 1);
             indices[(i * 6) + 2] = (ushort)((i * 4) + 2);
@@ -348,29 +311,24 @@ public class QuadIndexBuffer
 /// <summary>
 /// GLPickingTexture
 /// </summary>
-public class GLPickingTexture : IDisposable, IPickingTexture
-{
-    public struct PixelInfo
-    {
+public class GLPickingTexture : IDisposable, IPickingTexture {
+    public struct PixelInfo {
         public uint ObjectId;
         public uint MeshId;
         public uint Unused2;
     }
 
-    public enum PickingIntent
-    {
+    public enum PickingIntent {
         Select,
         Open
     }
 
-    public class PickingRequest
-    {
+    public class PickingRequest {
         public bool ActiveNextFrame;
         public int CursorPositionX;
         public int CursorPositionY;
         public PickingIntent Intent;
-        public void NextFrame(int x, int y, PickingIntent intent)
-        {
+        public void NextFrame(int x, int y, PickingIntent intent) {
             ActiveNextFrame = true;
             CursorPositionX = x;
             CursorPositionY = y;
@@ -378,8 +336,7 @@ public class GLPickingTexture : IDisposable, IPickingTexture
         }
     }
 
-    public struct PickingResponse
-    {
+    public struct PickingResponse {
         public PickingIntent Intent;
         public PixelInfo PixelInfo;
     }
@@ -396,24 +353,21 @@ public class GLPickingTexture : IDisposable, IPickingTexture
     int colorHandle;
     int depthHandle;
 
-    public GLPickingTexture(OpenGLGfxModel gfx, EventHandler<PickingResponse> onPicked)
-    {
+    public GLPickingTexture(OpenGLGfxModel gfx, EventHandler<PickingResponse> onPicked) {
         (Shader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>());
         (DebugShader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
         OnPicked += onPicked;
         Setup();
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         OnPicked = null;
         GL.DeleteTexture(colorHandle);
         GL.DeleteTexture(depthHandle);
         GL.DeleteFramebuffer(fboHandle);
     }
 
-    public void Setup()
-    {
+    public void Setup() {
         fboHandle = GL.GenFramebuffer();
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, fboHandle);
 
@@ -438,30 +392,25 @@ public class GLPickingTexture : IDisposable, IPickingTexture
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
-    public void Render()
-    {
+    public void Render() {
         GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, fboHandle);
         GL.ClearColor(0, 0, 0, 0);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
     }
 
-    public void Finish()
-    {
+    public void Finish() {
         GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-        if (Request.ActiveNextFrame)
-        {
+        if (Request.ActiveNextFrame) {
             Request.ActiveNextFrame = false;
             var pixelInfo = ReadPixelInfo(Request.CursorPositionX, Request.CursorPositionY);
-            OnPicked?.Invoke(this, new PickingResponse
-            {
+            OnPicked?.Invoke(this, new PickingResponse {
                 Intent = Request.Intent,
                 PixelInfo = pixelInfo,
             });
         }
     }
 
-    public void Resize(int width, int height)
-    {
+    public void Resize(int width, int height) {
         this.width = width;
         this.height = height;
         GL.BindTexture(TextureTarget.Texture2D, colorHandle);
@@ -470,8 +419,7 @@ public class GLPickingTexture : IDisposable, IPickingTexture
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
     }
 
-    public PixelInfo ReadPixelInfo(int width, int height)
-    {
+    public PixelInfo ReadPixelInfo(int width, int height) {
         GL.Flush();
         GL.Finish();
         GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, fboHandle);
@@ -487,39 +435,31 @@ public class GLPickingTexture : IDisposable, IPickingTexture
 /// <summary>
 /// GLRenderMaterial
 /// </summary>
-public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(material)
-{
-    public override void Render(Shader shader)
-    {
+public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(material) {
+    public override void Render(Shader shader) {
         // start at 1, texture unit 0 is reserved for the animation texture
         var textureUnit = 1;
         int location;
-        foreach (var texture in Textures)
-        {
+        foreach (var texture in Textures) {
             location = shader.GetUniformLocation(texture.Key);
-            if (location > -1)
-            {
+            if (location > -1) {
                 GL.ActiveTexture(TextureUnit.Texture0 + textureUnit);
                 GL.BindTexture(TextureTarget.Texture2D, texture.Value);
                 GL.Uniform1(location, textureUnit);
                 textureUnit++;
             }
         }
-        switch (Material)
-        {
+        switch (Material) {
             case MaterialShaderVProp p:
-                foreach (var param in p.IntParams)
-                {
+                foreach (var param in p.IntParams) {
                     location = shader.GetUniformLocation(param.Key);
                     if (location > -1) GL.Uniform1(location, param.Value);
                 }
-                foreach (var param in p.FloatParams)
-                {
+                foreach (var param in p.FloatParams) {
                     location = shader.GetUniformLocation(param.Key);
                     if (location > -1) GL.Uniform1(location, param.Value);
                 }
-                foreach (var param in p.VectorParams)
-                {
+                foreach (var param in p.VectorParams) {
                     location = shader.GetUniformLocation(param.Key);
                     if (location > -1) GL.Uniform4(location, param.Value.X, param.Value.Y, param.Value.Z, param.Value.W);
                 }
@@ -527,8 +467,7 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
         }
         var alphaReference = shader.GetUniformLocation("g_flAlphaTestReference");
         if (alphaReference > -1) GL.Uniform1(alphaReference, AlphaTestReference);
-        if (IsBlended)
-        {
+        if (IsBlended) {
             GL.DepthMask(false);
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, IsAdditiveBlend ? BlendingFactor.One : BlendingFactor.OneMinusSrcAlpha);
@@ -536,8 +475,7 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
         if (IsRenderBackfaces) GL.Disable(EnableCap.CullFace);
     }
 
-    public override void PostRender()
-    {
+    public override void PostRender() {
         if (IsBlended) { GL.DepthMask(true); GL.Disable(EnableCap.Blend); }
         if (IsRenderBackfaces) GL.Enable(EnableCap.CullFace);
     }
@@ -546,14 +484,11 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
 /// <summary>
 /// GLRenderableMesh
 /// </summary>
-public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model)
-{
+public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model) {
     OpenGLGfxModel Gfx;
 
-    public override void SetRenderMode(string renderMode)
-    {
-        foreach (var call in DrawCallsOpaque.Union(DrawCallsBlended))
-        {
+    public override void SetRenderMode(string renderMode) {
+        foreach (var call in DrawCallsOpaque.Union(DrawCallsBlended)) {
             // recycle old shader parameters that are not render modes since we are scrapping those anyway
             var parameters = call.Shader.Parameters.Where(kvp => !kvp.Key.StartsWith("renderMode")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             if (renderMode != null && call.Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
@@ -562,16 +497,14 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
         }
     }
 
-    protected override void ConfigureDrawCalls(IDictionary<string, string> skinMaterials, bool firstSetup)
-    {
+    protected override void ConfigureDrawCalls(IDictionary<string, string> skinMaterials, bool firstSetup) {
         var data = Mesh.Data;
         if (firstSetup) Gfx.MeshBufferCache.GetVertexIndexBuffers(VBIB); // this call has side effects because it uploads to gpu
 
         // prepare drawcalls
         var i = 0;
         foreach (var sceneObject in data.GetArray("m_sceneObjects"))
-            foreach (var objectDrawCall in sceneObject.GetArray("m_drawCalls"))
-            {
+            foreach (var objectDrawCall in sceneObject.GetArray("m_drawCalls")) {
                 var materialName = objectDrawCall.Get<string>("m_material") ?? objectDrawCall.Get<string>("m_pMaterial");
                 if (skinMaterials != null && skinMaterials.ContainsKey(materialName)) materialName = skinMaterials[materialName];
                 var (material, _) = Gfx.MaterialManager.CreateMaterial($"{materialName}_c");
@@ -580,8 +513,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
                 var shaderArgs = new Dictionary<string, bool>();
                 if (DrawCall.IsCompressedNormalTangent(objectDrawCall)) shaderArgs.Add("fulltangent", false);
                 // first
-                if (firstSetup)
-                {
+                if (firstSetup) {
                     var drawCall = CreateDrawCall(objectDrawCall, shaderArgs, material);
                     DrawCallsAll.Add(drawCall);
                     if (drawCall.Material.IsBlended) DrawCallsBlended.Add(drawCall);
@@ -593,12 +525,10 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
             }
     }
 
-    DrawCall CreateDrawCall(IDictionary<string, object> objectDrawCall, IDictionary<string, bool> shaderArgs, GLRenderMaterial material)
-    {
+    DrawCall CreateDrawCall(IDictionary<string, object> objectDrawCall, IDictionary<string, bool> shaderArgs, GLRenderMaterial material) {
         var drawCall = new DrawCall();
         var primitiveType = objectDrawCall.Get<object>("m_nPrimitiveType");
-        switch (primitiveType)
-        {
+        switch (primitiveType) {
             case byte primitiveTypeByte:
                 if ((RenderPrimitiveType)primitiveTypeByte == RenderPrimitiveType.RENDER_PRIM_TRIANGLES) drawCall.PrimitiveType = (int)PrimitiveType.Triangles;
                 break;
@@ -633,8 +563,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
         return drawCall;
     }
 
-    void SetupDrawCallMaterial(DrawCall drawCall, IDictionary<string, bool> shaderArgs, RenderMaterial material)
-    {
+    void SetupDrawCallMaterial(DrawCall drawCall, IDictionary<string, bool> shaderArgs, RenderMaterial material) {
         drawCall.Material = material;
         // add shader parameters from material to the shader parameters from the draw call
         var combinedShaderArgs = shaderArgs.Concat(material.Material.ShaderArgs).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
@@ -655,8 +584,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
 /// <summary>
 /// OctreeDebugRenderer
 /// </summary>
-public class OctreeDebugRenderer<T> where T : class
-{
+public class OctreeDebugRenderer<T> where T : class {
     const int STRIDE = sizeof(float) * 7;
 
     readonly Shader Shader;
@@ -667,8 +595,7 @@ public class OctreeDebugRenderer<T> where T : class
     readonly bool Dynamic;
     int VertexCount;
 
-    public OctreeDebugRenderer(Octree<T> octree, OpenGLGfxModel graphic, bool dynamic)
-    {
+    public OctreeDebugRenderer(Octree<T> octree, OpenGLGfxModel graphic, bool dynamic) {
         Octree = octree;
         Dynamic = dynamic;
         (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.grid");
@@ -687,16 +614,14 @@ public class OctreeDebugRenderer<T> where T : class
         GL.BindVertexArray(0);
     }
 
-    static void AddLine(List<float> vertices, Vector3 from, Vector3 to, float r, float g, float b, float a)
-    {
+    static void AddLine(List<float> vertices, Vector3 from, Vector3 to, float r, float g, float b, float a) {
         vertices.Add(from.X); vertices.Add(from.Y); vertices.Add(from.Z);
         vertices.Add(r); vertices.Add(g); vertices.Add(b); vertices.Add(a);
         vertices.Add(to.X); vertices.Add(to.Y); vertices.Add(to.Z);
         vertices.Add(r); vertices.Add(g); vertices.Add(b); vertices.Add(a);
     }
 
-    static void AddBox(List<float> vertices, AABB box, float r, float g, float b, float a)
-    {
+    static void AddBox(List<float> vertices, AABB box, float r, float g, float b, float a) {
         AddLine(vertices, new Vector3(box.Min.X, box.Min.Y, box.Min.Z), new Vector3(box.Max.X, box.Min.Y, box.Min.Z), r, g, b, a);
         AddLine(vertices, new Vector3(box.Max.X, box.Min.Y, box.Min.Z), new Vector3(box.Max.X, box.Max.Y, box.Min.Z), r, g, b, a);
         AddLine(vertices, new Vector3(box.Max.X, box.Max.Y, box.Min.Z), new Vector3(box.Min.X, box.Max.Y, box.Min.Z), r, g, b, a);
@@ -713,12 +638,10 @@ public class OctreeDebugRenderer<T> where T : class
         AddLine(vertices, new Vector3(box.Min.X, box.Max.Y, box.Min.Z), new Vector3(box.Min.X, box.Max.Y, box.Max.Z), r, g, b, a);
     }
 
-    void AddOctreeNode(List<float> vertices, Octree<T>.Node node, int depth)
-    {
+    void AddOctreeNode(List<float> vertices, Octree<T>.Node node, int depth) {
         AddBox(vertices, node.Region, 1.0f, 1.0f, 1.0f, node.HasElements ? 1.0f : 0.1f);
         if (node.HasElements)
-            foreach (var element in node.Elements)
-            {
+            foreach (var element in node.Elements) {
                 var shading = Math.Min(1.0f, depth * 0.1f);
                 AddBox(vertices, element.BoundingBox, 1.0f, shading, 0.0f, 1.0f);
                 // AddLine(vertices, element.BoundingBox.Min, node.Region.Min, 1.0f, shading, 0.0f, 0.5f);
@@ -729,8 +652,7 @@ public class OctreeDebugRenderer<T> where T : class
                 AddOctreeNode(vertices, child, depth + 1);
     }
 
-    void Rebuild()
-    {
+    void Rebuild() {
         var vertices = new List<float>();
         AddOctreeNode(vertices, Octree.Root, 0);
         VertexCount = vertices.Count / 7;
@@ -738,10 +660,8 @@ public class OctreeDebugRenderer<T> where T : class
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), Dynamic ? BufferUsageHint.DynamicDraw : BufferUsageHint.StaticDraw);
     }
 
-    public void Render(Camera camera, Pass pass)
-    {
-        if (pass == Pass.Translucent || pass == Pass.Both)
-        {
+    public void Render(Camera camera, Pass pass) {
+        if (pass == Pass.Translucent || pass == Pass.Both) {
             if (Dynamic) Rebuild();
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.DepthTest);
@@ -764,24 +684,20 @@ public class OctreeDebugRenderer<T> where T : class
 /// <summary>
 /// MeshSceneNode
 /// </summary>
-public class MeshSceneNode : SceneNode, IMeshCollection
-{
+public class MeshSceneNode : SceneNode, IMeshCollection {
     GLRenderableMesh Mesh;
 
-    public MeshSceneNode(Scene scene, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null) : base(scene)
-    {
+    public MeshSceneNode(Scene scene, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null) : base(scene) {
         Mesh = new GLRenderableMesh(Scene.Gfx as OpenGLGfxModel, mesh, meshIndex, skinMaterials);
         LocalBoundingBox = Mesh.BoundingBox;
     }
 
-    public Vector4 Tint
-    {
+    public Vector4 Tint {
         get => Mesh.Tint;
         set => Mesh.Tint = value;
     }
 
-    public IEnumerable<RenderableMesh> RenderableMeshes
-    {
+    public IEnumerable<RenderableMesh> RenderableMeshes {
         get { yield return Mesh; }
     }
 
@@ -795,20 +711,17 @@ public class MeshSceneNode : SceneNode, IMeshCollection
 
 #region Particle
 
-public static class ParticleControllerFactory
-{
+public static class ParticleControllerFactory {
     // Register particle emitters
     static readonly IDictionary<string, Func<IDictionary<string, object>, IDictionary<string, object>, IParticleEmitter>> EmitterDictionary
-       = new Dictionary<string, Func<IDictionary<string, object>, IDictionary<string, object>, IParticleEmitter>>
-       {
+       = new Dictionary<string, Func<IDictionary<string, object>, IDictionary<string, object>, IParticleEmitter>> {
            ["C_OP_InstantaneousEmitter"] = (baseProperties, emitterInfo) => new InstantaneousEmitter(baseProperties, emitterInfo),
            ["C_OP_ContinuousEmitter"] = (baseProperties, emitterInfo) => new ContinuousEmitter(baseProperties, emitterInfo),
        };
 
     // Register particle initializers
     static readonly IDictionary<string, Func<IDictionary<string, object>, IParticleInitializer>> InitializerDictionary
-       = new Dictionary<string, Func<IDictionary<string, object>, IParticleInitializer>>
-       {
+       = new Dictionary<string, Func<IDictionary<string, object>, IParticleInitializer>> {
            ["C_INIT_CreateWithinSphere"] = initializerInfo => new CreateWithinSphere(initializerInfo),
            ["C_INIT_InitialVelocityNoise"] = initializerInfo => new InitialVelocityNoise(initializerInfo),
            ["C_INIT_OffsetVectorToVector"] = initializerInfo => new OffsetVectorToVector(initializerInfo),
@@ -827,8 +740,7 @@ public static class ParticleControllerFactory
 
     // Register particle operators
     static readonly IDictionary<string, Func<IDictionary<string, object>, IParticleOperator>> OperatorDictionary
-       = new Dictionary<string, Func<IDictionary<string, object>, IParticleOperator>>
-       {
+       = new Dictionary<string, Func<IDictionary<string, object>, IParticleOperator>> {
            ["C_OP_Decay"] = operatorInfo => new Decay(operatorInfo),
            ["C_OP_BasicMovement"] = operatorInfo => new BasicMovement(operatorInfo),
            ["C_OP_ColorInterpolate"] = operatorInfo => new ColorInterpolate(operatorInfo),
@@ -842,16 +754,13 @@ public static class ParticleControllerFactory
 
     // Register particle renderers
     static readonly IDictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> RendererDictionary
-       = new Dictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>>
-       {
+       = new Dictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> {
            ["C_OP_RenderSprites"] = (rendererInfo, gfx) => new OpenGLParticleRenderer.SpritesParticleRenderer(rendererInfo, gfx),
            ["C_OP_RenderTrails"] = (rendererInfo, gfx) => new OpenGLParticleRenderer.TrailsParticleRenderer(rendererInfo, gfx),
        };
 
-    public static bool TryCreateEmitter(string name, IDictionary<string, object> baseProperties, IDictionary<string, object> emitterInfo, out IParticleEmitter emitter)
-    {
-        if (EmitterDictionary.TryGetValue(name, out var factory))
-        {
+    public static bool TryCreateEmitter(string name, IDictionary<string, object> baseProperties, IDictionary<string, object> emitterInfo, out IParticleEmitter emitter) {
+        if (EmitterDictionary.TryGetValue(name, out var factory)) {
             emitter = factory(baseProperties, emitterInfo);
             return true;
         }
@@ -859,22 +768,19 @@ public static class ParticleControllerFactory
         return false;
     }
 
-    public static bool TryCreateInitializer(string name, IDictionary<string, object> initializerInfo, out IParticleInitializer initializer)
-    {
+    public static bool TryCreateInitializer(string name, IDictionary<string, object> initializerInfo, out IParticleInitializer initializer) {
         if (InitializerDictionary.TryGetValue(name, out var factory)) { initializer = factory(initializerInfo); return true; }
         initializer = default;
         return false;
     }
 
-    public static bool TryCreateOperator(string name, IDictionary<string, object> operatorInfo, out IParticleOperator @operator)
-    {
+    public static bool TryCreateOperator(string name, IDictionary<string, object> operatorInfo, out IParticleOperator @operator) {
         if (OperatorDictionary.TryGetValue(name, out var factory)) { @operator = factory(operatorInfo); return true; }
         @operator = default;
         return false;
     }
 
-    public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, OpenGLGfxModel gfx, out IParticleRenderer renderer)
-    {
+    public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, OpenGLGfxModel gfx, out IParticleRenderer renderer) {
         if (RendererDictionary.TryGetValue(name, out var factory)) { renderer = factory(rendererInfo, gfx); return true; }
         renderer = default;
         return false;

@@ -9,8 +9,7 @@ namespace OpenStack.Gfx.Egin;
 /// <summary>
 /// Bone
 /// </summary>
-public class Bone
-{
+public class Bone {
     public int Index;
     public Bone Parent;
     public List<Bone> Children = [];
@@ -20,21 +19,18 @@ public class Bone
     public Matrix4x4 BindPose;
     public Matrix4x4 InverseBindPose;
 
-    public Bone(int index, string name, Vector3 position, Quaternion rotation)
-    {
+    public Bone(int index, string name, Vector3 position, Quaternion rotation) {
         Index = index;
         Name = name;
         Position = position;
         Angle = rotation;
         // calculate matrices
         BindPose = Matrix4x4.CreateFromQuaternion(rotation) * Matrix4x4.CreateTranslation(position);
-        Matrix4x4.Invert(BindPose, out var InverseBindPose);
+        Matrix4x4.Invert(BindPose, out InverseBindPose);
     }
 
-    public void SetParent(Bone parent)
-    {
-        if (!Children.Contains(parent))
-        {
+    public void SetParent(Bone parent) {
+        if (!Children.Contains(parent)) {
             Parent = parent;
             parent.Children.Add(this);
         }
@@ -44,8 +40,7 @@ public class Bone
 /// <summary>
 /// ISkeleton
 /// </summary>
-public interface ISkeleton
-{
+public interface ISkeleton {
     Bone[] Roots { get; }
     Bone[] Bones { get; }
 }
@@ -53,8 +48,7 @@ public interface ISkeleton
 /// <summary>
 /// ChannelAttribute
 /// </summary>
-public enum ChannelAttribute
-{
+public enum ChannelAttribute {
     Position = 0,
     Angle = 1,
     Scale = 2,
@@ -64,8 +58,7 @@ public enum ChannelAttribute
 /// <summary>
 /// Frame
 /// </summary>
-public struct FrameBone
-{
+public struct FrameBone {
     public Vector3 Position;
     public Quaternion Angle;
     public float Scale;
@@ -74,20 +67,16 @@ public struct FrameBone
 /// <summary>
 /// Frame
 /// </summary>
-public class Frame
-{
+public class Frame {
     public FrameBone[] Bones;
 
-    public Frame(ISkeleton skeleton)
-    {
+    public Frame(ISkeleton skeleton) {
         Bones = new FrameBone[skeleton.Bones.Length];
         Clear(skeleton);
     }
 
-    public void SetAttribute(int bone, ChannelAttribute attribute, Vector3 data)
-    {
-        switch (attribute)
-        {
+    public void SetAttribute(int bone, ChannelAttribute attribute, Vector3 data) {
+        switch (attribute) {
             case ChannelAttribute.Position: Bones[bone].Position = data; break;
 #if DEBUG
             default: Console.WriteLine($"Unknown frame attribute '{attribute}' encountered with Vector3 data"); break;
@@ -95,10 +84,8 @@ public class Frame
         }
     }
 
-    public void SetAttribute(int bone, ChannelAttribute attribute, Quaternion data)
-    {
-        switch (attribute)
-        {
+    public void SetAttribute(int bone, ChannelAttribute attribute, Quaternion data) {
+        switch (attribute) {
             case ChannelAttribute.Angle: Bones[bone].Angle = data; break;
 #if DEBUG
             default: Console.WriteLine($"Unknown frame attribute '{attribute}' encountered with Quaternion data"); break;
@@ -106,10 +93,8 @@ public class Frame
         }
     }
 
-    public void SetAttribute(int bone, ChannelAttribute attribute, float data)
-    {
-        switch (attribute)
-        {
+    public void SetAttribute(int bone, ChannelAttribute attribute, float data) {
+        switch (attribute) {
             case ChannelAttribute.Scale: Bones[bone].Scale = data; break;
 #if DEBUG
             default: Console.WriteLine($"Unknown frame attribute '{attribute}' encountered with float data"); break;
@@ -121,10 +106,8 @@ public class Frame
     /// Resets frame bones to their bind pose. Should be used on animation change.
     /// </summary>
     /// <param name="skeleton">The same skeleton that was passed to the constructor.</param>
-    public void Clear(ISkeleton skeleton)
-    {
-        for (var i = 0; i < Bones.Length; i++)
-        {
+    public void Clear(ISkeleton skeleton) {
+        for (var i = 0; i < Bones.Length; i++) {
             Bones[i].Position = skeleton.Bones[i].Position;
             Bones[i].Angle = skeleton.Bones[i].Angle;
             Bones[i].Scale = 1;
@@ -135,8 +118,7 @@ public class Frame
 /// <summary>
 /// IAnimation
 /// </summary>
-public interface IAnimation
-{
+public interface IAnimation {
     string Name { get; }
     float Fps { get; }
     int FrameCount { get; }
@@ -147,8 +129,7 @@ public interface IAnimation
 /// <summary>
 /// FrameCache
 /// </summary>
-public class FrameCache
-{
+public class FrameCache {
     public static Func<ISkeleton, Frame> FrameFactory = skeleton => new Frame(skeleton);
 
     internal (int frameIndex, Frame frame) PreviousFrame;
@@ -156,8 +137,7 @@ public class FrameCache
     internal Frame InterpolatedFrame;
     internal ISkeleton Skeleton;
 
-    public FrameCache(ISkeleton skeleton)
-    {
+    public FrameCache(ISkeleton skeleton) {
         PreviousFrame = (-1, FrameFactory(skeleton));
         NextFrame = (-1, FrameFactory(skeleton));
         InterpolatedFrame = FrameFactory(skeleton);
@@ -168,8 +148,7 @@ public class FrameCache
     /// <summary>
     /// Clears interpolated frame bones and frame cache. Should be used on animation change.
     /// </summary>
-    public void Clear()
-    {
+    public void Clear() {
         PreviousFrame = (-1, PreviousFrame.frame); PreviousFrame.frame.Clear(Skeleton);
         NextFrame = (-1, NextFrame.frame); NextFrame.frame.Clear(Skeleton);
     }
@@ -178,12 +157,9 @@ public class FrameCache
     /// Get the animation frame at a time/index.
     /// </summary>
     /// <param name="time">The time to get the frame for.</param>
-    public Frame GetFrame(IAnimation anim, object index)
-    {
-        switch (index)
-        {
-            case float time:
-                {
+    public Frame GetFrame(IAnimation anim, object index) {
+        switch (index) {
+            case float time: {
                     // calculate the index of the current frame
                     var frameIndex = (int)(time * anim.Fps) % anim.FrameCount;
                     var t = (time * anim.Fps - frameIndex) % 1;
@@ -191,8 +167,7 @@ public class FrameCache
                     var frame1 = GetFrame(anim, frameIndex);
                     var frame2 = GetFrame(anim, (frameIndex + 1) % anim.FrameCount);
                     // interpolate bone positions, angles and scale
-                    for (var i = 0; i < frame1.Bones.Length; i++)
-                    {
+                    for (var i = 0; i < frame1.Bones.Length; i++) {
                         var frame1Bone = frame1.Bones[i];
                         var frame2Bone = frame2.Bones[i];
                         InterpolatedFrame.Bones[i].Position = Vector3.Lerp(frame1Bone.Position, frame2Bone.Position, t);
@@ -201,8 +176,7 @@ public class FrameCache
                     }
                     return InterpolatedFrame;
                 }
-            case int frameIndex:
-                {
+            case int frameIndex: {
                     // try to lookup cached (precomputed) frame - happens when GUI Autoplay runs faster than animation FPS
                     if (frameIndex == PreviousFrame.frameIndex) return PreviousFrame.frame;
                     else if (frameIndex == NextFrame.frameIndex) return NextFrame.frame;
@@ -222,8 +196,7 @@ public class FrameCache
 /// <summary>
 /// AnimationController
 /// </summary>
-public class AnimationController
-{
+public class AnimationController {
     internal FrameCache FrameCache;
     Action<IAnimation, int> UpdateHandler = (a, b) => { };
     public IAnimation ActiveAnimation;
@@ -231,15 +204,12 @@ public class AnimationController
     bool ShouldUpdate;
     public bool IsPaused;
 
-    public int Frame
-    {
+    public int Frame {
         get => ActiveAnimation != null && ActiveAnimation.FrameCount != 0
             ? (int)Math.Round(Time * ActiveAnimation.Fps) % ActiveAnimation.FrameCount
             : 0;
-        set
-        {
-            if (ActiveAnimation != null)
-            {
+        set {
+            if (ActiveAnimation != null) {
                 Time = ActiveAnimation.Fps != 0
                     ? value / ActiveAnimation.Fps
                     : 0f;
@@ -250,8 +220,7 @@ public class AnimationController
 
     public AnimationController(ISkeleton skeleton) => FrameCache = new FrameCache(skeleton);
 
-    public bool Update(float timeStep)
-    {
+    public bool Update(float timeStep) {
         if (ActiveAnimation == null) return false;
         if (IsPaused) { var res = ShouldUpdate; ShouldUpdate = false; return res; }
         Time += timeStep;
@@ -260,16 +229,14 @@ public class AnimationController
         return true;
     }
 
-    public void SetAnimation(IAnimation animation)
-    {
+    public void SetAnimation(IAnimation animation) {
         FrameCache.Clear();
         ActiveAnimation = animation;
         Time = 0f;
         UpdateHandler(ActiveAnimation, -1);
     }
 
-    public void PauseLastFrame()
-    {
+    public void PauseLastFrame() {
         IsPaused = true;
         Frame = ActiveAnimation == null ? 0 : ActiveAnimation.FrameCount - 1;
     }

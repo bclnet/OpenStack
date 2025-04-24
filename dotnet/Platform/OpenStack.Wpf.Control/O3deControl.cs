@@ -5,8 +5,7 @@ using System.Windows;
 
 namespace OpenStack.Wpf.Control;
 
-public abstract class O3deControl : ShellControl
-{
+public abstract class O3deControl : ShellControl {
     #region Binding
 
     protected object Obj;
@@ -19,38 +18,32 @@ public abstract class O3deControl : ShellControl
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
 
-    public IList<IOpenGfx> Gfx
-    {
+    public IList<IOpenGfx> Gfx {
         get => GetValue(GfxProperty) as IList<IOpenGfx>;
         set => SetValue(GfxProperty, value);
     }
 
-    public IList<IOpenSfx> Sfx
-    {
+    public IList<IOpenSfx> Sfx {
         get => GetValue(SfxProperty) as IList<IOpenSfx>;
         set => SetValue(SfxProperty, value);
     }
 
-    public object Path
-    {
+    public object Path {
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
     }
 
-    public object Source
-    {
+    public object Source {
         get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
     }
 
-    public string Type
-    {
+    public string Type {
         get => GetValue(TypeProperty) as string;
         set => SetValue(TypeProperty, value);
     }
 
-    void OnSourceChanged()
-    {
+    void OnSourceChanged() {
         if (Gfx == null || Path == null || Source == null || Type == null) return;
         Renderer = CreateRenderer();
         Renderer?.Start();

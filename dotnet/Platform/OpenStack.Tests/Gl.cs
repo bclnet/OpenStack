@@ -8,8 +8,7 @@ namespace OpenStack.Gfx.OpenGL;
 /// TestShaderLoader
 /// </summary>
 [TestClass]
-public class TestShaderLoader : ShaderLoader
-{
+public class TestShaderLoader : ShaderLoader {
     #region base
     //public TestShaderLoader() : base(null) { }
     protected override string GetShaderFileByName(string name) => "";
@@ -17,8 +16,7 @@ public class TestShaderLoader : ShaderLoader
     #endregion
 
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         //Assert.AreEqual(0, Pitch);
     }
 
@@ -39,15 +37,13 @@ public class TestShaderLoader : ShaderLoader
 /// TestShaderDebugLoader
 /// </summary>
 [TestClass]
-public class TestShaderDebugLoader : ShaderDebugLoader
-{
+public class TestShaderDebugLoader : ShaderDebugLoader {
     #region base
     //public TestShaderDebugLoader() : base(null) { }
     #endregion
 
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         //Assert.AreEqual(0, Pitch);
     }
     //[TestMethod]

@@ -8,22 +8,19 @@ namespace OpenStack.GfxTests.Egin;
 /// TestCamera
 /// </summary>
 [TestClass]
-public class TestCamera : Camera
-{
+public class TestCamera : Camera {
     #region base
     public TestCamera() => SetViewport(0, 0, 100, 100);
     public override void GfxViewport(int x, int y, int width, int height) { }
     #endregion
 
     [TestMethod]
-    public void Test_Init()
-    {
+    public void Test_Init() {
         Assert.AreEqual(-0.6154797f, Pitch);
         Assert.AreEqual(-2.3561945f, Yaw);
     }
     [TestMethod]
-    public void Test_RecalculateMatrices()
-    {
+    public void Test_RecalculateMatrices() {
         RecalculateMatrices();
         Assert.AreEqual(-1.70710671f, ViewProjectionMatrix.M11);
         Assert.AreEqual(-0.985598564f, ViewProjectionMatrix.M12);
@@ -33,37 +30,32 @@ public class TestCamera : Camera
         Assert.AreEqual(1.7320509f, ViewProjectionMatrix.M44);
     }
     [TestMethod]
-    public void Test_GetForwardVector()
-    {
+    public void Test_GetForwardVector() {
         var actual = GetForwardVector();
         Assert.AreEqual(-0.577350259f, actual.X);
         Assert.AreEqual(-0.577350259f, actual.Y);
         Assert.AreEqual(-0.577350259f, actual.Z);
     }
     [TestMethod]
-    public void Test_GetRightVector()
-    {
+    public void Test_GetRightVector() {
         var actual = GetRightVector();
         Assert.AreEqual(-0.707107f, actual.X);
         Assert.AreEqual(0.7071066f, actual.Y);
         Assert.AreEqual(0f, actual.Z);
     }
     [TestMethod]
-    public void Test_SetViewport()
-    {
+    public void Test_SetViewport() {
         SetViewport(0, 0, 100, 100);
         Assert.AreEqual(1f, AspectRatio);
         Assert.AreEqual("<100, 100>", WindowSize.ToString());
         Assert.AreEqual(2.41421342f, ProjectionMatrix.M11);
     }
     [TestMethod]
-    public void Test_GfxSetViewport()
-    {
+    public void Test_GfxSetViewport() {
         GfxViewport(0, 0, 100, 100);
     }
     [TestMethod]
-    public void Test_CopyFrom()
-    {
+    public void Test_CopyFrom() {
         var otherCamera = new TestCamera();
         otherCamera.AspectRatio = .5f;
         // test
@@ -71,48 +63,41 @@ public class TestCamera : Camera
         Assert.AreEqual(.5f, AspectRatio);
     }
     [TestMethod]
-    public void Test_SetLocation()
-    {
+    public void Test_SetLocation() {
         SetLocation(new Vector3(1f, 1f, 1f));
         Assert.AreEqual("<1, 1, 1>", Location.ToString());
     }
     [TestMethod]
-    public void Test_SetLocationPitchYaw()
-    {
+    public void Test_SetLocationPitchYaw() {
         SetLocationPitchYaw(new Vector3(1f, 1f, 1f), 2f, 3f);
         Assert.AreEqual("<1, 1, 1>", Location.ToString());
         Assert.AreEqual(2f, Pitch);
         Assert.AreEqual(3f, Yaw);
     }
     [TestMethod]
-    public void Test_LookAt()
-    {
+    public void Test_LookAt() {
         LookAt(new Vector3(.5f, .5f, .5f));
         Assert.AreEqual(-0.6154797f, Pitch);
         Assert.AreEqual(-2.3561945f, Yaw);
     }
     [TestMethod]
-    public void Test_SetFromTransformMatrix()
-    {
+    public void Test_SetFromTransformMatrix() {
         SetFromTransformMatrix(Matrix4x4.Identity);
         Assert.AreEqual("<0, 0, 0>", Location.ToString());
         Assert.AreEqual(0f, Pitch);
         Assert.AreEqual(0f, Yaw);
     }
     [TestMethod]
-    public void Test_SetScale()
-    {
+    public void Test_SetScale() {
         SetScale(1f);
         Assert.AreEqual(1f, Scale);
     }
     [TestMethod]
-    public void Test_Tick()
-    {
+    public void Test_Tick() {
         Tick(1);
     }
     [TestMethod]
-    public void Test_ClampRotation()
-    {
+    public void Test_ClampRotation() {
         ClampRotation();
     }
 }

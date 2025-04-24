@@ -16,8 +16,7 @@ namespace OpenStack.Gfx;
 /// <summary>
 /// GfX
 /// </summary>
-public static class GfX
-{
+public static class GfX {
     public const int XSprite2D = 0;
     public const int XSprite3D = 1;
     public const int XModel = 2;
@@ -38,8 +37,7 @@ test modes (glAlphaFunc):
 /// <summary>
 /// GfxAlphaMode
 /// </summary>
-public enum GfxAlphaMode
-{
+public enum GfxAlphaMode {
     Always,
     Less,
     LEqual,
@@ -67,8 +65,7 @@ blend modes (glBlendFunc):
 /// <summary>
 /// GfxBlendMode
 /// </summary>
-public enum GfxBlendMode
-{
+public enum GfxBlendMode {
     Zero,
     One,
     DstColor,
@@ -91,8 +88,7 @@ public enum GfxBlendMode
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Sprite"></typeparam>
-public abstract class ObjectSpriteBuilderBase<Object, Sprite>
-{
+public abstract class ObjectSpriteBuilderBase<Object, Sprite> {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
     public abstract Object CreateObject(object src);
@@ -105,30 +101,26 @@ public abstract class ObjectSpriteBuilderBase<Object, Sprite>
 /// <typeparam name="Sprite"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder)
-{
+public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder) {
     readonly ISource Source = source;
     readonly ObjectSpriteBuilderBase<Object, Sprite> Builder = builder;
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
 
-    public (Object obj, object tag) CreateObject(object path)
-    {
+    public (Object obj, object tag) CreateObject(object path) {
         Builder.EnsurePrefab();
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path).Result;
         return (Builder.CreateNewObject(prefab.obj), prefab.tag);
     }
 
-    public void PreloadObject(object path)
-    {
+    public void PreloadObject(object path) {
         if (CachedObjects.ContainsKey(path)) return;
         // start loading the object asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<object>(path);
     }
 
-    async Task<(Object obj, object tag)> LoadObject(object path)
-    {
+    async Task<(Object obj, object tag)> LoadObject(object path) {
         Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
         var obj = await PreloadTasks[path];
@@ -147,8 +139,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
 /// <typeparam name="Texture"></typeparam>
-public abstract class ObjectModelBuilderBase<Object, Material, Texture>
-{
+public abstract class ObjectModelBuilderBase<Object, Material, Texture> {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab);
     public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager);
@@ -163,31 +154,27 @@ public abstract class ObjectModelBuilderBase<Object, Material, Texture>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class ObjectModelManager<Object, Material, Texture>(ISource source, MaterialManager<Material, Texture> materialManager, ObjectModelBuilderBase<Object, Material, Texture> builder)
-{
+public class ObjectModelManager<Object, Material, Texture>(ISource source, MaterialManager<Material, Texture> materialManager, ObjectModelBuilderBase<Object, Material, Texture> builder) {
     readonly ISource Source = source;
     readonly MaterialManager<Material, Texture> MaterialManager = materialManager;
     readonly ObjectModelBuilderBase<Object, Material, Texture> Builder = builder;
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
 
-    public (Object obj, object tag) CreateObject(object path)
-    {
+    public (Object obj, object tag) CreateObject(object path) {
         Builder.EnsurePrefab();
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path).Result;
         return (Builder.CreateNewObject(prefab.obj), prefab.tag);
     }
 
-    public void PreloadObject(object path)
-    {
+    public void PreloadObject(object path) {
         if (CachedObjects.ContainsKey(path)) return;
         // start loading the object asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<object>(path);
     }
 
-    async Task<(Object obj, object tag)> LoadObject(object path)
-    {
+    async Task<(Object obj, object tag)> LoadObject(object path) {
         Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
         var obj = await PreloadTasks[path];
@@ -203,8 +190,7 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
 /// <summary>
 /// Shader
 /// </summary>
-public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation)
-{
+public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation) {
     readonly Func<int, string, int> _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
     readonly Func<int, string, int> _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
     Dictionary<string, int> _uniforms = [];
@@ -213,8 +199,7 @@ public class Shader(Func<int, string, int> getUniformLocation, Func<int, string,
     public IDictionary<string, bool> Parameters;
     public List<string> RenderModes;
 
-    public int GetUniformLocation(string name)
-    {
+    public int GetUniformLocation(string name) {
         if (_uniforms.TryGetValue(name, out var value)) return value;
         value = _getUniformLocation(Program, name); _uniforms[name] = value;
         return value;
@@ -227,8 +212,7 @@ public class Shader(Func<int, string, int> getUniformLocation, Func<int, string,
 /// ShaderBuilderBase
 /// </summary>
 /// <typeparam name="Shader"></typeparam>
-public abstract class ShaderBuilderBase<Shader>
-{
+public abstract class ShaderBuilderBase<Shader> {
     public abstract Shader CreateShader(object path, IDictionary<string, bool> args = null);
 }
 
@@ -238,8 +222,7 @@ public abstract class ShaderBuilderBase<Shader>
 /// <typeparam name="Shader"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> builder)
-{
+public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> builder) {
     static readonly Dictionary<string, bool> EmptyArgs = [];
     readonly ISource Source = source;
     readonly ShaderBuilderBase<Shader> Builder = builder;
@@ -255,8 +238,7 @@ public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> bui
 /// <summary>
 /// ISprite
 /// </summary>
-public interface ISprite
-{
+public interface ISprite {
     int Width { get; }
     int Height { get; }
     T Create<T>(string platform, Func<object, T> func);
@@ -266,8 +248,7 @@ public interface ISprite
 /// SpriteBuilderBase
 /// </summary>
 /// <typeparam name="Sprite"></typeparam>
-public abstract class SpriteBuilderBase<Sprite>
-{
+public abstract class SpriteBuilderBase<Sprite> {
     public abstract Sprite DefaultSprite { get; }
     public abstract Sprite CreateSprite(ISprite spr);
     public abstract void DeleteSprite(Sprite spr);
@@ -279,8 +260,7 @@ public abstract class SpriteBuilderBase<Sprite>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> builder)
-{
+public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> builder) {
     readonly ISource Source = source;
     readonly SpriteBuilderBase<Sprite> Builder = builder;
     readonly Dictionary<object, (Sprite spr, object tag)> CachedSprites = [];
@@ -288,8 +268,7 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
 
     public Sprite DefaultSprite => Builder.DefaultSprite;
 
-    public (Sprite spr, object tag) CreateSprite(object path)
-    {
+    public (Sprite spr, object tag) CreateSprite(object path) {
         if (CachedSprites.TryGetValue(path, out var c)) return c;
         // load & cache the sprite.
         var tag = path is ISprite z ? z : LoadSprite(path).Result;
@@ -298,22 +277,19 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
         return (obj, tag);
     }
 
-    public void PreloadSprite(object path)
-    {
+    public void PreloadSprite(object path) {
         if (CachedSprites.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<ISprite>(path);
     }
 
-    public void DeleteSprite(object path)
-    {
+    public void DeleteSprite(object path) {
         if (!CachedSprites.TryGetValue(path, out var c)) return;
         Builder.DeleteSprite(c.spr);
         CachedSprites.Remove(path);
     }
 
-    async Task<ISprite> LoadSprite(object path)
-    {
+    async Task<ISprite> LoadSprite(object path) {
         Assert(!CachedSprites.ContainsKey(path));
         PreloadSprite(path);
         var obj = await PreloadTasks[path];
@@ -329,8 +305,7 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
 /// <summary>
 /// Texture_Bytes
 /// </summary>
-public struct Texture_Bytes(byte[] bytes, object format, Range[] spans)
-{
+public struct Texture_Bytes(byte[] bytes, object format, Range[] spans) {
     public byte[] Bytes = bytes;
     public object Format = format;
     public Range[] Spans = spans;
@@ -339,8 +314,7 @@ public struct Texture_Bytes(byte[] bytes, object format, Range[] spans)
 /// <summary>
 /// ITexture
 /// </summary>
-public interface ITexture
-{
+public interface ITexture {
     int Width { get; }
     int Height { get; }
     int Depth { get; }
@@ -352,16 +326,14 @@ public interface ITexture
 /// <summary>
 /// ITexture
 /// </summary>
-public interface ITextureSelect : ITexture
-{
+public interface ITextureSelect : ITexture {
     void Select(int id);
 }
 
 /// <summary>
 /// ITextureFrames
 /// </summary>
-public interface ITextureFrames : ITexture
-{
+public interface ITextureFrames : ITexture {
     int Fps { get; }
     bool HasFrames { get; }
     bool DecodeFrame();
@@ -370,8 +342,7 @@ public interface ITextureFrames : ITexture
 /// <summary>
 /// ITextureFramesSelect
 /// </summary>
-public interface ITextureFramesSelect : ITextureFrames
-{
+public interface ITextureFramesSelect : ITextureFrames {
     int FrameMax { get; }
     void FrameSelect(int id);
 }
@@ -380,8 +351,7 @@ public interface ITextureFramesSelect : ITextureFrames
 /// TextureBuilderBase
 /// </summary>
 /// <typeparam name="Texture"></typeparam>
-public abstract class TextureBuilderBase<Texture>
-{
+public abstract class TextureBuilderBase<Texture> {
     public static int MaxTextureMaxAnisotropy => GfX.MaxTextureMaxAnisotropy;
     public abstract Texture DefaultTexture { get; }
     public abstract Texture CreateTexture(Texture reuse, ITexture tex, Range? level = null);
@@ -396,8 +366,7 @@ public abstract class TextureBuilderBase<Texture>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture> builder)
-{
+public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture> builder) {
     readonly ISource Source = source;
     readonly TextureBuilderBase<Texture> Builder = builder;
     readonly Dictionary<object, (Texture tex, object tag)> CachedTextures = [];
@@ -409,8 +378,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     public Texture DefaultTexture => Builder.DefaultTexture;
 
-    public (Texture tex, object tag) CreateTexture(object path, Range? level = null)
-    {
+    public (Texture tex, object tag) CreateTexture(object path, Range? level = null) {
         path = Source.FindPath<ITexture>(path);
         if (CachedTextures.TryGetValue(path, out var c)) return c;
         // load & cache the texture.
@@ -420,32 +388,28 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
         return (obj, tag);
     }
 
-    public (Texture tex, object tag) ReloadTexture(object path, Range? level = null)
-    {
+    public (Texture tex, object tag) ReloadTexture(object path, Range? level = null) {
         path = Source.FindPath<ITexture>(path);
         if (!CachedTextures.TryGetValue(path, out var c)) return (default, default);
         Builder.CreateTexture(c.tex, (ITexture)c.tag, level);
         return c;
     }
 
-    public void PreloadTexture(object path)
-    {
+    public void PreloadTexture(object path) {
         path = Source.FindPath<ITexture>(path);
         if (CachedTextures.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<ITexture>(path);
     }
 
-    public void DeleteTexture(object path)
-    {
+    public void DeleteTexture(object path) {
         path = Source.FindPath<ITexture>(path);
         if (!CachedTextures.TryGetValue(path, out var c)) return;
         Builder.DeleteTexture(c.tex);
         CachedTextures.Remove(path);
     }
 
-    async Task<ITexture> LoadTexture(object path)
-    {
+    async Task<ITexture> LoadTexture(object path) {
         path = Source.FindPath<ITexture>(path);
         Assert(!CachedTextures.ContainsKey(path));
         PreloadTexture(path);
@@ -462,24 +426,21 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 /// <summary>
 /// IMaterial
 /// </summary>
-public interface IMaterial
-{
+public interface IMaterial {
     T Create<T>(string platform, Func<object, T> func);
 }
 
 /// <summary>
 /// MaterialProp
 /// </summary>
-public abstract class MaterialProp
-{
+public abstract class MaterialProp {
     public object Tag;
 }
 
 /// <summary>
 /// MaterialStdProp
 /// </summary>
-public class MaterialStdProp : MaterialProp
-{
+public class MaterialStdProp : MaterialProp {
     public Dictionary<string, string> Textures = [];
     //public string MainTexture => Textures.TryGetValue("Main", out var z) ? z : default;
     //public string BumpTexture => Textures.TryGetValue("Bump", out var z) ? z : default;
@@ -493,8 +454,7 @@ public class MaterialStdProp : MaterialProp
 /// <summary>
 /// MaterialStd2Prop
 /// </summary>
-public class MaterialStd2Prop : MaterialStdProp
-{
+public class MaterialStd2Prop : MaterialStdProp {
     public bool ZWrite;
     public Color DiffuseColor;
     public Color SpecularColor;
@@ -506,8 +466,7 @@ public class MaterialStd2Prop : MaterialStdProp
 /// <summary>
 /// MaterialPropShader
 /// </summary>
-public class MaterialShaderProp : MaterialProp
-{
+public class MaterialShaderProp : MaterialProp {
     public string ShaderName;
     public IDictionary<string, bool> ShaderArgs;
     //public IDictionary<string, object> Data;
@@ -516,8 +475,7 @@ public class MaterialShaderProp : MaterialProp
 /// <summary>
 /// MaterialPropShaderV
 /// </summary>
-public class MaterialShaderVProp : MaterialShaderProp
-{
+public class MaterialShaderVProp : MaterialShaderProp {
     public Dictionary<string, long> IntParams;
     public Dictionary<string, float> FloatParams;
     public Dictionary<string, Vector4> VectorParams;
@@ -539,8 +497,7 @@ public class MaterialTerrainProp : MaterialProp { }
 /// <typeparam name="Material"></typeparam>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="textureManager"></param>
-public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Texture> textureManager)
-{
+public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Texture> textureManager) {
     protected TextureManager<Texture> TextureManager = textureManager;
     public float? NormalGeneratorIntensity = 0.75f;
     public abstract Material DefaultMaterial { get; }
@@ -550,16 +507,14 @@ public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Text
 /// <summary>
 /// Manages loading and instantiation of materials.
 /// </summary>
-public class MaterialManager<Material, Texture>(ISource source, TextureManager<Texture> textureManager, MaterialBuilderBase<Material, Texture> builder)
-{
+public class MaterialManager<Material, Texture>(ISource source, TextureManager<Texture> textureManager, MaterialBuilderBase<Material, Texture> builder) {
     readonly ISource Source = source;
     readonly MaterialBuilderBase<Material, Texture> Builder = builder;
     readonly Dictionary<object, (Material material, object tag)> CachedMaterials = [];
     readonly Dictionary<object, Task<MaterialProp>> PreloadTasks = [];
     public TextureManager<Texture> TextureManager { get; } = textureManager;
 
-    public (Material mat, object tag) CreateMaterial(object path)
-    {
+    public (Material mat, object tag) CreateMaterial(object path) {
         if (CachedMaterials.TryGetValue(path, out var c)) return c;
         // load & cache the material.
         var src = path is MaterialProp z ? z : LoadMaterial(path).Result;
@@ -569,15 +524,13 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
         return (obj, tag);
     }
 
-    public void PreloadMaterial(object path)
-    {
+    public void PreloadMaterial(object path) {
         if (CachedMaterials.ContainsKey(path)) return;
         // start loading the material file asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<MaterialProp>(path);
     }
 
-    async Task<MaterialProp> LoadMaterial(object path)
-    {
+    async Task<MaterialProp> LoadMaterial(object path) {
         Assert(!CachedMaterials.ContainsKey(path));
         PreloadMaterial(path);
         var obj = await PreloadTasks[path];
@@ -593,8 +546,7 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
 /// <summary>
 /// IModel
 /// </summary>
-public interface IModel
-{
+public interface IModel {
     T Create<T>(string platform, Func<object, T> func);
 }
 
@@ -603,8 +555,7 @@ public interface IModel
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Material"></typeparam>
-public interface IModelApi<Object, Material>
-{
+public interface IModelApi<Object, Material> {
     Object CreateObject(string name);
     object CreateMesh(object mesh);
     void AddMeshRenderer(Object src, object mesh, Material material, bool enabled, bool isStatic);
@@ -624,8 +575,7 @@ public interface IModelApi<Object, Material>
 /// <summary>
 /// IOpenGfx
 /// </summary>
-public interface IOpenGfx
-{
+public interface IOpenGfx {
     Task<T> LoadFileObject<T>(object path);
     void PreloadObject(object path);
 }
@@ -633,16 +583,14 @@ public interface IOpenGfx
 /// <summary>
 /// IOpenGfxSprite
 /// </summary>
-public interface IOpenGfxSprite : IOpenGfx
-{
+public interface IOpenGfxSprite : IOpenGfx {
     void PreloadSprite(object path);
 }
 
 /// <summary>
 /// IOpenGfxSprite
 /// </summary>
-public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite
-{
+public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
     SpriteManager<Sprite> SpriteManager { get; }
     ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
     Object CreateObject(object path);
@@ -651,16 +599,14 @@ public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite
 /// <summary>
 /// IOpenGfxModel
 /// </summary>
-public interface IOpenGfxModel : IOpenGfx
-{
+public interface IOpenGfxModel : IOpenGfx {
     void PreloadTexture(object path);
 }
 
 /// <summary>
 /// IOpenGfxModel
 /// </summary>
-public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxModel
-{
+public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxModel {
     TextureManager<Texture> TextureManager { get; }
     MaterialManager<Material, Texture> MaterialManager { get; }
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }

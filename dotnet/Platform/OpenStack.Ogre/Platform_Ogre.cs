@@ -11,14 +11,12 @@ namespace OpenStack;
 #region OpenGfx
 
 // OgreGfxSprite3D
-public class OgreGfxSprite3D : IOpenGfxSprite<object, object>
-{
+public class OgreGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public OgreGfxSprite3D(ISource source)
-    {
+    public OgreGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -35,16 +33,14 @@ public class OgreGfxSprite3D : IOpenGfxSprite<object, object>
 }
 
 // OgreGfxModel
-public class OgreGfxModel : IOpenGfxModel<object, object, object, object>
-{
+public class OgreGfxModel : IOpenGfxModel<object, object, object, object> {
     readonly ISource _source;
     readonly TextureManager<object> _textureManager;
     readonly MaterialManager<object, object> _materialManager;
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
 
-    public OgreGfxModel(ISource source)
-    {
+    public OgreGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
         //_textureManager = new TextureManager<object>(source, new OgreTextureBuilder());
@@ -70,19 +66,16 @@ public class OgreGfxModel : IOpenGfxModel<object, object, object, object>
 public class OgreSfx(ISource source) : SystemSfx(source) { }
 
 // OgrePlatform
-public class OgrePlatform : Platform
-{
+public class OgrePlatform : Platform {
     public static readonly Platform This = new OgrePlatform();
-    OgrePlatform() : base("OG", "Ogre")
-    {
+    OgrePlatform() : base("OG", "Ogre") {
         GfxFactory = source => [null, new OgreGfxSprite3D(source), new OgreGfxModel(source)];
         SfxFactory = source => [new OgreSfx(source)];
     }
 }
 
 // OgreShellPlatform
-public class OgreShellPlatform : Platform
-{
+public class OgreShellPlatform : Platform {
     public static readonly Platform This = new OgreShellPlatform();
     OgreShellPlatform() : base("OG", "Ogre") { }
 }

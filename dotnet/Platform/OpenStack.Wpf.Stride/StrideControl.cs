@@ -17,18 +17,15 @@ using System.Collections.Generic;
 
 namespace GameX.App.Explorer.Controls;
 
-public abstract class StrideControl : UserControl
-{
+public abstract class StrideControl : UserControl {
     #region Embedding
 
     readonly TaskCompletionSource<bool> GameStartedTaskSource = new();
     Thread GameThread;
     IntPtr WindowHandle;
 
-    public StrideControl()
-    {
-        GameThread = new Thread(SafeAction.Wrap(GameRunThread))
-        {
+    public StrideControl() {
+        GameThread = new Thread(SafeAction.Wrap(GameRunThread)) {
             IsBackground = true,
             Name = "Game Thread"
         };
@@ -36,23 +33,20 @@ public abstract class StrideControl : UserControl
         Loaded += async (sender, args) => await StartGame();
     }
 
-    async Task StartGame()
-    {
+    async Task StartGame() {
         GameThread.Start();
         await GameStartedTaskSource.Task;
         Content = new GameEngineHost(WindowHandle);
     }
 
-    void GameRunThread()
-    {
+    void GameRunThread() {
         // Create the form from this thread
         var form = new EmbeddedGameForm() { TopLevel = false, Visible = false };
         WindowHandle = form.Handle;
         var context = new GameContextWinforms(form);
         GameStartedTaskSource.SetResult(true);
         var game = new Game();
-        game.Run(context, (Scene scene) =>
-        {
+        game.Run(context, (Scene scene) => {
             game.Window.IsBorderLess = true;
             game.SetupBase();
             var entity1 = new Entity("Name", new Vector3(1f, 0.5f, 3f))
@@ -77,38 +71,32 @@ public abstract class StrideControl : UserControl
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
 
-    public IList<IOpenGfx> Gfx
-    {
+    public IList<IOpenGfx> Gfx {
         get => GetValue(GfxProperty) as IList<IOpenGfx>;
         set => SetValue(GfxProperty, value);
     }
 
-    public IList<IOpenSfx> Sfx
-    {
+    public IList<IOpenSfx> Sfx {
         get => GetValue(SfxProperty) as IList<IOpenSfx>;
         set => SetValue(SfxProperty, value);
     }
 
-    public object Path
-    {
+    public object Path {
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
     }
 
-    public object Source
-    {
+    public object Source {
         get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
     }
 
-    public string Type
-    {
+    public string Type {
         get => GetValue(TypeProperty) as string;
         set => SetValue(TypeProperty, value);
     }
 
-    void OnSourceChanged()
-    {
+    void OnSourceChanged() {
         if (Gfx == null || Path == null || Source == null || Type == null) return;
         Renderer = CreateRenderer(); //this, Gfx3d as IStrideGfx3d, Source, Type);
         Renderer?.Start();
@@ -252,8 +240,6 @@ public abstract class StrideControl : UserControl
 
     #endregion
 }
-
-
 
 //{
 //    // Create an entity and add it to the scene.

@@ -18,13 +18,11 @@ namespace OpenStack;
 // GodotShaderBuilder : MISSING
 
 // GodotTextureBuilder
-class GodotTextureBuilder : TextureBuilderBase<Texture>
-{
+class GodotTextureBuilder : TextureBuilderBase<Texture> {
     Texture _defaultTexture;
     public override Texture DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
 
-    public void Release()
-    {
+    public void Release() {
         if (_defaultTexture != null) { /*DeleteTexture(_defaultTexture);*/ _defaultTexture = null; }
     }
 
@@ -50,18 +48,15 @@ class GodotTextureBuilder : TextureBuilderBase<Texture>
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override Texture CreateTexture(Texture reuse, ITexture source, System.Range? level = null)
-    {
+    public override Texture CreateTexture(Texture reuse, ITexture source, System.Range? level = null) {
         throw new NotImplementedException();
     }
 
-    public override Texture CreateSolidTexture(int width, int height, float[] pixels)
-    {
+    public override Texture CreateSolidTexture(int width, int height, float[] pixels) {
         return null;
     }
 
-    public override Texture CreateNormalMap(Texture texture, float strength)
-    {
+    public override Texture CreateNormalMap(Texture texture, float strength) {
         throw new NotImplementedException();
     }
 
@@ -71,30 +66,25 @@ class GodotTextureBuilder : TextureBuilderBase<Texture>
 // GodotMaterialBuilder : MISSING
 
 // GodotModelApi
-public class GodotModelApi : IModelApi<Node3D, Material>
-{
+public class GodotModelApi : IModelApi<Node3D, Material> {
     public Node3D CreateObject(string name) => default;
     public void SetParent(Node3D source, Node3D parent) => parent.AddChild(source);
-    public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale)
-    {
+    public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale) {
         var transform = new Transform3D { Origin = position.ToGodot() };
         source.Transform = transform;
     }
-    public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Matrix4x4 rotation, System.Numerics.Vector3 localScale)
-    {
+    public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Matrix4x4 rotation, System.Numerics.Vector3 localScale) {
         var transform = new Transform3D { Origin = position.ToGodot() };
         source.Transform = transform;
     }
     public void AddMissingMeshCollidersRecursively(Node3D source, bool isStatic) => source.AddMissingMeshCollidersRecursively(isStatic);
     public void SetLayerRecursively(Node3D source, int layer) { }
 
-    public object CreateMesh(object mesh)
-    {
+    public object CreateMesh(object mesh) {
         throw new NotImplementedException();
     }
 
-    public void AddMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic)
-    {
+    public void AddMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic) {
         //source.AddComponent<MeshFilter>().mesh = (Mesh)mesh;
         //var meshRenderer = source.AddComponent<MeshRenderer>();
         //meshRenderer.material = material;
@@ -102,8 +92,7 @@ public class GodotModelApi : IModelApi<Node3D, Material>
         //source.isStatic = isStatic;
     }
 
-    public void AddSkinnedMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic)
-    {
+    public void AddSkinnedMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic) {
         //var skin = source.AddComponent<SkinnedMeshRenderer>();
         //skin.sharedMesh = (Mesh)mesh;
         //skin.bones = null;
@@ -113,8 +102,7 @@ public class GodotModelApi : IModelApi<Node3D, Material>
         //source.isStatic = isStatic;
     }
 
-    public void AddMeshCollider(Node3D source, object mesh, bool isKinematic, bool isStatic)
-    {
+    public void AddMeshCollider(Node3D source, object mesh, bool isKinematic, bool isStatic) {
         //if (!isStatic)
         //{
         //    source.AddComponent<BoxCollider>();
@@ -128,14 +116,12 @@ public class GodotModelApi : IModelApi<Node3D, Material>
 //public interface IGodotGfx3dModel : IOpenGfx3dModelAny<Node, Material, Texture, XShader> { }
 
 // GodotGfxSprite2D
-public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D>
-{
+public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     readonly ISource _source;
     readonly SpriteManager<Sprite2D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite2D> _objectManager;
 
-    public GodotGfxSprite2D(ISource source)
-    {
+    public GodotGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -152,14 +138,12 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D>
 }
 
 // GodotGfxSprite3D
-public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D>
-{
+public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     readonly ISource _source;
     readonly SpriteManager<Sprite3D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite3D> _objectManager;
 
-    public GodotGfxSprite3D(ISource source)
-    {
+    public GodotGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -176,8 +160,7 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D>
 }
 
 // GodotGfxModel
-public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader>
-{
+public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     readonly ISource _source;
     readonly SpriteManager<Sprite3D> _spriteManager;
     readonly TextureManager<Texture> _textureManager;
@@ -185,8 +168,7 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader>
     readonly ObjectModelManager<Node, Material, Texture> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
 
-    public GodotGfxModel(ISource source)
-    {
+    public GodotGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         _textureManager = new TextureManager<Texture>(source, new GodotTextureBuilder());
@@ -213,11 +195,9 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader>
 public class GodotSfx(ISource source) : SystemSfx(source) { }
 
 // GodotPlatform
-public class GodotPlatform : Platform
-{
+public class GodotPlatform : Platform {
     public static readonly Platform This = new GodotPlatform();
-    GodotPlatform() : base("GD", "Godot")
-    {
+    GodotPlatform() : base("GD", "Godot") {
         GfxFactory = source => [new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source)];
         SfxFactory = source => [new GodotSfx(source)];
         LogFunc = a => GD.Print(a?.Replace("\r", ""));
@@ -226,8 +206,7 @@ public class GodotPlatform : Platform
 }
 
 // GodotShellPlatform
-public class GodotShellPlatform : Platform
-{
+public class GodotShellPlatform : Platform {
     public static readonly Platform This = new GodotShellPlatform();
     GodotShellPlatform() : base("GD", "Godot") { }
 }

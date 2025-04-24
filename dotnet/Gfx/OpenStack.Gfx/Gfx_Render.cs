@@ -11,8 +11,7 @@ namespace OpenStack.Gfx;
 /// </summary>
 /// <seealso cref="System.IEquatable{GameEstate.Graphics.GXColor}" />
 [StructLayout(LayoutKind.Sequential)]
-public struct Colorf : IEquatable<Colorf>
-{
+public struct Colorf : IEquatable<Colorf> {
     /// <summary>
     /// The r
     /// </summary>
@@ -30,8 +29,7 @@ public struct Colorf : IEquatable<Colorf>
     /// </summary>
     public float A;
 
-    public enum Format
-    {
+    public enum Format {
         ARGB32,
     }
 
@@ -42,18 +40,15 @@ public struct Colorf : IEquatable<Colorf>
     /// <param name="g">The g.</param>
     /// <param name="b">The b.</param>
     /// <param name="a">a.</param>
-    public Colorf(float r, float g, float b, float a = 1f)
-    {
+    public Colorf(float r, float g, float b, float a = 1f) {
         R = r;
         G = g;
         B = b;
         A = a;
     }
 
-    public Colorf(uint color, Format format)
-    {
-        switch (format)
-        {
+    public Colorf(uint color, Format format) {
+        switch (format) {
             case Format.ARGB32:
                 A = color >> 24;
                 R = (color >> 16) & 0xFF;
@@ -75,12 +70,9 @@ public struct Colorf : IEquatable<Colorf>
     public static bool operator ==(Colorf lhs, Colorf rhs) => (lhs == rhs);
     public static bool operator !=(Colorf lhs, Colorf rhs) => !(lhs == rhs);
 
-    public float this[int index]
-    {
-        get
-        {
-            return index switch
-            {
+    public float this[int index] {
+        get {
+            return index switch {
                 0 => R,
                 1 => G,
                 2 => B,
@@ -88,10 +80,8 @@ public struct Colorf : IEquatable<Colorf>
                 _ => throw new IndexOutOfRangeException("Invalid Vector3 index"),
             };
         }
-        set
-        {
-            switch (index)
-            {
+        set {
+            switch (index) {
                 case 0: R = value; break;
                 case 1: G = value; break;
                 case 2: B = value; break;
@@ -121,8 +111,7 @@ public struct Colorf : IEquatable<Colorf>
     public bool Equals(Colorf other) => R.Equals(other.R) && Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
     public override int GetHashCode() => (R, G, B, A).GetHashCode();
 
-    public static Colorf Lerp(Colorf a, Colorf b, float t)
-    {
+    public static Colorf Lerp(Colorf a, Colorf b, float t) {
         t = MathX.Clamp(t);
         return new Colorf(a.R + ((b.R - a.R) * t), a.G + ((b.G - a.G) * t), a.B + ((b.B - a.B) * t), a.A + ((b.A - a.A) * t));
     }
@@ -153,23 +142,19 @@ public struct Colorf : IEquatable<Colorf>
 
     public float MaxColorComponent => Math.Max(Math.Max(R, G), B);
 
-    public static void RGBToHSV(Colorf rgbColor, out float H, out float S, out float V)
-    {
+    public static void RGBToHSV(Colorf rgbColor, out float H, out float S, out float V) {
         if (rgbColor.B > rgbColor.G && rgbColor.B > rgbColor.R) RGBToHSVHelper(4f, rgbColor.B, rgbColor.R, rgbColor.G, out H, out S, out V);
         else if (rgbColor.G > rgbColor.R) RGBToHSVHelper(2f, rgbColor.G, rgbColor.B, rgbColor.R, out H, out S, out V);
         else RGBToHSVHelper(0f, rgbColor.R, rgbColor.G, rgbColor.B, out H, out S, out V);
     }
 
-    static void RGBToHSVHelper(float offset, float dominantcolor, float colorone, float colortwo, out float H, out float S, out float V)
-    {
+    static void RGBToHSVHelper(float offset, float dominantcolor, float colorone, float colortwo, out float H, out float S, out float V) {
         V = dominantcolor;
-        if (V == 0f)
-        {
+        if (V == 0f) {
             S = 0f;
             H = 0f;
         }
-        else
-        {
+        else {
             var color = colorone <= colortwo ? colorone : colortwo;
             var color2 = V - color;
             if (color2 != 0f) { S = color2 / V; H = offset + ((colorone - colortwo) / color2); }
@@ -181,13 +166,11 @@ public struct Colorf : IEquatable<Colorf>
 
     public static Colorf HSVToRGB(float h, float s, float v) => HSVToRGB(h, s, v, true);
 
-    public static Colorf HSVToRGB(float h, float s, float v, bool hdr)
-    {
+    public static Colorf HSVToRGB(float h, float s, float v, bool hdr) {
         var white = White;
         if (s == 0f) { white.R = v; white.G = v; white.B = v; }
         else if (v == 0f) { white.R = 0f; white.G = 0f; white.B = 0f; }
-        else
-        {
+        else {
             white.R = 0f; white.G = 0f; white.B = 0f;
             var r0 = v;
             var f = h * 6f;
@@ -196,8 +179,7 @@ public struct Colorf : IEquatable<Colorf>
             var r1 = r0 * (1f - s);
             var r2 = r0 * (1f - (s * remain));
             var r3 = r0 * (1f - (s * (1f - remain)));
-            switch (whole)
-            {
+            switch (whole) {
                 case -1: white.R = r0; white.G = r1; white.B = r2; break;
                 case 0: white.R = r0; white.G = r3; white.B = r1; break;
                 case 1: white.R = r2; white.G = r0; white.B = r1; break;
@@ -218,8 +200,7 @@ public struct Colorf : IEquatable<Colorf>
 /// Color32
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-public struct Color32
-{
+public struct Color32 {
     [FieldOffset(0)] int _rgba;
     /// <summary>
     /// The r
@@ -245,8 +226,7 @@ public struct Color32
     /// <param name="g">The g.</param>
     /// <param name="b">The b.</param>
     /// <param name="a">a.</param>
-    public Color32(byte r, byte g, byte b, byte a)
-    {
+    public Color32(byte r, byte g, byte b, byte a) {
         _rgba = 0;
         R = r;
         G = g;
@@ -279,8 +259,7 @@ public struct Color32
     /// <param name="b">The b.</param>
     /// <param name="t">The t.</param>
     /// <returns></returns>
-    public static Color32 Lerp(Color32 a, Color32 b, float t)
-    {
+    public static Color32 Lerp(Color32 a, Color32 b, float t) {
         t = MathX.Clamp(t);
         return new Color32((byte)(a.R + ((b.R - a.R) * t)), (byte)(a.G + ((b.G - a.G) * t)), (byte)(a.B + ((b.B - a.B) * t)), (byte)(a.A + ((b.A - a.A) * t)));
     }
@@ -318,8 +297,7 @@ public struct Color32
 /// <summary>
 /// Renderer
 /// </summary>
-public class Renderer : IDisposable
-{
+public class Renderer : IDisposable {
     /// <summary>
     /// Pass
     /// </summary>
@@ -354,17 +332,13 @@ public class Renderer : IDisposable
 /// <summary>
 /// Raster
 /// </summary>
-public unsafe static class Raster
-{
-    public static void BlitByPalette(Span<byte> data, int bbp, byte[] source, byte[] palette, int pbp, byte? alpha = null)
-    {
+public unsafe static class Raster {
+    public static void BlitByPalette(Span<byte> data, int bbp, byte[] source, byte[] palette, int pbp, byte? alpha = null) {
         fixed (byte* _ = data)
-            if (pbp == 3)
-            {
+            if (pbp == 3) {
                 if (bbp == 4)
                     if (alpha == null)
-                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
-                        {
+                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 4) {
                             var p = source[i] * 3;
                             //if (p + 3 > palette.Length) continue;
                             _[pi + 0] = palette[p + 0];
@@ -372,11 +346,9 @@ public unsafe static class Raster
                             _[pi + 2] = palette[p + 2];
                             _[pi + 3] = 0xFF;
                         }
-                    else
-                    {
+                    else {
                         var a = alpha.Value;
-                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
-                        {
+                        for (int i = 0, pi = 0; i < source.Length; i++, pi += 4) {
                             var s = source[i]; var p = s * 3;
                             //if (p + 3 > palette.Length) continue;
                             _[pi + 0] = palette[p + 0];
@@ -386,8 +358,7 @@ public unsafe static class Raster
                         }
                     }
                 else if (bbp == 3)
-                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 3)
-                    {
+                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 3) {
                         var p = source[i] * 3;
                         //if (p + 3 > palette.Length) continue;
                         _[pi + 0] = palette[p + 0];
@@ -395,11 +366,9 @@ public unsafe static class Raster
                         _[pi + 2] = palette[p + 2];
                     }
             }
-            else if (pbp == 4)
-            {
+            else if (pbp == 4) {
                 if (bbp == 4)
-                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 4)
-                    {
+                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 4) {
                         var p = source[i] * 4;
                         //if (p + 4 > palette.Length) continue;
                         _[pi + 0] = palette[p + 0];
@@ -408,8 +377,7 @@ public unsafe static class Raster
                         _[pi + 3] = palette[p + 3];
                     }
                 else if (bbp == 3)
-                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 3)
-                    {
+                    for (int i = 0, pi = 0; i < source.Length; i++, pi += 3) {
                         var p = source[i] * 4;
                         //if (p + 4 > palette.Length) continue;
                         _[pi + 0] = palette[p + 0];

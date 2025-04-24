@@ -18,14 +18,12 @@ namespace OpenStack;
 #region OpenGfx
 
 // UnityObjectModelBuilder
-class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D>
-{
+class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {
     GameObject _prefab;
 
     public override GameObject CreateNewObject(GameObject prefab) => GameObject.Instantiate(prefab);
 
-    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager)
-    {
+    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager) {
         //var abc = source.Begin("UN");
         //try
         //{
@@ -44,8 +42,7 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
         return prefab;
     }
 
-    public override void EnsurePrefab()
-    {
+    public override void EnsurePrefab() {
         if (_prefab != null) return;
         _prefab = new GameObject("_Prefabs");
         _prefab.SetActive(false);
@@ -53,37 +50,30 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
 }
 
 // UnityShaderBuilder
-class UnityShaderBuilder : ShaderBuilderBase<XShader>
-{
+class UnityShaderBuilder : ShaderBuilderBase<XShader> {
     public override XShader CreateShader(object path, IDictionary<string, bool> args = null) => XShader.Find((string)path);
 }
 
 // UnityTextureBuilder
-class UnityTextureBuilder : TextureBuilderBase<Texture2D>
-{
+class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
     Texture2D _defaultTexture;
     public override Texture2D DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
 
-    public void Release()
-    {
+    public void Release() {
         if (_defaultTexture != null) { UnityEngine.Object.Destroy(_defaultTexture); _defaultTexture = null; }
     }
 
     Texture2D CreateDefaultTexture() => new(4, 4);
 
-    public override Texture2D CreateTexture(Texture2D reuse, ITexture source, Range? range = null) => source.Create("UN", x =>
-    {
-        switch (x)
-        {
+    public override Texture2D CreateTexture(Texture2D reuse, ITexture source, Range? range = null) => source.Create("UN", x => {
+        switch (x) {
             case Texture_Bytes t:
                 if (t.Bytes == null) return DefaultTexture;
-                else if (t.Format is ValueTuple<Gfx.TextureFormat, TexturePixel> z)
-                {
+                else if (t.Format is ValueTuple<Gfx.TextureFormat, TexturePixel> z) {
                     var (format, pixel) = z;
                     var s = (pixel & TexturePixel.Signed) != 0;
                     var f = (pixel & TexturePixel.Float) != 0;
-                    var textureFormat = format switch
-                    {
+                    var textureFormat = format switch {
                         DXT1 => TextureFormat.DXT1,
                         DXT1A => default,
                         DXT3 => default,
@@ -107,8 +97,7 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D>
                         BGRA1555 => default,
                         _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{format}")
                     };
-                    if (format == DXT3)
-                    {
+                    if (format == DXT3) {
                         textureFormat = TextureFormat.DXT5;
                         TextureConvert.Dxt3ToDtx5(t.Bytes, source.Width, source.Height, source.MipMaps);
                     }
@@ -126,14 +115,12 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D>
 
     public override Texture2D CreateSolidTexture(int width, int height, float[] rgba) => new Texture2D(width, height);
 
-    public override Texture2D CreateNormalMap(Texture2D texture, float strength)
-    {
+    public override Texture2D CreateNormalMap(Texture2D texture, float strength) {
         strength = Mathf.Clamp(strength, 0.0F, 1.0F);
         float xLeft, xRight, yUp, yDown, yDelta, xDelta;
         var normalTexture = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, true);
         for (var y = 0; y < normalTexture.height; y++)
-            for (var x = 0; x < normalTexture.width; x++)
-            {
+            for (var x = 0; x < normalTexture.width; x++) {
                 xLeft = texture.GetPixel(x - 1, y).grayscale * strength;
                 xRight = texture.GetPixel(x + 1, y).grayscale * strength;
                 yUp = texture.GetPixel(x, y - 1).grayscale * strength;
@@ -153,31 +140,25 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D>
 /// <summary>
 /// A material that uses the new Standard Shader.
 /// </summary>
-class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager)
-{
+class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager) {
     static readonly int BaseMap = XShader.PropertyToID("_BaseMap"), BumpMap = XShader.PropertyToID("_BumpMap"), Cutoff = XShader.PropertyToID("_Cutoff");
     static readonly XShader _litShader = XShader.Find("Universal Render Pipeline/Lit"), _terrainShader = XShader.Find("Nature/Terrain/Diffuse");
 
     Material _defaultMaterial;
     public override Material DefaultMaterial => _defaultMaterial ??= new(_litShader);
 
-    public override Material CreateMaterial(object path)
-    {
-        switch (path)
-        {
-            case MaterialStdProp p:
-                {
+    public override Material CreateMaterial(object path) {
+        switch (path) {
+            case MaterialStdProp p: {
                     var m = new Material(_litShader);
                     if (p.AlphaBlended) m.SetFloat(Cutoff, 0.5f);
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
                     var mainTexture = p.Textures.TryGetValue("Main", out var z) ? z : default;
-                    if (mainTexture != null)
-                    {
+                    if (mainTexture != null) {
                         var tex = TextureManager.CreateTexture(mainTexture).tex;
                         m.SetTexture(BaseMap, tex);
                         var bumpTexture = p.Textures.TryGetValue("Bump", out z) ? z : default;
-                        if (bumpTexture != null || NormalGeneratorIntensity != null)
-                        {
+                        if (bumpTexture != null || NormalGeneratorIntensity != null) {
                             m.EnableKeyword("_NORMALMAP");
                             m.SetTexture(BumpMap, bumpTexture != null ? TextureManager.CreateTexture(bumpTexture).tex : TextureManager.CreateNormalMap(tex, NormalGeneratorIntensity.Value));
                         }
@@ -261,18 +242,15 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
 }
 
 // UnityModelApi
-public class UnityModelApi : IModelApi<GameObject, Material>
-{
+public class UnityModelApi : IModelApi<GameObject, Material> {
     public GameObject CreateObject(string name) => new(name);
     public void SetParent(GameObject source, GameObject parent) => source?.transform.SetParent(parent.transform, false);
-    public void Transform(GameObject source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale)
-    {
+    public void Transform(GameObject source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale) {
         source.transform.position = position.ToUnity();
         source.transform.rotation = rotation.ToUnity();
         source.transform.localScale = localScale.ToUnity();
     }
-    public void Transform(GameObject source, System.Numerics.Vector3 position, System.Numerics.Matrix4x4 rotation, System.Numerics.Vector3 localScale)
-    {
+    public void Transform(GameObject source, System.Numerics.Vector3 position, System.Numerics.Matrix4x4 rotation, System.Numerics.Vector3 localScale) {
         source.transform.position = position.ToUnity();
         source.transform.rotation = rotation.ToUnityRotation().ToUnityQuaternionAsRotation();
         source.transform.localScale = localScale.ToUnity();
@@ -280,13 +258,11 @@ public class UnityModelApi : IModelApi<GameObject, Material>
     public void AddMissingMeshCollidersRecursively(GameObject source, bool isStatic) { if (source.GetComponentInChildren<UnityEngine.Collider>() == null) source.AddMissingMeshCollidersRecursively(isStatic); }
     public void SetLayerRecursively(GameObject source, int layer) => source.SetLayerRecursively(layer);
 
-    public object CreateMesh(object mesh)
-    {
+    public object CreateMesh(object mesh) {
         throw new NotImplementedException();
     }
 
-    public void AddMeshRenderer(GameObject source, object mesh, Material material, bool enabled, bool isStatic)
-    {
+    public void AddMeshRenderer(GameObject source, object mesh, Material material, bool enabled, bool isStatic) {
         source.AddComponent<MeshFilter>().mesh = (Mesh)mesh;
         var meshRenderer = source.AddComponent<MeshRenderer>();
         meshRenderer.material = material;
@@ -294,8 +270,7 @@ public class UnityModelApi : IModelApi<GameObject, Material>
         source.isStatic = isStatic;
     }
 
-    public void AddSkinnedMeshRenderer(GameObject source, object mesh, Material material, bool enabled, bool isStatic)
-    {
+    public void AddSkinnedMeshRenderer(GameObject source, object mesh, Material material, bool enabled, bool isStatic) {
         var skin = source.AddComponent<SkinnedMeshRenderer>();
         skin.sharedMesh = (Mesh)mesh;
         skin.bones = null;
@@ -305,10 +280,8 @@ public class UnityModelApi : IModelApi<GameObject, Material>
         source.isStatic = isStatic;
     }
 
-    public void AddMeshCollider(GameObject source, object mesh, bool isKinematic, bool isStatic)
-    {
-        if (!isStatic)
-        {
+    public void AddMeshCollider(GameObject source, object mesh, bool isKinematic, bool isStatic) {
+        if (!isStatic) {
             source.AddComponent<BoxCollider>();
             source.AddComponent<Rigidbody>().isKinematic = isKinematic;
         }
@@ -317,14 +290,12 @@ public class UnityModelApi : IModelApi<GameObject, Material>
 }
 
 // UnityGfx2dSprite
-public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite>
-{
+public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
     readonly ISource _source;
     readonly SpriteManager<Sprite> _spriteManager;
     readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
 
-    public UnityGfxSprite2D(ISource source)
-    {
+    public UnityGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
         //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
@@ -342,14 +313,12 @@ public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite>
 }
 
 // UnityGfxSprite3D
-public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite>
-{
+public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
     readonly ISource _source;
     readonly SpriteManager<Sprite> _spriteManager;
     readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
 
-    public UnityGfxSprite3D(ISource source)
-    {
+    public UnityGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
         //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
@@ -367,16 +336,14 @@ public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite>
 }
 
 // UnityGfxModel
-public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XShader>
-{
+public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XShader> {
     readonly ISource _source;
     readonly TextureManager<Texture2D> _textureManager;
     readonly MaterialManager<Material, Texture2D> _materialManager;
     readonly ObjectModelManager<GameObject, Material, Texture2D> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
 
-    public UnityGfxModel(ISource source)
-    {
+    public UnityGfxModel(ISource source) {
         _source = source;
         _textureManager = new TextureManager<Texture2D>(source, new UnityTextureBuilder());
         _materialManager = new MaterialManager<Material, Texture2D>(source, _textureManager, new UnityMaterialBuilder(_textureManager));
@@ -402,14 +369,11 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
 public class UnitySfx(ISource source) : SystemSfx(source) { }
 
 // UnityPlatform
-public class UnityPlatform : Platform
-{
+public class UnityPlatform : Platform {
     public static readonly Platform This = new UnityPlatform();
-    UnityPlatform() : base("UN", "Unity")
-    {
+    UnityPlatform() : base("UN", "Unity") {
         var task = Task.Run(Application.platform.ToString);
-        try
-        {
+        try {
             Tag = task.Result;
             GfxFactory = source => [new UnityGfxSprite2D(source), new UnityGfxSprite3D(source), new UnityGfxModel(source)];
             SfxFactory = source => [new UnitySfx(source)];
@@ -420,22 +384,19 @@ public class UnityPlatform : Platform
         catch { Debug.Log($"UnityPlatform: Error"); Enabled = false; }
     }
 
-    public override unsafe void Activate()
-    {
+    public override unsafe void Activate() {
         base.Activate();
         UnsafeX.Memcpy = (dest, src, count) => UnsafeUtility.MemCpy(dest, src, count);
     }
 
-    public override unsafe void Deactivate()
-    {
+    public override unsafe void Deactivate() {
         base.Deactivate();
         UnsafeX.Memcpy = null;
     }
 }
 
 // UnityShellPlatform
-public class UnityShellPlatform : Platform
-{
+public class UnityShellPlatform : Platform {
     public static readonly Platform This = new UnityShellPlatform();
     UnityShellPlatform() : base("UN", "Unity") { }
 }

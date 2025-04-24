@@ -11,14 +11,12 @@ namespace OpenStack;
 #region OpenGfx
 
 // O3deGfxSprite3D
-public class O3deGfxSprite3D : IOpenGfxSprite<object, object>
-{
+public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
 
-    public O3deGfxSprite3D(ISource source)
-    {
+    public O3deGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -35,16 +33,14 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object>
 }
 
 // O3deGfxModel
-public class O3deGfxModel : IOpenGfxModel<object, object, object, object>
-{
+public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     readonly ISource _source;
     readonly TextureManager<object> _textureManager;
     readonly MaterialManager<object, object> _materialManager;
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
 
-    public O3deGfxModel(ISource source)
-    {
+    public O3deGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
         //_textureManager = new TextureManager<object>(source, new O3deTextureBuilder());
@@ -70,19 +66,16 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object>
 public class O3deSfx(ISource source) : SystemSfx(source) { }
 
 // O3dePlatform
-public class O3dePlatform : Platform
-{
+public class O3dePlatform : Platform {
     public static readonly Platform This = new O3dePlatform();
-    O3dePlatform() : base("O3", "O3de")
-    {
+    O3dePlatform() : base("O3", "O3de") {
         GfxFactory = source => [null, new O3deGfxSprite3D(source), new O3deGfxModel(source)];
         SfxFactory = source => [new O3deSfx(source)];
     }
 }
 
 // O3deShellPlatform
-public class O3deShellPlatform : Platform
-{
+public class O3deShellPlatform : Platform {
     public static readonly Platform This = new O3deShellPlatform();
     O3deShellPlatform() : base("O3", "O3de") { }
 }

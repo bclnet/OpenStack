@@ -1,8 +1,5 @@
 ﻿using OpenStack.Gfx.Egin;
-using OpenStack.Gfx.Particles;
-using OpenStack.Gfx.Particles.Emitters;
-using OpenStack.Gfx.Particles.Initializers;
-using OpenStack.Gfx.Particles.Operators;
+using OpenStack.Gfx.Egin.Particles;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;

@@ -22,8 +22,7 @@ public static class GodotExtensions {
     /// <summary>
     /// Adds mesh colliders to every descandant object with a mesh filter but no mesh collider, including the object itself.
     /// </summary>
-    public static void AddMissingMeshCollidersRecursively(this Node3D source, bool isStatic = true)
-    {
+    public static void AddMissingMeshCollidersRecursively(this Node3D source, bool isStatic = true) {
         if (!isStatic) return;
     }
 }

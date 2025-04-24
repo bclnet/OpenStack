@@ -8,12 +8,10 @@ namespace OpenStack.Gfx.Stride;
 /// <summary>
 /// TestTriRenderer
 /// </summary>
-public class TestTriRenderer : Renderer
-{
+public class TestTriRenderer : Renderer {
     readonly StrideGfxModel Gfx;
 
-    public TestTriRenderer(StrideGfxModel gfx, object obj)
-    {
+    public TestTriRenderer(StrideGfxModel gfx, object obj) {
         Gfx = gfx;
     }
 }
@@ -25,16 +23,14 @@ public class TestTriRenderer : Renderer
 /// <summary>
 /// TextureRenderer
 /// </summary>
-public class TextureRenderer : Renderer
-{
+public class TextureRenderer : Renderer {
     readonly StrideGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(StrideGfxModel gfx, object obj, Range level)
-    {
+    public TextureRenderer(StrideGfxModel gfx, object obj, Range level) {
         Gfx = gfx;
         Obj = obj;
         Level = level;
@@ -42,14 +38,12 @@ public class TextureRenderer : Renderer
         Texture = Gfx.TextureManager.CreateTexture(obj, level).tex;
     }
 
-    public override void Start()
-    {
+    public override void Start() {
         Log($"MakeTexture");
         Log($"Done");
     }
 
-    public override void Update(float deltaTime)
-    {
+    public override void Update(float deltaTime) {
         if (Obj is not ITextureFrames obj || Gfx == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;

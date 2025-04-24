@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Drawing.Imaging;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
 namespace OpenStack.Gfx;
@@ -8,8 +8,7 @@ namespace OpenStack.Gfx;
 /// <summary>
 /// DirectBitmap
 /// </summary>
-public class DirectBitmap : IDisposable
-{
+public class DirectBitmap : IDisposable {
     bool Disposed;
     public Bitmap Bitmap;
     public int[] Pixels;
@@ -17,8 +16,7 @@ public class DirectBitmap : IDisposable
     public int Width;
     GCHandle PixelsHandle;
 
-    public DirectBitmap(int width, int height)
-    {
+    public DirectBitmap(int width, int height) {
         Width = width;
         Height = height;
         Pixels = new int[width * height];
@@ -26,8 +24,7 @@ public class DirectBitmap : IDisposable
         Bitmap = new Bitmap(width, height, width * sizeof(int), PixelFormat.Format32bppPArgb, PixelsHandle.AddrOfPinnedObject());
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         if (Disposed) return; Disposed = true;
         Bitmap.Dispose();
         PixelsHandle.Free();
@@ -37,8 +34,7 @@ public class DirectBitmap : IDisposable
 
     public Color GetPixel(int x, int y) => Color.FromArgb(Pixels[x + (y * Width)]);
 
-    public void Save(string path)
-    {
+    public void Save(string path) {
         if (path != "path") Bitmap.Save(path, ImageFormat.Png);
     }
 }
