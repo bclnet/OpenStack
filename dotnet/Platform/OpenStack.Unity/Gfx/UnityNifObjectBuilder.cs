@@ -29,7 +29,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             var gobj = InstantiateRootNiObject(rootNiObject);
             // If the file doesn't contain any NiObjects we are looking for, return an empty Object.
             if (gobj == null) {
-                Log($"{_source.Name} resulted in a null Object when instantiated.");
+                Log($"{_source.Name} resulted in A null Object when instantiated.");
                 gobj = new Object(_source.Name);
             }
             // If gobj != null and the root NiObject is an NiNode, discard any transformations (Morrowind apparently does).
@@ -180,7 +180,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             UVs = new Vector2[vertices.Length];
             for (var i = 0; i < UVs.Length; i++) {
                 var NiTexCoord = data.UVSets[0, i];
-                UVs[i] = new Vector2(NiTexCoord.u, NiTexCoord.v);
+                UVs[i] = new Vector2(NiTexCoord.U, NiTexCoord.V);
             }
         }
         // triangle vertex indices
@@ -188,9 +188,9 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         for (var i = 0; i < data.Triangles.Length; i++) {
             var baseI = 3 * i;
             // Reverse triangle winding order.
-            triangles[baseI] = data.Triangles[i].v1;
-            triangles[baseI + 1] = data.Triangles[i].v3;
-            triangles[baseI + 2] = data.Triangles[i].v2;
+            triangles[baseI] = data.Triangles[i].V1;
+            triangles[baseI + 1] = data.Triangles[i].V3;
+            triangles[baseI + 2] = data.Triangles[i].V2;
         }
 
         // create the mesh.
@@ -260,12 +260,12 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         // apply texturingProperty
         if (tex != null && tex.TextureCount > 0) {
             var mt = mp.Textures;
-            if (tex.BaseTexture != null) mt.Add("Main", ((NiSourceTexture)_source.Blocks[tex.BaseTexture.source.Value]).FileName);
-            if (tex.DarkTexture != null) mt.Add("Dark", ((NiSourceTexture)_source.Blocks[tex.DarkTexture.source.Value]).FileName);
-            if (tex.DetailTexture != null) mt.Add("Detail", ((NiSourceTexture)_source.Blocks[tex.DetailTexture.source.Value]).FileName);
-            if (tex.GlossTexture != null) mt.Add("Gloss", ((NiSourceTexture)_source.Blocks[tex.GlossTexture.source.Value]).FileName);
-            if (tex.GlowTexture != null) mt.Add("Glow", ((NiSourceTexture)_source.Blocks[tex.GlowTexture.source.Value]).FileName);
-            if (tex.BumpMapTexture != null) mt.Add("Bump", ((NiSourceTexture)_source.Blocks[tex.BumpMapTexture.source.Value]).FileName);
+            if (tex.BaseTexture != null) mt.Add("Main", ((NiSourceTexture)_source.Blocks[tex.BaseTexture.Source.Value]).FileName);
+            if (tex.DarkTexture != null) mt.Add("Dark", ((NiSourceTexture)_source.Blocks[tex.DarkTexture.Source.Value]).FileName);
+            if (tex.DetailTexture != null) mt.Add("Detail", ((NiSourceTexture)_source.Blocks[tex.DetailTexture.Source.Value]).FileName);
+            if (tex.GlossTexture != null) mt.Add("Gloss", ((NiSourceTexture)_source.Blocks[tex.GlossTexture.Source.Value]).FileName);
+            if (tex.GlowTexture != null) mt.Add("Glow", ((NiSourceTexture)_source.Blocks[tex.GlowTexture.Source.Value]).FileName);
+            if (tex.BumpMapTexture != null) mt.Add("Bump", ((NiSourceTexture)_source.Blocks[tex.BumpMapTexture.Source.Value]).FileName);
         }
         return mp;
     }

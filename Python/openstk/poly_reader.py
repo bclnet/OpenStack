@@ -30,33 +30,33 @@ class Reader:
         return ms.read()
 
     # primatives : normal
-    def readDouble(self): return float.from_bytes(self.f.read(8), 'little')
+    def readDouble(self): return unpack('<d', self.f.read(8))
     def readSByte(self): return int.from_bytes(self.f.read(1), 'little', signed=True)
     def readInt16(self): return int.from_bytes(self.f.read(2), 'little', signed=True)
     def readInt32(self): return int.from_bytes(self.f.read(4), 'little', signed=True)
     def readInt64(self): return int.from_bytes(self.f.read(8), 'little', signed=True)
-    def readSingle(self): return float.from_bytes(self.f.read(4), 'little')
+    def readSingle(self): return unpack('<f', self.f.read(4))
     def readByte(self): return int.from_bytes(self.f.read(1), 'little', signed=False)
     def readUInt16(self): return int.from_bytes(self.f.read(2), 'little', signed=False)
     def readUInt32(self): return int.from_bytes(self.f.read(4), 'little', signed=False)
     def readUInt64(self): return int.from_bytes(self.f.read(8), 'little', signed=False)
 
     # primatives : endian
-    def readDoubleE(self): return float.from_bytes(self.f.read(8), 'big')
+    def readDoubleE(self): return unpack('>d', self.f.read(8))
     def readInt16E(self): return int.from_bytes(self.f.read(2), 'big', signed=True)
     def readInt32E(self): return int.from_bytes(self.f.read(4), 'big', signed=True)
     def readInt64E(self): return int.from_bytes(self.f.read(8), 'big', signed=True)
-    def readSingleE(self): return float.from_bytes(self.f.read(4), 'big')
+    def readSingleE(self): return unpack('>f', self.f.read(4))
     def readUInt16E(self): return int.from_bytes(self.f.read(2), 'big', signed=False)
     def readUInt32E(self): return int.from_bytes(self.f.read(4), 'big', signed=False)
     def readUInt64E(self): return int.from_bytes(self.f.read(8), 'big', signed=False)
 
     # primatives : endianX
-    def readDoubleX(self, endian: bool = True): return float.from_bytes(self.f.read(8), 'big' if endian else 'little')
+    def readDoubleX(self, endian: bool = True): return unpack('>d' if endian else '<d', self.f.read(8))
     def readInt16X(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
     def readInt32X(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
     def readInt64X(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
-    def readSingleX(self, endian: bool = True): return float.from_bytes(self.f.read(4), 'big' if endian else 'little')
+    def readSingleX(self, endian: bool = True): return unpack('>f' if endian else '<f', self.f.read(4))
     def readUInt16X(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
     def readUInt32X(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
     def readUInt64X(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
@@ -165,10 +165,10 @@ class Reader:
     def readHalf16(self) -> float: raise NotImplementedError()
     def readVector2(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle()])
     def readHalfVector2(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf()])
-    def readVector3(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle(), self.readSingle()])
+    def readVector3(self) -> np.ndarray: return np.array(unpack('<3f', self.f.read(12)))
     def readHalfVector3(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf(), self.readHalf()])
     def readHalf16Vector3(self) -> np.ndarray: return np.array([self.readHalf16(), self.readHalf16(), self.readHalf16()])
-    def readVector4(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()])
+    def readVector4(self) -> np.ndarray: return np.array(unpack('<4f', self.f.read(16)))
     def readHalfVector4(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf()])
     def readMatrix3x3(self) -> np.ndarray: return np.array([
         [self.readSingle(), self.readSingle(), self.readSingle()],
