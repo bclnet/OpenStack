@@ -219,9 +219,9 @@ public class GLMeshBufferCache {
 public static class MeshBatchRenderer {
     public static void Render(List<MeshBatchRequest> requests, Scene.RenderContext context) {
         // opaque: grouped by material
-        if (context.RenderPass == Pass.Both || context.RenderPass == Pass.Opaque) DrawBatch(requests, context);
+        if (context.Pass == Pass.Both || context.Pass == Pass.Opaque) DrawBatch(requests, context);
         // blended: in reverse order
-        if (context.RenderPass == Pass.Both || context.RenderPass == Pass.Translucent) {
+        if (context.Pass == Pass.Both || context.Pass == Pass.Translucent) {
             var holder = new MeshBatchRequest[1]; // holds the one request we render at a time
             requests.Sort((a, b) => -a.DistanceFromCamera.CompareTo(b.DistanceFromCamera));
             foreach (var request in requests) { holder[0] = request; DrawBatch(holder, context); }

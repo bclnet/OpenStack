@@ -2,10 +2,10 @@ from __future__ import annotations
 import os, numpy as np
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
-from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, TextureBuilderBase
-from openstk.gfx.opengl.egin import ShaderDebugLoader
+from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx.opengl import ShaderDebugLoader
 from openstk.gfx.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
-from openstk.platform import Platform
+from openstk.platform import Platform, SystemSfx
 
 # typedefs
 class Shader: pass
@@ -117,7 +117,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                                 case TextureFormat.ETC2: internalFormat = GL_COMPRESSED_SRGB8_ETC2 if s else GL_COMPRESSED_RGB8_ETC2
                                 case TextureFormat.ETC2_EAC: internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC if s else GL_COMPRESSED_RGBA8_ETC2_EAC
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            if not internalFormat or not compressedTexImage2D(source, level, internalFormat): return self.defaultTexture 
+                            if not internalFormat or not compressedTexImage2D(tex, level, internalFormat): return self.defaultTexture 
                         else:
                             match formatx:
                                 case TextureFormat.I8: internalFormat, format, type = GL_INTENSITY8, GL_RED, GL_UNSIGNED_BYTE
@@ -132,7 +132,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                                 case TextureFormat.BGRA32: internalFormat, format, type = GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8
                                 case TextureFormat.BGRA1555: internalFormat, format, type = GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REVERSED
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            if not internalFormat or not texImage2D(source, level, internalFormat, format, type): return self.defaultTexture
+                            if not internalFormat or not texImage2D(tex, level, internalFormat, format, type): return self.defaultTexture
                     else: raise Exception(f'Unknown format: {fmt}')
 
                     # texture
@@ -143,12 +143,12 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                     else:
                         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
                         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP if (source.texFlags & TextureFlags.SUGGEST_CLAMPS.value) != 0 else GL_REPEAT)
-                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP if (source.texFlags & TextureFlags.SUGGEST_CLAMPT.value) != 0 else GL_REPEAT)
+                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP if (tex.texFlags & TextureFlags.SUGGEST_CLAMPS.value) != 0 else GL_REPEAT)
+                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP if (tex.texFlags & TextureFlags.SUGGEST_CLAMPT.value) != 0 else GL_REPEAT)
                     glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
                     return id
                 case _: raise Exception(f'Unknown x: {x}')
-        return tex.begin('GL', lambdaX)
+        return tex.create('GL', lambdaX)
 
     def createSolidTexture(self, width: int, height: int, pixels: np.array) -> int:
         id = glGenTextures(1)
@@ -162,9 +162,9 @@ class OpenGLTextureBuilder(TextureBuilderBase):
         glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
         return id
 
-    def createNormalMap(self, source: int, strength: float) -> int: raise NotImplementedError()
+    def createNormalMap(self, tex: int, strength: float) -> int: raise NotImplementedError()
 
-    def deleteTexture(self, texture: int) -> None: glDeleteTexture(texture)
+    def deleteTexture(self, tex: int) -> None: glDeleteTexture(texture)
 
 # OpenGLMaterialBuilder
 class OpenGLMaterialBuilder(MaterialBuilderBase):
@@ -228,13 +228,13 @@ class OpenGLGfxModel(IOpenGfxModel):
     source: ISource
     textureManager: TextureManager
     materialManager: MaterialManager
-    objectManager: ObjectManager
+    objectManager: ObjectModelManager
     shaderManager: ShaderManager
     def __init__(self, source: ISource):
         self.source = source
         self.textureManager = TextureManager(source, OpenGLTextureBuilder())
         self.materialManager = MaterialManager(source, self.textureManager, OpenGLMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectManager(source, self.materialManager, OpenGLObjectModelBuilder())
+        self.objectManager = ObjectModelManager(source, self.materialManager, OpenGLObjectModelBuilder())
         self.shaderManager = ShaderManager(source, OpenGLShaderBuilder())
         self.meshBufferCache = GLMeshBufferCache()
 

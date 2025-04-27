@@ -458,7 +458,7 @@ public abstract class Camera {
 public abstract class EginRenderer : Renderer {
     //public virtual AABB BoundingBox { get; }
     public virtual (int, int)? GetViewport((int, int) size) => default;
-    public abstract void Render(Camera camera, Pass pass);
+    public virtual void Render(Camera camera, Pass pass) { }
 }
 
 #endregion
@@ -647,7 +647,7 @@ public class Scene(IOpenGfxModel gfx, Action<List<MeshBatchRequest>, Scene.Rende
     public class RenderContext {
         public Camera Camera;
         public Vector3? LightPosition;
-        public Renderer.Pass RenderPass;
+        public Renderer.Pass Pass;
         public Shader ReplacementShader;
         public bool ShowDebug;
     }
@@ -726,7 +726,7 @@ public class Scene(IOpenGfxModel gfx, Action<List<MeshBatchRequest>, Scene.Rende
         var renderContext = new RenderContext {
             Camera = camera,
             LightPosition = LightPosition,
-            RenderPass = Renderer.Pass.Opaque,
+            Pass = Renderer.Pass.Opaque,
             ShowDebug = ShowDebug,
         };
 

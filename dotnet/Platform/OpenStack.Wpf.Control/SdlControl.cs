@@ -9,7 +9,6 @@ namespace OpenStack.Wpf.Control;
 public abstract class SdlControl : UserControl {
     #region Binding
 
-    protected object Obj;
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 

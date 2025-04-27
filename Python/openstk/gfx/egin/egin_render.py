@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math, numpy as np
 from enum import Enum, Flag
-# from openstk.gfx import Shader
+from openstk.gfx import Renderer #, Shader
 from openstk.gfx.util import _throw, _np_normalize, _np_getTranslation4x4, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
 
 # typedefs
@@ -383,10 +383,10 @@ class Camera:
 #region Render
 
 # EginRenderer
-class EginRenderer:
+class EginRenderer(Renderer):
     # boundingBox: AABB
     def getViewport(self, size: (int, int)) -> (int, int): pass
-    def render(self, camera: Camera, passx: Pass) -> None: pass
+    def render(self, camera: Camera, passx: Renderer.Pass) -> None: pass
 
 #endregion
 
@@ -554,7 +554,7 @@ class Scene:
     class RenderContext:
         camera: Camera
         lightPosition: np.ndarray
-        renderPass: RenderPass
+        passx: Renderer.Pass
         replacementShader: Shader
         showDebug: bool
 
@@ -625,7 +625,7 @@ class Scene:
         renderContext = RenderContext(
             camera = camera,
             lightPosition = self.lightPosition,
-            renderPass = RenderPass.Opaque,
+            passx = Renderer.Pass.Opaque,
             showDebug = self.showDebug)
 
         # Blended render pass, back to front for loose nodes

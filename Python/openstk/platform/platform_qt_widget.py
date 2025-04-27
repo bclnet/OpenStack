@@ -1,5 +1,5 @@
 import sys, os, numpy as np
-from PyQt6.QtCore import Qt, QEvent, QTimer
+from PyQt6.QtCore import Qt, QEvent, QTimer, QElapsedTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 from openstk.gfx import ITextureSelect, MouseState, KeyboardState
@@ -7,7 +7,7 @@ from openstk.gfx import ITextureSelect, MouseState, KeyboardState
 from OpenGL.GL import *
 from openstk.gfx.qt_widget.opengl import QOpenGLWidget
 # panda3d
-from panda3d.core import loadPrcFileData, WindowProperties, FrameBufferProperties
+from panda3d.core import loadPrcFileData, WindowProperties #, FrameBufferProperties
 from direct.showbase.ShowBase import ShowBase
 # pygame
 import pygame
@@ -16,12 +16,9 @@ import pygame
 # typedefs
 class Renderer: pass
 class EginRenderer: pass
-class GLCamera: pass
+class Camera: pass
 class IOpenGfx: pass
 class IOpenSfx: pass
-class IOpenGLGfx: pass
-class IPanda3dGfx: pass
-class IPygameGfx: pass
 
 #region OpenGLWidget
 
@@ -34,16 +31,18 @@ class OpenGLWidget(QOpenGLWidget):
 
     def __init__(self, parent: object, tab: object, interval: float = 1.0):
         super().__init__(interval)
-        self.gfx: IOpenGfx = parent.gfx
-        self.sfx: IOpenSfx = parent.sfx
+        self.gfx: list[IOpenGfx] = parent.gfx
+        self.sfx: list[IOpenSfx] = parent.sfx
         self.path: object = parent.path
         self.source: object = tab.value
         self.type: str = tab.type
         
+    def createRenderer(self) -> Renderer: pass
+    
     def onSourceChanged(self) -> None:
         if not self.gfx or not self.source or not self.type: return
-        self.renderer = openGLCreateView(self, self.gfx, self.source, self.type)
-        self.renderer.start()
+        self.renderer = self.createRenderer()
+        if self.renderer: self.renderer.start()
         if isinstance(self.source, ITextureSelect): self.source.select(self.id)
 
     # Render
@@ -53,15 +52,15 @@ class OpenGLWidget(QOpenGLWidget):
         self.onSourceChanged()
 
     def setViewport(self, x: int, y: int, width: int, height: int) -> None:
-        p = self.view.getViewport((width, height)) or (width, height) if self.view else (width, height)
+        p = self.renderer.getViewport((width, height)) or (width, height) if self.renderer else (width, height)
         super().setViewport(x, y, p[0], p[1])
 
-    def render(self, camera: GLCamera, frameTime: float) -> None:
-        if self.view: self.view.render(camera, frameTime)
+    def render(self, camera: Camera, frameTime: float) -> None:
+        if self.renderer: self.renderer.render(camera, frameTime)
 
     def tick(self) -> None:
         super().tick()
-        if self.view: self.view.update(self.deltaTime)
+        if self.renderer: self.renderer.update(self.deltaTime)
         self.render(self.camera, 0.0)
 
     # HandleInput
@@ -99,10 +98,12 @@ class Panda3dWidget(QWidget, ShowBase):
         # self.camera.lookAt(0, 0, 0)
         self.onSourceChanged()
 
+    def createRenderer(self) -> Renderer: pass
+    
     def onSourceChanged(self) -> None:
         if not self.gfx or not self.source or not self.type: return
-        self.view = panda3dCreateView(self, self.gfx, self.source, self.type)
-        self.view.start()
+        self.renderer = self.createRenderer()
+        if self.renderer: self.renderer.start()
         if isinstance(self.source, ITextureSelect): self.source.select(self.id)
 
     def closeEvent(self, event):
@@ -122,9 +123,10 @@ class Panda3dWidget(QWidget, ShowBase):
         self.openDefaultWindow(props=wp)
         self.run()
         
-    # def tick(self):
+    def tick(self):
+        print('tick')
     #     self.engine.render_frame()
-    #     self.clock.tick()
+        self.clock.tick()
 
     def resizeEvent(self, event):
         wp = WindowProperties()
@@ -167,6 +169,7 @@ class PygameWidget(QWidget):
         self.widget.setGeometry(0, 0, 640, 480)  # set the size and position of the QWidget
         self.timer = QTimer(self) # create a timer to control the animation
         self.timer.timeout.connect(self.tick) # connect the timeout signal of the timer to the
+        self.timerDuration = QElapsedTimer()
 
         # add the Pygame widget to the main window
         layout = QVBoxLayout()
@@ -185,15 +188,19 @@ class PygameWidget(QWidget):
         # start / update
         if not self.timer.isActive(): self.timer.start(1000 // 60) # start the timer with an interval of 1000 / 60 milliseconds to update the Pygame surface at 60 FPS
         else: self.timer.start()
+        self.timerDuration.start()
         self.onSourceChanged()
 
     def unload(self):
+        self.timerDuration.stop()
         self.timer.stop()
 
+    def createRenderer(self) -> Renderer: pass
+    
     def onSourceChanged(self) -> None:
         if not self.gfx or not self.source or not self.type: return
-        self.view = pygameCreateView(self, self.gfx, self.source, self.type)
-        self.view.start()
+        self.renderer = self.createRenderer()
+        if self.renderer: self.renderer.start()
         if isinstance(self.source, ITextureSelect): self.source.select(self.id)
 
     # Render
@@ -203,8 +210,9 @@ class PygameWidget(QWidget):
         pass
 
     def tick(self):
+        deltaTime = self.timerDuration.nsecsElapsed(); self.timerDuration.restart()
         self.surface.fill((220, 220, 220))
-        self.view.update()
+        if self.renderer: self.renderer.update(deltaTime)
         pygame.display.update()
 
 #endregion

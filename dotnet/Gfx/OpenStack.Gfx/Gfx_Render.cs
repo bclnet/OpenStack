@@ -297,7 +297,7 @@ public struct Color32 {
 /// <summary>
 /// Renderer
 /// </summary>
-public class Renderer : IDisposable {
+public abstract class Renderer : IDisposable {
     /// <summary>
     /// Pass
     /// </summary>

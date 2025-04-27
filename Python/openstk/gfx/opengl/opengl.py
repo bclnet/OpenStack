@@ -152,7 +152,7 @@ class ShaderDebugLoader(ShaderLoader):
             case 'vr_unlit.vfx': return 'vr_unlit'
             case 'vr_black_unlit.vfx': return 'vr_black_unlit'
             case 'water_dota.vfx': return 'water'
-            case 'hero.vfx', 'hero_underlords.vfx': return 'dota_hero'
+            case 'hero.vfx' | 'hero_underlords.vfx': return 'dota_hero'
             case 'multiblend.vfx': return 'multiblend'
             case _:
                 if name.startsWith('vr_'): return 'vr_standard'

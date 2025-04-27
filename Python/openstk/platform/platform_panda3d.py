@@ -1,10 +1,7 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk.gfx import IOpenGfxModel, Shader, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, MaterialBuilderBase, ShaderBuilderBase, TextureBuilderBase, MaterialManager
+from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platform import Platform, SystemSfx
-
-# typedefs
-class IPanda3dGfx: pass
 
 #region OpenGfx
 

@@ -8,7 +8,6 @@ namespace OpenStack.Wpf.Control;
 public abstract class GodotControl : ShellControl {
     #region Binding
 
-    protected object Obj;
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 

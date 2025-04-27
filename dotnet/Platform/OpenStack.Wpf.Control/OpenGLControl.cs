@@ -15,7 +15,6 @@ public abstract class OpenGLControl : GLControl {
 
     #region Binding
 
-    protected object Obj;
     protected EginRenderer Renderer;
     protected abstract Renderer CreateRenderer();
 
@@ -104,7 +103,7 @@ public abstract class OpenGLControl : GLControl {
     }
 
     void Select(int id) {
-        if (Obj is ITextureSelect z2) z2.Select(id);
+        if (Source is ITextureSelect z2) z2.Select(id);
         OnSourceChanged();
         //Views.FileExplorer.Current.OnInfoUpdated();
     }

@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QSurfaceFormat, QPainter, QColor
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget as QOpenGLWidgetX
 from PyQt6.QtOpenGL import QOpenGLBuffer, QOpenGLShader, QOpenGLShaderProgram, QOpenGLTexture, QOpenGLDebugLogger, QOpenGLDebugMessage
-from openstk.gfx import MouseState, KeyboardState
+from openstk.gfx import GfX, MouseState, KeyboardState
 from openstk.gfx.opengl.egin import GLCamera, GLDebugCamera
 
 # https://forum.qt.io/topic/137468/a-few-basic-changes-in-pyqt6-and-pyside6-regarding-shader-based-opengl-graphics
@@ -109,8 +109,8 @@ class QOpenGLWidget(QOpenGLWidgetX):
 
     checkGLCalled: bool = False
     def checkGL(self):
-        if OpenGLView.checkGLCalled == True: return
-        OpenGLView.checkGLCalled = True
+        if QOpenGLWidget.checkGLCalled: return
+        QOpenGLWidget.checkGLCalled = True
         format = QSurfaceFormat.defaultFormat()
         print(f'QSurface format: {format.version()}')
         print(f'OpenGL version: {glGetString(GL_VERSION).decode()}')

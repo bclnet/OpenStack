@@ -18,7 +18,7 @@ public class OpenGLTextureRenderer : EginRenderer {
     readonly OpenGLGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;
-    readonly int Texture;
+    readonly int Tex;
     readonly Shader Shader;
     readonly object ShaderTag;
     readonly int Vao;
@@ -30,9 +30,9 @@ public class OpenGLTextureRenderer : EginRenderer {
         Gfx = gfx;
         Obj = obj;
         Level = level;
-        Gfx.TextureManager.DeleteTexture(obj);
-        Texture = Gfx.TextureManager.CreateTexture(obj, level).tex;
-        (Shader, ShaderTag) = Gfx.ShaderManager.CreateShader("plane");
+        gfx.TextureManager.DeleteTexture(obj);
+        Tex = gfx.TextureManager.CreateTexture(obj, level).tex;
+        (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("plane");
         Vao = SetupVao();
         Background = background;
     }
@@ -80,7 +80,7 @@ public class OpenGLTextureRenderer : EginRenderer {
         GL.UseProgram(Shader.Program);
         GL.BindVertexArray(Vao);
         GL.EnableVertexAttribArray(0);
-        if (Texture > -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, Texture); }
+        if (Tex > -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, Tex); }
         GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
         GL.BindVertexArray(0); // unbind vao
         GL.UseProgram(0); // unbind program
@@ -102,7 +102,7 @@ public class OpenGLTextureRenderer : EginRenderer {
 /// <summary>
 /// OpenGLObjectRenderer
 /// </summary>
-public class OpenGLObjectRenderer : Renderer {
+public class OpenGLObjectRenderer : EginRenderer {
     public OpenGLObjectRenderer(OpenGLGfxModel gfx, object obj) {
     }
 }
@@ -727,175 +727,208 @@ public class OpenGLParticleRenderer : EginRenderer {
 
     #endregion
 
-    public IEnumerable<IParticleEmitter> Emitters = [];
-    public IEnumerable<IParticleInitializer> Initializers = [];
-    public IEnumerable<IParticleOperator> Operators = [];
-    public IEnumerable<IParticleRenderer> Renderers = [];
+    #region ParticleRenderer
 
-    public AABB BoundingBox { get; private set; }
+    public class ParticleRenderer {
+        public IEnumerable<IParticleEmitter> Emitters = [];
+        public IEnumerable<IParticleInitializer> Initializers = [];
+        public IEnumerable<IParticleOperator> Operators = [];
+        public IEnumerable<IParticleRenderer> Renderers = [];
 
-    public Vector3 Position {
-        get => _systemRenderState.GetControlPoint(0);
-        set {
-            _systemRenderState.SetControlPoint(0, value);
-            foreach (var child in _childParticleRenderers) child.Position = value;
+        public AABB BoundingBox { get; private set; }
+
+        public Vector3 Position {
+            get => _systemRenderState.GetControlPoint(0);
+            set {
+                _systemRenderState.SetControlPoint(0, value);
+                foreach (var child in _childParticleRenderers) child.Position = value;
+            }
         }
-    }
 
-    readonly OpenGLGfxModel _gfx;
-    readonly List<OpenGLParticleRenderer> _childParticleRenderers;
-    bool _hasStarted = false;
+        readonly OpenGLGfxModel _gfx;
+        readonly List<ParticleRenderer> _childParticleRenderers;
+        bool _hasStarted = false;
 
-    ParticleBag _particleBag;
-    int _particlesEmitted = 0;
-    ParticleSystemRenderState _systemRenderState;
+        ParticleBag _particleBag;
+        int _particlesEmitted = 0;
+        ParticleSystemRenderState _systemRenderState;
 
-    // TODO: Passing in position here was for testing, do it properly
-    public OpenGLParticleRenderer(OpenGLGfxModel gfx, IParticleSystem particleSystem, Vector3 pos = default) {
-        _gfx = gfx;
-        _childParticleRenderers = [];
+        // TODO: Passing in position here was for testing, do it properly
+        public ParticleRenderer(OpenGLGfxModel gfx, IParticleSystem particleSystem, Vector3 pos = default) {
+            _gfx = gfx;
+            _childParticleRenderers = [];
 
-        _particleBag = new ParticleBag(100, true);
-        _systemRenderState = new ParticleSystemRenderState();
-        _systemRenderState.SetControlPoint(0, pos);
+            _particleBag = new ParticleBag(100, true);
+            _systemRenderState = new ParticleSystemRenderState();
+            _systemRenderState.SetControlPoint(0, pos);
 
-        BoundingBox = new AABB(pos + new Vector3(-32, -32, -32), pos + new Vector3(32, 32, 32));
+            BoundingBox = new AABB(pos + new Vector3(-32, -32, -32), pos + new Vector3(32, 32, 32));
 
-        SetupEmitters(particleSystem.Data, particleSystem.Emitters);
-        SetupInitializers(particleSystem.Initializers);
-        SetupOperators(particleSystem.Operators);
-        SetupRenderers(particleSystem.Renderers);
+            SetupEmitters(particleSystem.Data, particleSystem.Emitters);
+            SetupInitializers(particleSystem.Initializers);
+            SetupOperators(particleSystem.Operators);
+            SetupRenderers(particleSystem.Renderers);
 
-        SetupChildParticles(particleSystem.GetChildParticleNames(true));
-    }
+            SetupChildParticles(particleSystem.GetChildParticleNames(true));
+        }
 
-    public new void Start() {
-        foreach (var emitter in Emitters) emitter.Start(EmitParticle);
-        foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Start();
-    }
+        public void Start() {
+            foreach (var emitter in Emitters) emitter.Start(EmitParticle);
+            foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Start();
+        }
 
-    void EmitParticle() {
-        var index = _particleBag.Add();
-        if (index < 0) { Console.WriteLine("Out of space in particle bag"); return; }
-        _particleBag.LiveParticles[index].ParticleCount = _particlesEmitted++;
-        InitializeParticle(ref _particleBag.LiveParticles[index]);
-    }
+        void EmitParticle() {
+            var index = _particleBag.Add();
+            if (index < 0) { Console.WriteLine("Out of space in particle bag"); return; }
+            _particleBag.LiveParticles[index].ParticleCount = _particlesEmitted++;
+            InitializeParticle(ref _particleBag.LiveParticles[index]);
+        }
 
-    void InitializeParticle(ref Particle p) {
-        p.Position = _systemRenderState.GetControlPoint(0);
-        foreach (var initializer in Initializers) initializer.Initialize(ref p, _systemRenderState);
-    }
+        void InitializeParticle(ref Particle p) {
+            p.Position = _systemRenderState.GetControlPoint(0);
+            foreach (var initializer in Initializers) initializer.Initialize(ref p, _systemRenderState);
+        }
 
-    public new void Stop() {
-        foreach (var emitter in Emitters) emitter.Stop();
-        foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Stop();
-    }
+        public void Stop() {
+            foreach (var emitter in Emitters) emitter.Stop();
+            foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Stop();
+        }
 
-    public void Restart() {
-        Stop();
-        _systemRenderState.Lifetime = 0;
-        _particleBag.Clear();
-        Start();
+        public void Restart() {
+            Stop();
+            _systemRenderState.Lifetime = 0;
+            _particleBag.Clear();
+            Start();
 
-        foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Restart();
-    }
+            foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Restart();
+        }
 
-    public override void Update(float deltaTime) {
-        if (!_hasStarted) { Start(); _hasStarted = true; }
+        public void Update(float deltaTime) {
+            if (!_hasStarted) { Start(); _hasStarted = true; }
 
-        _systemRenderState.Lifetime += deltaTime;
+            _systemRenderState.Lifetime += deltaTime;
 
-        foreach (var emitter in Emitters) emitter.Update(deltaTime);
-        foreach (var particleOperator in Operators) particleOperator.Update(_particleBag.LiveParticles, deltaTime, _systemRenderState);
+            foreach (var emitter in Emitters) emitter.Update(deltaTime);
+            foreach (var particleOperator in Operators) particleOperator.Update(_particleBag.LiveParticles, deltaTime, _systemRenderState);
 
-        // Remove all dead particles
-        _particleBag.PruneExpired();
+            // Remove all dead particles
+            _particleBag.PruneExpired();
 
-        var center = _systemRenderState.GetControlPoint(0);
-        if (_particleBag.Count == 0) BoundingBox = new AABB(center, center);
-        else {
-            var minParticlePos = center;
-            var maxParticlePos = center;
+            var center = _systemRenderState.GetControlPoint(0);
+            if (_particleBag.Count == 0) BoundingBox = new AABB(center, center);
+            else {
+                var minParticlePos = center;
+                var maxParticlePos = center;
 
-            var liveParticles = _particleBag.LiveParticles;
-            for (var i = 0; i < liveParticles.Length; ++i) {
-                var pos = liveParticles[i].Position;
-                var radius = liveParticles[i].Radius;
-                minParticlePos = Vector3.Min(minParticlePos, pos - new Vector3(radius));
-                maxParticlePos = Vector3.Max(maxParticlePos, pos + new Vector3(radius));
+                var liveParticles = _particleBag.LiveParticles;
+                for (var i = 0; i < liveParticles.Length; ++i) {
+                    var pos = liveParticles[i].Position;
+                    var radius = liveParticles[i].Radius;
+                    minParticlePos = Vector3.Min(minParticlePos, pos - new Vector3(radius));
+                    maxParticlePos = Vector3.Max(maxParticlePos, pos + new Vector3(radius));
+                }
+
+                BoundingBox = new AABB(minParticlePos, maxParticlePos);
             }
 
-            BoundingBox = new AABB(minParticlePos, maxParticlePos);
+            foreach (var childParticleRenderer in _childParticleRenderers) {
+                childParticleRenderer.Update(deltaTime);
+                BoundingBox = BoundingBox.Union(childParticleRenderer.BoundingBox);
+            }
+
+            // Restart if all emitters are done and all particles expired
+            if (IsFinished()) Restart();
         }
 
-        foreach (var childParticleRenderer in _childParticleRenderers) {
-            childParticleRenderer.Update(deltaTime);
-            BoundingBox = BoundingBox.Union(childParticleRenderer.BoundingBox);
+        public bool IsFinished()
+            => Emitters.All(e => e.IsFinished)
+            && _particleBag.Count == 0
+            && _childParticleRenderers.All(r => r.IsFinished());
+
+        public void Render(Camera camera, Pass pass) {
+            if (_particleBag.Count == 0) return;
+            if (pass == Pass.Translucent || pass == Pass.Both)
+                foreach (var renderer in Renderers) renderer.Render(_particleBag, camera.ViewProjectionMatrix, camera.CameraViewMatrix);
+            foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Render(camera, Pass.Both);
         }
 
-        // Restart if all emitters are done and all particles expired
-        if (IsFinished()) Restart();
+        public IEnumerable<string> GetSupportedRenderModes() => Renderers.SelectMany(renderer => renderer.GetSupportedRenderModes()).Distinct();
+
+        void SetupEmitters(IDictionary<string, object> baseProperties, IEnumerable<IDictionary<string, object>> emitterData) {
+            var emitters = new List<IParticleEmitter>();
+            foreach (var emitterInfo in emitterData) {
+                var emitterClass = emitterInfo.Get<string>("_class");
+                if (ParticleControllerFactory.TryCreateEmitter(emitterClass, baseProperties, emitterInfo, out var emitter)) emitters.Add(emitter);
+                else Console.WriteLine($"Unsupported emitter class '{emitterClass}'.");
+            }
+            Emitters = emitters;
+        }
+
+        void SetupInitializers(IEnumerable<IDictionary<string, object>> initializerData) {
+            var initializers = new List<IParticleInitializer>();
+            foreach (var initializerInfo in initializerData) {
+                var initializerClass = initializerInfo.Get<string>("_class");
+                if (ParticleControllerFactory.TryCreateInitializer(initializerClass, initializerInfo, out var initializer)) initializers.Add(initializer);
+                else Console.WriteLine($"Unsupported initializer class '{initializerClass}'.");
+            }
+            Initializers = initializers;
+        }
+
+        void SetupOperators(IEnumerable<IDictionary<string, object>> operatorData) {
+            var operators = new List<IParticleOperator>();
+            foreach (var operatorInfo in operatorData) {
+                var operatorClass = operatorInfo.Get<string>("_class");
+                if (ParticleControllerFactory.TryCreateOperator(operatorClass, operatorInfo, out var @operator)) operators.Add(@operator);
+                else Console.WriteLine($"Unsupported operator class '{operatorClass}'.");
+            }
+            Operators = operators;
+        }
+
+        void SetupRenderers(IEnumerable<IDictionary<string, object>> rendererData) {
+            var renderers = new List<IParticleRenderer>();
+            foreach (var rendererInfo in rendererData) {
+                var rendererClass = rendererInfo.Get<string>("_class");
+                if (ParticleControllerFactory.TryCreateRender(rendererClass, rendererInfo, _gfx, out var renderer)) renderers.Add(renderer);
+                else Console.WriteLine($"Unsupported renderer class '{rendererClass}'.");
+            }
+            Renderers = renderers;
+        }
+
+        void SetupChildParticles(IEnumerable<string> childNames) {
+            foreach (var childName in childNames) {
+                var childSystem = _gfx.LoadFileObject<IParticleSystem>(childName).Result;
+                _childParticleRenderers.Add(new ParticleRenderer(_gfx, childSystem, _systemRenderState.GetControlPoint(0)));
+            }
+        }
     }
 
-    public bool IsFinished()
-        => Emitters.All(e => e.IsFinished)
-        && _particleBag.Count == 0
-        && _childParticleRenderers.All(r => r.IsFinished());
+    #endregion
 
-    public override void Render(Camera camera, Pass pass) {
-        if (_particleBag.Count == 0) return;
-        if (pass == Pass.Translucent || pass == Pass.Both)
-            foreach (var renderer in Renderers) renderer.Render(_particleBag, camera.ViewProjectionMatrix, camera.CameraViewMatrix);
-        foreach (var childParticleRenderer in _childParticleRenderers) childParticleRenderer.Render(camera, Pass.Both);
+    public OpenGLParticleRenderer(OpenGLGfxModel gfx, object obj) {
     }
+}
 
-    public IEnumerable<string> GetSupportedRenderModes() => Renderers.SelectMany(renderer => renderer.GetSupportedRenderModes()).Distinct();
+#endregion
 
-    void SetupEmitters(IDictionary<string, object> baseProperties, IEnumerable<IDictionary<string, object>> emitterData) {
-        var emitters = new List<IParticleEmitter>();
-        foreach (var emitterInfo in emitterData) {
-            var emitterClass = emitterInfo.Get<string>("_class");
-            if (ParticleControllerFactory.TryCreateEmitter(emitterClass, baseProperties, emitterInfo, out var emitter)) emitters.Add(emitter);
-            else Console.WriteLine($"Unsupported emitter class '{emitterClass}'.");
-        }
-        Emitters = emitters;
+#region OpenGLCellRenderer
+
+/// <summary>
+/// OpenGLCellRenderer
+/// </summary>
+public class OpenGLCellRenderer : EginRenderer {
+    public OpenGLCellRenderer(OpenGLGfxModel gfx, object obj) {
     }
+}
 
-    void SetupInitializers(IEnumerable<IDictionary<string, object>> initializerData) {
-        var initializers = new List<IParticleInitializer>();
-        foreach (var initializerInfo in initializerData) {
-            var initializerClass = initializerInfo.Get<string>("_class");
-            if (ParticleControllerFactory.TryCreateInitializer(initializerClass, initializerInfo, out var initializer)) initializers.Add(initializer);
-            else Console.WriteLine($"Unsupported initializer class '{initializerClass}'.");
-        }
-        Initializers = initializers;
-    }
+#endregion
 
-    void SetupOperators(IEnumerable<IDictionary<string, object>> operatorData) {
-        var operators = new List<IParticleOperator>();
-        foreach (var operatorInfo in operatorData) {
-            var operatorClass = operatorInfo.Get<string>("_class");
-            if (ParticleControllerFactory.TryCreateOperator(operatorClass, operatorInfo, out var @operator)) operators.Add(@operator);
-            else Console.WriteLine($"Unsupported operator class '{operatorClass}'.");
-        }
-        Operators = operators;
-    }
+#region OpenGLWorldRenderer
 
-    void SetupRenderers(IEnumerable<IDictionary<string, object>> rendererData) {
-        var renderers = new List<IParticleRenderer>();
-        foreach (var rendererInfo in rendererData) {
-            var rendererClass = rendererInfo.Get<string>("_class");
-            if (ParticleControllerFactory.TryCreateRender(rendererClass, rendererInfo, _gfx, out var renderer)) renderers.Add(renderer);
-            else Console.WriteLine($"Unsupported renderer class '{rendererClass}'.");
-        }
-        Renderers = renderers;
-    }
-
-    void SetupChildParticles(IEnumerable<string> childNames) {
-        foreach (var childName in childNames) {
-            var childSystem = _gfx.LoadFileObject<IParticleSystem>(childName).Result;
-            _childParticleRenderers.Add(new OpenGLParticleRenderer(_gfx, childSystem, _systemRenderState.GetControlPoint(0)));
-        }
+/// <summary>
+/// OpenGLWorldRenderer
+/// </summary>
+public class OpenGLWorldRenderer : EginRenderer {
+    public OpenGLWorldRenderer(OpenGLGfxModel gfx, object obj) {
     }
 }
 
@@ -926,7 +959,7 @@ public class OpenGLTestTriRenderer : EginRenderer {
         var vao = GL.GenVertexArray(); GL.BindVertexArray(vao);
         var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
         float[] vertices = [
-            // xyz           :rgb
+           // xyz           :rgb
            -0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
             0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
             0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f

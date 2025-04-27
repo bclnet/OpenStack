@@ -27,7 +27,7 @@ class Renderer:
 # Raster
 class Raster:
     @staticmethod
-    def blitPalette(data: bytearray, bbp: int, source: bytes, palette: bytes, pbp: int, alpha: int = None) -> None:
+    def blitByPalette(data: bytearray, bbp: int, source: bytes, palette: bytes, pbp: int, alpha: int = None) -> None:
         pi = 0
         if pbp == 3:
             if bbp == 4:

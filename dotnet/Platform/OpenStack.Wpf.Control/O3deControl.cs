@@ -8,7 +8,6 @@ namespace OpenStack.Wpf.Control;
 public abstract class O3deControl : ShellControl {
     #region Binding
 
-    protected object Obj;
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 

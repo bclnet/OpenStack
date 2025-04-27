@@ -8,7 +8,6 @@ namespace OpenStack.Wpf.Control;
 public abstract class UnrealControl : ShellControl {
     #region Binding
 
-    protected object Obj;
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 

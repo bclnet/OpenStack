@@ -1,1 +1,2 @@
-# from .gl_renderer import *
+from .pygame_render import *
+from .pygame import *

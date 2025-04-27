@@ -2,24 +2,19 @@ from __future__ import annotations
 import math, numpy as np
 from enum import Enum
 from OpenGL.GL import *
-from openstk.gfx import Key, KeyboardState, MouseState
-from openstk.gfx.egin import Scene, Camera, DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture
-# from openstk.gfx import IOpenGLGfx
-# from openstk.gfx.egin.gfx_scene import Octree, RenderPass
+from openstk.gfx import Key, KeyboardState, MouseState, Renderer #, IOpenGLGfx
+from openstk.gfx.egin import Scene, Camera, DrawCall, MeshBatchRequest, RenderMaterial, RenderableMesh, IPickingTexture, Octree 
 
 CAMERASPEED = 300 # Per second
 
 # typedefs
-class Shader: pass
+class IOpenGLGfx: pass
 class IVBIB: pass
 class IMaterial: pass
 class IMesh: pass
 class IModel: pass
-class IOpenGLGfx: pass
-#
-class Camera: pass
-# class Shader: pass
 class AABB: pass
+class Shader: pass
 
 #region Camera
 
@@ -208,13 +203,13 @@ class GLMeshBufferCache:
 class MeshBatchRenderer:
     @staticmethod
     def render(requests: list[MeshBatchRequest], context: Scene.RenderContext) -> None:
-            # opaque: grouped by material
-            if context.renderPass == RenderPass.Both or context.renderPass == RenderPass.Opaque: self.drawBatch(requests, context)
-            # blended: in reverse order
-            if context.renderPass == RenderPass.Both or context.enderPass == renderPass.Translucent:
-                holder = [MeshBatchRequest()] # holds the one request we render at a time
-                requests.sort(lambda a, b: -a.distanceFromCamera.compareTo(b.distanceFromCamera))
-                for request in requests: holder[0] = request; self.drawBatch(holder, context)
+        # opaque: grouped by material
+        if context.passx == Render.Pass.Both or context.passx == Renderer.Pass.Opaque: self.drawBatch(requests, context)
+        # blended: in reverse order
+        if context.passx == Renderer.Pass.Both or context.enderPass == Renderer.Pass.Translucent:
+            holder = [MeshBatchRequest()] # holds the one request we render at a time
+            requests.sort(lambda a, b: -a.distanceFromCamera.compareTo(b.distanceFromCamera))
+            for request in requests: holder[0] = request; self.drawBatch(holder, context)
 
     def drawBatch(drawCalls: list[MeshBatchRequest], context: Scene.RenderContext) -> None:
         glEnable(GL_DEPTH_TEST)
@@ -592,8 +587,8 @@ class OctreeDebugRenderer:
         glBindBuffer(GL_ARRAY_BUFFER, self.vboHandle)
         glBufferData(GL_ARRAY_BUFFER, vertices.count * 4, vertices, GL_DYNAMIC_DRAW if self.dynamic else GL_STATIC_DRAW)
 
-    def render(self, camera: Camera, renderPass: RenderPass):
-        if renderPass == RenderPass.Translucent or renderPass == RenderPass.Both:
+    def render(self, camera: Camera, passx: Renderer.Pass):
+        if passx == Renderer.Pass.Translucent or passx == passx.Both:
             if self.dynamic: self._rebuild()
             glEnable(GL_BLEND)
             glEnable(GL_DEPTH_TEST)

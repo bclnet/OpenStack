@@ -61,7 +61,6 @@ public abstract class StrideControl : UserControl {
 
     #region Binding
 
-    protected object Obj;
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 
