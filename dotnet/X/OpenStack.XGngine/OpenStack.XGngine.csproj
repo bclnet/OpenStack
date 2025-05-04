@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Images\OpenStack.Jpeg\OpenStack.Jpeg.csproj" />
+    <ProjectReference Include="..\..\Img\OpenStack.Img\OpenStack.Img.csproj" />
     <ProjectReference Include="..\OpenStack.XSystem\OpenStack.XSystem.csproj" />
   </ItemGroup>
 

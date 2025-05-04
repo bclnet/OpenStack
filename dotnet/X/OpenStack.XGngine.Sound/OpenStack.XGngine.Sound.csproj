@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Audio\OpenStack.OggVorbis\OpenStack.OggVorbis.csproj" />
-    <ProjectReference Include="..\..\Audio\OpenStack.OpenAL\OpenStack.OpenAL.csproj" />
+    <ProjectReference Include="..\..\Sfx\OpenStack.Sfx.Al\OpenStack.Sfx.Al.csproj" />
+    <ProjectReference Include="..\..\Sfx\OpenStack.Sfx.Ogg\OpenStack.Sfx.Ogg.csproj" />
     <ProjectReference Include="..\OpenStack.XGngine\OpenStack.XGngine.csproj" />
   </ItemGroup>
 
