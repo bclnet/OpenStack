@@ -10,6 +10,7 @@ namespace OpenStack.Rom.Nintendo._3ds;
 using static Util;
 
 public unsafe class ExeFs {
+
     #region Headers
 
     [StructLayout(LayoutKind.Sequential)]
@@ -80,7 +81,7 @@ public unsafe class ExeFs {
         try {
             var result = true;
             using (S = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                S.Read(ref SuperBlock, sizeof(ExeFsSuperBlock), 1);
+                S.Read(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
                 if (!string.IsNullOrEmpty(ExeFsDirName)) Directory.CreateDirectory(ExeFsDirName);
                 if (!ExtractHeader()) result = false;
                 if (!string.IsNullOrEmpty(ExeFsDirName))
@@ -100,7 +101,7 @@ public unsafe class ExeFs {
                 for (var i = 0; i < 8; i++)
                     if (!CreateSection(i)) { result = false; i--; }
                 S.Seek(0, SeekOrigin.Begin);
-                S.Write(ref SuperBlock, sizeof(ExeFsSuperBlock), 1);
+                S.Write(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
                 return result;
             }
         }
@@ -111,7 +112,7 @@ public unsafe class ExeFs {
         try {
             using var s = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             ExeFsSuperBlock superBlock = new();
-            s.Read(ref superBlock, sizeof(ExeFsSuperBlock), 1);
+            s.Read(ref superBlock, 0, sizeof(ExeFsSuperBlock));
             return IsExeFsSuperBlock(ref superBlock);
         }
         catch (IOException) { return false; }
@@ -132,7 +133,7 @@ public unsafe class ExeFs {
         try {
             using var s = File.Open(HeaderFileName, FileMode.Create, FileAccess.Write, FileShare.Write);
             if (Verbose) WriteLine($"save: {HeaderFileName}\n");
-            s.Write(ref SuperBlock, sizeof(ExeFsSuperBlock), 1);
+            s.Write(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
             return result;
         }
         catch (IOException) { return false; }
@@ -156,12 +157,12 @@ public unsafe class ExeFs {
                 var compressedSize = header.Size;
                 s.Seek(sizeof(ExeFsSuperBlock) + header.Offset, SeekOrigin.Begin);
                 var compressed = new byte[compressedSize];
-                S.Read(ref compressed, 1, (int)compressedSize);
+                S.Read(compressed, 0, (int)compressedSize);
                 result = BackwardLz77.GetUncompressedSize(compressed, compressedSize, out var uncompressedSize);
                 if (result) {
                     var uncompressed = new byte[uncompressedSize];
                     result = BackwardLz77.Uncompress(compressed, compressedSize, uncompressed, ref uncompressedSize);
-                    if (result) s.Write(ref uncompressed, 1, (int)uncompressedSize);
+                    if (result) s.Write(uncompressed, 0, (int)uncompressedSize);
                     else WriteLine($"ERROR: uncompress error\n\n");
                 }
                 else WriteLine($"ERROR: get uncompressed Size error\n\n");
@@ -180,8 +181,8 @@ public unsafe class ExeFs {
             if (fileSize < sizeof(ExeFsSuperBlock)) { WriteLine("ERROR: exefs header is too short\n\n"); return false; }
             if (Verbose) WriteLine($"load: {HeaderFileName}\n");
             s.Seek(0, SeekOrigin.Begin);
-            s.Read(ref SuperBlock, sizeof(ExeFsSuperBlock), 1);
-            S.Write(ref SuperBlock, sizeof(ExeFsSuperBlock), 1);
+            s.Read(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
+            S.Write(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
             return true;
         }
         catch (IOException) { return false; }
@@ -208,7 +209,7 @@ public unsafe class ExeFs {
                 fileSize = (uint)s.Position;
                 s.Seek(0, SeekOrigin.Begin);
                 data = new byte[fileSize];
-                S.Read(ref data, 1, (int)fileSize);
+                S.Read(data, 0, (int)fileSize);
             }
             var compressResult = false;
             if (topSection && Compress) {
@@ -216,14 +217,14 @@ public unsafe class ExeFs {
                 var compressed = new byte[compressedSize];
                 compressResult = BackwardLz77.Compress(data, fileSize, compressed, ref compressedSize);
                 if (compressResult) {
-                    //SHA256(compressed, compressedSize, SuperBlock.Hash[7 - index]);
-                    S.Write(ref compressed, 1, (int)compressedSize);
+                    fixed (ExeFsSuperBlock* _ = &SuperBlock) ToSha256(compressed, (int)compressedSize, _->Hash0 + ((7 - index) * 32));
+                    S.Write(compressed, 0, (int)compressedSize);
                     header.Size = compressedSize;
                 }
             }
             if (!topSection || !Compress || !compressResult) {
-                //SHA256(data, fileSize, SuperBlock.Hash[7 - index]);
-                S.Write(ref data, 1, (int)fileSize);
+                fixed (ExeFsSuperBlock* _ = &SuperBlock) ToSha256(data, (int)fileSize, _->Hash0 + ((7 - index) * 32));
+                S.Write(data, 0, (int)fileSize);
                 header.Size = fileSize;
             }
             S.PadFile(Align(S.Position, BlockSize) - S.Position, 0);
@@ -237,8 +238,8 @@ public unsafe class ExeFs {
         fixed (ExeFsSuperBlock* _ = &SuperBlock) {
             if (index != 7) Buffer.MemoryCopy(&_->Header1 + index, &_->Header0 + index, size = sizeof(ExeSectionHeader) * (7 - index), size);
             Unsafe.InitBlock(&_->Header7, 0, (uint)sizeof(ExeSectionHeader));
-            Buffer.MemoryCopy(&_->Hash0, &_->Hash1, size = 32 * (7 - index), size);
-            Unsafe.InitBlock(&_->Hash0, 0, 32);
+            Buffer.MemoryCopy(_->Hash0, _->Hash1, size = 32 * (7 - index), size);
+            Unsafe.InitBlock(_->Hash0, 0, 32);
         }
     }
 }

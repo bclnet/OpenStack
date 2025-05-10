@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 namespace OpenStack.Rom.Nintendo._3ds;
 
 internal unsafe class ExtHeader {
+    #region Headers
+
     [StructLayout(LayoutKind.Sequential)]
     public struct SystemInfoFlagStruct {
         public fixed byte Reserved[5];
@@ -111,4 +113,6 @@ internal unsafe class ExtHeader {
         public fixed byte m_NcchHeaderPublicKey[256];
         public AccessControlInfo m_AccessControlInfoDescriptor;
     }
+
+    #endregion
 }

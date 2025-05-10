@@ -108,6 +108,31 @@ public class IsoFileSystem(string root, string path) : IFileSystem {
     public IFileSystem Advance(ref string root) => throw new NotImplementedException();
 }
 
+/// <summary>
+/// CueFileSystem
+/// </summary>
+public class CueFileSystem(string root, string path) : IFileSystem {
+    //readonly ZipArchive Pak = ZipFile.Open(root, ZipArchiveMode.Read);
+    //readonly string Root = path;
+
+    //public IEnumerable<string> Glob(string path, string searchPattern) {
+    //    var matcher = PlatformX.CreateMatcher(searchPattern);
+    //    return Pak.Entries.Where(x => matcher(x.Name)).Select(x => x.Name);
+    //}
+    //public bool FileExists(string path) => Pak.GetEntry(path) != null;
+    //public (string path, long length) FileInfo(string path) { var x = Pak.GetEntry(path); return x != null ? (x.Name, x.Length) : (null, 0); }
+    //public BinaryReader OpenReader(string path) => new(Pak.GetEntry(path).Open());
+    //public BinaryWriter OpenWriter(string path) => throw new NotSupportedException();
+
+    public bool FileExists(string path) => throw new NotImplementedException();
+    public (string path, long length) FileInfo(string path) => throw new NotImplementedException();
+    public IEnumerable<string> Glob(string path, string searchPattern) => throw new NotImplementedException();
+    public BinaryReader OpenReader(string path) => throw new NotImplementedException();
+    public BinaryWriter OpenWriter(string path) => throw new NotImplementedException();
+
+    public IFileSystem Advance(ref string root) => throw new NotImplementedException();
+}
+
 public class SingleFileSystem(Stream stream) : IFileSystem {
     readonly Stream Stream = stream;
 
@@ -156,6 +181,35 @@ public class VirtualFileSystem(Dictionary<string, byte[]> virtuals) : IFileSyste
 /// </summary>
 public class ZipFileSystem(string root, string path) : IFileSystem {
     readonly ZipArchive Zip = ZipFile.Open(root, ZipArchiveMode.Read);
+    readonly string Root = string.IsNullOrEmpty(path) ? string.Empty : $"{path}{Path.AltDirectorySeparatorChar}";
+
+    public IEnumerable<string> Glob(string path, string searchPattern) {
+        var root = Path.Combine(Root, path); var skip = root.Length;
+        var matcher = PlatformX.CreateMatcher(searchPattern);
+        return [.. Zip.Entries.Where(x =>
+        {
+            var fn = x.FullName;
+            return fn.Length > skip && fn.StartsWith(root) && matcher(fn[skip..]);
+        }).Select(x => x.FullName[skip..])];
+    }
+    public bool FileExists(string path) => Zip.GetEntry(Path.Combine(Root, path)) != null;
+    public (string path, long length) FileInfo(string path) { var x = Zip.GetEntry(Path.Combine(Root, path)); return x != null ? (x.Name, x.Length) : (null, 0); }
+    public BinaryReader OpenReader(string path) => new(Zip.GetEntry(Path.Combine(Root, path)).Open());
+    public BinaryWriter OpenWriter(string path) => throw new NotSupportedException();
+
+    public IFileSystem Advance(ref string root) {
+        if (Zip.Entries.Count != 1) return this;
+        var entry = Zip.Entries[0];
+        root = entry.Name;
+        return new SingleFileSystem(entry.Open());
+    }
+}
+
+/// <summary>
+/// _7ZFileSystem
+/// </summary>
+public class _7ZFileSystem(string root, string path) : IFileSystem {
+    readonly SevenZipArchive Zip = SevenZipArchive.Open(root, ZipArchiveMode.Read);
     readonly string Root = string.IsNullOrEmpty(path) ? string.Empty : $"{path}{Path.AltDirectorySeparatorChar}";
 
     public IEnumerable<string> Glob(string path, string searchPattern) {

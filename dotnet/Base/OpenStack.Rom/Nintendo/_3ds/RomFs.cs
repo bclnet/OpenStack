@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using static System.Console;
 
@@ -11,6 +12,7 @@ namespace OpenStack.Rom.Nintendo._3ds;
 using static Util;
 
 public unsafe class RomFs {
+
     #region Headers
 
     [StructLayout(LayoutKind.Sequential)]
@@ -49,12 +51,7 @@ public unsafe class RomFs {
         public uint DataOffset;
     }
 
-    #endregion
-
-    #region Enums
-
-    public enum kExtractState { Begin, ChildDir, SiblingDir, End }
-
+    [StructLayout(LayoutKind.Sequential)]
     public struct CommonDirEntry {
         public int ParentDirOffset;
         public int SiblingDirOffset;
@@ -64,23 +61,27 @@ public unsafe class RomFs {
         public int NameSize;
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct CommonFileEntry {
-        public int ParentDirOffset;
-        public int SiblingFileOffset;
-        //union
-        //{
-        public long FileOffset;
-        public ulong RemapIgnoreLevel;
-        //}
-        public long FileSize;
-        public int PrevFileOffset;
-        public int NameSize;
+        [FieldOffset(0)] public int ParentDirOffset;
+        [FieldOffset(4)] public int SiblingFileOffset;
+        [FieldOffset(8)] public long FileOffset; //union
+        [FieldOffset(8)] public ulong RemapIgnoreLevel; //union
+        [FieldOffset(16)] public long FileSize;
+        [FieldOffset(20)] public int PrevFileOffset;
+        [FieldOffset(24)] public int NameSize;
     }
 
     public class CommonEntry {
         public CommonDirEntry Dir;
         public CommonFileEntry File;
     }
+
+    #endregion
+
+    #region Records
+
+    public enum kExtractState { Begin, ChildDir, SiblingDir, End }
 
     public class ExtractStackElement {
         public bool IsDir;
@@ -121,11 +122,11 @@ public unsafe class RomFs {
     public static readonly int InvalidOffset = -1;
     public static readonly int EntryNameAlignment = 4;
     public static readonly long FileSizeAlignment = 0x10;
-    public string FileName;
+    //public string FileName;
+    //Stream S = null;
     public bool Verbose = false;
     public string RomFsDirName;
     public string RomFsFileName;
-    Stream S = null;
     SRomFsHeader RomFsHeader = new();
     long Level3Offset = BlockSize;
     SRomFsMetaInfo RomFsMetaInfo = new();
@@ -141,36 +142,34 @@ public unsafe class RomFs {
     bool Remapped = false;
     SLevelBuffer[] LevelBuffer = new SLevelBuffer[4];
 
-    static bool RemapIgnoreLevelCompare(CommonFileEntry lhs, CommonFileEntry rhs) => lhs.RemapIgnoreLevel < rhs.RemapIgnoreLevel;
+    static int RemapIgnoreLevelCompare(CommonFileEntry lhs, CommonFileEntry rhs) => lhs.RemapIgnoreLevel < rhs.RemapIgnoreLevel ? -1 : +1;
 
     //public void SetFileName(string a_sFileName) => m_sFileName = a_sFileName;
     //public void SetVerbose(bool a_bVerbose) => m_bVerbose = a_bVerbose;
     //public void SetRomFsDirName(string a_sRomFsDirName) => m_sRomFsDirName = a_sRomFsDirName;
     //public void SetRomFsFileName(string a_sRomFsFileName) => m_sRomFsFileName = a_sRomFsFileName;
 
-    public bool ExtractFile() {
+    public bool ExtractFile(Stream r) {
         try {
             var result = true;
-            using (S = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                S.Read(ref RomFsHeader, sizeof(SRomFsHeader), 1);
-                Level3Offset = Align(Align(RomFsHeader.Size, SHA256BlockSize) + RomFsHeader.Level0Size, BlockSize);
-                S.Seek(Level3Offset, SeekOrigin.Begin);
-                S.Read(ref RomFsMetaInfo, sizeof(SRomFsMetaInfo), 1);
-                PushExtractStackElement(true, 0, "/");
-                while (ExtractStack.Count != 0) {
-                    ExtractStackElement current = ExtractStack.Peek();
-                    if (current.IsDir) {
-                        if (!ExtractDirEntry()) result = false;
-                    }
-                    else if (!ExtractFileEntry()) result = false;
+            r.Read(ref RomFsHeader, 0, sizeof(SRomFsHeader));
+            Level3Offset = Align(Align(RomFsHeader.Size, SHA256BlockSize) + RomFsHeader.Level0Size, BlockSize);
+            r.Seek(Level3Offset, SeekOrigin.Begin);
+            r.Read(ref RomFsMetaInfo, 0, sizeof(SRomFsMetaInfo));
+            PushExtractStackElement(true, 0, "/");
+            while (ExtractStack.Count != 0) {
+                var s = ExtractStack.Peek();
+                if (s.IsDir) {
+                    if (!ExtractDirEntry(r)) result = false;
                 }
-                return result;
+                else if (!ExtractFileEntry(r)) result = false;
             }
+            return result;
         }
         catch (IOException) { return false; }
     }
 
-    public bool CreateFile() {
+    public bool CreateFile(Stream r, Stream w) {
         var result = true;
         SetupCreate();
         BuildIgnoreList();
@@ -182,25 +181,24 @@ public unsafe class RomFs {
         CreateHash();
         RedirectOffset();
         CreateMetaInfo();
-        Remap();
+        Remap(w);
         CreateHeader();
         InitLevelBuffer();
         var fileSize = Align(LevelBuffer[2].FilePos + RomFsHeader.Level2.Size, BlockSize);
         try {
-            using (S = File.Open(FileName, FileMode.Create, FileAccess.Write, FileShare.Write)) {
-                S.Seek2(fileSize);
-                if (!UpdateLevelBuffer()) result = false;
-                return result;
-            }
+            //using (S = File.Open(FileName, FileMode.Create, FileAccess.Write, FileShare.Write)) {
+            w.Seek2(fileSize);
+            if (!UpdateLevelBuffer(w)) result = false;
+            return result;
         }
         catch (IOException) { return false; }
     }
 
-    public static bool IsRomFsFile(string fileName) {
+    public static bool IsRomFsFile(Stream r) {
         try {
-            using var s = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             SRomFsHeader header = new();
-            s.Read(ref header, sizeof(SRomFsHeader), 1);
+            r.Read(ref header, 0, sizeof(SRomFsHeader));
+            r.Seek(0, SeekOrigin.Begin);
             return header.Signature == Signature;
         }
         catch (IOException) { return false; }
@@ -216,18 +214,18 @@ public unsafe class RomFs {
         s.ExtractState = kExtractState.Begin;
     }
 
-    bool ExtractDirEntry() {
+    bool ExtractDirEntry(Stream r) {
         var s = ExtractStack.Peek();
         if (s.ExtractState == kExtractState.Begin) {
-            ReadEntry(s);
+            ReadEntry(r, s);
             var prefix = s.Prefix;
             var dirName = RomFsDirName + prefix;
             if (s.Entry.Dir.NameSize != 0) {
                 prefix += s.EntryName + "/";
                 dirName += s.EntryName;
             }
-            else dirName.erase(dirName.end() - 1);
-            if (Verbose) WriteLine($"save: {dirName}\n");
+            else dirName = dirName[..^1]; //was: sDirName.erase(sDirName.end() - 1);
+            if (Verbose) WriteLine($"save: {dirName}");
             if (Directory.CreateDirectory(dirName) == null) { ExtractStack.Pop(); return false; }
             PushExtractStackElement(false, s.Entry.Dir.ChildFileOffset, prefix);
             s.ExtractState = kExtractState.ChildDir;
@@ -246,16 +244,16 @@ public unsafe class RomFs {
         return true;
     }
 
-    bool ExtractFileEntry() {
+    bool ExtractFileEntry(Stream r) {
         var result = true;
         var s = ExtractStack.Peek();
         if (s.ExtractState == kExtractState.Begin) {
-            ReadEntry(s);
+            ReadEntry(r, s);
             var path = RomFsDirName + s.Prefix + s.EntryName;
             try {
-                using var t = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Write);
-                if (Verbose) WriteLine($"save: {path}\n");
-                S.CopyFile(t, Level3Offset + RomFsMetaInfo.DataOffset + s.Entry.File.FileOffset, s.Entry.File.FileSize);
+                using var w = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Write);
+                if (Verbose) WriteLine($"save: {path}");
+                w.CopyFile(r, Level3Offset + RomFsMetaInfo.DataOffset + s.Entry.File.FileOffset, s.Entry.File.FileSize);
             }
             catch (IOException) { result = false; }
             PushExtractStackElement(false, s.Entry.File.SiblingFileOffset, s.Prefix);
@@ -265,22 +263,20 @@ public unsafe class RomFs {
         return result;
     }
 
-    void ReadEntry(ExtractStackElement element) {
+    void ReadEntry(Stream r, ExtractStackElement element) {
         if (element.IsDir) {
-            S.Seek(Level3Offset + RomFsMetaInfo.Dir.Offset + element.EntryOffset, SeekOrigin.Begin);
-            S.Read(ref element.Entry.Dir, sizeof(CommonDirEntry), 1);
-            var entryName = new ushort[element.Entry.Dir.NameSize / 2 + 1];
-            S.Read(ref entryName, 2, element.Entry.Dir.NameSize / 2);
-            entryName[element.Entry.Dir.NameSize / 2] = 0;
-            element.EntryName = U16ToU(pEntryName);
+            r.Seek(Level3Offset + RomFsMetaInfo.Dir.Offset + element.EntryOffset, SeekOrigin.Begin);
+            r.Read(ref element.Entry.Dir, 0, sizeof(CommonDirEntry));
+            var entryName = new byte[element.Entry.Dir.NameSize];
+            r.Read(entryName, 0, 2 * element.Entry.Dir.NameSize);
+            element.EntryName = Encoding.Unicode.GetString(entryName);
         }
         else {
-            S.Seek(Level3Offset + RomFsMetaInfo.File.Offset + element.EntryOffset, SeekOrigin.Begin);
-            S.Read(ref element.Entry.File, sizeof(CommonFileEntry), 1);
-            var entryName = new ushort[element.Entry.File.NameSize / 2 + 1];
-            S.Read(ref entryName, 2, element.Entry.File.NameSize / 2);
-            entryName[element.Entry.File.NameSize / 2] = 0;
-            element.EntryName = U16ToU(pEntryName);
+            r.Seek(Level3Offset + RomFsMetaInfo.File.Offset + element.EntryOffset, SeekOrigin.Begin);
+            r.Read(ref element.Entry.File, 0, sizeof(CommonFileEntry));
+            var entryName = new byte[element.Entry.File.NameSize];
+            r.Read(entryName, 0, 2 * element.Entry.File.NameSize);
+            element.EntryName = Encoding.Unicode.GetString(entryName);
         }
     }
 
@@ -301,12 +297,12 @@ public unsafe class RomFs {
         string txt = null;
         try {
             var ignorePath = "MODULE/ignore_3dstool.txt";
-            using var s = File.Open(ignorePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            s.Seek(0, SeekOrigin.End);
-            var size = (int)s.Position;
-            s.Seek(0, SeekOrigin.Begin);
+            using var r = File.Open(ignorePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            r.Seek(0, SeekOrigin.End);
+            var size = (int)r.Position;
+            r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[size + 1];
-            s.Read(ref buf, 1, size);
+            r.Read(buf, 0, size);
             buf[size] = (byte)'\0';
             txt = new string(MemoryMarshal.Cast<byte, char>(buf));
         }
@@ -323,20 +319,19 @@ public unsafe class RomFs {
                     else if (tags[0] == "Remap ignore") ignores = RemapIgnores;
                 }
             }
-            else {
+            else
                 try {
-                    URegex black(line, regex_constants.ECMAScript | regex_constants.icase);
-                    ignores.Add(black);
+                    ignores.Add(new Regex(line, RegexOptions.ECMAScript | RegexOptions.IgnoreCase));
                 }
-                catch (regex_error e) { WriteLine($"ERROR: {e.what()}\n\n"); }
-            }
+                catch (ArgumentException e) { WriteLine($"ERROR: {e.Message}\n"); }
         }
     }
 
     void PushDirEntry(string entryName, int parentDirOffset) {
         SEntry s;
         CreateDirs.Add(s = new SEntry());
-        s.Path = CreateDirs.Count == 1 ? RomFsDirName : $"{CreateDirs[parentDirOffset].Path}/{entryName}";
+        var entry = CreateDirs[parentDirOffset];
+        s.Path = CreateDirs.Count == 1 ? RomFsDirName : $"{entry.Path}/{entryName}";
         s.EntryName = entryName;
         s.Entry.Dir.ParentDirOffset = parentDirOffset;
         s.Entry.Dir.SiblingDirOffset = InvalidOffset;
@@ -345,7 +340,7 @@ public unsafe class RomFs {
         s.Entry.Dir.PrevDirOffset = InvalidOffset;
         s.Entry.Dir.NameSize = s.EntryName.Length * 2;
         s.EntryNameSize = (int)Align(s.Entry.Dir.NameSize, EntryNameAlignment);
-        if (CreateDirs[parentDirOffset].Entry.Dir.ChildDirOffset != InvalidOffset && CreateDirs.Count - 1 != CreateDirs[parentDirOffset].Entry.Dir.ChildDirOffset)
+        if (entry.Entry.Dir.ChildDirOffset != InvalidOffset && CreateDirs.Count - 1 != entry.Entry.Dir.ChildDirOffset)
             CreateDirs[^2].Entry.Dir.SiblingDirOffset = CreateDirs.Count - 1;
     }
 
@@ -353,17 +348,18 @@ public unsafe class RomFs {
         var result = true;
         SEntry s;
         CreateFiles.Add(s = new SEntry());
-        s.Path = $"{CreateDirs[parentDirOffset].Path}/{entryName}";
+        var entry = CreateDirs[parentDirOffset];
+        s.Path = $"{entry.Path}/{entryName}";
         s.EntryName = entryName;
         s.EntryOffset = (int)Align(RomFsMetaInfo.File.Size, EntryNameAlignment);
         s.Entry.File.ParentDirOffset = parentDirOffset;
         s.Entry.File.SiblingFileOffset = InvalidOffset;
         s.Entry.File.FileOffset = Align(RomFsHeader.Level3.Size, FileSizeAlignment);
-        if (!UGetFileSize(s.Path, s.Entry.File.FileSize)) { result = false; WriteLine($"ERROR: {s.Path} stat error\n\n"); }
+        if (s.Path.Length != s.Entry.File.FileSize >> 1) { result = false; WriteLine($"ERROR: {s.Path} stat error\n"); }
         s.Entry.File.PrevFileOffset = InvalidOffset;
         s.Entry.File.NameSize = s.EntryName.Length * 2;
         s.EntryNameSize = (int)Align(s.Entry.File.NameSize, EntryNameAlignment);
-        if (CreateDirs[parentDirOffset].Entry.Dir.ChildFileOffset != InvalidOffset && CreateFiles.Count - 1 != CreateDirs[parentDirOffset].Entry.Dir.ChildFileOffset)
+        if (entry.Entry.Dir.ChildFileOffset != InvalidOffset && CreateFiles.Count - 1 != entry.Entry.Dir.ChildFileOffset)
             CreateFiles[^2].Entry.File.SiblingFileOffset = CreateFiles.Count - 1;
         RomFsMetaInfo.File.Size = (uint)(s.EntryOffset + sizeof(CommonFileEntry) + s.EntryNameSize);
         RomFsHeader.Level3.Size = s.Entry.File.FileOffset + s.Entry.File.FileSize;
@@ -381,101 +377,20 @@ public unsafe class RomFs {
         var result = true;
         var s = CreateStack.Peek();
         if (s.ChildIndex == -1) {
-#if SDW_PLATFORM == SDW_PLATFORM_WINDOWS
-            WIN32_FIND_DATAW ffd;
-            HANDLE hFind = INVALID_HANDLE_VALUE;
-            wstring sPattern = CreateDirs[s.EntryOffset].Path + L"/*";
-            hFind = FindFirstFileW(sPattern.c_str(), &ffd);
-            if (hFind != INVALID_HANDLE_VALUE) {
-                do {
-                    if (matchInIgnoreList(CreateDirs[s.EntryOffset].Path.substr(RomFsDirName.size()) + L"/" + ffd.cFileName)) {
-                        continue;
-                    }
-                    if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-                        if (CreateDirs[s.EntryOffset].Entry.Dir.ChildFileOffset == InvalidOffset) {
-                            CreateDirs[s.EntryOffset].Entry.Dir.ChildFileOffset = static_cast<n32>(CreateFiles.size());
-                        }
-                        if (!pushFileEntry(ffd.cFileName, s.EntryOffset)) {
-                            result = false;
-                        }
-                    }
-                    else if (wcscmp(ffd.cFileName, L".") != 0 && wcscmp(ffd.cFileName, L"..") != 0) {
-                        if (CreateDirs[s.EntryOffset].Entry.Dir.ChildDirOffset == InvalidOffset) {
-                            CreateDirs[s.EntryOffset].Entry.Dir.ChildDirOffset = static_cast<n32>(CreateDirs.size());
-                        }
-                        s.ChildOffset.push_back(static_cast<int>(CreateDirs.size()));
-                        pushDirEntry(ffd.cFileName, s.EntryOffset);
-                    }
-                } while (FindNextFileW(hFind, &ffd) != 0);
+            var entry = CreateDirs[s.EntryOffset];
+            var path = entry.Path; ref CommonDirEntry entryDir = ref entry.Entry.Dir;
+            var basePath = path[RomFsDirName.Length..];
+            foreach (var name in Directory.EnumerateDirectories(path).Select(Path.GetFileName)) {
+                if (MatchInIgnoreList($"{basePath}/{name}")) continue;
+                if (entryDir.ChildDirOffset == InvalidOffset) entryDir.ChildDirOffset = CreateDirs.Count();
+                s.ChildOffset.Add(CreateDirs.Count());
+                PushDirEntry(name, s.EntryOffset);
             }
-#else
-		DIR* pDir = opendir(m_vCreateDir[current.EntryOffset].Path.c_str());
-		if (pDir != null)
-		{
-			map<string, string> mDir;
-			map<string, string> mFile;
-			dirent* pDirent = null;
-			while ((pDirent = readdir(pDir)) != null)
-			{
-				string sName = pDirent->d_name;
-#if SDW_PLATFORM == SDW_PLATFORM_MACOS
-				sName = TSToS<string, string>(sName, "UTF-8-MAC", "UTF-8");
-#endif
-				if (matchInIgnoreList(m_vCreateDir[current.EntryOffset].Path.substr(m_sRomFsDirName.size()) + "/" + sName))
-				{
-					continue;
-				}
-				string sNameUpper = sName;
-				transform(sNameUpper.begin(), sNameUpper.end(), sNameUpper.begin(), ::toupper);
-				// handle cases where d_type is DT_UNKNOWN
-				if (pDirent->d_type == DT_UNKNOWN)
-				{
-					string sPath = m_vCreateDir[current.EntryOffset].Path + "/" + sName;
-					Stat st;
-					if (UStat(sPath.c_str(), &st) == 0)
-					{
-						if (S_ISREG(st.st_mode))
-						{
-							pDirent->d_type = DT_REG;
-						}
-						else if (S_ISDIR(st.st_mode))
-						{
-							pDirent->d_type = DT_DIR;
-						}
-					}
-				}
-				if (pDirent->d_type == DT_REG)
-				{
-					mFile.insert(make_pair(sNameUpper, sName));
-				}
-				else if (pDirent->d_type == DT_DIR && strcmp(pDirent->d_name, ".") != 0 && strcmp(pDirent->d_name, "..") != 0)
-				{
-					mDir.insert(make_pair(sNameUpper, sName));
-				}
-			}
-			closedir(pDir);
-			for (map<string, string>::const_iterator it = mDir.begin(); it != mDir.end(); ++it)
-			{
-				if (m_vCreateDir[current.EntryOffset].Entry.Dir.ChildDirOffset == s_nInvalidOffset)
-				{
-					m_vCreateDir[current.EntryOffset].Entry.Dir.ChildDirOffset = static_cast<n32>(m_vCreateDir.size());
-				}
-				current.ChildOffset.push_back(static_cast<int>(m_vCreateDir.size()));
-				pushDirEntry(it->second, current.EntryOffset);
-			}
-			for (map<string, string>::const_iterator it = mFile.begin(); it != mFile.end(); ++it)
-			{
-				if (m_vCreateDir[current.EntryOffset].Entry.Dir.ChildFileOffset == s_nInvalidOffset)
-				{
-					m_vCreateDir[current.EntryOffset].Entry.Dir.ChildFileOffset = static_cast<n32>(m_vCreateFile.size());
-				}
-				if (!pushFileEntry(it->second, current.EntryOffset))
-				{
-					bResult = false;
-				}
-			}
-		}
-#endif
+            foreach (var name in Directory.EnumerateFiles(path).Select(Path.GetFileName)) {
+                if (MatchInIgnoreList($"{basePath}/{name}")) continue;
+                if (entryDir.ChildFileOffset == InvalidOffset) entryDir.ChildFileOffset = CreateFiles.Count;
+                if (!PushFileEntry(name, s.EntryOffset)) result = false;
+            }
             s.ChildIndex = 0;
         }
         else if (s.ChildIndex != s.ChildOffset.Count) PushCreateStackElement(s.ChildOffset[s.ChildIndex++]);
@@ -484,15 +399,15 @@ public unsafe class RomFs {
     }
 
     bool MatchInIgnoreList(string path) {
-        foreach (var it in Ignores)
-            if (regex_search(path, it)) return true;
+        foreach (var rgx in Ignores)
+            if (rgx.IsMatch(path)) return true;
         return false;
     }
 
     uint GetRemapIgnoreLevel(string path) {
         for (var i = 0; i < RemapIgnores.Count; i++) {
             var rgx = RemapIgnores[i];
-            if (regex_search(path, rgx)) return (uint)i;
+            if (rgx.IsMatch(path)) return (uint)i;
         }
         return uint.MaxValue;
     }
@@ -532,7 +447,7 @@ public unsafe class RomFs {
             var s = CreateFiles[i];
             SubDirOffset(ref s.Entry.File.ParentDirOffset, index);
         }
-        CreateDirs.erase(CreateDirs.begin() + index);
+        CreateDirs.RemoveAt(index);
     }
 
     void SubDirOffset(ref int offset, int index) {
@@ -540,8 +455,8 @@ public unsafe class RomFs {
     }
 
     void CreateHash() {
-        DirBuckets.Resize(ComputeBucketCount((uint)CreateDirs.Count), InvalidOffset);
-        FileBuckets.Resize(ComputeBucketCount((uint)CreateFiles.Count), InvalidOffset);
+        DirBuckets.Resize((int)ComputeBucketCount((uint)CreateDirs.Count), InvalidOffset);
+        FileBuckets.Resize((int)ComputeBucketCount((uint)CreateFiles.Count), InvalidOffset);
         for (var i = 0; i < CreateDirs.Count; i++) {
             var s = CreateDirs[i];
             s.BucketIndex = (int)Hash(CreateDirs[s.Entry.Dir.ParentDirOffset].EntryOffset, s.EntryName) % DirBuckets.Count;
@@ -603,20 +518,21 @@ public unsafe class RomFs {
         RomFsMetaInfo.DataOffset = (uint)(Align(RomFsMetaInfo.File.Offset + RomFsMetaInfo.File.Size, FileSizeAlignment));
     }
 
-    void Remap() {
+    void Remap(Stream r) {
         if (string.IsNullOrEmpty(RomFsFileName)) { }
         var romFs = new RomFs {
-            FileName = RomFsFileName,
+            RomFsFileName = RomFsFileName,
             RomFsDirName = RomFsDirName
         };
-        if (!romFs.TravelFile()) return;
+        if (!romFs.TravelFile(r)) return;
         foreach (var s in CreateFiles) {
+            s.Entry.File.RemapIgnoreLevel = GetRemapIgnoreLevel(s.Path);
             TravelInfo[s.Path] = s.Entry.File;
-            TravelInfo[s.Path].RemapIgnoreLevel = GetRemapIgnoreLevel(s.Path);
         }
         Space space = new();
         if (Level3Offset + RomFsMetaInfo.DataOffset > romFs.Level3Offset + romFs.RomFsMetaInfo.DataOffset) {
-            foreach (var s in romFs.TravelInfo.Values) {
+            foreach (var it in romFs.TravelInfo) {
+                var s = it.Value;
                 var delta = s.FileOffset - (Level3Offset + RomFsMetaInfo.DataOffset);
                 if (delta < 0) {
                     s.FileOffset = Level3Offset + RomFsMetaInfo.DataOffset;
@@ -628,101 +544,86 @@ public unsafe class RomFs {
         else if (Level3Offset + RomFsMetaInfo.DataOffset < romFs.Level3Offset + romFs.RomFsMetaInfo.DataOffset)
             space.AddSpace(Level3Offset + RomFsMetaInfo.DataOffset, romFs.Level3Offset + romFs.RomFsMetaInfo.DataOffset - Level3Offset - RomFsMetaInfo.DataOffset);
         RomFsHeader.Level3.Size = 0;
-        vector<CommonFileEntry*> vRemapIgnore;
-        for (map<UString, CommonFileEntry>::iterator itRomFs = romFs.TravelInfo.begin(); itRomFs != romFs.TravelInfo.end(); ++itRomFs) {
-            SCommonFileEntry & currentRomFsFileEntry = itRomFs->second;
-            map<UString, CommonFileEntry>::iterator it = TravelInfo.find(itRomFs->first);
-            if (it == TravelInfo.end()) {
-                space.AddSpace(currentRomFsFileEntry.FileOffset, Align(currentRomFsFileEntry.FileSize, FileSizeAlignment));
-                currentRomFsFileEntry.FileSize = 0;
+        List<CommonFileEntry> remapIgnore = [];
+        foreach (var it in romFs.TravelInfo) {
+            var s = it.Value;
+            if (!TravelInfo.TryGetValue(it.Key, out var t)) {
+                space.AddSpace(s.FileOffset, Align(s.FileSize, FileSizeAlignment));
+                s.FileSize = 0;
+                continue;
+            }
+            if (Align(t.FileSize, FileSizeAlignment) > Align(s.FileSize, FileSizeAlignment) || t.RemapIgnoreLevel != uint.MaxValue) {
+                space.AddSpace(s.FileOffset, Align(s.FileSize, FileSizeAlignment));
+                s.FileSize = 0;
+                remapIgnore.Add(t);
             }
             else {
-                SCommonFileEntry & currentFileEntry = it->second;
-                if (Align(currentFileEntry.FileSize, FileSizeAlignment) > Align(currentRomFsFileEntry.FileSize, FileSizeAlignment) || currentFileEntry.RemapIgnoreLevel != UINT32_MAX) {
-                    space.AddSpace(currentRomFsFileEntry.FileOffset, Align(currentRomFsFileEntry.FileSize, FileSizeAlignment));
-                    currentRomFsFileEntry.FileSize = 0;
-                    vRemapIgnore.push_back(&currentFileEntry);
-                }
-                else {
-                    currentFileEntry.FileOffset = currentRomFsFileEntry.FileOffset - Level3Offset - RomFsMetaInfo.DataOffset;
-                    space.AddSpace(Align(currentRomFsFileEntry.FileOffset + currentFileEntry.FileSize, FileSizeAlignment), Align(currentRomFsFileEntry.FileSize, FileSizeAlignment) - Align(currentFileEntry.FileSize, FileSizeAlignment));
-                    if (currentFileEntry.FileOffset + currentFileEntry.FileSize > RomFsHeader.Level3.Size) {
-                        RomFsHeader.Level3.Size = currentFileEntry.FileOffset + currentFileEntry.FileSize;
-                    }
-                }
+                t.FileOffset = s.FileOffset - Level3Offset - RomFsMetaInfo.DataOffset;
+                space.AddSpace(Align(s.FileOffset + t.FileSize, FileSizeAlignment), Align(s.FileSize, FileSizeAlignment) - Align(t.FileSize, FileSizeAlignment));
+                if (t.FileOffset + t.FileSize > RomFsHeader.Level3.Size) RomFsHeader.Level3.Size = t.FileOffset + t.FileSize;
             }
         }
-        if (RomFsHeader.Level3.Size == 0) {
-            space.Clear();
+        if (RomFsHeader.Level3.Size == 0) space.Clear();
+        else space.SubSpace(Align(Level3Offset + RomFsMetaInfo.DataOffset + RomFsHeader.Level3.Size, FileSizeAlignment), Align(romFs.Level3Offset + romFs.RomFsHeader.Level3.Size, FileSizeAlignment) - Align(Level3Offset + RomFsMetaInfo.DataOffset + RomFsHeader.Level3.Size, FileSizeAlignment));
+        foreach (var it in TravelInfo) {
+            var s = it.Value;
+            if (!romFs.TravelInfo.ContainsKey(it.Key))
+                remapIgnore.Add(s);
         }
-        else {
-            space.SubSpace(Align(Level3Offset + RomFsMetaInfo.DataOffset + RomFsHeader.Level3.Size, FileSizeAlignment), Align(romFs.Level3Offset + romFs.RomFsHeader.Level3.Size, FileSizeAlignment) - Align(Level3Offset + RomFsMetaInfo.DataOffset + RomFsHeader.Level3.Size, FileSizeAlignment));
-        }
-        for (map<UString, CommonFileEntry>::iterator it = TravelInfo.begin(); it != TravelInfo.end(); ++it) {
-            SCommonFileEntry & currentFileEntry = it->second;
-            map<UString, CommonFileEntry>::const_iterator itRomFs = romFs.TravelInfo.find(it->first);
-            if (itRomFs == romFs.TravelInfo.end()) {
-                vRemapIgnore.push_back(&currentFileEntry);
-            }
-        }
-        stable_sort(vRemapIgnore.begin(), vRemapIgnore.end(), RemapIgnoreLevelCompare);
-        for (vector<CommonFileEntry*>::iterator it = vRemapIgnore.begin(); it != vRemapIgnore.end(); ++it) {
-            SCommonFileEntry & currentFileEntry = **it;
-            long nOffset = space.GetSpace(Align(currentFileEntry.FileSize, FileSizeAlignment));
-            if (nOffset < 0) {
-                currentFileEntry.FileOffset = Align(RomFsHeader.Level3.Size, FileSizeAlignment);
-                RomFsHeader.Level3.Size = currentFileEntry.FileOffset + currentFileEntry.FileSize;
+
+        remapIgnore.Sort(RemapIgnoreLevelCompare);
+        for (var i = 0; i < remapIgnore.Count; i++) {
+            var s = remapIgnore[i];
+            var offset = space.GetSpace(Align(s.FileSize, FileSizeAlignment));
+            if (offset < 0) {
+                s.FileOffset = Align(RomFsHeader.Level3.Size, FileSizeAlignment);
+                RomFsHeader.Level3.Size = s.FileOffset + s.FileSize;
             }
             else {
-                currentFileEntry.FileOffset = nOffset - Level3Offset - RomFsMetaInfo.DataOffset;
-                space.SubSpace(nOffset, Align(currentFileEntry.FileSize, FileSizeAlignment));
+                s.FileOffset = offset - Level3Offset - RomFsMetaInfo.DataOffset;
+                space.SubSpace(offset, Align(s.FileSize, FileSizeAlignment));
             }
         }
-        for (vector<SEntry>::iterator it = CreateFiles.begin(); it != CreateFiles.end(); ++it) {
-            SEntry & currentEntry = *it;
-            currentEntry.Entry.File.FileOffset = TravelInfo[currentEntry.Path].FileOffset;
-        }
+        foreach (var s in CreateFiles)
+            s.Entry.File.FileOffset = TravelInfo[s.Path].FileOffset;
         Remapped = true;
     }
 
-    bool TravelFile() {
+    bool TravelFile(Stream r) {
         try {
-            using (S = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                S.Read(ref RomFsHeader, sizeof(SRomFsHeader), 1);
-                Level3Offset = Align(Align(RomFsHeader.Size, SHA256BlockSize) + RomFsHeader.Level0Size, BlockSize);
-                S.Seek(Level3Offset, SeekOrigin.Begin);
-                S.Read(ref RomFsMetaInfo, sizeof(SRomFsMetaInfo), 1);
-                PushExtractStackElement(true, 0, "/");
-                while (ExtractStack.Count != 0) {
-                    var s = ExtractStack.Peek();
-                    if (s.IsDir) TravelDirEntry();
-                    else TravelFileEntry();
-                }
-                return true;
+            //using (S = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+            r.Read(ref RomFsHeader, 0, sizeof(SRomFsHeader));
+            Level3Offset = Align(Align(RomFsHeader.Size, SHA256BlockSize) + RomFsHeader.Level0Size, BlockSize);
+            r.Seek(Level3Offset, SeekOrigin.Begin);
+            r.Read(ref RomFsMetaInfo, 0, sizeof(SRomFsMetaInfo));
+            PushExtractStackElement(true, 0, "/");
+            while (ExtractStack.Count != 0) {
+                var s = ExtractStack.Peek();
+                if (s.IsDir) TravelDirEntry(r);
+                else TravelFileEntry(r);
             }
+            return true;
         }
         catch (IOException) { return false; }
     }
 
-    void TravelDirEntry() {
+    void TravelDirEntry(Stream r) {
         var s = ExtractStack.Peek();
         if (s.ExtractState == kExtractState.Begin) {
-            ReadEntry(s);
+            ReadEntry(r, s);
             var prefix = s.Prefix;
-            var dirName = RomFsDirName + prefix;
-            if (s.Entry.Dir.NameSize != 0) {
-                prefix += s.EntryName + "/";
-                dirName += s.EntryName;
-            }
-            else dirName.Remove(dirName.Length - 1);
-
+            //var dirName = RomFsDirName + prefix;
+            //if (s.Entry.Dir.NameSize != 0) {
+            //    prefix += s.EntryName + "/";
+            //    dirName += s.EntryName;
+            //}
+            //else dirName = dirName[..^1]; //was: sDirName.erase(sDirName.end() - 1);
             PushExtractStackElement(false, s.Entry.Dir.ChildFileOffset, prefix);
             s.ExtractState = kExtractState.ChildDir;
         }
         else if (s.ExtractState == kExtractState.ChildDir) {
             var prefix = s.Prefix;
-            if (s.Entry.Dir.NameSize != 0)
-                prefix += s.EntryName + "/";
+            if (s.Entry.Dir.NameSize != 0) prefix += s.EntryName + "/";
             PushExtractStackElement(true, s.Entry.Dir.ChildDirOffset, prefix);
             s.ExtractState = kExtractState.SiblingDir;
         }
@@ -733,10 +634,10 @@ public unsafe class RomFs {
         else if (s.ExtractState == kExtractState.End) ExtractStack.Pop();
     }
 
-    void TravelFileEntry() {
+    void TravelFileEntry(Stream r) {
         var s = ExtractStack.Peek();
         if (s.ExtractState == kExtractState.Begin) {
-            ReadEntry(s);
+            ReadEntry(r, s);
             var path = RomFsDirName + s.Prefix + s.EntryName;
             s.Entry.File.FileOffset += Level3Offset + RomFsMetaInfo.DataOffset;
             TravelInfo[path] = s.Entry.File;
@@ -756,47 +657,46 @@ public unsafe class RomFs {
     }
 
     void InitLevelBuffer() {
+        // level 0
         var fileSize = 0L;
-        Array.Resize(ref LevelBuffer[0].Data, BlockSize);
-        LevelBuffer[0].DataPos = 0;
-        LevelBuffer[0].FilePos = fileSize;
-        Level3Offset = Align(Align(sizeof(SRomFsHeader), SHA256BlockSize) + RomFsHeader.Level0Size, BlockSize);
-        fileSize = Level3Offset;
-        Array.Resize(ref LevelBuffer[3].Data, BlockSize);
-        LevelBuffer[3].DataPos = 0;
-        LevelBuffer[3].FilePos = fileSize;
+        var buffer = LevelBuffer[0];
+        Array.Resize(ref buffer.Data, BlockSize); buffer.DataPos = 0; buffer.FilePos = fileSize;
+        // level 3
+        fileSize = Level3Offset = Align(Align(sizeof(SRomFsHeader), SHA256BlockSize) + RomFsHeader.Level0Size, BlockSize);
+        buffer = LevelBuffer[3];
+        Array.Resize(ref buffer.Data, BlockSize); buffer.DataPos = 0; buffer.FilePos = fileSize;
+        // level 1
         fileSize += Align(RomFsHeader.Level3.Size, BlockSize);
-        Array.Resize(ref LevelBuffer[1].Data, BlockSize);
-        LevelBuffer[1].DataPos = 0;
-        LevelBuffer[1].FilePos = fileSize;
+        buffer = LevelBuffer[1];
+        Array.Resize(ref buffer.Data, BlockSize); buffer.DataPos = 0; buffer.FilePos = fileSize;
+        // level 2
         fileSize += Align(RomFsHeader.Level1.Size, BlockSize);
-        Array.Resize(ref LevelBuffer[2].Data, BlockSize);
-        LevelBuffer[2].DataPos = 0;
-        LevelBuffer[2].FilePos = fileSize;
+        buffer = LevelBuffer[2];
+        Array.Resize(ref buffer.Data, BlockSize); buffer.DataPos = 0; buffer.FilePos = fileSize;
     }
 
-    bool UpdateLevelBuffer() {
+    bool UpdateLevelBuffer(Stream w) {
         var result = true;
-        WriteBuffer(0, ref RomFsHeader, sizeof(SRomFsHeader));
-        AlignBuffer(0, SHA256BlockSize);
-        WriteBuffer(3, ref RomFsMetaInfo, sizeof(SRomFsMetaInfo));
-        WriteBuffer(3, ref DirBuckets, RomFsMetaInfo.DirHash.Size);
+        WriteBuffer(w, 0, ref RomFsHeader, sizeof(SRomFsHeader));
+        AlignBuffer(w, 0, SHA256BlockSize);
+        WriteBuffer(w, 3, ref RomFsMetaInfo, sizeof(SRomFsMetaInfo));
+        WriteBuffer(w, 3, ref DirBuckets, RomFsMetaInfo.DirHash.Size);
         for (var i = 0; i < CreateDirs.Count; i++) {
             var s = CreateDirs[i];
-            WriteBuffer(3, ref s.Entry.Dir, sizeof(CommonDirEntry));
-            WriteBuffer(3, s.EntryName, s.EntryNameSize);
+            WriteBuffer(w, 3, ref s.Entry.Dir, sizeof(CommonDirEntry));
+            WriteBuffer(w, 3, Encoding.Unicode.GetBytes(s.EntryName), s.EntryNameSize);
         }
-        WriteBuffer(3, ref FileBuckets, RomFsMetaInfo.FileHash.Size);
+        WriteBuffer(w, 3, ref FileBuckets, RomFsMetaInfo.FileHash.Size);
         for (var i = 0; i < CreateFiles.Count; i++) {
             var s = CreateFiles[i];
-            WriteBuffer(3, ref s.Entry.File, sizeof(CommonFileEntry));
-            WriteBuffer(3, ref s.EntryName, s.EntryNameSize);
+            WriteBuffer(w, 3, ref s.Entry.File, sizeof(CommonFileEntry));
+            WriteBuffer(w, 3, ref s.EntryName, s.EntryNameSize);
         }
         if (!Remapped) {
             for (var i = 0; i < CreateFiles.Count; i++) {
-                AlignBuffer(3, (int)FileSizeAlignment);
+                AlignBuffer(w, 3, (int)FileSizeAlignment);
                 var s = CreateFiles[i];
-                if (!WriteBufferFromFile(3, s.Path, s.Entry.File.FileSize)) result = false;
+                if (!WriteBufferFromFile(w, 3, s.Path, s.Entry.File.FileSize)) result = false;
             }
         }
         else {
@@ -804,52 +704,61 @@ public unsafe class RomFs {
             for (var i = 0; i < CreateFiles.Count; i++)
                 if (CreateFiles[i].Entry.File.FileSize != 0)
                     createFiles.Add(CreateFiles[i].Entry.File.FileOffset, CreateFiles[i]);
-            foreach (var currentEntry in createFiles.Values) {
-                WriteBuffer(3, null, Level3Offset + RomFsMetaInfo.DataOffset + currentEntry.Entry.File.FileOffset - (LevelBuffer[3].FilePos + LevelBuffer[3].DataPos));
-                if (!WriteBufferFromFile(3, currentEntry.Path, currentEntry.Entry.File.FileSize)) result = false;
+            var buffer3 = LevelBuffer[3];
+            foreach (var s in createFiles.Values) {
+                WriteBuffer(w, 3, null, Level3Offset + RomFsMetaInfo.DataOffset + s.Entry.File.FileOffset - (buffer3.FilePos + buffer3.DataPos));
+                if (!WriteBufferFromFile(w, 3, s.Path, s.Entry.File.FileSize)) result = false;
             }
         }
-        AlignBuffer(3, BlockSize);
-        AlignBuffer(2, BlockSize);
-        AlignBuffer(1, BlockSize);
-        AlignBuffer(0, BlockSize);
+        AlignBuffer(w, 3, BlockSize);
+        AlignBuffer(w, 2, BlockSize);
+        AlignBuffer(w, 1, BlockSize);
+        AlignBuffer(w, 0, BlockSize);
         return result;
     }
 
-    void WriteBuffer(int level, ref byte[] src, long size) {
-        byte* _src = null; // static_cast <const byte*> (src);
-        do {
-            var remainSize = BlockSize - LevelBuffer[level].DataPos;
-            var size2 = size > remainSize ? remainSize : size;
-            if (size2 > 0) {
-                if (src != null) {
-                    memcpy((LevelBuffer[level].Data + LevelBuffer[level].DataPos), _src, size2);
-                    _src += size2;
+    void WriteBuffer<T>(Stream w, int level, ref T src, long size) {
+        throw new NotImplementedException();
+        //WriteBuffer(w, level, null, size);
+    }
+    void WriteBuffer(Stream w, int level, byte[] src, long size) {
+        var buffer = LevelBuffer[level];
+        fixed (byte* _data = buffer.Data)
+        fixed (byte* _src = src) {
+            var psrc = _src;
+            do {
+                var remainSize = BlockSize - buffer.DataPos;
+                var size2 = size > remainSize ? remainSize : size;
+                if (size2 > 0) {
+                    if (src != null) {
+                        Unsafe.CopyBlock(_data + buffer.DataPos, psrc, (uint)size2);
+                        psrc += size2;
+                    }
+                    buffer.DataPos += (int)size2;
                 }
-                LevelBuffer[level].DataPos += (int)size2;
-            }
-            if (LevelBuffer[level].DataPos == BlockSize) {
-                if (level != 0) WriteBuffer(level - 1, SHA256(ref LevelBuffer[level].Data, BlockSize, null), SHA256BlockSize);
-                S.Seek(LevelBuffer[level].FilePos, SeekOrigin.Begin);
-                S.Write(ref LevelBuffer[level].Data, 1, BlockSize);
-                Unsafe.InitBlock(ref LevelBuffer[level].Data[0], 0, (uint)BlockSize);
-                LevelBuffer[level].DataPos = 0;
-                LevelBuffer[level].FilePos += BlockSize;
-            }
-            size -= size2;
-        } while (size > 0);
+                if (buffer.DataPos == BlockSize) {
+                    if (level != 0) WriteBuffer(w, level - 1, ToSha256(buffer.Data, BlockSize, null), SHA256BlockSize);
+                    w.Seek(buffer.FilePos, SeekOrigin.Begin);
+                    w.Write(buffer.Data, 0, BlockSize);
+                    Unsafe.InitBlock(ref buffer.Data[0], 0, (uint)BlockSize);
+                    buffer.DataPos = 0;
+                    buffer.FilePos += BlockSize;
+                }
+                size -= size2;
+            } while (size > 0);
+        }
     }
 
     const long _write_bufferSize = 0x100000;
     static byte[] _write_buf = new byte[_write_bufferSize];
-    bool WriteBufferFromFile(int level, string path, long size) {
+    bool WriteBufferFromFile(Stream w, int level, string path, long size) {
         try {
-            using var s = File.Open(path, FileMode.Create, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {path}\n");
+            using var r = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (Verbose) WriteLine($"load: {path}");
             while (size > 0) {
                 var size2 = size > _write_bufferSize ? _write_bufferSize : size;
-                s.Read(ref _write_buf, 1, (int)size2);
-                WriteBuffer(level, ref _write_buf, size2);
+                r.Read(_write_buf, 0, (int)size2);
+                WriteBuffer(w, level, ref _write_buf, size2);
                 size -= size2;
             }
             return true;
@@ -857,9 +766,10 @@ public unsafe class RomFs {
         catch (IOException) { return false; }
     }
 
-    void AlignBuffer(int level, int alignment) {
-        LevelBuffer[level].DataPos = (int)Align(LevelBuffer[level].DataPos, alignment);
-        WriteBuffer(level, null, 0);
+    void AlignBuffer(Stream w, int level, int alignment) {
+        var buffer = LevelBuffer[level];
+        buffer.DataPos = (int)Align(buffer.DataPos, alignment);
+        WriteBuffer(w, level, null, 0);
     }
 
     static uint Hash(int parentOffset, string entryName) {

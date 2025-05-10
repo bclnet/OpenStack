@@ -40,13 +40,13 @@ public unsafe class Code {
                 if (codeSize < 4) { WriteLine("ERROR: code is too short\n\n"); return false; }
                 Array.Resize(ref code, codeSize);
                 s.Seek(0, SeekOrigin.Begin);
-                s.Read(ref code, 1, code.Length);
+                s.Read(code, 0, code.Length);
             }
             Arm = MemoryMarshal.Cast<byte, uint>(code).ToArray();
             Thumb = code;
             bool resultArm = LockArm(), resultThumb = resultArm && LockThumb();
             using (var s = File.Open(FileName, FileMode.Create, FileAccess.Write, FileShare.Write))
-                s.Write(ref code, 1, code.Length);
+                s.Write(code, 0, code.Length);
             if (!resultArm && !resultThumb) WriteLine("ERROR: lock failed\n\n");
             return resultArm || resultThumb;
         }

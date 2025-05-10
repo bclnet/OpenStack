@@ -1,14 +1,20 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace OpenStack.Rom.Nintendo._3ds;
 
 public unsafe class BackwardLz77 {
+
+    #region Headers
+
     [StructLayout(LayoutKind.Sequential)]
     struct CompFooter {
         public uint BufferTopAndBottom;
         public uint OriginalBottom;
     }
+
+    #endregion
 
     public static bool GetUncompressedSize(byte[] compressed, uint compressedSize, out uint uncompressedSize) {
         if (compressedSize >= sizeof(CompFooter)) {
@@ -28,14 +34,11 @@ public unsafe class BackwardLz77 {
         fixed (byte* _uncompressed = uncompressed) {
             if (compressedSize >= sizeof(CompFooter)) {
                 var compFooter = Marshal.PtrToStructure<CompFooter>((IntPtr)(_compressed + compressedSize - sizeof(CompFooter)));
-                uint top = compFooter.BufferTopAndBottom & 0xFFFFFF;
-                uint bottom = compFooter.BufferTopAndBottom >> 24 & 0xFF;
+                uint top = compFooter.BufferTopAndBottom & 0xFFFFFF, bottom = compFooter.BufferTopAndBottom >> 24 & 0xFF;
                 if (bottom >= sizeof(CompFooter) && bottom <= sizeof(CompFooter) + 3 && top >= bottom && top <= compressedSize && uncompressedSize >= compressedSize + compFooter.OriginalBottom) {
                     uncompressedSize = compressedSize + compFooter.OriginalBottom;
                     Marshal.Copy(compressed, 0, (IntPtr)_uncompressed, (int)compressedSize); //: memcpy(_uncompressed, compressed, compressedSize);
-                    byte* _dest = _uncompressed + uncompressedSize;
-                    byte* _src = _uncompressed + compressedSize - bottom;
-                    byte* _end = _uncompressed + compressedSize - top;
+                    byte* _dest = _uncompressed + uncompressedSize, _src = _uncompressed + compressedSize - bottom, _end = _uncompressed + compressedSize - top;
                     while (_src - _end > 0) {
                         byte flag = *--_src;
                         for (var i = 0; i < 8; i++) {
@@ -45,13 +48,12 @@ public unsafe class BackwardLz77 {
                             }
                             else {
                                 if (_src - _end < 2) { result = false; break; }
-                                int size = *--_src;
-                                int offset = (((size & 0x0F) << 8) | *--_src) + 3;
+                                int size = *--_src, offset = (((size & 0x0F) << 8) | *--_src) + 3;
                                 size = (size >> 4 & 0x0F) + 3;
                                 if (size > _dest - _end) { result = false; break; }
                                 byte* data = _dest + offset;
                                 if (data > _uncompressed + uncompressedSize) { result = false; break; }
-                                for (int j = 0; j < size; j++) { *--_dest = *--data; }
+                                for (var j = 0; j < size; j++) { *--_dest = *--data; }
                             }
                             if (_src - _end <= 0) break;
                         }
@@ -65,7 +67,6 @@ public unsafe class BackwardLz77 {
         }
     }
 
-#if false
     struct CompressInfo {
         public ushort WindowPos;
         public ushort WindowLen;
@@ -76,6 +77,8 @@ public unsafe class BackwardLz77 {
     }
 
     public static bool Compress(byte[] uncompressed, uint uncompressedSize, byte[] compressed, ref uint compressedSize) {
+        throw new NotImplementedException();
+#if false
         bool bResult = true;
         if (uncompressedSize > sizeof(CompFooter) && compressedSize >= uncompressedSize) {
             u8* pWork = new byte[compressWorkSize];
@@ -181,7 +184,9 @@ public unsafe class BackwardLz77 {
             }
         }
         return bResult;
+#endif
     }
+
     static void InitTable(CompressInfo info, byte* _work) {
         info.WindowPos = 0;
         info.WindowLen = 0;
@@ -194,6 +199,7 @@ public unsafe class BackwardLz77 {
             info.EndTable[i] = NEG1;
         }
     }
+
     static int Search(CompressInfo info, byte* _src, ref int offset, int maxSize) {
         if (maxSize < 3) return 0;
         byte* _search = null;
@@ -218,12 +224,14 @@ public unsafe class BackwardLz77 {
         }
         return size < 3 ? 0 : size;
     }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static void Slide(CompressInfo info, byte* _src, int size) {
-        for (int i = 0; i < size; i++) {
+        for (var i = 0; i < size; i++) {
             SlideByte(info, _src--);
         }
     }
+
     const ushort NEG1 = ushort.MaxValue;
     static void SlideByte(CompressInfo info, byte* _src) {
         byte inData = *(_src - 1);
@@ -252,7 +260,4 @@ public unsafe class BackwardLz77 {
     }
     static readonly int CompressWorkSize = (4098 + 4098 + 256 + 256) * sizeof(ushort);
 }
-#else
-    public static bool Compress(byte[] uncompressed, uint uncompressedSize, byte[] compressed, ref uint compressedSize) => throw new NotImplementedException();
-#endif
-}
+ 

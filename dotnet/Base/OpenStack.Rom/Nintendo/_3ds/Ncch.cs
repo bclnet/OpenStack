@@ -13,8 +13,8 @@ using static _3dsCrypt;
 using static ExeFs;
 using static ExtHeader;
 using static Ncch.Flag;
-using static Util;
 using static RomFs;
+using static Util;
 
 public enum XFileType {
     Unknown,
@@ -22,6 +22,7 @@ public enum XFileType {
 }
 
 public unsafe class Ncch {
+
     #region Headers
 
     [StructLayout(LayoutKind.Sequential)]
@@ -109,7 +110,8 @@ public unsafe class Ncch {
     static readonly BigInteger SystemFixedKey = new(ToBytes("527CE630A9CA305F3696F3CDE954194B"));
     static readonly BigInteger NormalFixedKey = new(ToBytes("00000000000000000000000000000000"));
     public XFileType FileType = XFileType.Unknown;
-    public string FileName;
+    //public string FileName;
+    //public Stream S = null;
     public bool Verbose = false;
     public string HeaderFileName;
     public kEncryptMode EncryptMode = kEncryptMode.None;
@@ -123,7 +125,6 @@ public unsafe class Ncch {
     public string PlainRegionFileName;
     public string ExeFsFileName;
     public string RomFsFileName;
-    public Stream S = null;
     public long Offset = 0;
     public NcchHeader Header = new();
     long MediaUnitSize = 1 << 9;
@@ -152,86 +153,82 @@ public unsafe class Ncch {
     //public NcchHeader GetNcchHeader() => Header;
     //public long[] GetOffsetAndSize() => OffsetAndSize;
 
-    public bool ExtractFile() {
+    public bool ExtractFile(Stream r) {
         try {
             var result = true;
-            using (S = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                S.Read(ref Header, sizeof(NcchHeader), 1);
-                CalculateMediaUnitSize();
-                CalculateOffsetSize();
-                CalculateKey();
-                if (!ExtractFile(HeaderFileName, 0, sizeof(NcchHeader), true, "ncch header")) result = false;
-                KeyIndex = kEncryptKeyOld;
-                CalculateCounter(kAesCtrType.ExtendedHeader);
-                if (!ExtractFile(ExtendedHeaderFileName, OffsetAndSize[kOffsetSizeExtendedHeader * 2], OffsetAndSize[kOffsetSizeExtendedHeader * 2 + 1], false, "extendedheader")) result = false;
-                if (!ExtractFile(LogoRegionFileName, OffsetAndSize[kOffsetSizeLogoRegion * 2], OffsetAndSize[kOffsetSizeLogoRegion * 2 + 1], true, "logoregion")) result = false;
-                if (!ExtractFile(PlainRegionFileName, OffsetAndSize[kOffsetSizePlainRegion * 2], OffsetAndSize[kOffsetSizePlainRegion * 2 + 1], true, "plainregion")) result = false;
-                if (!string.IsNullOrEmpty(ExeFsFileName)) {
-                    if (OffsetAndSize[kOffsetSizeExeFs * 2 + 1] != 0) {
-                        S.Seek(OffsetAndSize[kOffsetSizeExeFs * 2], SeekOrigin.Begin);
-                        ExeFsSuperBlock superBlock = new();
-                        S.Read(ref superBlock, sizeof(ExeFsSuperBlock), 1);
-                        CalculateCounter(kAesCtrType.ExeFs);
-                        if (EncryptMode == kEncryptMode.FixedKey || EncryptMode == kEncryptMode.Auto)
-                            FEncryptAesCtrData((byte*)&superBlock, 0, Key[kEncryptKeyOld], Counter, sizeof(ExeFsSuperBlock), 0);
-                        if (ExeFs.IsExeFsSuperBlock(ref superBlock)) {
-                            S.Seek(OffsetAndSize[kOffsetSizeExeFs * 2], SeekOrigin.Begin);
-                            var exeFs = new byte[OffsetAndSize[kOffsetSizeExeFs * 2 + 1]];
-                            S.Read(ref exeFs, 1, (nint)OffsetAndSize[kOffsetSizeExeFs * 2 + 1]);
-                            if (EncryptMode == kEncryptMode.FixedKey || EncryptMode == kEncryptMode.Auto) {
-                                var xorOffset = 0L;
-                                FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyOld], Counter, sizeof(ExeFsSuperBlock), xorOffset);
-                                xorOffset += sizeof(ExeFsSuperBlock);
-                                FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyNew], Counter, superBlock.Header0.Size, xorOffset);
-                                xorOffset += superBlock.Header0.Size;
-                                FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyOld], Counter, OffsetAndSize[kOffsetSizeExeFs * 2 + 1] - xorOffset, xorOffset);
-                            }
-                            try {
-                                using var s = File.Open(ExeFsFileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-                                if (Verbose) WriteLine($"save: {ExeFsFileName}\n");
-                                s.Write(ref exeFs, 1, (int)OffsetAndSize[kOffsetSizeExeFs * 2 + 1]);
-                            }
-                            catch (IOException) { result = false; }
+            r.Read(ref Header, 0, sizeof(NcchHeader));
+            CalculateMediaUnitSize();
+            CalculateOffsetSize();
+            CalculateKey();
+            if (!ExtractFile(r, HeaderFileName, 0, sizeof(NcchHeader), true, "ncch header")) result = false;
+            KeyIndex = kEncryptKeyOld;
+            CalculateCounter(kAesCtrType.ExtendedHeader);
+            if (!ExtractFile(r, ExtendedHeaderFileName, OffsetAndSize[kOffsetSizeExtendedHeader * 2], OffsetAndSize[kOffsetSizeExtendedHeader * 2 + 1], false, "extendedheader")) result = false;
+            if (!ExtractFile(r, LogoRegionFileName, OffsetAndSize[kOffsetSizeLogoRegion * 2], OffsetAndSize[kOffsetSizeLogoRegion * 2 + 1], true, "logoregion")) result = false;
+            if (!ExtractFile(r, PlainRegionFileName, OffsetAndSize[kOffsetSizePlainRegion * 2], OffsetAndSize[kOffsetSizePlainRegion * 2 + 1], true, "plainregion")) result = false;
+            if (!string.IsNullOrEmpty(ExeFsFileName)) {
+                if (OffsetAndSize[kOffsetSizeExeFs * 2 + 1] != 0) {
+                    r.Seek(OffsetAndSize[kOffsetSizeExeFs * 2], SeekOrigin.Begin);
+                    ExeFsSuperBlock superBlock = new();
+                    r.Read(ref superBlock, 0, sizeof(ExeFsSuperBlock));
+                    CalculateCounter(kAesCtrType.ExeFs);
+                    if (EncryptMode == kEncryptMode.FixedKey || EncryptMode == kEncryptMode.Auto)
+                        FEncryptAesCtrData((byte*)&superBlock, 0, Key[kEncryptKeyOld], Counter, sizeof(ExeFsSuperBlock), 0);
+                    if (ExeFs.IsExeFsSuperBlock(ref superBlock)) {
+                        r.Seek(OffsetAndSize[kOffsetSizeExeFs * 2], SeekOrigin.Begin);
+                        var exeFs = new byte[OffsetAndSize[kOffsetSizeExeFs * 2 + 1]];
+                        r.Read(exeFs, 0, (int)OffsetAndSize[kOffsetSizeExeFs * 2 + 1]);
+                        if (EncryptMode == kEncryptMode.FixedKey || EncryptMode == kEncryptMode.Auto) {
+                            var xorOffset = 0L;
+                            FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyOld], Counter, sizeof(ExeFsSuperBlock), xorOffset);
+                            xorOffset += sizeof(ExeFsSuperBlock);
+                            FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyNew], Counter, superBlock.Header0.Size, xorOffset);
+                            xorOffset += superBlock.Header0.Size;
+                            FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyOld], Counter, OffsetAndSize[kOffsetSizeExeFs * 2 + 1] - xorOffset, xorOffset);
                         }
-                        else {
-                            result = false;
-                            ExtractFile(ExeFsFileName, OffsetAndSize[kOffsetSizeExeFs * 2], OffsetAndSize[kOffsetSizeExeFs * 2 + 1], true, "exefs");
+                        try {
+                            using var w = File.Open(ExeFsFileName, FileMode.Create, FileAccess.Write, FileShare.Write);
+                            if (Verbose) WriteLine($"save: {ExeFsFileName}");
+                            w.Write(exeFs, 0, (int)OffsetAndSize[kOffsetSizeExeFs * 2 + 1]);
                         }
+                        catch (IOException) { result = false; }
                     }
-                    else if (Verbose) WriteLine($"INFO: exefs is not exists, {ExeFsFileName} will not be create\n");
+                    else {
+                        result = false;
+                        ExtractFile(r, ExeFsFileName, OffsetAndSize[kOffsetSizeExeFs * 2], OffsetAndSize[kOffsetSizeExeFs * 2 + 1], true, "exefs");
+                    }
                 }
-                else if (OffsetAndSize[kOffsetSizeExeFs * 2 + 1] != 0 && Verbose) WriteLine("INFO: exefs is not extract\n");
-                KeyIndex = kEncryptKeyNew;
-                CalculateCounter(kAesCtrType.RomFs);
-                if (!ExtractFile(RomFsFileName, OffsetAndSize[kOffsetSizeRomFs * 2], OffsetAndSize[kOffsetSizeRomFs * 2 + 1], false, "romfs")) result = false;
-                return result;
+                else if (Verbose) WriteLine($"INFO: exefs is not exists, {ExeFsFileName} will not be create");
             }
+            else if (OffsetAndSize[kOffsetSizeExeFs * 2 + 1] != 0 && Verbose) WriteLine("INFO: exefs is not extract");
+            KeyIndex = kEncryptKeyNew;
+            CalculateCounter(kAesCtrType.RomFs);
+            if (!ExtractFile(r, RomFsFileName, OffsetAndSize[kOffsetSizeRomFs * 2], OffsetAndSize[kOffsetSizeRomFs * 2 + 1], false, "romfs")) result = false;
+            return result;
         }
         catch (IOException) { return false; }
     }
 
-    public bool CreateFile() {
+    public bool CreateFile(Stream w) {
         try {
             var result = true;
-            using (S = File.Open(FileName, FileMode.Create, FileAccess.Write, FileShare.Write)) {
-                if (!CreateHeader()) return false;
-                CalculateMediaUnitSize();
-                CalculateAlignment();
-                CalculateKey();
-                if (!CreateExtendedHeader()) result = false;
-                AlignFileSize(MediaUnitSize);
-                if (!CreateLogoRegion()) result = false;
-                AlignFileSize(MediaUnitSize);
-                if (!CreatePlainRegion()) result = false;
-                AlignFileSize(MediaUnitSize);
-                if (!CreateExeFs()) result = false;
-                AlignFileSize(AlignToBlockSize ? BlockSize : MediaUnitSize);
-                if (!CreateRomFs()) result = false;
-                AlignFileSize(AlignToBlockSize ? BlockSize : MediaUnitSize);
-                S.Seek(0, SeekOrigin.Begin);
-                S.Write(ref Header, sizeof(NcchHeader), 1);
-                return result;
-            }
+            if (!CreateHeader(w)) return false;
+            CalculateMediaUnitSize();
+            CalculateAlignment();
+            CalculateKey();
+            if (!CreateExtendedHeader(w)) result = false;
+            AlignFileSize(w, MediaUnitSize);
+            if (!CreateLogoRegion(w)) result = false;
+            AlignFileSize(w, MediaUnitSize);
+            if (!CreatePlainRegion(w)) result = false;
+            AlignFileSize(w, MediaUnitSize);
+            if (!CreateExeFs(w)) result = false;
+            AlignFileSize(w, AlignToBlockSize ? BlockSize : MediaUnitSize);
+            if (!CreateRomFs(w)) result = false;
+            AlignFileSize(w, AlignToBlockSize ? BlockSize : MediaUnitSize);
+            w.Seek(0, SeekOrigin.Begin);
+            w.Write(ref Header, 0, sizeof(NcchHeader));
+            return result;
         }
         catch (IOException) { return false; }
     }
@@ -273,11 +270,11 @@ public unsafe class Ncch {
         return WriteExtKey();
     }
 
-    public void Analyze() {
-        if (S == null) return;
-        var filePos = S.Position;
-        S.Seek(Offset, SeekOrigin.Begin);
-        S.Read(ref Header, sizeof(NcchHeader), 1);
+    public void Analyze(Stream r) {
+        if (r == null) return;
+        var filePos = r.Position;
+        r.Seek(Offset, SeekOrigin.Begin);
+        r.Read(ref Header, 0, sizeof(NcchHeader));
         CalculateMediaUnitSize();
         CalculateOffsetSize();
         if (FileType == XFileType.Cfa)
@@ -291,14 +288,14 @@ public unsafe class Ncch {
         for (var i = kOffsetSizeExtendedHeader + 1; i < kOffsetSizeCount; i++)
             if (OffsetAndSize[i * 2] == 0 && OffsetAndSize[i * 2 + 1] == 0)
                 OffsetAndSize[i * 2] = OffsetAndSize[(i - 1) * 2] + OffsetAndSize[(i - 1) * 2 + 1];
-        S.Seek(filePos, SeekOrigin.Begin);
+        r.Seek(filePos, SeekOrigin.Begin);
     }
 
-    public static bool IsCxiFile(string fileName) {
+    public static bool IsCxiFile(Stream s) {
         try {
-            using var s = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             NcchHeader ncchHeader = new();
-            s.Read(ref ncchHeader, sizeof(NcchHeader), 1);
+            s.Read(ref ncchHeader, 0, sizeof(NcchHeader));
+            s.Seek(0, SeekOrigin.Begin);
             var result = ncchHeader.Ncch.Signature == Signature;
             if (result)
                 switch ((kFormType)(ncchHeader.Ncch.Flags[kContentType] & 3)) {
@@ -311,11 +308,11 @@ public unsafe class Ncch {
         catch (IOException) { return false; }
     }
 
-    public static bool IsCfaFile(string fileName) {
+    public static bool IsCfaFile(Stream s) {
         try {
-            using var s = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             NcchHeader ncchHeader = new();
-            s.Read(ref ncchHeader, sizeof(NcchHeader), 1);
+            s.Read(ref ncchHeader, 0, sizeof(NcchHeader));
+            s.Seek(0, SeekOrigin.Begin);
             var result = ncchHeader.Ncch.Signature == Signature;
             if (result)
                 switch ((kFormType)(ncchHeader.Ncch.Flags[kContentType] & 3)) {
@@ -325,10 +322,9 @@ public unsafe class Ncch {
             return result;
         }
         catch (IOException) { return false; }
-
     }
 
-    public static readonly uint Signature = 0x0; //: SDW_CONVERT_ENDIAN32('NCCH')
+    public static readonly uint Signature = 0x4843434e; //: NCCH
     public static readonly int BlockSize = 0x1000;
 
     void CalculateMediaUnitSize() => MediaUnitSize = 1L << (Header.Ncch.Flags[kSizeType] + 9);
@@ -376,11 +372,11 @@ public unsafe class Ncch {
             var sProgramId = FromBytes(programId);
             if (!ExtKey.TryGetValue(sProgramId, out var extKey)) {
                 DownloadBegin = DownloadEnd = int.Parse(sProgramId.Substring(9, 5), NumberStyles.HexNumber);
-                if (!Download(false)) WriteLine("INFO: download failed\n");
-                if (!ExtKey.TryGetValue(sProgramId, out extKey)) { WriteLine($"ERROR: can not find ext key for {sProgramId}\n\n"); break; }
+                if (!Download(false)) WriteLine("INFO: download failed");
+                if (!ExtKey.TryGetValue(sProgramId, out extKey)) { WriteLine($"ERROR: can not find ext key for {sProgramId}\n"); break; }
             }
-            if (extKey.Length != 16) { WriteLine($"ERROR: can not find ext key for {sProgramId}\n\n"); break; }
-            //if (extKey.Length != 32 || extKey.Any(x => "0123456789ABCDEFabcdef".IndexOf(x) != -1)) { WriteLine($"ERROR: can not find ext key for {sProgramId}\n\n"); break; }
+            if (extKey.Length != 16) { WriteLine($"ERROR: can not find ext key for {sProgramId}\n"); break; }
+            //if (extKey.Length != 32 || extKey.Any(x => "0123456789ABCDEFabcdef".IndexOf(x) != -1)) { WriteLine($"ERROR: can not find ext key for {sProgramId}\n"); break; }
             Array.Reverse(programId);
             var bigNum = new BigInteger([.. extKey, .. programId]);
             //u8 uBytes[32] = { };
@@ -419,7 +415,7 @@ public unsafe class Ncch {
             var size = (int)s.Position;
             s.Seek(0, SeekOrigin.Begin);
             var buf = new byte[size + 1];
-            s.Read(ref buf, 1, size);
+            s.Read(buf, 0, size);
             buf[size] = (byte)'\0';
             txt = new string(MemoryMarshal.Cast<byte, char>(buf));
         }
@@ -428,8 +424,8 @@ public unsafe class Ncch {
             var line = z.Trim();
             if (string.IsNullOrEmpty(line) || line.StartsWith("//")) continue;
             var vals = line.Split(" ");
-            if (vals.Length != 2) { WriteLine($"INFO: unknown ext key record {line}\n"); continue; }
-            else if (!ExtKey.TryAdd(vals[0], ToBytes(vals[1]))) WriteLine($"INFO: multiple ext key for {vals[0]}\n");
+            if (vals.Length != 2) { WriteLine($"INFO: unknown ext key record {line}"); continue; }
+            else if (!ExtKey.TryAdd(vals[0], ToBytes(vals[1]))) WriteLine($"INFO: multiple ext key for {vals[0]}");
         }
     }
 
@@ -466,32 +462,32 @@ public unsafe class Ncch {
         }
     }
 
-    bool ExtractFile(string fileName, long offset, long size, bool plainData, string type) {
+    bool ExtractFile(Stream s, string fileName, long offset, long size, bool plainData, string type) {
         var result = true;
         if (!string.IsNullOrEmpty(fileName)) {
             if (size != 0)
                 try {
-                    using var s = File.Open(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-                    if (Verbose) WriteLine($"save: {fileName}\n");
-                    if (plainData || EncryptMode == kEncryptMode.NotEncrypt) S.CopyFile(s, offset, size);
-                    else FEncryptAesCtrCopyFile(s, S, Key[KeyIndex], Counter, offset, size);
+                    using var w = File.Open(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
+                    if (Verbose) WriteLine($"save: {fileName}");
+                    if (plainData || EncryptMode == kEncryptMode.NotEncrypt) w.CopyFile(s, offset, size);
+                    else FEncryptAesCtrCopyFile(w, s, Key[KeyIndex], Counter, offset, size);
                 }
                 catch (IOException) { result = false; }
-            else if (Verbose) WriteLine($"INFO: {type} does not exist, {fileName} will not be create\n");
+            else if (Verbose) WriteLine($"INFO: {type} does not exist, {fileName} will not be create");
         }
-        else if (size != 0 && Verbose) WriteLine($"INFO: {type} is not extract\n");
+        else if (size != 0 && Verbose) WriteLine($"INFO: {type} is not extract");
         return result;
     }
 
-    bool CreateHeader() {
+    bool CreateHeader(Stream w) {
         try {
-            using var s = File.Open(HeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {HeaderFileName}\n");
-            s.Seek(0, SeekOrigin.End);
-            var fileSize = (int)s.Position;
-            if (fileSize < sizeof(NcchHeader)) { WriteLine("ERROR: ncch header is too short\n\n"); return false; }
-            s.Seek(0, SeekOrigin.Begin);
-            s.Read(ref Header, sizeof(NcchHeader), 1);
+            using var r = File.Open(HeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (Verbose) WriteLine($"load: {HeaderFileName}");
+            r.Seek(0, SeekOrigin.End);
+            var fileSize = (int)r.Position;
+            if (fileSize < sizeof(NcchHeader)) { WriteLine("ERROR: ncch header is too short\n"); return false; }
+            r.Seek(0, SeekOrigin.Begin);
+            r.Read(ref Header, 0, sizeof(NcchHeader));
             unchecked {
                 if (EncryptMode == kEncryptMode.NotEncrypt) {
                     Header.Ncch.Flags[kFlag] |= (int)NoEncrypto;
@@ -506,96 +502,96 @@ public unsafe class Ncch {
                     if (RemoveExtKey) Header.Ncch.Flags[kFlag] &= (byte)~(int)FlagExtKey;
                 }
             }
-            S.Write(ref Header, sizeof(NcchHeader), 1);
+            w.Write(ref Header, 0, sizeof(NcchHeader));
             return true;
         }
         catch (IOException) { return false; }
     }
 
-    bool CreateExtendedHeader() {
+    bool CreateExtendedHeader(Stream w) {
         if (string.IsNullOrEmpty(ExtendedHeaderFileName)) { ClearExtendedHeader(); return true; }
         try {
-            using var s = File.Open(ExtendedHeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {ExtendedHeaderFileName}\n");
-            s.Seek(0, SeekOrigin.End);
-            var fileSize = (int)s.Position;
-            if (fileSize < sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended)) { ClearExtendedHeader(); WriteLine("ERROR: extendedheader is too short\n\n"); return false; }
+            using var r = File.Open(ExtendedHeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (Verbose) WriteLine($"load: {ExtendedHeaderFileName}");
+            r.Seek(0, SeekOrigin.End);
+            var fileSize = (int)r.Position;
+            if (fileSize < sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended)) { ClearExtendedHeader(); WriteLine("ERROR: extendedheader is too short\n"); return false; }
             Header.Ncch.ExtendedHeaderSize = (uint)sizeof(NcchExtendedHeader);
-            s.Seek(0, SeekOrigin.Begin);
+            r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended)];
-            s.Read(ref buf, 1, sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended));
-            //SHA256(pBuffer, Header.Ncch.ExtendedHeaderSize, Header.Ncch.ExtendedHeaderHash);
-            if (EncryptMode == kEncryptMode.NotEncrypt) s.CopyFile(S, 0, sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended));
+            r.Read(buf, 0, sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended));
+            fixed (byte* _ = Header.Ncch.ExtendedHeaderHash) ToSha256(buf, (int)Header.Ncch.ExtendedHeaderSize, _);
+            if (EncryptMode == kEncryptMode.NotEncrypt) w.CopyFile(r, 0, sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended));
             else {
                 CalculateCounter(kAesCtrType.ExtendedHeader);
-                FEncryptAesCtrCopyFile(S, s, Key[kEncryptKeyOld], Counter, 0, sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended));
+                FEncryptAesCtrCopyFile(w, r, Key[kEncryptKeyOld], Counter, 0, sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended));
             }
             return true;
         }
         catch (IOException) { ClearExtendedHeader(); return false; }
     }
 
-    bool CreateLogoRegion() {
+    bool CreateLogoRegion(Stream w) {
         if (string.IsNullOrEmpty(LogoRegionFileName)) { ClearLogoRegion(); return true; }
         try {
-            using var s = File.Open(LogoRegionFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {LogoRegionFileName}\n");
-            s.Seek(0, SeekOrigin.End);
-            var fileSize = (int)s.Position;
-            var logoRegionSize = Align(s.Position, MediaUnitSize);
+            using var r = File.Open(LogoRegionFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (Verbose) WriteLine($"load: {LogoRegionFileName}");
+            r.Seek(0, SeekOrigin.End);
+            var fileSize = (int)r.Position;
+            var logoRegionSize = Align(r.Position, MediaUnitSize);
             Header.Ncch.LogoRegionOffset = Header.Ncch.ContentSize;
             Header.Ncch.LogoRegionSize = (uint)(logoRegionSize / MediaUnitSize);
-            s.Seek(0, SeekOrigin.Begin);
+            r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[logoRegionSize];
             Unsafe.InitBlock(ref buf[0], 0, (uint)logoRegionSize);
-            s.Read(buf, 1, fileSize);
-            S.Write(buf, 1, (int)logoRegionSize);
-            //SHA256(buf, logoRegionSize, Header.Ncch.LogoRegionHash);
+            r.Read(buf, 0, fileSize);
+            w.Write(buf, 0, (int)logoRegionSize);
+            fixed (byte* _ = Header.Ncch.LogoRegionHash) ToSha256(buf, (int)logoRegionSize, _);
             return true;
         }
         catch (IOException) { ClearLogoRegion(); return false; }
     }
 
-    bool CreatePlainRegion() {
+    bool CreatePlainRegion(Stream w) {
         if (string.IsNullOrEmpty(PlainRegionFileName)) { ClearPlainRegion(); return true; }
         try {
-            using var s = File.Open(PlainRegionFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {PlainRegionFileName}\n");
-            s.Seek(0, SeekOrigin.End);
-            var fileSize = (int)s.Position;
+            using var r = File.Open(PlainRegionFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (Verbose) WriteLine($"load: {PlainRegionFileName}");
+            r.Seek(0, SeekOrigin.End);
+            var fileSize = (int)r.Position;
             Header.Ncch.PlainRegionOffset = Header.Ncch.ContentSize;
-            Header.Ncch.PlainRegionSize = (uint)(Align(s.Position, MediaUnitSize) / MediaUnitSize);
-            s.Seek(0, SeekOrigin.Begin);
+            Header.Ncch.PlainRegionSize = (uint)(Align(r.Position, MediaUnitSize) / MediaUnitSize);
+            r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[fileSize];
-            s.Read(ref buf, 1, fileSize);
-            S.Write(ref buf, 1, fileSize);
+            r.Read(buf, 0, fileSize);
+            w.Write(buf, 0, fileSize);
             return true;
         }
         catch (IOException) { ClearPlainRegion(); return false; }
     }
 
-    bool CreateExeFs() {
+    bool CreateExeFs(Stream w) {
         if (string.IsNullOrEmpty(ExeFsFileName)) { ClearExeFs(); return true; }
         try {
-            using var s = File.Open(ExeFsFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {ExeFsFileName}\n");
-            s.Seek(0, SeekOrigin.End);
-            var fileSize = (int)s.Position;
+            using var r = File.Open(ExeFsFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (Verbose) WriteLine($"load: {ExeFsFileName}");
+            r.Seek(0, SeekOrigin.End);
+            var fileSize = (int)r.Position;
             var superBlockSize = (int)Align(sizeof(ExeFsSuperBlock), MediaUnitSize);
-            if (fileSize < superBlockSize) { ClearExeFs(); WriteLine("ERROR: exefs is too short\n\n"); return false; }
+            if (fileSize < superBlockSize) { ClearExeFs(); WriteLine("ERROR: exefs is too short\n"); return false; }
             Header.Ncch.ExeFsOffset = Header.Ncch.ContentSize;
             Header.Ncch.ExeFsSize = (uint)(Align(fileSize, MediaUnitSize) / MediaUnitSize);
             Header.Ncch.ExeFsHashRegionSize = (uint)(superBlockSize / MediaUnitSize);
-            s.Seek(0, SeekOrigin.Begin);
+            r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[superBlockSize];
-            s.Read(ref buf, 1, superBlockSize);
+            r.Read(buf, 0, superBlockSize);
             ExeFsSuperBlock superBlock = ToStruct<ExeFsSuperBlock>(buf);
-            if (ExeFs.IsExeFsSuperBlock(ref superBlock)) { ClearExeFs(); WriteLine("INFO: exefs is encrypted\n"); return false; }
-            //SHA256(pBuffer, static_cast<size_t>(superBlockSize), Header.Ncch.ExeFsSuperBlockHash);
-            s.Seek(0, SeekOrigin.Begin);
+            if (ExeFs.IsExeFsSuperBlock(ref superBlock)) { ClearExeFs(); WriteLine("INFO: exefs is encrypted"); return false; }
+            fixed (byte* _ = Header.Ncch.ExeFsSuperBlockHash) ToSha256(buf, superBlockSize, _);
+            r.Seek(0, SeekOrigin.Begin);
             var exeFs = new byte[fileSize];
-            s.Read(ref exeFs, 1, fileSize);
-            if (EncryptMode == kEncryptMode.NotEncrypt) s.CopyFile(S, 0, fileSize);
+            r.Read(exeFs, 0, fileSize);
+            if (EncryptMode == kEncryptMode.NotEncrypt) w.CopyFile(r, 0, fileSize);
             else {
                 CalculateCounter(kAesCtrType.ExeFs);
                 var xorOffset = 0L;
@@ -604,40 +600,40 @@ public unsafe class Ncch {
                 FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyNew], Counter, superBlock.Header0.Size, xorOffset);
                 xorOffset += superBlock.Header0.Size;
                 FEncryptAesCtrData(exeFs, xorOffset, Key[kEncryptKeyOld], Counter, fileSize - xorOffset, xorOffset);
-                S.Write(ref exeFs, 1, (int)fileSize);
+                w.Write(exeFs, 0, fileSize);
             }
             return true;
         }
         catch (IOException) { ClearExeFs(); return false; }
     }
 
-    bool CreateRomFs() {
+    bool CreateRomFs(Stream w) {
         if (string.IsNullOrEmpty(RomFsFileName)) { ClearRomFs(); return true; }
-        var encrypted = !RomFs.IsRomFsFile(RomFsFileName);
-        if (encrypted) { ClearRomFs(); WriteLine("INFO: romfs is encrypted\n"); return false; }
         try {
-            using var s = File.Open(RomFsFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) WriteLine($"load: {RomFsFileName}\n");
-            s.Seek(0, SeekOrigin.End);
-            var fileSize = (int)S.Position;
+            using var r = File.Open(RomFsFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var encrypted = !RomFs.IsRomFsFile(r);
+            if (encrypted) { ClearRomFs(); WriteLine("INFO: romfs is encrypted"); return false; }
+            if (Verbose) WriteLine($"load: {RomFsFileName}");
+            r.Seek(0, SeekOrigin.End);
+            var fileSize = (int)r.Position;
             var superBlockSize = Align(sizeof(SRomFsHeader), RomFs.SHA256BlockSize);
-            if (fileSize < superBlockSize) { ClearRomFs(); WriteLine("ERROR: romfs is too short\n\n"); return false; }
-            s.Seek(0, SeekOrigin.Begin);
+            if (fileSize < superBlockSize) { ClearRomFs(); WriteLine("ERROR: romfs is too short\n"); return false; }
+            r.Seek(0, SeekOrigin.Begin);
             SRomFsHeader header = new();
-            s.Read(ref header, sizeof(SRomFsHeader), 1);
+            r.Read(ref header, 0, sizeof(SRomFsHeader));
             superBlockSize = Align(Align(sizeof(SRomFsHeader), RomFs.SHA256BlockSize) + header.Level0Size, MediaUnitSize);
-            if (fileSize < superBlockSize) { ClearRomFs(); WriteLine("ERROR: romfs is too short\n\n"); return false; }
+            if (fileSize < superBlockSize) { ClearRomFs(); WriteLine("ERROR: romfs is too short\n"); return false; }
             Header.Ncch.RomFsHashRegionSize = (uint)(superBlockSize / MediaUnitSize);
-            s.Seek(0, SeekOrigin.Begin);
+            r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[superBlockSize];
-            s.Read(ref buf, 1, (int)superBlockSize);
-            //SHA256(buf, superBlockSize, Header.Ncch.RomFsSuperBlockHash);
+            r.Read(buf, 0, (int)superBlockSize);
+            fixed (byte* _ = Header.Ncch.RomFsSuperBlockHash) ToSha256(buf, (int)superBlockSize, _);
             Header.Ncch.RomFsOffset = Header.Ncch.ContentSize;
             Header.Ncch.RomFsSize = (uint)(Align(fileSize, MediaUnitSize) / MediaUnitSize);
-            if (EncryptMode == kEncryptMode.NotEncrypt) s.CopyFile(S, 0, fileSize);
+            if (EncryptMode == kEncryptMode.NotEncrypt) w.CopyFile(r, 0, fileSize);
             else {
                 CalculateCounter(kAesCtrType.RomFs);
-                FEncryptAesCtrCopyFile(S, s, Key[kEncryptKeyNew], Counter, 0, fileSize);
+                FEncryptAesCtrCopyFile(w, r, Key[kEncryptKeyNew], Counter, 0, fileSize);
             }
         }
         catch (IOException) { ClearRomFs(); return false; }
@@ -671,10 +667,10 @@ public unsafe class Ncch {
         Unsafe.InitBlock(ref Header.Ncch.RomFsSuperBlockHash[0], 0, 32);
     }
 
-    void AlignFileSize(long alignment) {
-        S.Seek(0, SeekOrigin.End);
-        var fileSize = Align(S.Position, alignment);
-        S.Seek2(fileSize);
+    void AlignFileSize(Stream s, long alignment) {
+        s.Seek(0, SeekOrigin.End);
+        var fileSize = Align(s.Position, alignment);
+        s.Seek2(fileSize);
         Header.Ncch.ContentSize = (uint)(fileSize / MediaUnitSize);
     }
 
