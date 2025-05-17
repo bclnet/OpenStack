@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using static System.Console;
 
-namespace OpenStack.Rom.Nintendo._3ds;
+namespace OpenStack.Vfx.Nintendo._3ds;
 using static Util;
 
 public unsafe class ExeFs {
@@ -165,7 +165,7 @@ public unsafe class ExeFs {
                     if (result) s.Write(uncompressed, 0, (int)uncompressedSize);
                     else WriteLine($"ERROR: uncompress error\n\n");
                 }
-                else WriteLine($"ERROR: get uncompressed Size error\n\n");
+                else WriteLine($"ERROR: get uncompressed RomSize error\n\n");
             }
             if (!topSection || !Uncompress || !result) s.CopyFile(S, sizeof(ExeFsSuperBlock) + header.Offset, header.Size);
             return result;

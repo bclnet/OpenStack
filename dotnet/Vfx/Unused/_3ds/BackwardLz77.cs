@@ -260,4 +260,3 @@ public unsafe class BackwardLz77 {
     }
     static readonly int CompressWorkSize = (4098 + 4098 + 256 + 256) * sizeof(ushort);
 }
- 

@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using YamlDotNet.Core.Tokens;
+using System.Text;
 
-namespace OpenStack.Rom.Nintendo._3ds;
+namespace OpenStack.Vfx;
 
 public unsafe static class Util {
     public static byte[] ToSha256(byte[] d, int n, byte* md) {
@@ -71,6 +71,6 @@ public unsafe static class Util {
 
     public static T ToStruct<T>(byte[] s) { fixed (byte* _ = s) return Marshal.PtrToStructure<T>((IntPtr)_); }
 
-    public static byte[] ToBytes(string s) => Enumerable.Range(0, s.Length >> 1).Select(x => byte.Parse(s.Substring(x << 1, 2), NumberStyles.HexNumber)).ToArray();
-    public static string FromBytes(byte[] s) => new([.. s.SelectMany(x => $"{x:02X}")]);
+    public static byte[] FromHexString(string s) => Enumerable.Range(0, s.Length >> 1).Select(x => byte.Parse(s.Substring(x << 1, 2), NumberStyles.HexNumber)).ToArray();
+    public static string ToHexString(byte[] s) { var b = new StringBuilder(); for (var i = 0; i < s.Length; i++) b.Append(s[i].ToString("X2")); return b.ToString(); } //: return new([.. s.SelectMany(x => $"{x:02X}")]);
 }

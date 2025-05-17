@@ -12,41 +12,6 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace OpenStack;
 
-/// <summary>
-/// BaseExtensions
-/// </summary>
-public static class BaseExtensions {
-    public static IEnumerable<string> FindPaths(this IFileSystem fileSystem, string path, string searchPattern) {
-        // expand
-        int expandStartIdx, expandMidIdx, expandEndIdx;
-        if ((expandStartIdx = searchPattern.IndexOf('(')) != -1 &&
-            (expandMidIdx = searchPattern.IndexOf(':', expandStartIdx)) != -1 &&
-            (expandEndIdx = searchPattern.IndexOf(')', expandMidIdx)) != -1 &&
-            expandStartIdx < expandEndIdx) {
-            foreach (var expand in searchPattern.Substring(expandStartIdx + 1, expandEndIdx - expandStartIdx - 1).Split(':'))
-                foreach (var found in FindPaths(fileSystem, path, searchPattern.Remove(expandStartIdx, expandEndIdx - expandStartIdx + 1).Insert(expandStartIdx, expand)))
-                    yield return found;
-            yield break;
-        }
-        foreach (var file in fileSystem.Glob(path, searchPattern)) yield return file;
-    }
-}
-
-#region FileSystem
-
-/// <summary>
-/// IFileSystem
-/// </summary>
-public interface IFileSystem {
-    IEnumerable<string> Glob(string path, string searchPattern);
-    bool FileExists(string path);
-    (string path, long length) FileInfo(string path);
-    BinaryReader OpenReader(string path);
-    BinaryWriter OpenWriter(string path);
-}
-
-#endregion
-
 #region Platform
 
 /// <summary>
@@ -99,17 +64,11 @@ public abstract class Platform(string id, string name) {
     public Action<string> LogFunc = a => System.Diagnostics.Debug.Print(a);
 
     /// <summary>
-    /// Gets the platforms logformat func.
-    /// </summary>
-    public Action<string, object[]> LogFormatFunc = (a, b) => System.Diagnostics.Debug.Print(a, b);
-
-    /// <summary>
     /// Activates the platform.
     /// </summary>
     public virtual void Activate() {
         Debug.AssertFunc = AssertFunc;
         Debug.LogFunc = LogFunc;
-        Debug.LogFormatFunc = LogFormatFunc;
     }
 
     /// <summary>
@@ -188,26 +147,26 @@ public static class PlatformX {
         return platform;
     }
 
-    /// <summary>
-    /// Creates the matcher.
-    /// </summary>
-    /// <param name="searchPattern">The searchPattern.</param>
-    /// <returns></returns>
-    public static Func<string, bool> CreateMatcher(string searchPattern) {
-        if (string.IsNullOrEmpty(searchPattern)) return x => true;
-        var wildcardCount = searchPattern.Count(x => x.Equals('*'));
-        if (wildcardCount <= 0) return x => x.Equals(searchPattern, StringComparison.CurrentCultureIgnoreCase);
-        else if (wildcardCount == 1) {
-            var newPattern = searchPattern.Replace("*", "");
-            if (searchPattern.StartsWith("*")) return x => x.EndsWith(newPattern, StringComparison.CurrentCultureIgnoreCase);
-            else if (searchPattern.EndsWith("*")) return x => x.StartsWith(newPattern, StringComparison.CurrentCultureIgnoreCase);
-        }
-        var regexPattern = $"^{Regex.Escape(searchPattern).Replace("\\*", ".*")}$";
-        return x => {
-            try { return Regex.IsMatch(x, regexPattern); }
-            catch { return false; }
-        };
-    }
+    ///// <summary>
+    ///// Creates the matcher.
+    ///// </summary>
+    ///// <param name="searchPattern">The searchPattern.</param>
+    ///// <returns></returns>
+    //public static Func<string, bool> CreateMatcher(string searchPattern) {
+    //    if (string.IsNullOrEmpty(searchPattern)) return x => true;
+    //    var wildcardCount = searchPattern.Count(x => x.Equals('*'));
+    //    if (wildcardCount <= 0) return x => x.Equals(searchPattern, StringComparison.CurrentCultureIgnoreCase);
+    //    else if (wildcardCount == 1) {
+    //        var newPattern = searchPattern.Replace("*", "");
+    //        if (searchPattern.StartsWith("*")) return x => x.EndsWith(newPattern, StringComparison.CurrentCultureIgnoreCase);
+    //        else if (searchPattern.EndsWith("*")) return x => x.StartsWith(newPattern, StringComparison.CurrentCultureIgnoreCase);
+    //    }
+    //    var regexPattern = $"^{Regex.Escape(searchPattern).Replace("\\*", ".*")}$";
+    //    return x => {
+    //        try { return Regex.IsMatch(x, regexPattern); }
+    //        catch { return false; }
+    //    };
+    //}
 
     public static Dictionary<object, object> DecodeOptions(string file) {
         var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), file);

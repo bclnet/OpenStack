@@ -130,7 +130,6 @@ public class StridePlatform : Platform {
         GfxFactory = source => [null, new StrideGfxSprite3D(source), new StrideGfxModel(source)];
         SfxFactory = source => [new StrideSfx(source)];
         LogFunc = a => Log.Info(a);
-        LogFormatFunc = (a, b) => Log.Info(string.Format(a, b));
     }
 }
 

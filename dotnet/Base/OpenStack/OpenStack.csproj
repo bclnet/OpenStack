@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Gfx\OpenStack.Gfx\OpenStack.Gfx.csproj" />
     <ProjectReference Include="..\..\Sfx\OpenStack.Sfx\OpenStack.Sfx.csproj" />
+    <ProjectReference Include="..\..\Vfx\OpenStack.Vfx\OpenStack.Vfx.csproj" />
     <ProjectReference Include="..\OpenStack.Polyfills\OpenStack.Polyfills.csproj" />
   </ItemGroup>
 

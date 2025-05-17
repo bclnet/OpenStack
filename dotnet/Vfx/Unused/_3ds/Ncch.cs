@@ -99,16 +99,16 @@ public unsafe class Ncch {
 
     #endregion
 
-    static readonly BigInteger DevSlot0x18KeyX = new(ToBytes("304BF1468372EE64115EBD4093D84276"));
-    static readonly BigInteger DevSlot0x1BKeyX = new(ToBytes("6C8B2944A0726035F941DFC018524FB6"));
-    static readonly BigInteger DevSlot0x25KeyX = new(ToBytes("81907A4B6F1B47323A677974CE4AD71B"));
-    static readonly BigInteger DevSlot0x2CKeyX = new(ToBytes("510207515507CBB18E243DCB85E23A1D"));
-    static readonly BigInteger RetailSlot0x18KeyX = new(ToBytes("82E9C9BEBFB8BDB875ECC0A07D474374"));
-    static readonly BigInteger RetailSlot0x1BKeyX = new(ToBytes("45AD04953992C7C893724A9A7BCE6182"));
-    static readonly BigInteger RetailSlot0x25KeyX = new(ToBytes("CEE7D8AB30C00DAE850EF5E382AC5AF3"));
-    static readonly BigInteger RetailSlot0x2CKeyX = new(ToBytes("B98E95CECA3E4D171F76A94DE934C053"));
-    static readonly BigInteger SystemFixedKey = new(ToBytes("527CE630A9CA305F3696F3CDE954194B"));
-    static readonly BigInteger NormalFixedKey = new(ToBytes("00000000000000000000000000000000"));
+    static readonly BigInteger DevSlot0x18KeyX = new(FromHexString("304BF1468372EE64115EBD4093D84276"));
+    static readonly BigInteger DevSlot0x1BKeyX = new(FromHexString("6C8B2944A0726035F941DFC018524FB6"));
+    static readonly BigInteger DevSlot0x25KeyX = new(FromHexString("81907A4B6F1B47323A677974CE4AD71B"));
+    static readonly BigInteger DevSlot0x2CKeyX = new(FromHexString("510207515507CBB18E243DCB85E23A1D"));
+    static readonly BigInteger RetailSlot0x18KeyX = new(FromHexString("82E9C9BEBFB8BDB875ECC0A07D474374"));
+    static readonly BigInteger RetailSlot0x1BKeyX = new(FromHexString("45AD04953992C7C893724A9A7BCE6182"));
+    static readonly BigInteger RetailSlot0x25KeyX = new(FromHexString("CEE7D8AB30C00DAE850EF5E382AC5AF3"));
+    static readonly BigInteger RetailSlot0x2CKeyX = new(FromHexString("B98E95CECA3E4D171F76A94DE934C053"));
+    static readonly BigInteger SystemFixedKey = new(FromHexString("527CE630A9CA305F3696F3CDE954194B"));
+    static readonly BigInteger NormalFixedKey = new(FromHexString("00000000000000000000000000000000"));
     public XFileType FileType = XFileType.Unknown;
     //public string FileName;
     //public Stream S = null;
@@ -369,7 +369,7 @@ public unsafe class Ncch {
             ReadExtKey();
             var programId = BitConverter.GetBytes(Header.Ncch.ProgramId);
             Array.Reverse(programId);
-            var sProgramId = FromBytes(programId);
+            var sProgramId = ToHexString(programId);
             if (!ExtKey.TryGetValue(sProgramId, out var extKey)) {
                 DownloadBegin = DownloadEnd = int.Parse(sProgramId.Substring(9, 5), NumberStyles.HexNumber);
                 if (!Download(false)) WriteLine("INFO: download failed");
@@ -425,7 +425,7 @@ public unsafe class Ncch {
             if (string.IsNullOrEmpty(line) || line.StartsWith("//")) continue;
             var vals = line.Split(" ");
             if (vals.Length != 2) { WriteLine($"INFO: unknown ext key record {line}"); continue; }
-            else if (!ExtKey.TryAdd(vals[0], ToBytes(vals[1]))) WriteLine($"INFO: multiple ext key for {vals[0]}");
+            else if (!ExtKey.TryAdd(vals[0], FromHexString(vals[1]))) WriteLine($"INFO: multiple ext key for {vals[0]}");
         }
     }
 
@@ -434,7 +434,7 @@ public unsafe class Ncch {
             var extKeyPath = "MODULE/ext_key.txt";
             using var s = File.Open(extKeyPath, FileMode.Create, FileAccess.Write, FileShare.Write);
             foreach (var z in ExtKey)
-                s.WriteBytes(Encoding.ASCII.GetBytes($"{z.Key} {FromBytes(z.Value)}\r\n"));
+                s.WriteBytes(Encoding.ASCII.GetBytes($"{z.Key} {ToHexString(z.Value)}\r\n"));
             return true;
         }
         catch (IOException) { return false; }

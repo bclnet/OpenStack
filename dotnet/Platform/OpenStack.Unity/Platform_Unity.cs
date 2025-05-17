@@ -379,7 +379,6 @@ public class UnityPlatform : Platform {
             SfxFactory = source => [new UnitySfx(source)];
             AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;
-            LogFormatFunc = UnityEngine.Debug.LogFormat;
         }
         catch { Debug.Log($"UnityPlatform: Error"); Enabled = false; }
     }

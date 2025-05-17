@@ -201,7 +201,6 @@ public class GodotPlatform : Platform {
         GfxFactory = source => [new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source)];
         SfxFactory = source => [new GodotSfx(source)];
         LogFunc = a => GD.Print(a?.Replace("\r", ""));
-        LogFormatFunc = (a, b) => GD.Print(string.Format(a, b)?.Replace("\r", ""));
     }
 }
 

@@ -8,12 +8,13 @@
 
   <ItemGroup>
 	<PackageReference Include="Gee.External.Capstone" Version="2.3.0" />
-	<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.3" />  
+	<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.3" />
+	<PackageReference Include="SharpCompress" Version="0.39.0" />  
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenStack\OpenStack.csproj" />
+    <ProjectReference Include="..\..\Base\OpenStack.Polyfills\OpenStack.Polyfills.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,9 +7,9 @@ namespace OpenStack {
     public class Debug {
         public static Action<bool> AssertFunc;
         public static Action<string> LogFunc;
-        public static Action<string, object[]> LogFormatFunc;
         public static void Assert(bool condition, string message = null) { } // => AssertFunc(condition);
-        public static void Log(string format = null) => LogFunc(format);
-        public static void LogFormat(string format, params object[] args) => LogFormatFunc(format, args);
+        public static void Log(string message = null) => LogFunc(message);
+        public static void Warn(string message) => LogFunc($"WARN: {message}");
+        public static void Error(string message) => LogFunc($"ERROR: {message}");
     }
 }
