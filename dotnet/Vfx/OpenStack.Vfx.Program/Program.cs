@@ -15,7 +15,7 @@ public class Program {
     }
 
     public static void Pass0() {
-        var s = new DirectoryFileSystem(@"E:\ArchiveLibrary\Rockstar\Monster Truck Madness 64 (USA).7z", null).Next();
+        var vfx = new DirectoryFileSystem(@"E:\ArchiveLibrary\Rockstar\Monster Truck Madness 64 (USA).7z", null).Next();
         //var abc = new SevenZipFileSystem(@"E:\ArchiveLibrary\Rockstar\Austin Powers - Oh, Behave! (USA).7z", null);
         //var s = new SevenZipFileSystem(null, @"E:\ArchiveLibrary\Rockstar\Monster Truck Madness 64 (USA).7z", null);
         //WriteLine(s.Glob("", null));
@@ -24,8 +24,7 @@ public class Program {
         //var src = new MemoryStream();
         //s.Open("Monster Truck Madness 64 (USA).z64", null).CopyTo(src);
         //src.Position = 0;
-        var src = s.Open("Monster Truck Madness 64 (USA).z64", null);
-        var abc = N64Rom.Open(src);
+        var abc = new N64Rom(vfx, "Monster Truck Madness 64 (USA).z64");
     }
 
     // 3dstool -xvt0f 3ds 0.cxi "Legend of Zelda, The - Tri Force Heroes (USA) (En,Fr,Es).3ds"

@@ -26,7 +26,7 @@ namespace OpenStack.Vfx.X3ds;
 /// X3dsFileSystem
 /// </summary>
 public class X3dsFileSystem : FileSystem {
-    public X3dsFileSystem(Stream stream, string path) {
+    public X3dsFileSystem(FileSystem vfx, string path, string basePath) {
         Log("X3dsFileSystem");
     }
 
@@ -3005,18 +3005,25 @@ public unsafe class BackwardLz77 {
 
 #region Util : Crypt
 
-public unsafe class Crypt {
-    public static void FEncryptAesCtrCopyFile(Stream dest, Stream src, BigInteger key, BigInteger counter, long srcOffset, long size) {
-        var crypt = Aes.Create();
-        var key2 = key.ToByteArray(); Array.Resize(ref key2, 16); crypt.Key = key2;
-        var iv2 = counter.ToByteArray(); Array.Resize(ref iv2, 16); crypt.IV = iv2;
-        crypt.BlockSize = 128;
-        src.Seek(srcOffset, SeekOrigin.Begin);
+public static class CryptUtil {
+    public static void CopyToAsAes(this Stream dst, Stream src, byte[] key, byte[] iv, int blockSize = 128) {
+        using var crypt = Aes.Create();
+        crypt.Key = key;
+        crypt.IV = iv;
+        crypt.BlockSize = blockSize;
         using var s = new MemoryStream();
         using var w = new CryptoStream(s, crypt.CreateEncryptor(), CryptoStreamMode.Write);
-        src.CopyTo(dest);
+        src.CopyTo(dst);
     }
+}
 
+public unsafe static class Crypt {
+    public static void FEncryptAesCtrCopyFile(Stream dst, Stream src, BigInteger key, BigInteger counter, long srcOffset, long size) {
+        var key2 = key.ToByteArray(); Array.Resize(ref key2, 16);
+        var iv2 = counter.ToByteArray(); Array.Resize(ref iv2, 16);
+        src.Seek(srcOffset, SeekOrigin.Begin);
+        dst.CopyToAsAes(src, key2, iv2);
+    }
     public static bool FEncryptAesCtrFile(string dataFileName, BigInteger key, BigInteger counter, long dataOffset, long dataSize, bool dataFileAll, long xorOffset) => throw new NotImplementedException();
     public static bool FEncryptXorFile(string dataFileName, string xorFileName) => throw new NotImplementedException();
     public static void FEncryptAesCtrData(byte[] data, long offset, BigInteger key, BigInteger counter, long dataSize, long xorOffset) => throw new NotImplementedException();

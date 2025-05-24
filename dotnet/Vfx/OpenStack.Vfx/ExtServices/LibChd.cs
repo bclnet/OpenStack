@@ -18,8 +18,8 @@ public static class LibChd {
     public const uint CDROM_TRACK_METADATA_TAG = 0x43485452; // CHTR
     public const uint CDROM_TRACK_METADATA2_TAG = 0x43485432; // CHT2
     // these formats are more for sscanf, they aren't suitable for C#
-    public const string CDROM_TRACK_METADATA_FORMAT = "TRACK:%d TYPE:%s SUBTYPE:%s FRAMES:%d";
-    public const string CDROM_TRACK_METADATA2_FORMAT = "TRACK:%d TYPE:%s SUBTYPE:%s FRAMES:%d PREGAP:%d PGTYPE:%s PGSUB:%s POSTGAP:%d";
+    public const string CDROM_TRACK_METADATA_FORMAT = "TRACK:%d TYPE:%S SUBTYPE:%S FRAMES:%d";
+    public const string CDROM_TRACK_METADATA2_FORMAT = "TRACK:%d TYPE:%S SUBTYPE:%S FRAMES:%d PREGAP:%d PGTYPE:%S PGSUB:%S POSTGAP:%d";
     public const int CHD_OPEN_READ = 1;
     public const int CHD_OPEN_READWRITE = 2;
 

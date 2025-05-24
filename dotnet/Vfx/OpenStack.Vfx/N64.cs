@@ -14,13 +14,14 @@ namespace OpenStack.Vfx.N64;
 /// N64FileSystem
 /// </summary>
 public class N64FileSystem : FileSystem {
-    public N64FileSystem(Stream stream, string path) {
+    public N64FileSystem(FileSystem vfx, string path, string basePath) {
+        var disc = new N64Rom(vfx, path);
         Log("N64FileSystem");
     }
 
     public override bool FileExists(string path) => throw new NotImplementedException();
     public override (string path, long length) FileInfo(string path) => throw new NotImplementedException();
-    public override IEnumerable<string> Glob(string path, string searchPattern) => throw new NotImplementedException();
+    public override IEnumerable<string> Glob(string path, string searchPattern) => [];
     public override Stream Open(string path, string mode) => throw new NotImplementedException();
 }
 
@@ -68,7 +69,38 @@ unsafe class N64Rom {
     public RomHeader Header;
     public string Name;
     public byte[] Md5;
-    static bool Verbose = false;
+    const bool Verbose = false;
+
+    public N64Rom(FileSystem vfx, string path) {
+        using var src = vfx.Open(path);
+        byte[] image; using (var s = new MemoryStream()) { src.CopyTo(s); s.Position = 0; image = s.ToArray(); }
+        fixed (byte* _image = image) {
+            var size = RomSize = image.Length;
+            if (!IsValidRom(_image, size)) throw new Exception("not a valid ROM image");
+            var newImage = Image = new byte[size]; // allocate new buffer for ROM and copy into this buffer
+            fixed (byte* _newImage = newImage) {
+                SwapCopyRom(_newImage, _image, size, out ImageType); // ROM is now in N64 native (big endian) byte order
+                Header = Marshal.PtrToStructure<RomHeader>((IntPtr)_newImage);
+            }
+            using var md5 = System.Security.Cryptography.MD5.Create();
+            Md5 = md5.ComputeHash(newImage);
+        }
+        SystemType = CountryCodeToSystemType(Header.CountryCode);
+        Header.Name[20] = (sbyte)'\0';
+        fixed (sbyte* _name = Header.Name) Name = new string(_name).Trim();
+        // display
+        Log($"Name: {Name}");
+        Log($"MD5: {Util.ToHexString(Md5)}");
+        Log($"CRC: {ReverseEndianness(Header.CRC1):X08} {ReverseEndianness(Header.CRC2):X08}");
+        Log($"Imagetype: {ImageToString(ImageType)}");
+        Log($"Rom size: {RomSize} bytes (or {RomSize / 1024 / 1024} Mb or {RomSize / 1024 / 1024 * 8} Megabits)");
+        if (Verbose) Log($"ClockRate = {ReverseEndianness(Header.ClockRate):X}");
+        Log($"Version: {ReverseEndianness(Header.Release):X}");
+        Log($"Manufacturer: {(ReverseEndianness(Header.ManufacturerID) == (byte)'N' ? "Nintendo" : ReverseEndianness(Header.ManufacturerID))}");
+        if (Verbose) Log($"CartridgeID: {ReverseEndianness(Header.CartridgeID)}");
+        Log($"Country: {CountryCodeToString(ReverseEndianness(Header.CountryCode))}");
+        if (Verbose) Log($"PC = {ReverseEndianness(Header.PC)}");
+    }
 
     static bool IsValidRom(byte* src, int size) {
         var magic = *(uint*)src;
@@ -133,37 +165,7 @@ unsafe class N64Rom {
         _ => "",
     };
 
-    public static N64Rom Open(Stream src) {
-        var r = new N64Rom();
-        byte[] image; using (var s = new MemoryStream()) { src.CopyTo(s); s.Position = 0; image = s.ToArray(); }
-        fixed (byte* _image = image) {
-            var size = r.RomSize = image.Length;
-            if (!IsValidRom(_image, size)) throw new Exception("not a valid ROM image");
-            var newImage = r.Image = new byte[size]; // allocate new buffer for ROM and copy into this buffer
-            fixed (byte* _newImage = newImage) {
-                SwapCopyRom(_newImage, _image, size, out r.ImageType); // ROM is now in N64 native (big endian) byte order
-                r.Header = Marshal.PtrToStructure<RomHeader>((IntPtr)_newImage);
-            }
-            using var md5 = System.Security.Cryptography.MD5.Create();
-            r.Md5 = md5.ComputeHash(newImage);
-        }
-        r.SystemType = CountryCodeToSystemType(r.Header.CountryCode);
-        r.Header.Name[20] = (sbyte)'\0';
-        fixed (sbyte* _name = r.Header.Name) r.Name = new string(_name).Trim();
-        // display
-        Log($"Name: {r.Name}");
-        Log($"MD5: {Util.ToHexString(r.Md5)}");
-        Log($"CRC: {ReverseEndianness(r.Header.CRC1):X08} {ReverseEndianness(r.Header.CRC2):X08}");
-        Log($"Imagetype: {ImageToString(r.ImageType)}");
-        Log($"Rom size: {r.RomSize} bytes (or {r.RomSize / 1024 / 1024} Mb or {r.RomSize / 1024 / 1024 * 8} Megabits)");
-        if (Verbose) Log($"ClockRate = {ReverseEndianness(r.Header.ClockRate):X}");
-        Log($"Version: {ReverseEndianness(r.Header.Release):X}");
-        Log($"Manufacturer: {(ReverseEndianness(r.Header.ManufacturerID) == (byte)'N' ? "Nintendo" : ReverseEndianness(r.Header.ManufacturerID))}");
-        if (Verbose) Log($"CartridgeID: {ReverseEndianness(r.Header.CartridgeID)}");
-        Log($"Country: {CountryCodeToString(ReverseEndianness(r.Header.CountryCode))}");
-        if (Verbose) Log($"PC = {ReverseEndianness(r.Header.PC)}");
-        return r;
-    }
+    
 }
 
 #endregion

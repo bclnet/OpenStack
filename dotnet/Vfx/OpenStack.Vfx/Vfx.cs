@@ -55,12 +55,12 @@ public abstract class FileSystem {
     /// <returns></returns>
     public FileSystem Advance(string basePath, string path)
          => Path.GetExtension(path).ToLowerInvariant() switch {
-             ".zip" => new ZipFileSystem(Open(path, null), basePath),
-             ".7z" => new SevenZipFileSystem(Open(path, null), basePath),
-             ".iso" => new IsoFileSystem(Open(path, null), basePath),
-             ".bin" or ".cue" => new CueFileSystem(this, Open(Glob("", "*.cue").Single(), null), basePath),
-             ".n64" or ".v64" or ".z64" => new N64FileSystem(Open(path, null), basePath),
-             ".3ds" => new X3dsFileSystem(Open(path, null), basePath),
+             ".zip" => new ZipFileSystem(this, path, basePath),
+             ".7z" => new SevenZipFileSystem(this, path, basePath),
+             //".iso" => new IsoFileSystem(this, path, basePath),
+             ".bin" or ".cue" => new DiscFileSystem(this, Glob("", "*.cue").Single(), basePath),
+             ".n64" or ".v64" or ".z64" => new N64FileSystem(this, path, basePath),
+             ".3ds" => new X3dsFileSystem(this, path, basePath),
              _ => null
          };
 
@@ -216,8 +216,8 @@ public class IsoFileSystem(Stream baseStream, string basePath) : FileSystem {
 /// <summary>
 /// ZipFileSystem
 /// </summary>
-public class ZipFileSystem(Stream baseStream, string basePath) : FileSystem {
-    readonly ZipArchive Arc = new(baseStream, ZipArchiveMode.Read);
+public class ZipFileSystem(FileSystem vfx, string path, string basePath) : FileSystem {
+    readonly ZipArchive Arc = new(vfx.Open(path), ZipArchiveMode.Read);
     string Root = string.Empty;
 
     public override IEnumerable<string> Glob(string path, string searchPattern) {
@@ -241,8 +241,8 @@ public class ZipFileSystem(Stream baseStream, string basePath) : FileSystem {
 /// <summary>
 /// SevenZipFileSystem
 /// </summary>
-public class SevenZipFileSystem(Stream baseStream, string basePath) : FileSystem {
-    readonly SevenZipArchive Arc = SevenZipArchive.Open(baseStream);
+public class SevenZipFileSystem(FileSystem vfx, string path, string basePath) : FileSystem {
+    readonly SevenZipArchive Arc = SevenZipArchive.Open(vfx.Open(path));
     string Root = string.Empty;
 
     public override IEnumerable<string> Glob(string path, string searchPattern) {

@@ -201,6 +201,15 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFUString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null;
 
     /// <summary>
+    /// Read a Fixed-Length utf8 string from the stream
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="length">Size of the String</param>
+    /// <param name="zstring">Remove last character</param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadF8String(this BinaryReader source, int length) => length != 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+
+    /// <summary>
     /// Read a Fixed-Length ascii string from the stream
     /// </summary>
     /// <param name="source"></param>
