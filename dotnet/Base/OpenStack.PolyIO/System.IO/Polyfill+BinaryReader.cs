@@ -536,7 +536,7 @@ public static partial class Polyfill {
     /// <summary>
     /// Reads a column-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
-    public static Matrix4x4 ReadColumnMajorMatrix3x3(this BinaryReader source) {
+    public static Matrix4x4 ReadMatrixColumn3x3As4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var columnIndex = 0; columnIndex < 4; columnIndex++)
             for (var rowIndex = 0; rowIndex < 4; rowIndex++) {
@@ -549,7 +549,7 @@ public static partial class Polyfill {
     /// <summary>
     /// Reads a row-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
-    public static Matrix4x4 ReadRowMajorMatrix3x3(this BinaryReader source) {
+    public static Matrix4x4 ReadMatrix3x3As4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var rowIndex = 0; rowIndex < 4; rowIndex++)
             for (var columnIndex = 0; columnIndex < 4; columnIndex++) {
@@ -559,13 +559,13 @@ public static partial class Polyfill {
             }
         return matrix;
     }
-    public static Matrix4x4 ReadColumnMajorMatrix4x4(this BinaryReader source) {
+    public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var columnIndex = 0; columnIndex < 4; columnIndex++)
             for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
         return matrix;
     }
-    public static Matrix4x4 ReadRowMajorMatrix4x4(this BinaryReader source) {
+    public static Matrix4x4 ReadMatrix4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
         for (var rowIndex = 0; rowIndex < 4; rowIndex++)
             for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());

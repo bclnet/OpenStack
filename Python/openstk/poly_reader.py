@@ -175,4 +175,10 @@ class Reader:
         [self.readSingle(), self.readSingle(), self.readSingle()],
         [self.readSingle(), self.readSingle(), self.readSingle()]
         ])
-    
+    def readMatrix3x3As4x4(self) -> np.ndarray: return np.array([
+        [self.readSingle(), self.readSingle(), self.readSingle(), 1.0],
+        [self.readSingle(), self.readSingle(), self.readSingle(), 1.0],
+        [self.readSingle(), self.readSingle(), self.readSingle(), 1.0],
+        [0.0, 0.0, 0.0, 1.0]
+        ])
+
