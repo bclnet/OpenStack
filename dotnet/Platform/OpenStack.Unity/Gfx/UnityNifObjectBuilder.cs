@@ -64,14 +64,14 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     void ProcessExtraData(NiObject obj, out bool shouldAddMissingColliders, out bool isMarker) {
         shouldAddMissingColliders = true; isMarker = false;
         if (obj is NiObjectNET objNET) {
-            var extraData = objNET.ExtraData.Value >= 0 ? (NiExtraData)_source.Blocks[objNET.ExtraData.Value] : null;
+            var extraData = objNET.ExtraData != null ? (NiExtraData)_source.Blocks[objNET.ExtraData.Value] : null;
             while (extraData != null) {
                 if (extraData is NiStringExtraData strExtraData) {
                     if (strExtraData.Str == "NCO" || strExtraData.Str == "NCC") shouldAddMissingColliders = false;
                     else if (strExtraData.Str == "MRK") { shouldAddMissingColliders = false; isMarker = true; }
                 }
                 // Move to the next NiExtraData.
-                extraData = extraData.NextExtraData.Value >= 0 ? (NiExtraData)_source.Blocks[extraData.NextExtraData.Value] : default;
+                extraData = extraData.NextExtraData != null ? (NiExtraData)_source.Blocks[extraData.NextExtraData.Value] : default;
             }
         }
     }
@@ -98,7 +98,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         var obj = new Object(node.Name);
         foreach (var childIndex in node.Children)
             // NiNodes can have child references < 0 meaning null.
-            if (!childIndex.IsNull) {
+            if (childIndex != null) {
                 var child = InstantiateNiObject(_source.Blocks[childIndex.Value]);
                 child?.transform.SetParent(obj.transform, false);
             }
@@ -153,7 +153,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         var obj = new Object("Root Collision Node");
         foreach (var childIndex in collisionNode.Children)
             // NiNodes can have child references < 0 meaning null.
-            if (!childIndex.IsNull) AddColliderFromNiObject(_source.Blocks[childIndex.Value], obj);
+            if (childIndex != null) AddColliderFromNiObject(_source.Blocks[childIndex.Value], obj);
         ApplyNiAVObject(collisionNode, obj);
         return obj;
     }

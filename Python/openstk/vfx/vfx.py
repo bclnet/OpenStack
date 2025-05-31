@@ -83,8 +83,8 @@ class DirectoryFileSystem(FileSystem):
     def fileInfo(self, path: str) -> tuple[str, int]: return (path, os.stat(path).st_size) if os.path.exists(path := os.path.join(self.root, path)) else (None, 0)
     def open(self, path: str, mode: str = None) -> object: return open(os.path.join(self.root, path), mode or 'rb')
     def next(self) -> FileSystem:
-        if os.path.isfile(self.root):
-            self.root = ''; self.skip = len(self.root) + 1
+        if os.path.isfile(self.root) or '*' in os.path.basename(self.root):
+            self.root = os.path.dirname(self.root); self.skip = len(self.root) + 1
             return self #self.advance(self.basePath, ).next() or self
         @staticmethod
         def _lambdaX(self):
@@ -97,14 +97,14 @@ class DirectoryFileSystem(FileSystem):
 
 #region FileSystem : Network
 
-# tag::HostFileSystem[]
-class HostFileSystem(FileSystem):
+# tag::NetworkFileSystem[]
+class NetworkFileSystem(FileSystem):
     def __init__(self, uri: str): self.uri = uri
     def glob(self, path: str, searchPattern: str) -> list[str]: raise NotImplementedError()
     def fileExists(self, path: str) -> bool: raise NotImplementedError()
     def fileInfo(self, path: str) -> tuple[str, int]: raise NotImplementedError()
     def open(self, path: str, mode: str = None) -> object: raise NotImplementedError()
-# end::HostFileSystem[]
+# end::NetworkFileSystem[]
 
 #endregion
 

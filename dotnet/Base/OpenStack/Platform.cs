@@ -177,7 +177,8 @@ public static class PlatformX {
     }
 
     public static string DecodePath(string path, string rootPath = null) =>
-        path.StartsWith("%Path%", StringComparison.OrdinalIgnoreCase) ? $"{rootPath}{path[6..]}"
+        path.StartsWith("~", StringComparison.OrdinalIgnoreCase) ? $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{path[1..]}"
+        : path.StartsWith("%Path%", StringComparison.OrdinalIgnoreCase) ? $"{rootPath}{path[6..]}"
         : path.StartsWith("%AppPath%", StringComparison.OrdinalIgnoreCase) ? $"{ApplicationPath}{path[9..]}"
         : path.StartsWith("%AppData%", StringComparison.OrdinalIgnoreCase) ? $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}{path[9..]}"
         : path.StartsWith("%LocalAppData%", StringComparison.OrdinalIgnoreCase) ? $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}{path[14..]}"

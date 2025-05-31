@@ -124,7 +124,7 @@ public class VirtualFileSystem(Dictionary<string, byte[]> virtuals) : FileSystem
 /// DirectoryFileSystem
 /// </summary>
 public class DirectoryFileSystem(string baseRoot, string basePath) : FileSystem {
-    string Root = baseRoot; int Skip = baseRoot.Length + 1;
+    readonly string BaseRoot = baseRoot; readonly string BasePath = basePath; string Root = baseRoot; int Skip = baseRoot.Length + 1;
 
     public override IEnumerable<string> Glob(string path, string searchPattern) {
         var matcher = new Matcher();
@@ -137,12 +137,12 @@ public class DirectoryFileSystem(string baseRoot, string basePath) : FileSystem 
         ? File.Open(Path.Combine(Root, path), FileMode.Open, FileAccess.Read, FileShare.Read)
         : File.Open(Path.Combine(Root, path), FileMode.Open, FileAccess.Write, FileShare.Write);
     public override FileSystem Next() {
-        if (File.Exists(Root)) {
+        if (File.Exists(Root) || Path.GetFileName(Root).Contains('*')) {
             Root = Path.GetDirectoryName(Root); Skip = Root.Length + 1;
-            return Advance(basePath, Path.GetFileName(baseRoot))?.Next() ?? this;
+            return Advance(BasePath, Path.GetFileName(BaseRoot))?.Next() ?? this;
         }
-        return Next(basePath, -1, () => Directory.EnumerateFiles(Root).FirstOrDefault(), () => {
-            if (!string.IsNullOrEmpty(basePath)) { Root = Path.Combine(baseRoot, basePath); Skip = Root.Length + 1; }
+        return Next(BasePath, -1, () => Directory.EnumerateFiles(Root).FirstOrDefault(), () => {
+            if (!string.IsNullOrEmpty(BasePath)) { Root = Path.Combine(BaseRoot, BasePath); Skip = Root.Length + 1; }
             return this;
         });
     }
@@ -153,10 +153,10 @@ public class DirectoryFileSystem(string baseRoot, string basePath) : FileSystem 
 #region FileSystem : Network
 
 /// <summary>
-/// HostFileSystem
+/// NetworkFileSystem
 /// </summary>
-public class HostFileSystem : FileSystem {
-    public HostFileSystem(Uri uri) {
+public class NetworkFileSystem : FileSystem {
+    public NetworkFileSystem(Uri uri) {
         if (uri == null) throw new ArgumentNullException(nameof(uri));
         var pathOrPattern = uri.LocalPath;
         var searchPattern = Path.GetFileName(pathOrPattern);
@@ -185,28 +185,6 @@ public class HostFileSystem : FileSystem {
     public override bool FileExists(string path) => File.Exists(path);
     public override (string path, long length) FileInfo(string path) => File.Exists(path) ? (path, 0) : (null, 0);
     public override Stream Open(string path, string mode) => null;
-}
-
-#endregion
-
-#region FileSystem : Image
-
-/// <summary>
-/// IsoFileSystem
-/// </summary>
-public class IsoFileSystem(Stream baseStream, string basePath) : FileSystem {
-    //readonly ZipArchive Pak = ZipFile.Open(root, ZipArchiveMode.Read);
-    //readonly string Root = path;
-
-    //public IEnumerable<string> Glob(string path, string searchPattern) {
-    //    var matcher = PlatformX.CreateMatcher(searchPattern);
-    //    return Pak.Entries.Where(x => matcher(x.Name)).Select(x => x.Name);
-    //}
-
-    public override bool FileExists(string path) => throw new NotImplementedException();
-    public override (string path, long length) FileInfo(string path) => throw new NotImplementedException();
-    public override IEnumerable<string> Glob(string path, string searchPattern) => throw new NotImplementedException();
-    public override Stream Open(string path, string mode) => throw new NotImplementedException();
 }
 
 #endregion
