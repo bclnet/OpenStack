@@ -48,10 +48,10 @@ class FileSystem:
             if searchPattern.startswith('*'): return lambda x: x.casefold().endswith(newPattern)
             elif searchPattern.endswith('*'): return lambda x: x.casefold().startswith(newPattern)
         regexPattern = f'^{re.escape(searchPattern).replace('\\*', '.*')}$'
-        def _lambdaX(x: str):
+        def lambdaX(x: str):
             try: return re.match(x, regexPattern)
             except: return False
-        return _lambdaX
+        return lambdaX
     
 # tag::AggregateFileSystem[]
 class AggregateFileSystem(FileSystem):

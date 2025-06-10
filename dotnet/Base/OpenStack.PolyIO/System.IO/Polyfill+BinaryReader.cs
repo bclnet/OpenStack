@@ -31,11 +31,11 @@ public static partial class Polyfill {
     //    source.Read(buffer, startIndex, (int)length);
     //}
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] ReadToZero(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null) {
+    public static byte[] ReadToValue(this BinaryReader source, byte value = 0, int length = int.MaxValue, MemoryStream ms = null) {
         if (ms == null) ms = new MemoryStream();
         else ms.SetLength(0);
         byte c; length = Math.Min(length, (int)(source.BaseStream.Length - source.BaseStream.Position));
-        while (length-- > 0 && (c = source.ReadByte()) != 0) ms.WriteByte(c);
+        while (length-- > 0 && (c = source.ReadByte()) != value) ms.WriteByte(c);
         return ms.ToArray();
     }
 
@@ -64,6 +64,11 @@ public static partial class Polyfill {
         source.Read(buffer);
         return buffer;
     }
+
+    // primatives : bytes
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL8Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL16Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL32Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
 
     // primatives : endian
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static double ReadDoubleE(this BinaryReader source) => ReadDoubleBigEndian(InternalRead(source, stackalloc byte[sizeof(double)]));
@@ -279,8 +284,8 @@ public static partial class Polyfill {
 
     // String : Variable
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null) => Encoding.UTF8.GetString(source.ReadToZero(length, ms));
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, MemoryStream ms = null) => Encoding.ASCII.GetString(source.ReadToZero(length, ms));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.UTF8.GetString(source.ReadToValue(stopValue, length, ms));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.ASCII.GetString(source.ReadToValue(stopValue, length, ms));
 
     // String : Encoding
 
