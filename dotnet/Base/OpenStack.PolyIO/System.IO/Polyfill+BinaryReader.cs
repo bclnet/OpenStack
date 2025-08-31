@@ -372,81 +372,70 @@ public static partial class Polyfill {
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T ReadT<T>(this BinaryReader source, int sizeOf) where T : struct => MarshalT<T>(source.ReadBytes(sizeOf));
 
     // Struct : Array - Factory
-    public static T[] ReadL8FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory) => source.ReadFArray(factory, source.ReadByte());
-    public static T[] ReadL16FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, source.ReadUInt16X(endian));
-    public static T[] ReadL32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, (int)source.ReadUInt32X(endian));
-    public static T[] ReadC32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => source.ReadFArray(factory, (int)source.ReadCInt32X(endian));
-    public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory) => ReadFArray(source, factory, source.ReadByte());
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL16FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => ReadFArray(source, factory, source.ReadUInt16X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => ReadFArray(source, factory, (int)source.ReadUInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => ReadFArray(source, factory, (int)source.ReadCInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, uint count) => ReadFArray(source, factory, (int)count);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
 
     // Struct : Array - Pattern
-    public static T[] ReadL8PArray<T>(this BinaryReader source, string pat) where T : struct => source.ReadPArray<T>(pat, source.ReadByte());
-    public static T[] ReadL16PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => source.ReadPArray<T>(pat, source.ReadUInt16X(endian));
-    public static T[] ReadL32PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => source.ReadPArray<T>(pat, (int)source.ReadUInt32X(endian));
-    public static T[] ReadC32PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => source.ReadPArray<T>(pat, (int)source.ReadCInt32X(endian));
-    public static T[] ReadPArray<T>(this BinaryReader source, string pat, int count) where T : struct => count > 0 ? MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count) : [];
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8PArray<T>(this BinaryReader source, string pat) where T : struct => ReadPArray<T>(source, pat, source.ReadByte());
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL16PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => ReadPArray<T>(source, pat, source.ReadUInt16X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL32PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => ReadPArray<T>(source, pat, (int)source.ReadUInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32PArray<T>(this BinaryReader source, string pat, bool endian = false) where T : struct => ReadPArray<T>(source, pat, (int)source.ReadCInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadPArray<T>(this BinaryReader source, string pat, uint count) where T : struct => ReadPArray<T>(source, pat, (int)count);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadPArray<T>(this BinaryReader source, string pat, int count) where T : struct => count > 0 ? MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count) : [];
 
     // Struct : Array - Struct
-    public static T[] ReadL8SArray<T>(this BinaryReader source, int sizeOf = 0) where T : struct => source.ReadSArray<T>(source.ReadByte(), sizeOf);
-    public static T[] ReadL16SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => source.ReadSArray<T>(source.ReadUInt16X(endian));
-    public static T[] ReadL32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadUInt32X(endian));
-    public static T[] ReadC32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => source.ReadSArray<T>((int)source.ReadCInt32X(endian));
-    public static T[] ReadSArray<T>(this BinaryReader source, int count, int sizeOf = 0) where T : struct => count > 0 ? MarshalSArray<T>(source.ReadBytes, count, sizeOf) : [];
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8SArray<T>(this BinaryReader source, int sizeOf = 0) where T : struct => ReadSArray<T>(source, source.ReadByte(), sizeOf);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL16SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, source.ReadUInt16X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, (int)source.ReadUInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, (int)source.ReadCInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSArray<T>(this BinaryReader source, uint count, int sizeOf = 0) where T : struct => ReadSArray<T>(source, (int)count, sizeOf);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSArray<T>(this BinaryReader source, int count, int sizeOf = 0) where T : struct => count > 0 ? MarshalSArray<T>(source.ReadBytes, count, sizeOf) : [];
 
     // Struct : Array - Type
-    //public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadByte());
-    //public static T[] ReadL16TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, source.ReadUInt16X(endian));
-    //public static T[] ReadL32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadUInt32X(endian));
-    //public static T[] ReadC32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => source.ReadTArray<T>(sizeOf, (int)source.ReadCInt32X(endian));
-    //public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? MarshalTArray<T>(source.ReadBytes(sizeOf * count), count) : [];
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf) where T : struct => ReadTArray<T>(source, sizeOf, source.ReadByte());
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL16TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => ReadTArray<T>(source, sizeOf, source.ReadUInt16X(endian));
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadUInt32X(endian));
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32TArray<T>(this BinaryReader source, int sizeOf, bool endian = false) where T : struct => ReadTArray<T>(source, sizeOf, (int)source.ReadCInt32X(endian));
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadTArray<T>(this BinaryReader source, int sizeOf, int count) where T : struct => count > 0 ? MarshalTArray<T>(source.ReadBytes(sizeOf * count), count) : [];
 
     // Struct : Each
-    public static T[] ReadSEach<T>(this BinaryReader source, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalS<T>(source.ReadBytes, -1); return list; }
-    public static T[] ReadTEach<T>(this BinaryReader source, int sizeOf, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalT<T>(source.ReadBytes(sizeOf)); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSEach<T>(this BinaryReader source, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalS<T>(source.ReadBytes, -1); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadTEach<T>(this BinaryReader source, int sizeOf, int count) where T : struct { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalT<T>(source.ReadBytes(sizeOf)); return list; }
 
     // Struct : Many - Factory
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, source.ReadByte(), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, source.ReadUInt16X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) {
-        var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
-        for (var i = 0; i < count; i++) set.Add(keyFactory(source), valueFactory(source));
-        return set;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, uint count, bool sorted = false) => ReadFMany(source, keyFactory, valueFactory, (int)count, sorted);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) { var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>(); for (var i = 0; i < count; i++) set.Add(keyFactory(source), valueFactory(source)); return set; }
 
     // Struct : Many - Pattern
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, source.ReadByte(), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, source.ReadUInt16X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct {
-        var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
-        for (var i = 0; i < count; i++) set.Add(source.ReadP<TKey>(pat), valueFactory(source));
-        return set;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, uint count, bool sorted = false) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)count, sorted);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct { var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>(); for (var i = 0; i < count; i++) set.Add(source.ReadP<TKey>(pat), valueFactory(source)); return set; }
 
     // Struct : Many - Struct
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, source.ReadByte(), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, source.ReadUInt16X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct {
-        var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
-        for (var i = 0; i < count; i++) set.Add(source.ReadS<TKey>(), valueFactory(source));
-        return set;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, uint count, bool sorted = false) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)count, sorted);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct { var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>(); for (var i = 0; i < count; i++) set.Add(source.ReadS<TKey>(), valueFactory(source)); return set; }
 
     // Struct : Many - Type
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadByte(), sorted);
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadUInt16X(endian), sorted);
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadUInt32X(endian), sorted);
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadC32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadCInt32X(endian), sorted);
-    //public static IDictionary<TKey, TValue> ReadTMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct
-    //{
-    //    var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>();
-    //    for (var i = 0; i < count; i++) set.Add(source.ReadT<TKey>(sizeOf), valueFactory(source));
-    //    return set;
-    //}
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadTMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false) where TKey : struct { var set = sorted ? (IDictionary<TKey, TValue>)new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>(); for (var i = 0; i < count; i++) set.Add(source.ReadT<TKey>(sizeOf), valueFactory(source)); return set; }
 
     #endregion
 
@@ -542,38 +531,28 @@ public static partial class Polyfill {
     /// Reads a column-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
     public static Matrix4x4 ReadMatrixColumn3x3As4x4(this BinaryReader source) {
+        // If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
         var matrix = new Matrix4x4();
-        for (var columnIndex = 0; columnIndex < 4; columnIndex++)
-            for (var rowIndex = 0; rowIndex < 4; rowIndex++) {
-                // If we're in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
-                if (rowIndex <= 2 && columnIndex <= 2) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
-                else matrix.Set(rowIndex, columnIndex, rowIndex == columnIndex ? 1f : 0f);
-            }
+        for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
         return matrix;
     }
     /// <summary>
     /// Reads a row-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
     public static Matrix4x4 ReadMatrix3x3As4x4(this BinaryReader source) {
+        // If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
         var matrix = new Matrix4x4();
-        for (var rowIndex = 0; rowIndex < 4; rowIndex++)
-            for (var columnIndex = 0; columnIndex < 4; columnIndex++) {
-                // If we're in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
-                if (rowIndex <= 2 && columnIndex <= 2) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
-                else matrix.Set(rowIndex, columnIndex, rowIndex == columnIndex ? 1f : 0f);
-            }
+        for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
         return matrix;
     }
     public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
-        for (var columnIndex = 0; columnIndex < 4; columnIndex++)
-            for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
+        for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
         return matrix;
     }
     public static Matrix4x4 ReadMatrix4x4(this BinaryReader source) {
         var matrix = new Matrix4x4();
-        for (var rowIndex = 0; rowIndex < 4; rowIndex++)
-            for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
+        for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
         return matrix;
     }
     public static Quaternion ReadQuaternionWFirst(this BinaryReader source)

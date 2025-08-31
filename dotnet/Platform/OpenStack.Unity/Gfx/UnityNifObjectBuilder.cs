@@ -19,13 +19,13 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     readonly bool _isStatic = isStatic;
 
     public Object BuildObject() {
-        Assert(_source.Name != null && _source.Footer.Roots.Length > 0);
+        Assert(_source.Name != null && _source.Roots.Length > 0);
 
         // NIF files can have any number of root NiObjects.
         // If there is only one root, instantiate that directly.
         // If there are multiple roots, create a container Object and parent it to the roots.
-        if (_source.Footer.Roots.Length == 1) {
-            var rootNiObject = _source.Blocks[_source.Footer.Roots[0]];
+        if (_source.Roots.Length == 1) {
+            var rootNiObject = _source.Roots[0].Value;
             var gobj = InstantiateRootNiObject(rootNiObject);
             // If the file doesn't contain any NiObjects we are looking for, return an empty Object.
             if (gobj == null) {
@@ -43,8 +43,8 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         else {
             Log(_source.Name + " has multiple roots.");
             var gobj = new Object(_source.Name);
-            foreach (var rootRef in _source.Footer.Roots) {
-                var child = InstantiateRootNiObject(_source.Blocks[rootRef]);
+            foreach (var rootRef in _source.Roots) {
+                var child = InstantiateRootNiObject(rootRef.Value);
                 child?.transform.SetParent(gobj.transform, false);
             }
             return gobj;
@@ -64,14 +64,14 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     void ProcessExtraData(NiObject obj, out bool shouldAddMissingColliders, out bool isMarker) {
         shouldAddMissingColliders = true; isMarker = false;
         if (obj is NiObjectNET objNET) {
-            var extraData = objNET.ExtraData != null ? (NiExtraData)_source.Blocks[objNET.ExtraData.Value] : null;
+            var extraData = objNET.ExtraData?.Value;
             while (extraData != null) {
                 if (extraData is NiStringExtraData strExtraData) {
-                    if (strExtraData.Str == "NCO" || strExtraData.Str == "NCC") shouldAddMissingColliders = false;
-                    else if (strExtraData.Str == "MRK") { shouldAddMissingColliders = false; isMarker = true; }
+                    if (strExtraData.StringData == "NCO" || strExtraData.StringData == "NCC") shouldAddMissingColliders = false;
+                    else if (strExtraData.StringData == "MRK") { shouldAddMissingColliders = false; isMarker = true; }
                 }
                 // Move to the next NiExtraData.
-                extraData = extraData.NextExtraData != null ? (NiExtraData)_source.Blocks[extraData.NextExtraData.Value] : default;
+                extraData = extraData.NextExtraData?.Value;
             }
         }
     }
@@ -99,7 +99,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         foreach (var childIndex in node.Children)
             // NiNodes can have child references < 0 meaning null.
             if (childIndex != null) {
-                var child = InstantiateNiObject(_source.Blocks[childIndex.Value]);
+                var child = InstantiateNiObject(childIndex.Value);
                 child?.transform.SetParent(obj.transform, false);
             }
         ApplyNiAVObject(node, obj);
@@ -128,14 +128,14 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
 
     Object InstantiateNiTriShape(NiTriShape triShape, bool visual, bool collidable) {
         Assert(visual || collidable);
-        var mesh = NiTriShapeDataToMesh((NiTriShapeData)_source.Blocks[triShape.Data.Value]);
+        var mesh = NiTriShapeDataToMesh((NiTriShapeData)triShape.Data.Value);
         var obj = new Object(triShape.Name);
         if (visual) {
             var materialProps = NiAVObjectToMaterialProp(triShape);
             obj.AddComponent<MeshFilter>().mesh = mesh;
             var meshRenderer = obj.AddComponent<MeshRenderer>();
             meshRenderer.material = _materialManager.CreateMaterial(materialProps).mat;
-            if (materialProps.Textures == null || triShape.Flags.HasFlag(NiAVObject.NiFlags.Hidden)) meshRenderer.enabled = false;
+            if (materialProps.Textures == null || triShape.Flags.HasFlag(Flags.Hidden)) meshRenderer.enabled = false;
             obj.isStatic = true;
         }
         if (collidable) {
@@ -153,7 +153,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         var obj = new Object("Root Collision Node");
         foreach (var childIndex in collisionNode.Children)
             // NiNodes can have child references < 0 meaning null.
-            if (childIndex != null) AddColliderFromNiObject(_source.Blocks[childIndex.Value], obj);
+            if (childIndex != null) AddColliderFromNiObject(childIndex.Value, obj);
         ApplyNiAVObject(collisionNode, obj);
         return obj;
     }
@@ -211,7 +211,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         NiMaterialProperty mat = null;
         NiAlphaProperty alpha = null;
         foreach (var propRef in obj.Properties) {
-            var prop = _source.Blocks[propRef.Value];
+            var prop = propRef.Value;
             if (prop is NiTexturingProperty tp) tex = tp;
             else if (prop is NiMaterialProperty mp2) mat = mp2;
             else if (prop is NiAlphaProperty ap) alpha = ap;
@@ -237,7 +237,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         */
         // apply alphaProperty
         if (alpha != null) {
-            var flags = alpha.Flags;
+            var flags = (ushort)alpha.Flags;
             var srcbm = (byte)(BitConverter.GetBytes(flags >> 1)[0] & 15);
             var dstbm = (byte)(BitConverter.GetBytes(flags >> 5)[0] & 15);
             mp.ZWrite = BitConverter.GetBytes(flags >> 15)[0] == 1;
@@ -260,12 +260,12 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         // apply texturingProperty
         if (tex != null && tex.TextureCount > 0) {
             var mt = mp.Textures;
-            if (tex.BaseTexture != null) mt.Add("Main", ((NiSourceTexture)_source.Blocks[tex.BaseTexture.Source.Value]).FileName);
-            if (tex.DarkTexture != null) mt.Add("Dark", ((NiSourceTexture)_source.Blocks[tex.DarkTexture.Source.Value]).FileName);
-            if (tex.DetailTexture != null) mt.Add("Detail", ((NiSourceTexture)_source.Blocks[tex.DetailTexture.Source.Value]).FileName);
-            if (tex.GlossTexture != null) mt.Add("Gloss", ((NiSourceTexture)_source.Blocks[tex.GlossTexture.Source.Value]).FileName);
-            if (tex.GlowTexture != null) mt.Add("Glow", ((NiSourceTexture)_source.Blocks[tex.GlowTexture.Source.Value]).FileName);
-            if (tex.BumpMapTexture != null) mt.Add("Bump", ((NiSourceTexture)_source.Blocks[tex.BumpMapTexture.Source.Value]).FileName);
+            if (tex.BaseTexture != null) mt.Add("Main", tex.BaseTexture.Source.Value.FileName);
+            if (tex.DarkTexture != null) mt.Add("Dark", tex.DarkTexture.Source.Value.FileName);
+            if (tex.DetailTexture != null) mt.Add("Detail", tex.DetailTexture.Source.Value.FileName);
+            if (tex.GlossTexture != null) mt.Add("Gloss", tex.GlossTexture.Source.Value.FileName);
+            if (tex.GlowTexture != null) mt.Add("Glow", tex.GlowTexture.Source.Value.FileName);
+            if (tex.BumpMapTexture != null) mt.Add("Bump", tex.BumpMapTexture.Source.Value.FileName);
         }
         return mp;
     }

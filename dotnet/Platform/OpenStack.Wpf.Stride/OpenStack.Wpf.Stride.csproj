@@ -20,8 +20,8 @@
 	<!-- This library requires a shader defined in the engine assemblies. Shaders are assets typically compiled by the asset compiler according to the Graphics API target, necessitating the inclusion of Stride.Core.Assets.CompilerApp. -->  
     <!--<PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2381" IncludeAssets="build;buildTransitive" />-->  
     <PackageReference Include="Stride.CommunityToolkit" Version="1.0.0-preview.56" />  
-    <PackageReference Include="Stride.Core" Version="4.2.0.2381" />  
-    <PackageReference Include="Stride.Core.Presentation.Wpf" Version="4.2.0.2381" />
+    <PackageReference Include="Stride.Core" Version="4.2.1.2442" />  
+    <PackageReference Include="Stride.Core.Presentation.Wpf" Version="4.2.1.2442" />
   </ItemGroup>
 
   <ItemGroup>
