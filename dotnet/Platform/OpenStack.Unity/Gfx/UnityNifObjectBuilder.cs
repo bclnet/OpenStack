@@ -180,7 +180,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             UVs = new Vector2[vertices.Length];
             for (var i = 0; i < UVs.Length; i++) {
                 var NiTexCoord = data.UVSets[0, i];
-                UVs[i] = new Vector2(NiTexCoord.U, NiTexCoord.V);
+                UVs[i] = new Vector2(NiTexCoord.u, NiTexCoord.v);
             }
         }
         // triangle vertex indices
@@ -188,9 +188,9 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         for (var i = 0; i < data.Triangles.Length; i++) {
             var baseI = 3 * i;
             // Reverse triangle winding order.
-            triangles[baseI] = data.Triangles[i].V1;
-            triangles[baseI + 1] = data.Triangles[i].V3;
-            triangles[baseI + 2] = data.Triangles[i].V2;
+            triangles[baseI] = data.Triangles[i].v1;
+            triangles[baseI + 1] = data.Triangles[i].v3;
+            triangles[baseI + 2] = data.Triangles[i].v2;
         }
 
         // create the mesh.
