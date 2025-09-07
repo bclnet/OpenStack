@@ -170,7 +170,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         for (var i = 0; i < vertices.Length; i++) vertices[i] = data.Vertices[i].ToUnity() / MeterInUnits;
         // vertex normals
         Vector3[] normals = null;
-        if (data.HasNormals) {
+        if (data.Normals != null) {
             normals = new Vector3[vertices.Length];
             for (var i = 0; i < normals.Length; i++) normals[i] = data.Normals[i].ToUnity();
         }
@@ -179,7 +179,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         if (data.HasUV) {
             UVs = new Vector2[vertices.Length];
             for (var i = 0; i < UVs.Length; i++) {
-                var NiTexCoord = data.UVSets[0, i];
+                var NiTexCoord = data.UVSets[0][i];
                 UVs[i] = new Vector2(NiTexCoord.u, NiTexCoord.v);
             }
         }
@@ -200,7 +200,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             uv = UVs,
             triangles = triangles
         };
-        if (!data.HasNormals) mesh.RecalculateNormals();
+        if (data.Normals == null) mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         return mesh;
     }
