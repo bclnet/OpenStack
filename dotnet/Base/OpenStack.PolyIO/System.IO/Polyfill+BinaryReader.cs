@@ -378,6 +378,7 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false) => ReadFArray(source, factory, (int)source.ReadCInt32X(endian));
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, uint count) => ReadFArray(source, factory, (int)count);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, int, T> factory, int count) { var list = new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source, i); return list; }
 
     // Struct : Array - Pattern
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8PArray<T>(this BinaryReader source, string pat) where T : struct => ReadPArray<T>(source, pat, source.ReadByte());
@@ -497,6 +498,14 @@ public static partial class Polyfill {
             y: source.ReadHalf(),
             z: source.ReadHalf(),
             w: source.ReadHalf());
+
+    public static Matrix2x2 ReadMatrix2x2(this BinaryReader r)
+        => new Matrix2x2 {
+            M11 = r.ReadSingle(),
+            M12 = r.ReadSingle(),
+            M21 = r.ReadSingle(),
+            M22 = r.ReadSingle(),
+        };
 
     public static Matrix3x3 ReadMatrix3x3(this BinaryReader r)
         => new Matrix3x3 {
