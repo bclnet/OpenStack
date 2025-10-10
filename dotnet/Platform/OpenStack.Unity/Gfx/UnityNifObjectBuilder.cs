@@ -176,7 +176,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         }
         // vertex UV coordinates
         Vector2[] UVs = null;
-        if (data.HasUV) {
+        if (data.UVSets != null) {
             UVs = new Vector2[vertices.Length];
             for (var i = 0; i < UVs.Length; i++) {
                 var NiTexCoord = data.UVSets[0][i];

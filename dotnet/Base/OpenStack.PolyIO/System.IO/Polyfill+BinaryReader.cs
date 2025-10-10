@@ -13,6 +13,8 @@ namespace System.IO;
 public static partial class Polyfill {
     #region Base
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadBytes(this BinaryReader source, uint count) => source.ReadBytes((int)count);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void CopyTo(this BinaryReader source, Stream destination, bool resetAfter = true) {
         source.BaseStream.CopyTo(destination);
