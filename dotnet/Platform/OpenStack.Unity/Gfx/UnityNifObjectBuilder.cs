@@ -1,5 +1,5 @@
-﻿using GameX.Bethesda.Formats;
-using GameX.Bethesda.Formats.Nif;
+﻿using GameX.Gamebryo.Formats;
+using GameX.Gamebryo.Formats.Nif;
 using System;
 using UnityEngine;
 using static OpenStack.Debug;
