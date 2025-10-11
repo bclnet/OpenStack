@@ -1,4 +1,6 @@
-import os, numpy as np
+import os
+from numpy import ndarray, array
+from quaternion import quaternion
 from struct import calcsize, unpack, iter_unpack
 from io import BytesIO
 from openstk.util import _throw
@@ -163,22 +165,39 @@ class Reader:
     # numerics
     def readHalf(self) -> float: raise NotImplementedError()
     def readHalf16(self) -> float: raise NotImplementedError()
-    def readVector2(self) -> np.ndarray: return np.array([self.readSingle(), self.readSingle()])
-    def readHalfVector2(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf()])
-    def readVector3(self) -> np.ndarray: return np.array(unpack('<3f', self.f.read(12)))
-    def readHalfVector3(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf(), self.readHalf()])
-    def readHalf16Vector3(self) -> np.ndarray: return np.array([self.readHalf16(), self.readHalf16(), self.readHalf16()])
-    def readVector4(self) -> np.ndarray: return np.array(unpack('<4f', self.f.read(16)))
-    def readHalfVector4(self) -> np.ndarray: return np.array([self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf()])
-    def readMatrix3x3(self) -> np.ndarray: return np.array([
+    def readVector2(self) -> ndarray: return array([self.readSingle(), self.readSingle()])
+    def readHalfVector2(self) -> ndarray: return array([self.readHalf(), self.readHalf()])
+    def readVector3(self) -> ndarray: return array(unpack('<3f', self.f.read(12)))
+    def readHalfVector3(self) -> ndarray: return array([self.readHalf(), self.readHalf(), self.readHalf()])
+    def readHalf16Vector3(self) -> ndarray: return array([self.readHalf16(), self.readHalf16(), self.readHalf16()])
+    def readVector4(self) -> ndarray: return array(unpack('<4f', self.f.read(16)))
+    def readHalfVector4(self) -> ndarray: return array([self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf()])
+    def readMatrix2x2(self) -> ndarray: return array([
+        [self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle()]
+        ])
+    def readMatrix3x3(self) -> ndarray: return array([
         [self.readSingle(), self.readSingle(), self.readSingle()],
         [self.readSingle(), self.readSingle(), self.readSingle()],
         [self.readSingle(), self.readSingle(), self.readSingle()]
         ])
-    def readMatrix3x3As4x4(self) -> np.ndarray: return np.array([
+    def readMatrix3x4(self) -> ndarray: return array([
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()]
+        ])
+    def readMatrix3x3As4x4(self) -> ndarray: return array([
         [self.readSingle(), self.readSingle(), self.readSingle(), 1.],
         [self.readSingle(), self.readSingle(), self.readSingle(), 1.],
         [self.readSingle(), self.readSingle(), self.readSingle(), 1.],
         [0., 0., 0., 1.]
         ])
-
+    def readMatrix4x4(self) -> ndarray: return array([
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()]
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()]
+        ])
+    def readQuaternion(self) -> quaternion: return quaternion(self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle())
+    def readQuaternionWFirst(self) -> quaternion: w=self.readSingle();return quaternion(self.readSingle(), self.readSingle(), self.readSingle(), w)
+    def readHalfQuaternion(self) -> quaternion: return quaternion(self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf())

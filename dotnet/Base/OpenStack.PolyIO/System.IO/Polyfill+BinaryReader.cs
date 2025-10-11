@@ -566,18 +566,18 @@ public static partial class Polyfill {
         for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
         return matrix;
     }
-    public static Quaternion ReadQuaternionWFirst(this BinaryReader source)
-        => new Quaternion(
-            w: source.ReadSingle(),
-            x: source.ReadSingle(),
-            y: source.ReadSingle(),
-            z: source.ReadSingle());
     public static Quaternion ReadQuaternion(this BinaryReader source)
         => new Quaternion(
             x: source.ReadSingle(),
             y: source.ReadSingle(),
             z: source.ReadSingle(),
             w: source.ReadSingle());
+    public static Quaternion ReadQuaternionWFirst(this BinaryReader source)
+        => new Quaternion(
+            w: source.ReadSingle(),
+            x: source.ReadSingle(),
+            y: source.ReadSingle(),
+            z: source.ReadSingle());
     public static Quaternion ReadHalfQuaternion(this BinaryReader source)
         => new Quaternion(
             x: source.ReadHalf(),
