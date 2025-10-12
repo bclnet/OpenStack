@@ -392,9 +392,9 @@ public static partial class Polyfill {
 
     // Struct : Array - Struct
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8SArray<T>(this BinaryReader source, int sizeOf = 0) where T : struct => ReadSArray<T>(source, source.ReadByte(), sizeOf);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL16SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, source.ReadUInt16X(endian));
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, (int)source.ReadUInt32X(endian));
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, (int)source.ReadCInt32X(endian));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL16SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, source.ReadUInt16X(endian), sizeOf);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, (int)source.ReadUInt32X(endian), sizeOf);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadC32SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false) where T : struct => ReadSArray<T>(source, (int)source.ReadCInt32X(endian), sizeOf);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSArray<T>(this BinaryReader source, uint count, int sizeOf = 0) where T : struct => ReadSArray<T>(source, (int)count, sizeOf);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSArray<T>(this BinaryReader source, int count, int sizeOf = 0) where T : struct => count > 0 ? MarshalSArray<T>(source.ReadBytes, count, sizeOf) : [];
 
@@ -557,10 +557,6 @@ public static partial class Polyfill {
             M34 = 0f,
             M44 = 1f
         };
-    //// If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
-    //var matrix = new Matrix4x4();
-    //for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
-    //return matrix;
     /// <summary>
     /// Reads a row-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
@@ -583,10 +579,6 @@ public static partial class Polyfill {
             M43 = 0f,
             M44 = 1f
         };
-    //// If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
-    //var matrix = new Matrix4x4();
-    //for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
-    //return matrix;
     public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader r)
         => new Matrix4x4 {
             M11 = r.ReadSingle(),
@@ -606,9 +598,6 @@ public static partial class Polyfill {
             M34 = r.ReadSingle(),
             M44 = r.ReadSingle()
         };
-    //var matrix = new Matrix4x4();
-    //for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
-    //return matrix;
     public static Matrix4x4 ReadMatrix4x4(this BinaryReader r)
         => new Matrix4x4 {
             M11 = r.ReadSingle(),
@@ -628,9 +617,6 @@ public static partial class Polyfill {
             M43 = r.ReadSingle(),
             M44 = r.ReadSingle()
         };
-    //var matrix = new Matrix4x4();
-    //for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
-    //return matrix;
 
     public static Quaternion ReadQuaternion(this BinaryReader source)
         => new Quaternion(

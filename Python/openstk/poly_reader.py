@@ -124,11 +124,11 @@ class Reader:
     def readPArray(self, cls: callable, pat: str, count: int) -> list[object]: cls = cls or (lambda x: x[0]); return [cls(x) for x in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
 
     # struct : array - struct
-    def readL8SArray(self, cls: object, sizeOf: int = -1) -> list[object]: return self.readSArray(cls, sizeOf, self.readByte())
-    def readL16SArray(self, cls: object, sizeOf: int = -1, endian: bool = False) -> list[object]: return self.readSArray(cls, sizeOf, self.readUInt16X(endian))
-    def readL32SArray(self, cls: object, sizeOf: int = -1, endian: bool = False) -> list[object]: return self.readSArray(cls, sizeOf, self.readUInt32X(endian))
-    def readC32SArray(self, cls: object, sizeOf: int = -1, endian: bool = False) -> list[object]: return self.readSArray(cls, sizeOf, self.readCInt32X(endian))
-    def readSArray(self, cls: object, count: int, sizeOf: int = -1) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
+    def readL8SArray(self, cls: object, sizeOf: int = 0) -> list[object]: return self.readSArray(cls, self.readByte(), sizeOf)
+    def readL16SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readUInt16X(endian), sizeOf)
+    def readL32SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readUInt32X(endian), sizeOf)
+    def readC32SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readCInt32X(endian), sizeOf)
+    def readSArray(self, cls: object, count: int, sizeOf: int = 0) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
 
     # struct : array - type
     # def readL8TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readByte())
@@ -195,9 +195,9 @@ class Reader:
     def readMatrix4x4(self) -> ndarray: return array([
         [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
         [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
-        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()]
+        [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()],
         [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()]
         ])
-    def readQuaternion(self) -> quaternion: return quaternion(self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle())
-    def readQuaternionWFirst(self) -> quaternion: w=self.readSingle();return quaternion(self.readSingle(), self.readSingle(), self.readSingle(), w)
-    def readHalfQuaternion(self) -> quaternion: return quaternion(self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf())
+    def readQuaternion(self) -> quaternion: v = [self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle()]; return quaternion(v[3], v[0], v[1], v[2])
+    def readQuaternionWFirst(self) -> quaternion: return quaternion(self.readSingle(), self.readSingle(), self.readSingle(), self.readSingle())
+    def readHalfQuaternion(self) -> quaternion: v = [self.readHalf(), self.readHalf(), self.readHalf(), self.readHalf()]; return quaternion(v[3], v[0], v[1], v[2])
