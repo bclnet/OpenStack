@@ -508,7 +508,6 @@ public static partial class Polyfill {
             M21 = r.ReadSingle(),
             M22 = r.ReadSingle(),
         };
-
     public static Matrix3x3 ReadMatrix3x3(this BinaryReader r)
         => new Matrix3x3 {
             M11 = r.ReadSingle(),
@@ -521,7 +520,6 @@ public static partial class Polyfill {
             M32 = r.ReadSingle(),
             M33 = r.ReadSingle(),
         };
-
     public static Matrix3x4 ReadMatrix3x4(this BinaryReader r)
         => new Matrix3x4 {
             M11 = r.ReadSingle(),
@@ -537,35 +535,103 @@ public static partial class Polyfill {
             M33 = r.ReadSingle(),
             M34 = r.ReadSingle()
         };
-
     /// <summary>
     /// Reads a column-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
-    public static Matrix4x4 ReadMatrixColumn3x3As4x4(this BinaryReader source) {
-        // If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
-        var matrix = new Matrix4x4();
-        for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
-        return matrix;
-    }
+    public static Matrix4x4 ReadMatrixColumn3x3As4x4(this BinaryReader r)
+        => new Matrix4x4 {
+            M11 = r.ReadSingle(),
+            M21 = r.ReadSingle(),
+            M31 = r.ReadSingle(),
+            M41 = 1f,
+            M12 = r.ReadSingle(),
+            M22 = r.ReadSingle(),
+            M32 = r.ReadSingle(),
+            M42 = 1f,
+            M13 = r.ReadSingle(),
+            M23 = r.ReadSingle(),
+            M33 = r.ReadSingle(),
+            M43 = 1f,
+            M14 = 0f,
+            M24 = 0f,
+            M34 = 0f,
+            M44 = 1f
+        };
+    //// If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
+    //var matrix = new Matrix4x4();
+    //for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
+    //return matrix;
     /// <summary>
     /// Reads a row-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
-    public static Matrix4x4 ReadMatrix3x3As4x4(this BinaryReader source) {
-        // If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
-        var matrix = new Matrix4x4();
-        for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
-        return matrix;
-    }
-    public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader source) {
-        var matrix = new Matrix4x4();
-        for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
-        return matrix;
-    }
-    public static Matrix4x4 ReadMatrix4x4(this BinaryReader source) {
-        var matrix = new Matrix4x4();
-        for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
-        return matrix;
-    }
+    public static Matrix4x4 ReadMatrix3x3As4x4(this BinaryReader r)
+        => new Matrix4x4 {
+            M11 = r.ReadSingle(),
+            M12 = r.ReadSingle(),
+            M13 = r.ReadSingle(),
+            M14 = 1f,
+            M21 = r.ReadSingle(),
+            M22 = r.ReadSingle(),
+            M23 = r.ReadSingle(),
+            M24 = 1f,
+            M31 = r.ReadSingle(),
+            M32 = r.ReadSingle(),
+            M33 = r.ReadSingle(),
+            M34 = 1f,
+            M41 = 0f,
+            M42 = 0f,
+            M43 = 0f,
+            M44 = 1f
+        };
+    //// If in the 3x3 part of the matrix, read values. Otherwise, use the identity matrix.
+    //var matrix = new Matrix4x4();
+    //for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, rowIndex <= 2 && columnIndex <= 2 ? source.ReadSingle() : rowIndex == columnIndex ? 1f : 0f);
+    //return matrix;
+    public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader r)
+        => new Matrix4x4 {
+            M11 = r.ReadSingle(),
+            M21 = r.ReadSingle(),
+            M31 = r.ReadSingle(),
+            M41 = r.ReadSingle(),
+            M12 = r.ReadSingle(),
+            M22 = r.ReadSingle(),
+            M32 = r.ReadSingle(),
+            M42 = r.ReadSingle(),
+            M13 = r.ReadSingle(),
+            M23 = r.ReadSingle(),
+            M33 = r.ReadSingle(),
+            M43 = r.ReadSingle(),
+            M14 = r.ReadSingle(),
+            M24 = r.ReadSingle(),
+            M34 = r.ReadSingle(),
+            M44 = r.ReadSingle()
+        };
+    //var matrix = new Matrix4x4();
+    //for (var columnIndex = 0; columnIndex < 4; columnIndex++) for (var rowIndex = 0; rowIndex < 4; rowIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
+    //return matrix;
+    public static Matrix4x4 ReadMatrix4x4(this BinaryReader r)
+        => new Matrix4x4 {
+            M11 = r.ReadSingle(),
+            M12 = r.ReadSingle(),
+            M13 = r.ReadSingle(),
+            M14 = r.ReadSingle(),
+            M21 = r.ReadSingle(),
+            M22 = r.ReadSingle(),
+            M23 = r.ReadSingle(),
+            M24 = r.ReadSingle(),
+            M31 = r.ReadSingle(),
+            M32 = r.ReadSingle(),
+            M33 = r.ReadSingle(),
+            M34 = r.ReadSingle(),
+            M41 = r.ReadSingle(),
+            M42 = r.ReadSingle(),
+            M43 = r.ReadSingle(),
+            M44 = r.ReadSingle()
+        };
+    //var matrix = new Matrix4x4();
+    //for (var rowIndex = 0; rowIndex < 4; rowIndex++) for (var columnIndex = 0; columnIndex < 4; columnIndex++) matrix.Set(rowIndex, columnIndex, source.ReadSingle());
+    //return matrix;
+
     public static Quaternion ReadQuaternion(this BinaryReader source)
         => new Quaternion(
             x: source.ReadSingle(),

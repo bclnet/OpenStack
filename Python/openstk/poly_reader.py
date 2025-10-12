@@ -107,7 +107,7 @@ class Reader:
     # struct : single  - https://docs.python.org/3/library/struct.html 
     def readF(self, factory: callable) -> object: return factory(self)
     def readP(self, cls: callable, pat: str) -> object: cls = cls or (lambda x: x[0]); return cls(unpack(pat, self.f.read(calcsize(pat))))
-    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = cls.struct; return cls(unpack(pat, self.f.read(size)))
+    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = cls._struct; return cls(unpack(pat, self.f.read(size)))
 
     # struct : array - factory
     def readL8FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readByte())
