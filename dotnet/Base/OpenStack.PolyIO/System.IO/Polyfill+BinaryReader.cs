@@ -13,6 +13,8 @@ namespace System.IO;
 public static partial class Polyfill {
     #region Base
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool AtEnd(this BinaryReader source) => source.BaseStream.Position == source.BaseStream.Length;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadBytes(this BinaryReader source, uint count) => source.ReadBytes((int)count);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
