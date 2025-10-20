@@ -18,6 +18,8 @@ class IWriteToStream:
     def writeToStream(self, stream: object) -> None: pass
 
 @staticmethod
+def log(s: str) -> None: print(s)
+@staticmethod
 async def _parallelForTask(f: int, t: int, s: int, c: callable) -> list[object]: [await c(idx) for idx in range(f, t, s)]
 @staticmethod
 async def parallelFor(f: int, t: int, o: set, c: callable) -> list[object]: await asyncio.gather(*[_parallelForTask(f, t, i + 1, c) for i in range(o['max'] or 1)])

@@ -81,7 +81,7 @@ class DDPF(Flag):
 
 # Surface pixel format.
 class DDS_PIXELFORMAT:
-    struct = ('8I', 32)
+    _struct = ('8I', 32)
     dwSize: int                 # Structure size; set to 32 (bytes)
     dwFlags: DDPF               # Values which indicate what type of data is in the surface
     dwFourCC: FourCC            # Four-character codes for specifying compressed or custom formats. Possible values include: DXT1, DXT2, DXT3, DXT4, or DXT5. A FourCC of DX10 indicates the prescense of the DDS_HEADER_DXT10 extended header, and the dxgiFormat member of that structure indicates the true format. When using a four-character code, dwFlags must include DDPF_FOURCC
@@ -113,7 +113,7 @@ class D3D10_RESOURCE_DIMENSION(Enum):
 
 # DDS header extension to handle resource arrays, DXGI pixel formats that don't map to the legacy Microsoft DirectDraw pixel format structures, and additional metadata
 class DDS_HEADER_DXT10:
-    struct = ('<5I', 20)
+    _struct = ('<5I', 20)
     def __init__(self, tuple):
         self.dxgiFormat, \
         self.resourceDimension, \
@@ -177,7 +177,7 @@ class DDSCAPS2(Flag):
 
 # Describes a DDS file header
 class DDS_HEADER:
-    struct = (f'<7I44s{DDS_PIXELFORMAT.struct[0]}5I', 124)
+    _struct = (f'<7I44s{DDS_PIXELFORMAT._struct[0]}5I', 124)
     MAGIC = 0x20534444 # DDS_
     def __init__(self, tuple):
         ddspf = self.ddspf = DDS_PIXELFORMAT()

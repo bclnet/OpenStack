@@ -80,9 +80,9 @@ class Writer:
     
     # struct : single  - https://docs.python.org/3/library/struct.html 
     def writeF(self, cls: object, value: object, factory: callable) -> object: self.f.write(factory(self))
-    def writeS(self, cls: object, value: object) -> object: pattern, size = cls.struct; cls(unpack(pattern, self.f.write(size)))
-    def writeSAndVerify(self, cls: object, value: object, sizeOf: int) -> object: pattern, size = cls.struct; cls(unpack(pattern, self.f.write(size)))
-    def writeT(self, cls: object, value: object, sizeOf: int) -> object: unpack(cls, self.f.write(size))[0]
+    def writeS(self, cls: object, value: object) -> object: pattern, size = cls._struct; cls(unpack(pattern, self.f.write(size)))
+    def writeSAndVerify(self, cls: object, value: object, sizeOf: int) -> object: pattern, size = cls._struct; cls(unpack(pattern, self.f.write(size)))
+    def writeT(self, cls: object, value: object, sizeOf: int) -> object: unpack(cls, self.f.write(sizeOf))[0]
 
     # struct : array - factory
     def writeL8FArray(self, cls: object, value: object, factory: callable, endian: bool = False) -> list[object]: return self.writeFArray(cls, factory, source.writeByte())
