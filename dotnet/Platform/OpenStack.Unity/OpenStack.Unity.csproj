@@ -7,8 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\..\dotnet\Gamebryo\GameX.Gamebryo\GameX.Gamebryo.csproj" />
-	  <ProjectReference Include="..\..\Base\OpenStack\OpenStack.csproj" />
+	  <ProjectReference Include="..\..\..\..\dotnet\Families\GameX.Gamebryo\GameX.Gamebryo.csproj" />
+	  <ProjectReference Include="..\..\Core\OpenStack\OpenStack.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

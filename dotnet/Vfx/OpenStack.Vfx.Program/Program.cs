@@ -41,7 +41,7 @@ public class Program {
 
     // 3dstool -xvtf cxi 0.cxi --header ncchheader.bin --exh exh.bin --logo logo.bcma.lz --plain plain.bin --exefs exefs.bin --romfs romfs.bin
     public static bool Pass2() {
-        var path = @"C:\_GITHUB\bclnet\GameX\OpenStack\dotnet\Base\OpenStack.Program\bin\Debug\net9.0\0.cxi";
+        var path = @"C:\_GITHUB\bclnet\GameX\OpenStack\dotnet\Core\OpenStack.Program\bin\Debug\net9.0\0.cxi";
         using var s = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         WriteLine(Ncch.IsCxiFile(s));
 
@@ -61,7 +61,7 @@ public class Program {
 
     // 3dstool -xvtf romfs romfs.bin --romfs-dir rom
     public static bool Pass3() {
-        var path = @"C:\_GITHUB\bclnet\GameX\OpenStack\dotnet\Base\OpenStack.Program\bin\Debug\net9.0\romfs.bin";
+        var path = @"C:\_GITHUB\bclnet\GameX\OpenStack\dotnet\Core\OpenStack.Program\bin\Debug\net9.0\romfs.bin";
         using var s = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         WriteLine(RomFs.IsRomFsFile(s));
 

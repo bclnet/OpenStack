@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\OpenStack.Polyfills\OpenStack.Polyfills.csproj" />
+    <ProjectReference Include="..\..\Core\OpenStack.Polyfills\OpenStack.Polyfills.csproj" />
   </ItemGroup>
 
 </Project>

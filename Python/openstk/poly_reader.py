@@ -17,11 +17,12 @@ class Reader:
         f.seek(pos, os.SEEK_SET)
 
     # base
-    def read(self, data: bytearray, offset: int, size: int): return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
-    def readBytes(self, size: int): return self.f.read(size)
-    def length(self): return self.length
+    def atEnd(self) -> bool: return self.f.tell() == self.f.length
+    def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
+    def readBytes(self, size: int) -> bytearray: return self.f.read(size)
+    def length(self) -> int: return self.length
     def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
-    def readToEnd(self): length = self.length - self.f.tell(); return self.f.read(length)
+    def readToEnd(self) -> bytearray: length = self.length - self.f.tell(); return self.f.read(length)
     def readLine(self) -> str: return self.f.readline().decode('utf-8')
     def readToValue(self, value: int = b'\x00', length: int = 65535, ms: BytesIO = None) -> bytearray:
         if not ms: ms = BytesIO()

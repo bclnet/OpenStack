@@ -1,5 +1,5 @@
 # root module
-moduleRoot = 'gamex'
+moduleRoot = 'gamex.families'
 
 # finds a type
 @staticmethod

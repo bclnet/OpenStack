@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.Polyfills", "Base\OpenStack.Polyfills\OpenStack.Polyfills.csproj", "{B121C154-CD31-4DEE-9D66-1AC279A430FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.Polyfills", "Core\OpenStack.Polyfills\OpenStack.Polyfills.csproj", "{B121C154-CD31-4DEE-9D66-1AC279A430FB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gfx", "Gfx", "{BA482372-2F82-4E0F-B754-1896BB13EC98}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Phy", "Phy", "{ADD39EE9-7B67-4AF2-9BC1-4094B4A87EA9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Base", "Base", "{B226AECC-F132-45DE-91BA-0F4D8BD3989A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{B226AECC-F132-45DE-91BA-0F4D8BD3989A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sfx", "Sfx", "{A8722C01-2956-4313-AFBD-490CAEF8F175}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.NumericsX", "Base\System.NumericsX\System.NumericsX.csproj", "{A0BC5EFE-4A29-4527-B534-E88C2F390EE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.NumericsX", "Core\System.NumericsX\System.NumericsX.csproj", "{A0BC5EFE-4A29-4527-B534-E88C2F390EE4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "X", "X", "{C44C9AFC-A3A4-46A7-99AB-DA382936E4BC}"
 EndProject
@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.XGngine.Framework
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.XGngine.CM", "X\OpenStack.XGngine.CM\OpenStack.XGngine.CM.csproj", "{562CD2A8-D7A9-4AD9-BE61-23B5D0D1ED6E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.PolyIO", "Base\OpenStack.PolyIO\OpenStack.PolyIO.csproj", "{47A78AEB-A0FF-4C35-A3A9-0F96611A2507}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenStack.PolyIO", "Core\OpenStack.PolyIO\OpenStack.PolyIO.csproj", "{47A78AEB-A0FF-4C35-A3A9-0F96611A2507}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Gfx", "Gfx\OpenStack.Gfx\OpenStack.Gfx.csproj", "{FDD14214-370D-64A1-F1A1-70949F7BB095}"
 EndProject
@@ -57,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Img", "Img", "{02EA681E-C7D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Img", "Img\OpenStack.Img\OpenStack.Img.csproj", "{D80D38AB-788A-7589-FC0A-A24871D94106}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack", "Base\OpenStack\OpenStack.csproj", "{5A49FA5B-163B-26DD-7E10-74A754D05BF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack", "Core\OpenStack\OpenStack.csproj", "{5A49FA5B-163B-26DD-7E10-74A754D05BF2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{91E5E8D3-B59D-4E4F-AC51-7799EE7AC412}"
 EndProject
@@ -93,7 +93,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Wpf.Control", "Pl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Wpf.Stride", "Platform\OpenStack.Wpf.Stride\OpenStack.Wpf.Stride.csproj", "{4B2788B3-0CBE-1F19-4DCA-F307FFB6BD77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Program", "Base\OpenStack.Program\OpenStack.Program.csproj", "{85375ECE-E3C7-602D-3934-CF520671D191}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Program", "Core\OpenStack.Program\OpenStack.Program.csproj", "{85375ECE-E3C7-602D-3934-CF520671D191}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Vfx", "Vfx", "{7970C7EF-0F1F-424F-B445-DA38D3209976}"
 EndProject

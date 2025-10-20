@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\System.NumericsX\System.NumericsX.csproj" />
+    <ProjectReference Include="..\..\Core\System.NumericsX\System.NumericsX.csproj" />
   </ItemGroup>
 
 </Project>
