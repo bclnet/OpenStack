@@ -1,4 +1,4 @@
-#version 330
+#version 410
 
 in vec2 vTexCoordOut;
 out vec4 outputColor;

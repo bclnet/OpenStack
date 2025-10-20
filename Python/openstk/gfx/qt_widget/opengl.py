@@ -18,6 +18,13 @@ def debuggerMessage(msg: QOpenGLDebugMessage) -> None:
     if msg.severity().value >= QOpenGLDebugMessage.Severity.LowSeverity.value: return
     print(f'OpenGL: {msg.type().name[:-4]}:{msg.severity().name[:-8]} - {msg.message()}')
 
+def initializeGL():
+    format = QSurfaceFormat()
+    format.setVersion(4, 1)
+    format.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
+    QSurfaceFormat.setDefaultFormat(format)
+initializeGL()
+
 # QOpenGLWidget
 class QOpenGLWidget(QOpenGLWidgetX):
     timer: QTimer
