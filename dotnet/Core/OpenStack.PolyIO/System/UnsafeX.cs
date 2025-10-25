@@ -195,7 +195,7 @@ public unsafe static class UnsafeX {
     public static string FixedAStringScan(byte* data, int length) {
         var i = 0;
         while (data[i] != 0 && length-- > 0) i++;
-        return i > 0 ? Encoding.ASCII.GetString(data, length) : null;
+        return i > 0 ? Encoding.ASCII.GetString(data, i) : null;
     }
 
     public static T[] FixedTArray<T>(T* data, int length) {
