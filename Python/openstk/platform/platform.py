@@ -74,10 +74,11 @@ class PlatformX:
             if searchPattern.startswith('*'): return lambda x: x.casefold().endswith(newPattern)
             elif searchPattern.endswith('*'): return lambda x: x.casefold().startswith(newPattern)
         regexPattern = f'^{re.escape(searchPattern).replace('\\*', '.*')}$'
-        def lambdaX(x: str):
+        @staticmethod
+        def _lambdax(x: str):
             try: return re.match(x, regexPattern)
             except: return False
-        return lambdaX
+        return _lambdax
 
     @staticmethod
     def decodeOptions(name: str) -> object:

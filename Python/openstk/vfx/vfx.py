@@ -34,9 +34,8 @@ class FileSystem:
 
     def next2(self, basePath: str, count: int, firstFunc: callable, elseFunc: callable) -> object:
         if count == 0: return self
-        first = firstFunc(); firstLower = first.lower()
-        if count == 1 or firstLower.endswith('.bin') or firstLower.endswith('.cue'): return self.advance(basePath, first) or self
-        return elseFunc()
+        first = firstFunc() or ''; firstLower = first.lower()
+        return self.advance(basePath, first) or self if count == 1 or firstLower.endswith('.bin') or firstLower.endswith('.cue') else elseFunc()
 
     @staticmethod
     def createMatcher(searchPattern: str) -> callable:
@@ -48,10 +47,10 @@ class FileSystem:
             if searchPattern.startswith('*'): return lambda x: x.casefold().endswith(newPattern)
             elif searchPattern.endswith('*'): return lambda x: x.casefold().startswith(newPattern)
         regexPattern = f'^{re.escape(searchPattern).replace('\\*', '.*')}$'
-        def lambdaX(x: str):
+        def _lambdax(x: str):
             try: return re.match(x, regexPattern)
             except: return False
-        return lambdaX
+        return _lambdax
     
 # tag::AggregateFileSystem[]
 class AggregateFileSystem(FileSystem):
@@ -85,12 +84,12 @@ class DirectoryFileSystem(FileSystem):
     def next(self) -> FileSystem:
         if os.path.isfile(self.root) or '*' in os.path.basename(self.root):
             self.root = os.path.dirname(self.root); self.skip = len(self.root) + 1
-            return self #self.advance(self.basePath, ).next() or self
+            return self.advance(self.basePath, os.path.basename(self.baseRoot)).next() or self
         @staticmethod
-        def _lambdaX(self):
+        def _lambdax(self):
             if self.basePath: self.root = os.path.join(self.baseRoot, self.basePath); self.skip = len(self.root) + 1
             return self
-        return self.next2(self.basePath, -1, lambda: next(iter(os.listdir(self.root)), None), lambda: _lambdaX(self))
+        return self.next2(self.basePath, -1, lambda: next(iter(os.listdir(self.root)), None), lambda: _lambdax(self))
 # end::DirectoryFileSystem[]
 
 #endregion
@@ -112,16 +111,19 @@ class NetworkFileSystem(FileSystem):
 
 # tag::ZipFileSystem[]
 class ZipFileSystem(FileSystem):
-    def __init__(self, vfx: FileSystem, path: str, basePath: str): self.basePath = basePath; self.root = ''; self.zip = ZipFile(path)
+    def __init__(self, vfx: FileSystem, path: str, basePath: str): self.basePath = basePath; self.root = ''; self.zip = ZipFile(vfx.open(path)); self.zipnames = self.zip.namelist(); self.zipinfo = { x.filename:x for x in self.zip.infolist() }
     def glob(self, path: str, searchPattern: str) -> list[str]:
-        root = os.path.join(self.root, path); skip = len(root); return []
+        root = os.path.join(self.root, path); skip = len(root)
+        matcher = FileSystem.createMatcher(searchPattern)
+        return [fn[skip:] for fn in self.zipnames if not fn.endswith('/') and len(fn) > skip and fn.startswith(root) and matcher(fn[skip:])]
     def fileExists(self, path: str) -> bool: return self.zip.read(os.path.join(self.root, path)) != None
-    def fileInfo(self, path: str) -> tuple[str, int]: x = self.zip.read(os.path.join(self.root, path)); return (x.name, x.length) if x else (None, 0)
-    def open(self, path: str, mode: str = None) -> object: return self.zip.read(os.path.join(self.root, path))
-    def _lambdaX(self):
+    def fileInfo(self, path: str) -> tuple[str, int]: x = self.zipinfo[os.path.join(self.root, path)]; return (x.filename, x.file_size) if x else (None, 0)
+    def open(self, path: str, mode: str = None) -> object: return io.BytesIO(self.zip.read(os.path.join(self.root, path)))
+    @staticmethod
+    def _lambdax(self):
         if self.basePath: self.root = f'{path}/'
         return self
-    def next(self) -> object: return self.next2(self.basePath, self.zip.count, lambda: self.zip.one, _lambdaX)
+    def next(self) -> object: return self.next2(self.basePath, len(self.zipnames), lambda: self.zipnames[0], lambda: self._lambdax(self))
 # end::ZipFileSystem[]
 
 #endregion

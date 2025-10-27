@@ -70,7 +70,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
 
         # create
         @staticmethod
-        def lambdaX(x: object) -> int:
+        def _lambdax(x: object) -> int:
             match x:
                 case Texture_Bytes():
                     bytes, fmt, spans = (x.bytes, x.format, x.spans)
@@ -148,7 +148,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                     glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
                     return id
                 case _: raise Exception(f'Unknown x: {x}')
-        return tex.create('GL', lambdaX)
+        return tex.create('GL', _lambdax)
 
     def createSolidTexture(self, width: int, height: int, pixels: np.array) -> int:
         id = glGenTextures(1)

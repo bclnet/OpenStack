@@ -64,11 +64,12 @@ public abstract class FileSystem {
              _ => null
          };
 
-    protected FileSystem Next(string basePath, int count, Func<string> firstFunc, Func<FileSystem> elseFunc) {
+    protected FileSystem Next2(string basePath, int count, Func<string> firstFunc, Func<FileSystem> elseFunc) {
         if (count == 0) return this;
-        var first = firstFunc();
-        if (count == 1 || first.EndsWith(".bin", StringComparison.OrdinalIgnoreCase) || first.EndsWith(".cue", StringComparison.OrdinalIgnoreCase)) return Advance(basePath, first) ?? this;
-        return elseFunc();
+        var first = firstFunc() ?? "";
+        return count == 1 || first.EndsWith(".bin", StringComparison.OrdinalIgnoreCase) || first.EndsWith(".cue", StringComparison.OrdinalIgnoreCase)
+            ? Advance(basePath, first) ?? this
+            : elseFunc();
     }
 
     /// <summary>
@@ -141,7 +142,7 @@ public class DirectoryFileSystem(string baseRoot, string basePath) : FileSystem 
             Root = Path.GetDirectoryName(Root); Skip = Root.Length + 1;
             return Advance(BasePath, Path.GetFileName(BaseRoot))?.Next() ?? this;
         }
-        return Next(BasePath, -1, () => Directory.EnumerateFiles(Root).FirstOrDefault(), () => {
+        return Next2(BasePath, -1, () => Directory.EnumerateFiles(Root).FirstOrDefault(), () => {
             if (!string.IsNullOrEmpty(BasePath)) { Root = Path.Combine(BaseRoot, BasePath); Skip = Root.Length + 1; }
             return this;
         });
@@ -204,14 +205,15 @@ public class ZipFileSystem(FileSystem vfx, string path, string basePath) : FileS
         return [.. Arc.Entries.Where(x =>
         {
             var fn = x.FullName;
-            return fn.Length > skip && fn.StartsWith(root) && matcher(fn[skip..]);
+            return !fn.EndsWith("/") && fn.Length > skip && fn.StartsWith(root) && matcher(fn[skip..]);
         }).Select(x => x.FullName[skip..])];
     }
     public override bool FileExists(string path) => Arc.GetEntry(Path.Combine(Root, path)) != null;
     public override (string path, long length) FileInfo(string path) { var x = Arc.GetEntry(Path.Combine(Root, path)); return x != null ? (x.Name, x.Length) : (null, 0); }
     public override Stream Open(string path, string mode) => Arc.GetEntry(Path.Combine(Root, path)).Open();
-    public override FileSystem Next() => Next(basePath, Arc.Entries.Count, () => Arc.Entries[0].Name, () => {
-        if (!string.IsNullOrEmpty(basePath)) Root = $"{basePath}{Path.AltDirectorySeparatorChar}";
+    public override FileSystem Next() => Next2(basePath, Arc.Entries.Count, () => Arc.Entries[0].Name, () => {
+        if ($"{Path.GetFileNameWithoutExtension(path)}/" == Arc.Entries[0].FullName) basePath = $"{Arc.Entries[0].FullName}{basePath}";
+        if (!string.IsNullOrEmpty(basePath)) Root = $"{basePath}{(basePath.EndsWith("/") ? "" : "/")}";
         return this;
     });
 }
@@ -235,7 +237,7 @@ public class SevenZipFileSystem(FileSystem vfx, string path, string basePath) : 
     public override bool FileExists(string path) { path = Path.Combine(Root, path); return Arc.Entries.Any(x => x.Key == path); }
     public override (string path, long length) FileInfo(string path) { path = Path.Combine(Root, path); var x = Arc.Entries.FirstOrDefault(x => x.Key == path); return x != null ? (x.Key, x.Size) : (null, 0); }
     public override Stream Open(string path, string mode) { path = Path.Combine(Root, path); return Arc.Entries.First(x => x.Key == path).OpenEntryStream(); }
-    public override FileSystem Next() => Next(basePath, Arc.Entries.Count, () => Arc.Entries.First().Key, () => {
+    public override FileSystem Next() => Next2(basePath, Arc.Entries.Count, () => Arc.Entries.First().Key, () => {
         if (!string.IsNullOrEmpty(basePath)) Root = $"{basePath}{Path.AltDirectorySeparatorChar}";
         return this;
     });
