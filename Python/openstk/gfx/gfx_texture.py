@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from enum import Enum, Flag
+from enum import IntEnum, Enum, Flag
 from openstk.poly import Reader, Writer
 
 #region Texture Enums
@@ -58,6 +58,7 @@ class TexturePixel(Flag):
 
 # FourCC
 class FourCC(Enum):
+    NONE = 0                # None
     DXT1 = 0x31545844       # DXT1
     DXT2 = 0x32545844       # DXT2
     DXT3 = 0x33545844       # DXT3
@@ -211,10 +212,10 @@ class DDS_HEADER:
 
     # Verifies this instance
     def verify(self):
-        if self.dwSize != 124: raise Exception(f'Invalid DDS file header size: {dwSize}.')
-        elif not self.dwFlags & (DDSD.HEIGHT | DDSD.WIDTH): raise Exception(f'Invalid DDS file flags: {dwFlags}.')
-        elif not self.dwCaps & DDSCAPS.TEXTURE: raise Exception(f'Invalid DDS file caps: {dwCaps}.')
-        elif self.ddspf.dwSize != 32: raise Exception(f'Invalid DDS file pixel format size: {ddspf.dwSize}.')
+        if self.dwSize != 124: raise Exception(f'Invalid DDS file header size: {self.dwSize}.')
+        elif not self.dwFlags & (DDSD.HEIGHT | DDSD.WIDTH): raise Exception(f'Invalid DDS file flags: {self.dwFlags}.')
+        elif not self.dwCaps & DDSCAPS.TEXTURE: raise Exception(f'Invalid DDS file caps: {self.dwCaps}.')
+        elif self.ddspf.dwSize != 32: raise Exception(f'Invalid DDS file pixel format size: {self.ddspf.dwSize}.')
 
     @staticmethod
     def read(r: Reader, readMagic: bool = True) -> (DDS_HEADER, DDS_HEADER_DXT10, object, bytes):
@@ -226,7 +227,7 @@ class DDS_HEADER:
         ddspf = header.ddspf
         headerDxt10 = r.ReadT(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None
         match ddspf.dwFourCC:
-            case 0: format = _makeformat(ddspf)
+            case FourCC.NONE: format = DDS_HEADER._makeformat(ddspf)
             case FourCC.DXT1: format = (FourCC.DXT1, 8, (TextureFormat.DXT1, TexturePixel.Unknown))
             case FourCC.DXT3: format = (FourCC.DXT3, 16, (TextureFormat.DXT3, TexturePixel.Unknown))
             case FourCC.DXT5: format = (FourCC.DXT5, 16, (TextureFormat.DXT5, TexturePixel.Unknown))

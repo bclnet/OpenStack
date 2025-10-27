@@ -70,6 +70,7 @@ public enum TexturePixel : int {
 /// FourCC
 /// </summary>
 public enum FourCC : uint {
+    NONE = 0,          // NONE
     DXT1 = 0x31545844, // DXT1
     DXT2 = 0x32545844, // DXT2
     DXT3 = 0x33545844, // DXT3
@@ -454,7 +455,7 @@ public unsafe struct DDS_HEADER {
         ref DDS_PIXELFORMAT ddspf = ref header.ddspf;
         var headerDxt10 = ddspf.dwFourCC == DX10 ? (DDS_HEADER_DXT10?)r.ReadS<DDS_HEADER_DXT10>() : null;
         var format = ddspf.dwFourCC switch {
-            0 => MakeFormat(ref ddspf),
+            NONE => MakeFormat(ref ddspf),
             //DXT1 => (DXT1, 8, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureGLFormat.CompressedRgbaS3tcDxt1Ext, TextureUnityFormat.DXT1, TextureUnrealFormat.DXT1),
             //DXT3 => (DXT3, 16, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureGLFormat.CompressedRgbaS3tcDxt3Ext, TextureUnityFormat.DXT3_POLYFILL, TextureUnrealFormat.DXT3),
             //DXT5 => (DXT5, 16, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureGLFormat.CompressedRgbaS3tcDxt5Ext, TextureUnityFormat.DXT5, TextureUnrealFormat.DXT5),
