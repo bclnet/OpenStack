@@ -74,7 +74,7 @@ class VirtualFileSystem(FileSystem):
 
 # tag::DirectoryFileSystem[]
 class DirectoryFileSystem(FileSystem):
-    def __init__(self, baseRoot: str, basePath: str): self.baseRoot = baseRoot; self.basePath = basePath; self.root = baseRoot; self.skip = len(baseRoot) + 1
+    def __init__(self, baseRoot: str, basePath: str): self.baseRoot = baseRoot; self.basePath = basePath or ''; self.root = baseRoot; self.skip = len(baseRoot) + 1
     def glob(self, path: str, searchPattern: str) -> list[str]:
         g = pathlib.Path(os.path.join(self.root, path)).glob(searchPattern if searchPattern else '**/*')
         return [str(x)[self.skip:] for x in g if x.is_file()]
@@ -111,7 +111,7 @@ class NetworkFileSystem(FileSystem):
 
 # tag::ZipFileSystem[]
 class ZipFileSystem(FileSystem):
-    def __init__(self, vfx: FileSystem, path: str, basePath: str): self.basePath = basePath; self.root = ''; self.zip = ZipFile(vfx.open(path)); self.zipnames = self.zip.namelist(); self.zipinfo = { x.filename:x for x in self.zip.infolist() }
+    def __init__(self, vfx: FileSystem, path: str, basePath: str): self.path = path; self.basePath = basePath or ''; self.root = ''; self.zip = ZipFile(vfx.open(path)); self.zipnames = self.zip.namelist(); self.zipinfo = { x.filename:x for x in self.zip.infolist() }
     def glob(self, path: str, searchPattern: str) -> list[str]:
         root = os.path.join(self.root, path); skip = len(root)
         matcher = FileSystem.createMatcher(searchPattern)
@@ -121,7 +121,8 @@ class ZipFileSystem(FileSystem):
     def open(self, path: str, mode: str = None) -> object: return io.BytesIO(self.zip.read(os.path.join(self.root, path)))
     @staticmethod
     def _lambdax(self):
-        if self.basePath: self.root = f'{path}/'
+        if f'{os.path.splitext(self.path)[0]}/' == self.zipnames[0]: self.basePath = f'{self.zipnames[0]}{self.basePath}'
+        if self.basePath: self.root = f'{self.basePath}{'' if self.basePath.endswith('/') else '/'}'
         return self
     def next(self) -> object: return self.next2(self.basePath, len(self.zipnames), lambda: self.zipnames[0], lambda: self._lambdax(self))
 # end::ZipFileSystem[]
