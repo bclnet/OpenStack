@@ -11,5 +11,6 @@ namespace OpenStack {
         public static void Log(string message = null) => LogFunc(message);
         public static void Warn(string message) => LogFunc($"WARN: {message}");
         public static void Error(string message) => LogFunc($"ERROR: {message}");
+        public static void Trace(string message) => LogFunc($"TRACE: {message}");
     }
 }

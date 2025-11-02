@@ -2,7 +2,7 @@
 from __future__ import annotations
 import os, io, pathlib
 from zipfile import ZipFile
-from openstk.poly import ISource, Reader
+from openstk import ISource, Reader
 from openstk.sfx import IOpenSfx2, AudioBuilderBase, AudioManager
 from openstk.platform import IFileSystem, PlatformX
 

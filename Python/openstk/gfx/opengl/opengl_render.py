@@ -15,7 +15,7 @@ class Camera: pass
 
 #region OpenGLTextureRenderer
 
-FACTOR = 1
+FACTOR = 0
 
 # OpenGLTextureRenderer
 class OpenGLTextureRenderer(EginRenderer):

@@ -1,7 +1,6 @@
 import os, numpy as np
 from struct import unpack
 from io import BytesIO
-from openstk.util import _throw
 
 # Writer
 class Writer:

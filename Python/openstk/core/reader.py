@@ -3,7 +3,7 @@ from numpy import ndarray, array
 from quaternion import quaternion
 from struct import calcsize, unpack, iter_unpack
 from io import BytesIO
-from openstk.util import _throw
+from openstk.core.util import _throw
 
 # Reader
 class Reader:

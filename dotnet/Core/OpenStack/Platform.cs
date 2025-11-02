@@ -2,13 +2,9 @@
 using OpenStack.Sfx;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace OpenStack;
 
@@ -124,7 +120,7 @@ public static class PlatformX {
     /// <summary>
     /// Gets the platform startups.
     /// </summary>
-    public static Dictionary<object, object> Options = DecodeOptions(".gamex");
+    public static YamlDict Options = new(".gamex.yaml");
 
     /// <summary>
     /// Gets or sets the current platform.
@@ -167,14 +163,6 @@ public static class PlatformX {
     //        catch { return false; }
     //    };
     //}
-
-    public static Dictionary<object, object> DecodeOptions(string file) {
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), file);
-        return File.Exists(path)
-            ? (Dictionary<object, object>)new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build()
-                .Deserialize(File.ReadAllText(path))
-            : default;
-    }
 
     public static string DecodePath(string path, string rootPath = null) =>
         path.StartsWith("~", StringComparison.OrdinalIgnoreCase) ? $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}{path[1..]}"

@@ -320,7 +320,7 @@ class Camera:
 
     def setViewport(self, x: int, y: int, width: int, height: int):
         # store window size and aspect ratio
-        self.aspectRatio = width / height
+        self.aspectRatio = width / height if height else 1.
         self.windowSize = np.array([width, height])
         # calculate projection matrix
         self.projectionMatrix = _np_createPerspectiveFieldOfView4x4(FOV, self.aspectRatio, 1., 40000.)

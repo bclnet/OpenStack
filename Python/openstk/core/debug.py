@@ -1,0 +1,5 @@
+def assertx(condition: bool, message: str = None) -> None: assert(condition)
+def log(message: str) -> None: print(message)
+def warn(message: str) -> None: print(f'WARN: {message}')
+def error(message: str) -> None: print(f'ERROR: {message}')
+def trace(message: str) -> None: print(f'TRACE: {message}')
