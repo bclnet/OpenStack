@@ -4,7 +4,7 @@ from openstk.core.find import findType
 from openstk.core.genericpool import IGenericPool, GenericPool, SinglePool, StaticPool
 from openstk.core.reader import Reader
 import openstk.core.unsafe as unsafe
-from openstk.core.util import _throw, parallelFor, _pathExtension, _pathTempFile, YamlDict
+from openstk.core.util import _throw, parallelFor, _pathExtension, _pathTempFile, decodePath, YamlDict
 from openstk.core.writer import Writer
 __all__ = [
     'ISource', 'IStream', 'IWriteToStream',
@@ -13,5 +13,5 @@ __all__ = [
     'IGenericPool', 'GenericPool', 'SinglePool', 'StaticPool',
     'Reader',
     'unsafe',
-    '_throw', 'parallelFor', '_pathExtension', '_pathTempFile', 'YamlDict',
+    '_throw', 'parallelFor', '_pathExtension', '_pathTempFile', 'decodePath', 'YamlDict',
     'Writer']

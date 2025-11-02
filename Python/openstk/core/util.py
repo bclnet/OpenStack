@@ -1,4 +1,4 @@
-import os, asyncio
+import os, asyncio, yaml
 
 def _throw(message: str) -> None: raise Exception(message)
 
@@ -16,21 +16,30 @@ def _pathTempFile(ext: str) -> str:
         tmp_file = f'tmp/{c}.{ext}'
     return tmp_file
 
+def decodePath(ApplicationPath: str, path: str, rootPath: str = None) -> str:
+    lowerPath = path.lower()
+    return f'{os.path.expanduser('~')}{path[1:]}' if lowerPath.startswith('~') else \
+        f'{rootPath}{path[6:]}' if lowerPath.startswith('%path%') else \
+        f'{ApplicationPath}{path[9:]}' if lowerPath.startswith('%apppath%') else \
+        f'{os.getenv("APPDATA")}{path[9:]}' if lowerPath.startswith('%appdata%') else \
+        f'{os.getenv("LOCALAPPDATA")}{path[14:]}' if lowerPath.startswith('%localappdata%') else \
+        path
+
 #YamlDict
 class YamlDict(dict):
     def __init__(self, file: str):
-        self.path = f'{os.getenv("APPDATA")}{file}'
+        self.path = decodePath(None, file)
         if not os.path.isfile(self.path): return
         try:
-            with open(self.path, 'r') as f:
-                config_data = yaml.safe_load(f)
-            # print(config_data)
-            # print(f"Database host: {config_data['database']['host']}")
-            # print(f"Server port: {config_data['server']['port']}")
-        except FileNotFoundError: print(f'Error: {self.path} not found.')
-        except yaml.YAMLError as e: print(f'Error parsing YAML file: {e}')
+            with open(self.path, 'r', encoding='utf-8') as f:
+                for k, v in yaml.safe_load(f).items(): self[k] = v
+        except FileNotFoundError: print(f'Error: The file "{self.path}" was not found.')
+        except UnicodeDecodeError: print(f'Error: Could not decode the file "{self.path}" with UTF-8 encoding.')
+        except yaml.YAMLError as e: print(f'YAML Error: {e}')
 
-        # var items = (Dictionary<object, object>)new DeserializerBuilder()
-        #     .WithNamingConvention(UnderscoredNamingConvention.Instance).Build()
-        #     .Deserialize(File.ReadAllText(path));
-        # foreach (var s in items) Add((string)s.Key, s.Value);
+    def flush(self):
+        try:
+            with open(self.path, 'w', encoding='utf-8') as f:
+                yaml.dump(self, f, default_flow_style=False)
+        except IOError: print(f'Error: Could not write to "{self.path}".')
+        except yaml.YAMLError as e: print(f'YAML Error: {e}')

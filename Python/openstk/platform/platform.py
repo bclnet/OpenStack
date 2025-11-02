@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os, sys
 from enum import Enum
-from openstk import ISource, YamlDict
+from openstk import ISource, decodePath, YamlDict
 
 #region FileSystem
 
@@ -81,14 +81,7 @@ class PlatformX:
         return _lambdax
 
     @staticmethod
-    def decodePath(path: str, rootPath: str = None) -> str:
-        lowerPath = path.lower()
-        return f'{os.getenv("PROFILE")}{path[1:]}' if lowerPath.startswith('~') else \
-        f'{rootPath}{path[6:]}' if lowerPath.startswith('%path%') else \
-        f'{PlatformX.applicationPath}{path[9:]}' if lowerPath.startswith('%apppath%') else \
-        f'{os.getenv("APPDATA")}{path[9:]}' if lowerPath.startswith('%appdata%') else \
-        f'{os.getenv("LOCALAPPDATA")}{path[14:]}' if lowerPath.startswith('%localappdata%') else \
-        path
+    def decodePath(path: str, rootPath: str = None) -> str: return decodePath(PlatformX.applicationPath, path, rootPath)
 
     platformOS: OS = OS.Windows if sys.platform == 'win32' else \
         OS.OSX if sys.platform == 'darwin' else \
@@ -97,7 +90,7 @@ class PlatformX:
     platforms: set[object] = { UnknownPlatform.This }
     inTestHost: bool = 'unittest' in sys.modules.keys()
     applicationPath = os.getcwd()
-    options = YamlDict('.gamex')
+    options = YamlDict('~/.gamex.yaml')
     current: Platform = None
 
 #endregion
