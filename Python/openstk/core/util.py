@@ -1,4 +1,4 @@
-import os, asyncio, yaml
+import os, asyncio, time, yaml
 
 def _throw(message: str) -> None: raise Exception(message)
 
@@ -47,3 +47,45 @@ class YamlDict(dict):
                 yaml.dump(self, f, default_flow_style=False)
         except IOError: print(f'Error: Could not write to "{self.path}".')
         except yaml.YAMLError as e: print(f'YAML Error: {e}')
+
+# Stopwatch
+class Stopwatch:
+    def __init__(self):
+        self._start_time = None
+        self._elapsed_time = 0
+        self._running = False
+
+    def start(self):
+        if not self._running:
+            self._start_time = time.time()
+            self._running = True
+            print("Stopwatch started.")
+        else:
+            print("Stopwatch is already running.")
+
+    def stop(self):
+        if self._running:
+            self._elapsed_time += time.time() - self._start_time
+            self._running = False
+            print("Stopwatch stopped.")
+        else:
+            print("Stopwatch is not running.")
+
+    def reset(self):
+        self._start_time = None
+        self._elapsed_time = 0
+        self._running = False
+        print("Stopwatch reset.")
+
+    def get_elapsed_time(self):
+        if self._running:
+            return self._elapsed_time + (time.time() - self._start_time)
+        return self._elapsed_time
+
+    def display_time(self):
+        total_seconds = int(self.get_elapsed_time())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        print(f"Elapsed Time: {hours:02d}:{minutes:02d}:{seconds:02d}")
+
