@@ -25,6 +25,10 @@ def decodePath(ApplicationPath: str, path: str, rootPath: str = None) -> str:
         f'{os.getenv("LOCALAPPDATA")}{path[14:]}' if lowerPath.startswith('%localappdata%') else \
         path
 
+def _int_tryParse(s: str) -> int | None:
+    try: return int(s)
+    except ValueError: return None
+
 #YamlDict
 class YamlDict(dict):
     def __init__(self, file: str):

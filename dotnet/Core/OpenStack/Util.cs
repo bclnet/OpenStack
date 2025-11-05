@@ -20,14 +20,19 @@ public static class Util {
 public class YamlDict : Dictionary<string, object> {
     static IDeserializer Deserializer = new DeserializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
     static ISerializer Serializer = new SerializerBuilder().WithNamingConvention(UnderscoredNamingConvention.Instance).Build();
-    string path;
+    public string Path;
+    public bool Dirty;
 
     public YamlDict(string file) {
-        path = Util.DecodePath(null, file);
-        if (!File.Exists(path)) return;
-        var items = (Dictionary<object, object>)Deserializer.Deserialize(File.ReadAllText(path));
+        Path = Util.DecodePath(null, file);
+        if (!File.Exists(Path)) return;
+        var items = (Dictionary<object, object>)Deserializer.Deserialize(File.ReadAllText(Path));
         foreach (var s in items) Add((string)s.Key, s.Value);
     }
 
-    public void Flush() => File.WriteAllText(path, Serializer.Serialize(this));
+    public void Flush() {
+        if (!Dirty) return;
+        File.WriteAllText(Path, Serializer.Serialize(this));
+        Dirty = true;
+    }
 }
