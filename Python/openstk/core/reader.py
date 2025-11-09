@@ -21,7 +21,7 @@ class Reader:
     def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
     def readBytes(self, size: int) -> bytearray: return self.f.read(size)
     def length(self) -> int: return self.length
-    def copyTo(self, destination: BytesIO, resetAfter: bool = False): raise NotImplementedError()
+    def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
     def readToEnd(self) -> bytearray: length = self.length - self.f.tell(); return self.f.read(length)
     def readLine(self) -> str: return self.f.readline().decode('utf-8')
     def readToValue(self, value: int = b'\x00', length: int = 65535, ms: BytesIO = None) -> bytearray:
@@ -33,41 +33,54 @@ class Reader:
         return ms.read()
 
     # primatives : normal
-    def readDouble(self): return unpack('<d', self.f.read(8))[0]
-    def readSByte(self): return int.from_bytes(self.f.read(1), 'little', signed=True)
-    def readInt16(self): return int.from_bytes(self.f.read(2), 'little', signed=True)
-    def readInt32(self): return int.from_bytes(self.f.read(4), 'little', signed=True)
-    def readInt64(self): return int.from_bytes(self.f.read(8), 'little', signed=True)
-    def readSingle(self): return unpack('<f', self.f.read(4))[0]
-    def readByte(self): return int.from_bytes(self.f.read(1), 'little', signed=False)
-    def readUInt16(self): return int.from_bytes(self.f.read(2), 'little', signed=False)
-    def readUInt32(self): return int.from_bytes(self.f.read(4), 'little', signed=False)
-    def readUInt64(self): return int.from_bytes(self.f.read(8), 'little', signed=False)
+    def readDouble(self) -> float: return unpack('<d', self.f.read(8))[0]
+    def readSByte(self) -> int: return int.from_bytes(self.f.read(1), 'little', signed=True)
+    def readInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=True)
+    def readInt32(self) -> int: return int.from_bytes(self.f.read(4), 'little', signed=True)
+    def readInt64(self) -> int: return int.from_bytes(self.f.read(8), 'little', signed=True)
+    def readSingle(self) -> float: return unpack('<f', self.f.read(4))[0]
+    def readByte(self) -> int: return int.from_bytes(self.f.read(1), 'little', signed=False)
+    def readUInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=False)
+    def readUInt32(self) -> int: return int.from_bytes(self.f.read(4), 'little', signed=False)
+    def readUInt64(self) -> int: return int.from_bytes(self.f.read(8), 'little', signed=False)
 
     # primatives : endian
-    def readDoubleE(self): return unpack('>d', self.f.read(8))[0]
-    def readInt16E(self): return int.from_bytes(self.f.read(2), 'big', signed=True)
-    def readInt32E(self): return int.from_bytes(self.f.read(4), 'big', signed=True)
-    def readInt64E(self): return int.from_bytes(self.f.read(8), 'big', signed=True)
-    def readSingleE(self): return unpack('>f', self.f.read(4))[0]
-    def readUInt16E(self): return int.from_bytes(self.f.read(2), 'big', signed=False)
-    def readUInt32E(self): return int.from_bytes(self.f.read(4), 'big', signed=False)
-    def readUInt64E(self): return int.from_bytes(self.f.read(8), 'big', signed=False)
+    def readDoubleE(self) -> float: return unpack('>d', self.f.read(8))[0]
+    def readInt16E(self) -> int: return int.from_bytes(self.f.read(2), 'big', signed=True)
+    def readInt32E(self) -> int: return int.from_bytes(self.f.read(4), 'big', signed=True)
+    def readInt64E(self) -> int: return int.from_bytes(self.f.read(8), 'big', signed=True)
+    def readSingleE(self) -> float: return unpack('>f', self.f.read(4))[0]
+    def readUInt16E(self) -> int: return int.from_bytes(self.f.read(2), 'big', signed=False)
+    def readUInt32E(self) -> int: return int.from_bytes(self.f.read(4), 'big', signed=False)
+    def readUInt64E(self) -> int: return int.from_bytes(self.f.read(8), 'big', signed=False)
 
     # primatives : endianX
-    def readDoubleX(self, endian: bool = True): return unpack('>d' if endian else '<d', self.f.read(8))[0]
-    def readInt16X(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
-    def readInt32X(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
-    def readInt64X(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
-    def readSingleX(self, endian: bool = True): return unpack('>f' if endian else '<f', self.f.read(4))[0]
-    def readUInt16X(self, endian: bool = True): return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
-    def readUInt32X(self, endian: bool = True): return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
-    def readUInt64X(self, endian: bool = True): return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
+    def readDoubleX(self, endian: bool = True) -> float: return unpack('>d' if endian else '<d', self.f.read(8))[0]
+    def readInt16X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
+    def readInt32X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
+    def readInt64X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
+    def readSingleX(self, endian: bool = True) -> float: return unpack('>f' if endian else '<f', self.f.read(4))[0]
+    def readUInt16X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
+    def readUInt32X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
+    def readUInt64X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
 
     # primatives : specialized
-    def readBool32(self): return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
-    def readGuid(self): return self.f.read(16)
-    def readCInt32(self): raise NotImplementedError()
+    def readVInt7(self) -> int:
+        r = 0; v = 0; b = 0
+        while True:
+            v = self.f.read(1); r |= (v & 0x7f) << b; b += 7
+            if (v & 0x80) != 0: break
+        return r
+    def readVInt7X(self, endian: bool) -> int: return self.readVInt7() if not endian else _throw('NotImplementedError')
+    def readVInt8(self) -> int:
+        b0 = self.f.read(1)
+        if (b0 & 0x80) == 0: return b0
+        b1 = self.f.read(1)
+        if (b0 & 0x40) == 0: return ((b0 & 0x7F) << 8) | b1
+        return ((((b0 & 0x3F) << 8) | b1) << 16) | int.from_bytes(self.f.read(2), 'little', signed=False)
+    def readVInt8X(self, endian: bool) -> int: return self.readVInt8() if not endian else _throw('NotImplementedError')
+    def readBool32(self) -> bool: return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
+    def readGuid(self) -> bytes: return self.f.read(16)
 
     # position
     def align(self, align: int = 4): align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
@@ -91,9 +104,12 @@ class Reader:
     def readL8UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readL16UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readL32UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
+    def readLV7UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readVInt7(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readL8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
     def readL16AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
     def readL32AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    def readLV7AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readVInt7X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    def readLV8WString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readVInt8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-16').rstrip('\00') if length != 0 else None
     # string : fixed
     def readFUString(self, length: int) -> str: return self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
@@ -114,21 +130,24 @@ class Reader:
     def readL8FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readByte())
     def readL16FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readUInt16X(endian))
     def readL32FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readUInt32X(endian))
-    def readC32FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readCInt32X(endian))
+    def readLV7FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readVInt7X())
+    def readLV8FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readVInt8X(endian))
     def readFArray(self, factory: callable, count: int) -> list[object]: return [self.readF(factory) for x in range(count)] if count else []
 
     # struct : array - pattern / primative
     def readL8PArray(self, cls: callable, pat: str) -> list[object]: return self.readPArray(cls, pat, self.readByte())
     def readL16PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, self.readUInt16X(endian))
     def readL32PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, self.readUInt32X(endian))
-    def readC32PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, self.readCInt32X(endian))
+    def readLV7PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, self.readVInt7X(endian))
+    def readLV8PArray(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPArray(cls, pat, self.readVInt8X(endian))
     def readPArray(self, cls: callable, pat: str, count: int) -> list[object]: cls = cls or (lambda x: x[0]); return [cls(x) for x in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
 
     # struct : array - struct
     def readL8SArray(self, cls: object, sizeOf: int = 0) -> list[object]: return self.readSArray(cls, self.readByte(), sizeOf)
     def readL16SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readUInt16X(endian), sizeOf)
     def readL32SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readUInt32X(endian), sizeOf)
-    def readC32SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readCInt32X(endian), sizeOf)
+    def readLV7SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readVInt7X(endian), sizeOf)
+    def readLV8SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readVInt8X(endian), sizeOf)
     def readSArray(self, cls: object, count: int, sizeOf: int = 0) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
 
     # struct : array - type
