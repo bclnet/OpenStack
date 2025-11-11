@@ -17,7 +17,6 @@ class Reader:
         f.seek(pos, os.SEEK_SET)
 
     # base
-    def atEnd(self) -> bool: return self.f.tell() == self.f.length
     def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
     def readBytes(self, size: int) -> bytearray: return self.f.read(size)
     def length(self) -> int: return self.length
@@ -65,17 +64,18 @@ class Reader:
     def readUInt64X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
 
     # primatives : specialized
+    #
     def readVInt7(self) -> int:
         r = 0; v = 0; b = 0
         while True:
-            v = self.f.read(1); r |= (v & 0x7f) << b; b += 7
-            if (v & 0x80) != 0: break
+            v = self.f.read(1)[0]; r |= (v & 0x7f) << b; b += 7
+            if (v & 0x80) == 0: break
         return r
     def readVInt7X(self, endian: bool) -> int: return self.readVInt7() if not endian else _throw('NotImplementedError')
     def readVInt8(self) -> int:
-        b0 = self.f.read(1)
+        b0 = self.f.read(1)[0]
         if (b0 & 0x80) == 0: return b0
-        b1 = self.f.read(1)
+        b1 = self.f.read(1)[0]
         if (b0 & 0x40) == 0: return ((b0 & 0x7F) << 8) | b1
         return ((((b0 & 0x3F) << 8) | b1) << 16) | int.from_bytes(self.f.read(2), 'little', signed=False)
     def readVInt8X(self, endian: bool) -> int: return self.readVInt8() if not endian else _throw('NotImplementedError')
@@ -97,6 +97,9 @@ class Reader:
         value = action(self)
         f.seek(pos)
         return value
+    def atEnd(self) -> bool: return self.f.tell() == self.length
+    def ensureAtEnd(self, end: int = -1):
+        if (self.f.tell() if end == -1 else end) != self.length: raise Exception('Not at end')
 
     # string : special
     def readL16OString(self, codepage: int = 1252) -> str: raise Exception('not implemented')
@@ -130,7 +133,7 @@ class Reader:
     def readL8FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readByte())
     def readL16FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readUInt16X(endian))
     def readL32FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readUInt32X(endian))
-    def readLV7FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readVInt7X())
+    def readLV7FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readVInt7X(endian))
     def readLV8FArray(self, factory: callable, endian: bool = False) -> list[object]: return self.readFArray(factory, self.readVInt8X(endian))
     def readFArray(self, factory: callable, count: int) -> list[object]: return [self.readF(factory) for x in range(count)] if count else []
 
@@ -154,7 +157,7 @@ class Reader:
     # def readL8TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readByte())
     # def readL16TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readUInt16X(endian))
     # def readL32TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readUInt32X(endian))
-    # def readC32TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readCInt32X(endian))
+    # def readLV8TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readCInt32X(endian))
     # def readTArray(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for x in range(count)] if count else []
 
     # struct : each

@@ -13,8 +13,6 @@ namespace System.IO;
 public static partial class Polyfill {
     #region Base
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool AtEnd(this BinaryReader source) => source.BaseStream.Position == source.BaseStream.Length;
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadBytes(this BinaryReader source, uint count) => source.ReadBytes((int)count);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -73,6 +71,7 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL8Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL16Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL32Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadLV7Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt7X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
 
     // primatives : endian
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static double ReadDoubleE(this BinaryReader source) => ReadDoubleBigEndian(InternalRead(source, stackalloc byte[sizeof(double)]));
@@ -114,8 +113,8 @@ public static partial class Polyfill {
         return (uint)(((((b0 & 0x3F) << 8) | b1) << 16) | source.ReadUInt16());
     }
     public static uint ReadVInt8X(this BinaryReader source, bool endian) => !endian ? source.ReadVInt8() : throw new NotImplementedException();
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBool8(this BinaryReader source) => source.ReadByte() != 0;
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBool32(this BinaryReader source) => source.ReadUInt32() != 0;
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBoolean(this BinaryReader source) => source.ReadByte() != 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBoolean32(this BinaryReader source) => source.ReadUInt32() != 0;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static Guid ReadGuid(this BinaryReader source) => new(source.ReadBytes(16));
 
     #endregion
@@ -145,12 +144,8 @@ public static partial class Polyfill {
         source.BaseStream.Position = pos;
         return value;
     }
-    public static void EnsureComplete(this BinaryReader source) {
-        if (source.BaseStream.Length != source.BaseStream.Position) throw new Exception("Not Complete");
-    }
-    public static void EnsureComplete(this BinaryReader source, long end) {
-        if (source.BaseStream.Length != end) throw new Exception("Not Complete");
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool AtEnd(this BinaryReader source) => source.BaseStream.Position == source.BaseStream.Length;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void EnsureAtEnd(this BinaryReader source, long end = -1) { if ((end == -1 ? source.BaseStream.Position : end) != source.BaseStream.Length) throw new Exception("Not at end"); }
 
     #endregion
 
