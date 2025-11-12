@@ -19,7 +19,17 @@ class Reader:
     # base
     def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
     def readBytes(self, size: int) -> bytearray: return self.f.read(size)
+    def readChar(self) -> chr:
+        result = self.f.read(1)[0]
+        if (result & 0x80):
+            byteCount = 1
+            while result & (0x80 >> byteCount): byteCount += 1
+            result &= (1 << (8 - byteCount)) - 1
+            while byteCount > 0: byteCount -= 1; result <<= 6; result |= self.f.read(1)[0] & 0x3F
+        return chr(result)
+    def readChars(self, count: int) -> list[chr]: return [self.readChar() for x in range(count)]
     def length(self) -> int: return self.length
+    def readBoolean(self) -> bool: return self.readByte() != 0 
     def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
     def readToEnd(self) -> bytearray: length = self.length - self.f.tell(); return self.f.read(length)
     def readLine(self) -> str: return self.f.readline().decode('utf-8')
@@ -30,6 +40,20 @@ class Reader:
         while length > 0 and (c := f.read(1)) != value: length -= 1; ms.write(c)
         ms.seek(0)
         return ms.read()
+    
+    # primatives : bytes
+    def readL8Bytes(self, maxLength: int = 0, endian: bool = False) -> bytearray:
+        length = self.readByte()
+        if maxLength > 0 and length > maxLength: raise Exception('byte length exceeds maximum length')
+        return self.f.read(length) if length > 0 else None
+    def readL16Bytes(self, maxLength: int = 0, endian: bool = False) -> bytearray:
+        length = self.readUInt16X(endian)
+        if maxLength > 0 and length > maxLength: raise Exception('byte length exceeds maximum length')
+        return self.f.read(length) if length > 0 else None
+    def readL32Bytes(self, maxLength: int = 0, endian: bool = False) -> bytearray:
+        length = self.readUInt32X(endian)
+        if maxLength > 0 and length > maxLength: raise Exception('byte length exceeds maximum length')
+        return self.f.read(length) if length > 0 else None
 
     # primatives : normal
     def readDouble(self) -> float: return unpack('<d', self.f.read(8))[0]
@@ -54,14 +78,14 @@ class Reader:
     def readUInt64E(self) -> int: return int.from_bytes(self.f.read(8), 'big', signed=False)
 
     # primatives : endianX
-    def readDoubleX(self, endian: bool = True) -> float: return unpack('>d' if endian else '<d', self.f.read(8))[0]
-    def readInt16X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
-    def readInt32X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
-    def readInt64X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
-    def readSingleX(self, endian: bool = True) -> float: return unpack('>f' if endian else '<f', self.f.read(4))[0]
-    def readUInt16X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
-    def readUInt32X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
-    def readUInt64X(self, endian: bool = True) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
+    def readDoubleX(self, endian: bool) -> float: return unpack('>d' if endian else '<d', self.f.read(8))[0]
+    def readInt16X(self, endian: bool) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
+    def readInt32X(self, endian: bool) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
+    def readInt64X(self, endian: bool) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
+    def readSingleX(self, endian: bool) -> float: return unpack('>f' if endian else '<f', self.f.read(4))[0]
+    def readUInt16X(self, endian: bool) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
+    def readUInt32X(self, endian: bool) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
+    def readUInt64X(self, endian: bool) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
 
     # primatives : specialized
     #
