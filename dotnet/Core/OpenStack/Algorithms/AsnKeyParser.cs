@@ -8,7 +8,7 @@ public sealed class BerDecodeException : Exception {
     readonly int _position;
     public BerDecodeException(string message, int position) : base(message) => _position = position;
     public BerDecodeException(string message, int position, Exception ex) : base(message, ex) => _position = position;
-    public override string Message => $"{base.Message} (Position {_position})";
+    public override string Message => $"{base.Message} (Center {_position})";
 }
 
 public class AsnKeyParser(ICollection<byte> contents) {

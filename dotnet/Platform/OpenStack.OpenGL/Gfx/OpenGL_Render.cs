@@ -14,7 +14,8 @@ namespace OpenStack.Gfx.OpenGL;
 /// OpenGLTextureRenderer
 /// </summary>
 public class OpenGLTextureRenderer : EginRenderer {
-    const int FACTOR = 0;
+    const int FACTOR = 1;
+
     readonly OpenGLGfxModel Gfx;
     readonly object Obj;
     readonly Range Level;

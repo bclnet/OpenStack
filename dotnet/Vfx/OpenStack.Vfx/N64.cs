@@ -94,8 +94,8 @@ unsafe class N64Rom {
         Log($"CRC: {ReverseEndianness(Header.CRC1):X08} {ReverseEndianness(Header.CRC2):X08}");
         Log($"Imagetype: {ImageToString(ImageType)}");
         Log($"Rom size: {RomSize} bytes (or {RomSize / 1024 / 1024} Mb or {RomSize / 1024 / 1024 * 8} Megabits)");
-        if (Verbose) Log($"ClockRate = {ReverseEndianness(Header.ClockRate):X}");
-        Log($"Version: {ReverseEndianness(Header.Release):X}");
+        if (Verbose) Log($"ClockRate = {ReverseEndianness(Header.ClockRate):Center}");
+        Log($"Version: {ReverseEndianness(Header.Release):Center}");
         Log($"Manufacturer: {(ReverseEndianness(Header.ManufacturerID) == (byte)'N' ? "Nintendo" : ReverseEndianness(Header.ManufacturerID))}");
         if (Verbose) Log($"CartridgeID: {ReverseEndianness(Header.CartridgeID)}");
         Log($"Country: {CountryCodeToString(ReverseEndianness(Header.CountryCode))}");

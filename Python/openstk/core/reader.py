@@ -177,37 +177,68 @@ class Reader:
     def readLV8SArray(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSArray(cls, self.readVInt8X(endian), sizeOf)
     def readSArray(self, cls: object, count: int, sizeOf: int = 0) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
 
+    # struct : array - each
+    def readSEach(self, cls: object, count: int) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
+    def readTEach(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for x in range(count)] if count else []
+
     # struct : array - type
     # def readL8TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readByte())
     # def readL16TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readUInt16X(endian))
     # def readL32TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readUInt32X(endian))
     # def readLV8TArray(self, cls: object, sizeOf: int, endian: bool = False) -> list[object]: return self.readTArray(cls, sizeOf, self.readCInt32X(endian))
     # def readTArray(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for x in range(count)] if count else []
-
-    # struct : each
-    # def readSEach(self, cls: object, count: int) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
-    # def readTEach(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for x in range(count)] if count else []
     
+    # struct : list - factory
+    def readL8FList(self, factory: callable) -> list[object]: return self.readFList(factory, self.readByte())
+    def readL16FList(self, factory: callable, endian: bool = False) -> list[object]: return self.readFList(factory, self.readUInt16X(endian))
+    def readL32FList(self, factory: callable, endian: bool = False) -> list[object]: return self.readFList(factory, self.readUInt32X(endian))
+    def readLV7FList(self, factory: callable, endian: bool = False) -> list[object]: return self.readFList(factory, self.readVInt7X(endian))
+    def readLV8FList(self, factory: callable, endian: bool = False) -> list[object]: return self.readFList(factory, self.readVInt8X(endian))
+    def readFList(self, factory: callable, count: int) -> list[object]: return [self.readF(factory) for x in range(count)] if count else []
+
+    # struct : list - pattern
+    def readL8PList(self, cls: callable, pat: str) -> list[object]: return self.readPList(cls, pat, self.readByte())
+    def readL16PList(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPList(cls, pat, self.readUInt16X(endian))
+    def readL32PList(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPList(cls, pat, self.readUInt32X(endian))
+    def readLV7PList(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPList(cls, pat, self.readVInt7X(endian))
+    def readLV8PList(self, cls: callable, pat: str, endian: bool = False) -> list[object]: return self.readPList(cls, pat, self.readVInt8X(endian))
+    def readPList(self, cls: callable, pat: str, count: int) -> list[object]: cls = cls or (lambda x: x[0]); return [cls(x) for x in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
+
+    # struct : list - struct
+    def readL8SList(self, cls: object, sizeOf: int = 0) -> list[object]: return self.readSList(cls, self.readByte(), sizeOf)
+    def readL16SList(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSList(cls, self.readUInt16X(endian), sizeOf)
+    def readL32SList(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSList(cls, self.readUInt32X(endian), sizeOf)
+    def readLV7SList(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSList(cls, self.readVInt7X(endian), sizeOf)
+    def readLV8SList(self, cls: object, sizeOf: int = 0, endian: bool = False) -> list[object]: return self.readSList(cls, self.readVInt8X(endian), sizeOf)
+    def readSList(self, cls: object, count: int, sizeOf: int = 0) -> list[object]: return [self.readS(cls) for x in range(count)] if count else []
+
     # struct : many - factory
     def readL8FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readByte())
     def readL16FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUInt16X(endian))
     def readL32FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUInt32X(endian))
     def readC32FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False) -> list[object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readCInt32X(endian))
-    def readFMany(self, clsKey: object, keyFactory: callable, valueFactory: callable) -> dict[object, object]: return {keyFactory(self):valueFactory(self) for x in range(count)} if count else {}
+    def readFMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, count: int) -> dict[object, object]: return {keyFactory(self):valueFactory(self) for x in range(count)} if count else {}
+
+    # struct : many - pattern
+    def readL8PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False) -> list[object]: return self.readPMany(clsKey, pat, valueFactory, self.readByte())
+    def readL16PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False) -> list[object]: return self.readPMany(clsKey, pat, valueFactory, self.readUInt16X(endian))
+    def readL32PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False) -> list[object]: return self.readPMany(clsKey, pat, valueFactory, self.readUInt32X(endian))
+    def readC32PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False) -> list[object]: return self.readPMany(clsKey, pat, valueFactory, self.readCInt32X(endian))
+    def readPMany(self, clsKey: object, pat: str, valueFactory: callable, count: int) -> dict[object, object]: return {self.readP(clsKey, pat):valueFactory(self) for x in range(count)} if count else {}
 
     # struct : many - struct
     def readL8SMany(self, clsKey: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, self.readByte())
     def readL16SMany(self, clsKey: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, self.readUInt16X(endian))
     def readL32SMany(self, clsKey: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, self.readUInt32X(endian))
     def readC32SMany(self, clsKey: object, valueFactory: callable, endian: bool = False) -> list[object]: return self.readSMany(clsKey, valueFactory, self.readCInt32X(endian))
-    def readSMany(self, clsKey: object, valueFactory: callable) -> dict[object, object]: return {self.readS(clsKey):valueFactory(self) for x in range(count)} if count else {}
+    def readSMany(self, clsKey: object, valueFactory: callable, count: int) -> dict[object, object]: return {self.readS(clsKey):valueFactory(self) for x in range(count)} if count else {}
     
     # struct : many - type
-    def readL8TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readByte())
-    def readL16TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt16X(endian))
-    def readL32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt32X(endian))
-    def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readCInt32X(endian))
-    def readTMany(self, clsKey: object, sizeOf: int, valueFactory: callable) -> dict[object, object]: return {self.readT(clsKey, sizeOf):valueFactory(self) for x in range(count)} if count else {}
+    # def readL8TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readByte())
+    # def readL16TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt16X(endian))
+    # def readL32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt32X(endian))
+    # def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False) -> list[object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readCInt32X(endian))
+    # def readTMany(self, clsKey: object, sizeOf: int, valueFactory: callable, count: int) -> dict[object, object]: return {self.readT(clsKey, sizeOf):valueFactory(self) for x in range(count)} if count else {}
 
     # numerics
     def readHalf(self) -> float: raise NotImplementedError()
