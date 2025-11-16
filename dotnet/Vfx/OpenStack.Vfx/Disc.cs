@@ -2101,7 +2101,7 @@ public static class CdiFormat {
                 s.Seek(15, SeekOrigin.Current); // unknown bytes
                 header.NumTracks = r.ReadByte();
                 var pathLen = r.ReadByte();
-                header.Path = r.ReadF8String(pathLen);
+                header.Path = r.ReadFUString(pathLen);
                 s.Seek(29, SeekOrigin.Current); // unknown bytes
                 header.MediumType = r.ReadUInt16();
                 switch (header.MediumType) {
@@ -2133,7 +2133,7 @@ public static class CdiFormat {
                         var cdTextBlock = new CdiCDText();
                         for (var l = 0; l < 18; l++) {
                             var cdTextLen = r.ReadByte();
-                            if (cdTextLen > 0) cdTextBlock.CdTexts.Add(r.ReadF8String(cdTextLen));
+                            if (cdTextLen > 0) cdTextBlock.CdTexts.Add(r.ReadFUString(cdTextLen));
                         }
                         track.CdTextBlocks.Add(cdTextBlock);
                     }
@@ -2156,7 +2156,7 @@ public static class CdiFormat {
                     var redundantTrackLen = r.ReadUInt32();
                     if (track.TrackLength != redundantTrackLen) throw new InvalidOperationException("Malformed CDI format: Track length mismatch!");
                     s.Seek(4, SeekOrigin.Current); // unknown bytes
-                    track.IsrcCode = r.ReadF8String(12);
+                    track.IsrcCode = r.ReadFUString(12);
                     track.IsrcValidFlag = r.ReadUInt32();
                     if (track.IsrcValidFlag == 0) track.IsrcCode = string.Empty;
                     s.Seek(87, SeekOrigin.Current); // unknown bytes
@@ -2180,14 +2180,14 @@ public static class CdiFormat {
             ret.DiscInfo.DiscSize = r.ReadUInt32();
             if (ret.DiscInfo.DiscSize != ret.Tracks.Sum(t => t.TrackLength)) { } //throw new InvalidOperationException("Malformed CDI format: Disc size mismatch!");
             var volumeIdLen = r.ReadByte();
-            ret.DiscInfo.VolumeId = r.ReadF8String(volumeIdLen);
+            ret.DiscInfo.VolumeId = r.ReadFUString(volumeIdLen);
             s.Seek(9, SeekOrigin.Current); // unknown bytes
-            ret.DiscInfo.Ean13Code = r.ReadF8String(13);
+            ret.DiscInfo.Ean13Code = r.ReadFUString(13);
             ret.DiscInfo.Ean13CodeValid = r.ReadUInt32();
             if (ret.DiscInfo.Ean13CodeValid == 0) ret.DiscInfo.Ean13Code = string.Empty;
             var cdTextLengh = r.ReadUInt32();
             if (cdTextLengh > int.MaxValue) throw new InvalidOperationException("Malformed CDI format: CD text too large!");
-            ret.DiscInfo.CdText = r.ReadF8String((int)cdTextLengh);
+            ret.DiscInfo.CdText = r.ReadFUString((int)cdTextLengh);
             s.Seek(12, SeekOrigin.Current); // unknown bytes
             if (ret.Tracks.Exists(track => track.NumTracks != ret.Tracks.Count) || ret.DiscInfo.NumTracks != ret.Tracks.Count) throw new InvalidOperationException("Malformed CDI format: Total track number mismatch!");
             if (s.Position != s.Length - 4) { } //throw new InvalidOperationException("Malformed CDI format: Did not reach end of footer after parsing!");
@@ -5058,7 +5058,7 @@ static class NrgFormat {
         using var r = new BinaryReader(stream);
         try {
             stream.Seek(-12, SeekOrigin.End);
-            nrgf.FileID = r.ReadF8String(4);
+            nrgf.FileID = r.ReadFUString(4);
             if (nrgf.FileID == "NER5") {
                 nrgf.FileOffset = r.ReadInt64();
                 if (BitConverter.IsLittleEndian) nrgf.FileOffset = BinaryPrimitives.ReverseEndianness(nrgf.FileOffset);
@@ -5067,7 +5067,7 @@ static class NrgFormat {
                 if (nrgf.FileOffset < 0) throw new InvalidOperationException("Malformed NRG format: Chunk file offset was negative!");
             }
             else {
-                nrgf.FileID = r.ReadF8String(4);
+                nrgf.FileID = r.ReadFUString(4);
                 if (nrgf.FileID != "NERO") throw new InvalidOperationException("Malformed NRG format: Could not find NERO/NER5 signature!");
                 nrgf.FileOffset = r.ReadUInt32();
                 if (BitConverter.IsLittleEndian) nrgf.FileOffset = BinaryPrimitives.ReverseEndianness(nrgf.FileOffset);
@@ -5078,7 +5078,7 @@ static class NrgFormat {
             void AssertIsV2() { if (nrgf.FileID != "NER5") throw new InvalidOperationException("Malformed NRG format: Found V2 chunk in a V1 file!"); }
 
             while (nrgf.End is null) {
-                var chunkID = r.ReadF8String(4);
+                var chunkID = r.ReadFUString(4);
                 var chunkSize = r.ReadInt32();
                 if (BitConverter.IsLittleEndian) chunkSize = BinaryPrimitives.ReverseEndianness(chunkSize);
 

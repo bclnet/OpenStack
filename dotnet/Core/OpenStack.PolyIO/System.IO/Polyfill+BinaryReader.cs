@@ -163,21 +163,73 @@ public static partial class Polyfill {
         return Encoding.GetEncoding(codepage).GetString(bytes);
     }
 
-    // String : Length
+    // String : Wide
 
     /// <summary>
-    /// Read a Length-prefixed string from the stream
+    /// Read a Fixed-Length string from the stream
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="length">Size of the String</param>
+    /// <param name="zstring">Remove last character</param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFWString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVWString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.Unicode.GetString(source.ReadToValue(stopValue, length, ms));
+    /// <summary>
+    /// Read a Length-prefixed wide string from the stream
     /// </summary>
     /// <param name="source"></param>
     /// <param name="byteLength">Size of the Length representation</param>
     /// <param name="zstring">Remove last character</param>
     /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV7UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt7X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt8X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8WString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16WString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32WString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV7WString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt7X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8WString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt8X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null; }
+    public static string ReadLV8W2String(this BinaryReader source, int maxLength = 0, bool endian = false) {
+        var length = source.ReadVInt8X(endian);
+        if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length");
+        if (length == 0) return null;
+        var b = new StringBuilder();
+        for (var i = 0; i < length; i++) b.Append(Convert.ToChar(source.ReadUInt16()));
+        return b.ToString();
+    }
 
+    // String : Utf8
+
+    /// <summary>
+    /// Read a Fixed-Length utf8 string from the stream
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="length">Size of the String</param>
+    /// <param name="zstring">Remove last character</param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFUString(this BinaryReader source, int length) => length != 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.UTF8.GetString(source.ReadToValue(stopValue, length, ms));
+    /// <summary>
+    /// Read a Length-prefixed utf-8 string from the stream
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="byteLength">Size of the Length representation</param>
+    /// <param name="zstring">Remove last character</param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV7UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt7X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8UString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt8X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+
+    // String : Ascii
+
+    /// <summary>
+    /// Read a Fixed-Length ascii string from the stream
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="length">Size of the String</param>
+    /// <param name="zstring">Remove last character</param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.ASCII.GetString(source.ReadToValue(stopValue, length, ms));
     /// <summary>
     /// Read a Length-prefixed ascii string from the stream
     /// </summary>
@@ -191,34 +243,7 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV7AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt7X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8AString(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt8X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
 
-    public static string ReadLV8WString(this BinaryReader source, int maxLength = 0, bool endian = false) {
-        var length = source.ReadVInt8X(endian);
-        if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length");
-        if (length == 0) return null;
-        var b = new StringBuilder();
-        for (var i = 0; i < length; i++) b.Append(Convert.ToChar(source.ReadUInt16()));
-        return b.ToString();
-    }
-
-    // String : Fixed
-
-    /// <summary>
-    /// Read a Fixed-Length string from the stream
-    /// </summary>
-    /// <param name="source"></param>
-    /// <param name="length">Size of the String</param>
-    /// <param name="zstring">Remove last character</param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFUString(this BinaryReader source, int length) => length != 0 ? new string(source.ReadChars(length), 0, length).TrimEnd('\0') : null;
-
-    /// <summary>
-    /// Read a Fixed-Length utf8 string from the stream
-    /// </summary>
-    /// <param name="source"></param>
-    /// <param name="length">Size of the String</param>
-    /// <param name="zstring">Remove last character</param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadF8String(this BinaryReader source, int length) => length != 0 ? Encoding.UTF8.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+    // String : X
 
     /// <summary>
     /// Read a Fixed-Length ascii string from the stream
@@ -227,7 +252,20 @@ public static partial class Polyfill {
     /// <param name="length">Size of the String</param>
     /// <param name="zstring">Remove last character</param>
     /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFXString(this BinaryReader source, Encoding encoding, int length) => length != 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVXString(this BinaryReader source, Encoding encoding, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => encoding.GetString(source.ReadToValue(stopValue, length, ms));
+    /// <summary>
+    /// Read a Length-prefixed x string from the stream
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="byteLength">Size of the Length representation</param>
+    /// <param name="zstring">Remove last character</param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = source.ReadUInt16X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV7XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt7X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt8X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
 
     #region not used
 
@@ -288,25 +326,6 @@ public static partial class Polyfill {
 
     #endregion
 
-    // String : Variable
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVUString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.UTF8.GetString(source.ReadToValue(stopValue, length, ms));
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.ASCII.GetString(source.ReadToValue(stopValue, length, ms));
-
-    // String : Encoding
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadEncoding(this BinaryReader source, int length, Encoding encoding = null) => length > 0 ? (encoding ?? Encoding.Default).GetString(source.ReadBytes(length)) : null;
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL8Encoding(this BinaryReader source, Encoding encoding = null) { var length = source.ReadByte(); return length > 0 ? (encoding ?? Encoding.ASCII).GetString(source.ReadBytes(length)) : null; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16Encoding(this BinaryReader source, Encoding encoding = null) { var length = source.ReadUInt16(); return length > 0 ? (encoding ?? Encoding.ASCII).GetString(source.ReadBytes(length)) : null; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32Encoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadUInt32(); return length > 0 ? (encoding ?? Encoding.ASCII).GetString(source.ReadBytes(length)) : null; }
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8Encoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadVInt8(); return length > 0 ? (encoding ?? Encoding.ASCII).GetString(source.ReadBytes(length)) : null; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadYEncoding(this BinaryReader source, int length, Encoding encoding = null) { var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] != 0 ? bytes.Length : bytes.Length - 1); }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL16YEncoding(this BinaryReader source, Encoding encoding = null) { var length = source.ReadUInt16(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadUInt32(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8YEncoding(this BinaryReader source, Encoding encoding = null) { var length = (int)source.ReadVInt8(); if (length == 0) return null; var bytes = source.ReadBytes(length); return (encoding ?? Encoding.ASCII).GetString(bytes, 0, bytes[^1] == 0 ? bytes.Length - 1 : bytes.Length); }
-
-
     public static string ReadZEncoding(this BinaryReader source, Encoding encoding) {
         var characterSize = encoding.GetByteCount("e");
         using var s = new MemoryStream();
@@ -360,7 +379,7 @@ public static partial class Polyfill {
         var offset = source.ReadUInt32();
         if (offset == 0) return string.Empty;
         source.BaseStream.Position = currentOffset + offset;
-        var str = ReadVUString(source);
+        var str = ReadVWString(source);
         source.BaseStream.Position = currentOffset + 4;
         return str;
     }
