@@ -13,6 +13,7 @@ class Point:
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
+Point.empty = Point(0, 0)
 
 class Rectangle:
     def __init__(self, x: int, y: int, width: int, height: int):
@@ -20,6 +21,7 @@ class Rectangle:
         self.y = y
         self.width = width
         self.height = height
+Rectangle.empty = Rectangle(0, 0, 0, 0)
 
 class BoundingBox:
     def __init__(self, min: Vector3, max: Vector3):

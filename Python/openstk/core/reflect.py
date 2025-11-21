@@ -1,6 +1,19 @@
 from __future__ import annotations
 import os
 
+def cstype(func):
+    def wrapper(*args, **kwargs):
+        print(f"Calling function: {func.__name__} with args: {args}, kwargs: {kwargs}")
+        result = func(*args, **kwargs)
+        print(f"Function {func.__name__} returned: {result}")
+        return result
+    return wrapper
+
+class Type:
+    def __init__(self, name: str):
+        self.name = name
+        self.factory = None
+
 class Attribute:
     def __init__(self, name: str):
         self.name = name
