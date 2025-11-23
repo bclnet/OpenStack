@@ -3,6 +3,7 @@ from enum import IntEnum
 
 # types
 type Vector3 = ndarray
+type Matrix4x4 = ndarray
 
 class Plane:
     def __init__(self, normal: Vector3, d: float):
@@ -33,6 +34,10 @@ class BoundingSphere:
         self.center = center
         self.radius = radius
 
+class BoundingFrustum:
+    def __init__(self, frustum: Matrix4x4):
+        self.frustum = frustum
+
 class Ray:
     def __init__(self, position: Vector3, direction: Vector3):
         self.position = position
@@ -48,14 +53,14 @@ class Curve:
     class Continuity(IntEnum):
         Smooth = 0
         Step = 0
-    class Loop:
+    class Key:
         def __init__(self, position: float, value: float, tangentIn: float, tangentOut: float, continuity: int):
             self.position = position
             self.value = value
             self.tangentIn = tangentIn
             self.tangentOut = tangentOut
             self.continuity = Continuity(continuity)
-    def __init__(self, preLoop: int, postLoop: int, loops: list[Loop]):
+    def __init__(self, preLoop: int, postLoop: int, keys: list[Key]):
         self.preLoop = LoopType(preLoop)
         self.postLoop = LoopType(postLoop)
-        self.loops = loops
+        self.keys = keys

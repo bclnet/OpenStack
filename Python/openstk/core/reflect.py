@@ -1,24 +1,32 @@
 from __future__ import annotations
-import os
+import os, functools
 
-def cstype(func):
-    def wrapper(*args, **kwargs):
-        print(f"Calling function: {func.__name__} with args: {args}, kwargs: {kwargs}")
-        result = func(*args, **kwargs)
-        print(f"Function {func.__name__} returned: {result}")
-        return result
-    return wrapper
+types: dict[object, dict[str, Type]] = {}
+
+# def RType(name: str = None): return lambda func: Type(func, name)
+def RType(name: str = None):
+    def clscall(cls):
+        Type(cls, name)
+        def funccall(func):
+            def wrapper(*args, **kwargs): print(f'wrapper: {func.__name__} for {cls.__name__}'); return func(*args, **kwargs)
+            return wrapper
+        return cls
+    return clscall
 
 class Type:
-    def __init__(self, name: str):
+    def __init__(self, func: obj, name: str):
+        m = func.__module__
+        if not name: name = f'{m[m.index('formats.')+8:]}.{func.__qualname__}'
+        if m not in types: types[m] = {}
+        types[m][name] = self
+        self.func = func
         self.name = name
-        self.factory = None
+        self.members = func._fields_ if hasattr(func, '_fields_') else None
+    def new(self) -> object: return self.func()
 
 class Attribute:
-    def __init__(self, name: str):
-        self.name = name
-    def __getitem__(self, key: str):
-        return None
+    def __init__(self, name: str): self.name = name
+    def __getitem__(self, key: str): return None
     @staticmethod
     def getCustomAttribute(member: MemberInfo, name: str) -> Attribute: return next(iter([x for x in member.customAttributes if x.name == name]), None)
 
@@ -50,6 +58,15 @@ class FieldInfo(MemberInfo):
 # Reader
 class Reflect:
     @staticmethod
+    def scan(type: type) -> None: pass
+
+    @staticmethod
+    def getTypeByName(name: str) -> Type:
+        for s in types.values():
+            if name in s: return s[name]
+        return None
+
+    @staticmethod
     def stripAssemblyVersion(name: str) -> str:
         commaIndex = 0
         while (commaIndex := name.find(',', commaIndex)) != -1:
@@ -79,9 +96,8 @@ class Reflect:
                 elif name[end] == '>':
                     if nesting > 0: nesting-=1
                     else: break
-                elif name[end] == ',':
-                    if nesting > 0: nesting-=1
-                    else: break
+                elif nesting == 0 and name[end] == ',': break
+            # if pos == end: break
             # extract the type name argument.
             args.append(name[pos:end].strip())
             # skip past the type name, plus any subsequent "," goo.
@@ -120,45 +136,54 @@ class Reflect:
         return (genericName, args)
 
     @staticmethod
-    def mapType(type: str) -> str:
-        if '<' in type:
-            genericName, genericArguments = Reflect.splitGenericName(type)
-            genericArguments = [f'[{Reflect.mapType(x)}]' for x in genericArguments]
-            suffix = f'`{len(genericArguments)}[{','.join(genericArguments)}]'
+    def mapType(type: Type, name: str) -> str:
+        if '<' in name:
+            genericName, args = Reflect.splitGenericName(name)
+            # print(f'{name}: {genericName}, {genericArguments}')
+            args = [f'[{Reflect.mapType(type, x)}]' for x in args]
+            suffix = f'`{len(args)}[{','.join(args)}]'
             match genericName:
-                case 'Enum' | '#': return 'Enum' + suffix
+                case 'Enum': return 'Enum' + suffix
                 case 'Nullable': return 'Nullable' + suffix
                 case 'Array': return 'Array' + suffix
                 case 'List': return 'Collections.Generic.List' + suffix
                 case 'Dictionary': return 'Collections.Generic.Dictionary' + suffix
                 case _: raise Exception('Unknown generic: {genericName}')
-        if type.endswith('?'): return Reflect.mapType(f'Nullable<{type[:-1]}>')
-        match type:
-            case 'byte': type = 'Byte'
-            case 'sbyte': type = 'SByte'
-            case 'short': type = 'Int16'
-            case 'ushort': type = 'UInt16'
-            case 'int': type = 'Int32'
-            case 'uint': type = 'UInt32'
-            case 'int': type = 'Int64'
-            case 'uint': type = 'UInt64'
-            case 'float': type = 'Single'
-            case 'double': type = 'Double'
-            case 'bool': type = 'Boolean'
-            case 'char': type = 'Char'
-            case 'string': type = 'String'
-            case 'object': type = 'Object'
-            # case 'TimeSpan': type = 'TimeSpan'
-            # case 'DateTime': type = 'DateTime'
-        return type
+        if name.endswith('?'): return Reflect.mapType(type, f'Nullable<{name[:-1]}>')
+        match name:
+            case 'byte': name = 'Byte'
+            case 'sbyte': name = 'SByte'
+            case 'short': name = 'Int16'
+            case 'ushort': name = 'UInt16'
+            case 'int': name = 'Int32'
+            case 'uint': name = 'UInt32'
+            case 'int': name = 'Int64'
+            case 'uint': name = 'UInt64'
+            case 'float': name = 'Single'
+            case 'double': name = 'Double'
+            case 'bool': name = 'Boolean'
+            case 'char': name = 'Char'
+            case 'string': name = 'String'
+            case 'object': name = 'Object'
+            # case 'TimeSpan': name = 'TimeSpan'
+            # case 'DateTime': name = 'DateTime'
+        if name.startswith('#'):
+            name = name[1:]
+            baseNames = type.name.split('.')
+            while len(baseNames) > 1:
+                baseNames.pop()
+                wanted = f'{'.'.join(baseNames)}.{name}'
+                v = Reflect.getTypeByName(wanted)
+                if v: return wanted
+        return name
 
     @staticmethod
-    def getAllPropertiesFields(cls: object) -> tuple[list, list]:
+    def getAllPropertiesFields(type: Type) -> tuple[list, list]:
         properties, fields = [], []
-        for s in cls._fields_:
+        for s in type.members:
             customAttributes = []
-            name = s[0]; type = Reflect.mapType(s[1]); defaultValue = s[2] if len(s) > 2 else None
+            name = s[0]; typex = Reflect.mapType(type, s[1]); defaultValue = s[2] if len(s) > 2 else None
             if name.startswith('['): idx = name.find(']'); customAttributes = [Attribute(x.strip()) for x in name[1:idx].split(',')]; name = name[idx + 2:].strip()
-            if name.startswith('#'): properties.append(PropertyInfo(name[1:], type, defaultValue, customAttributes))
-            else: fields.append(FieldInfo(name, type, defaultValue, customAttributes))
+            if name.startswith('#'): properties.append(PropertyInfo(name[1:], typex, defaultValue, customAttributes))
+            else: fields.append(FieldInfo(name, typex, defaultValue, customAttributes))
         return (properties, fields)

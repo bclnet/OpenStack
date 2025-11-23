@@ -23,7 +23,7 @@ public class Curve : IEquatable<Curve>, IFormattable {
     /// <summary>
     /// Loop
     /// </summary>
-    public struct Loop(float position, float value, float tangentIn, float tangentOut, int continuity) {
+    public struct Key(float position, float value, float tangentIn, float tangentOut, int continuity) {
         public float Position = position;
         public float Value = value;
         public float TangentIn = tangentIn;
@@ -38,16 +38,16 @@ public class Curve : IEquatable<Curve>, IFormattable {
     public LoopType PostLoop;
 
     /// <summary>The Loops component of the curve.</summary>
-    public Loop[] Loops;
+    public Key[] Keys;
 
     /// <summary>Creates a curve whose elements have the specified values.</summary>
     /// <param name="preLoop">The value to assign to the <see cref="System.Numerics.Curve.PreLoop" /> field.</param>
     /// <param name="postLoop">The value to assign to the <see cref="System.Numerics.Curve.PostLoop" /> field.</param>
-    /// <param name="loops">The value to assign to the <see cref="System.Numerics.Curve.Loops" /> field.</param>
-    public Curve(int preLoop, int postLoop, Loop[] loops) {
+    /// <param name="keys">The value to assign to the <see cref="System.Numerics.Curve.Keys" /> field.</param>
+    public Curve(int preLoop, int postLoop, Key[] keys) {
         PreLoop = (LoopType)preLoop;
         PostLoop = (LoopType)postLoop;
-        Loops = loops;
+        Keys = keys;
     }
 
     /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
@@ -66,13 +66,13 @@ public class Curve : IEquatable<Curve>, IFormattable {
     public bool Equals(Curve other) {
         return PreLoop.Equals(other.PreLoop)
             && PostLoop.Equals(other.PostLoop)
-            && Loops.Equals(other.Loops);
+            && Keys.Equals(other.Keys);
     }
 
     /// <summary>Returns the hash code for this instance.</summary>
     /// <returns>The hash code.</returns>
     public override int GetHashCode() {
-        return HashCode.Combine(PreLoop, PostLoop, Loops);
+        return HashCode.Combine(PreLoop, PostLoop, Keys);
     }
 
     /// <summary>Returns the string representation of the current instance using default formatting.</summary>
@@ -101,6 +101,6 @@ public class Curve : IEquatable<Curve>, IFormattable {
     /// <related type="Article" href="/dotnet/standard/base-types/standard-numeric-format-strings">Standard Numeric Format Strings</related>
     public string ToString(string format, IFormatProvider formatProvider) {
         var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
-        return $"<{PreLoop}{separator} {PostLoop}{separator} {Loops}>";
+        return $"<{PreLoop}{separator} {PostLoop}{separator} {Keys}>";
     }
 }

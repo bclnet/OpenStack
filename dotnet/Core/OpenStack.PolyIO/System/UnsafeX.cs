@@ -105,13 +105,13 @@ public unsafe static class UnsafeX {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T[] MarshalPArray<T>(string pat, Func<int, byte[]> bytesFunc, int count) where T : struct {
+    public static T[] MarshalPArray<T>(string pat, Func<int, byte[]> bytesFunc, int count, T[] obj = null) where T : struct {
         var s = MarshalPSize(pat);
         var bytes = bytesFunc(s);
         if (pat[0] == '>') bytes = MarshalSApply(bytes, pat);
         var typeOfT = typeof(T);
         var isEnum = typeOfT.IsEnum;
-        var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+        var result = obj ?? (isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count]);
         var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
         fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
         hresult.Free();
@@ -143,14 +143,14 @@ public unsafe static class UnsafeX {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // READ
-    public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count, int sizeOf) where T : struct {
+    public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count, int sizeOf, T[] obj = null) where T : struct {
         var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
         if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
         var bytes = bytesFunc(s * count);
         if (p[0] == '>') bytes = MarshalSApply(bytes, p);
         var typeOfT = typeof(T);
         var isEnum = typeOfT.IsEnum;
-        var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+        var result = obj ?? (isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count]);
         var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
         fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
         hresult.Free();
@@ -174,11 +174,11 @@ public unsafe static class UnsafeX {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T[] MarshalTArray<T>(byte[] bytes, int count) where T : struct {
+    public static T[] MarshalTArray<T>(byte[] bytes, int count, T[] obj = null) where T : struct {
         //return MemoryMarshal.Cast<byte, T>(bytes).ToArray();
         var typeOfT = typeof(T);
         var isEnum = typeOfT.IsEnum;
-        var result = isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count];
+        var result = obj ?? (isEnum ? Array.CreateInstance(typeOfT.GetEnumUnderlyingType(), count) : new T[count]);
         var hresult = GCHandle.Alloc(result, GCHandleType.Pinned);
         fixed (byte* _ = bytes) Memcpy((void*)hresult.AddrOfPinnedObject(), _, (uint)bytes.Length);
         hresult.Free();
