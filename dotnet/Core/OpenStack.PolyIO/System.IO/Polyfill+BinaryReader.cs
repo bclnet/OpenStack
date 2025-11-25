@@ -61,6 +61,13 @@ public static partial class Polyfill {
             MemoryMarshal.Read<float>(source);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static decimal ReadDecimalBigEndian(ReadOnlySpan<byte> source) {
+        return BitConverter.IsLittleEndian ?
+            throw new NotImplementedException() :
+            MemoryMarshal.Read<decimal>(source);
+    }
+
     static ReadOnlySpan<byte> InternalRead(this BinaryReader source, Span<byte> buffer) {
         Debug.Assert(buffer.Length != 1, "length of 1 should use ReadByte.");
         source.Read(buffer);
@@ -82,6 +89,7 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static ushort ReadUInt16E(this BinaryReader source) => BinaryPrimitives.ReadUInt16BigEndian(InternalRead(source, stackalloc byte[sizeof(ushort)]));
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static uint ReadUInt32E(this BinaryReader source) => BinaryPrimitives.ReadUInt32BigEndian(InternalRead(source, stackalloc byte[sizeof(uint)]));
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static ulong ReadUInt64E(this BinaryReader source) => BinaryPrimitives.ReadUInt64BigEndian(InternalRead(source, stackalloc byte[sizeof(ulong)]));
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static decimal ReadDecimalE(this BinaryReader source) => ReadDecimalBigEndian(InternalRead(source, stackalloc byte[sizeof(decimal)]));
 
     // primatives : endianX
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static double ReadDoubleX(this BinaryReader source, bool endian) => endian ? source.ReadDoubleE() : source.ReadDouble();
@@ -92,6 +100,7 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static ushort ReadUInt16X(this BinaryReader source, bool endian) => endian ? source.ReadUInt16E() : source.ReadUInt16();
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static uint ReadUInt32X(this BinaryReader source, bool endian) => endian ? source.ReadUInt32E() : source.ReadUInt32();
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static ulong ReadUInt64X(this BinaryReader source, bool endian) => endian ? source.ReadUInt64E() : source.ReadUInt64();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static decimal ReadDecimalX(this BinaryReader source, bool endian) => endian ? source.ReadDecimalE() : source.ReadDecimal();
 
     // primatives : specialized
     public static int ReadVInt7(this BinaryReader source) { //# Read7BitEncodedInt
@@ -403,8 +412,16 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadLV7FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false, T[] obj = default) => ReadFArray(source, factory, (int)source.ReadVInt7X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadLV8FArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false, T[] obj = default) => ReadFArray(source, factory, (int)source.ReadVInt8X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, uint count, T[] obj = default) => ReadFArray(source, factory, (int)count, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count, T[] obj = default) { var list = obj ?? new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source); return list; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, int, T> factory, int count, T[] obj = default) { var list = obj ?? new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = factory(source, i); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] ReadFArray<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count, T[] obj = default) {
+        var s = obj ?? new T[count]; if (count > 0) for (var i = 0; i < s.Length; i++) s[i] = factory(source);
+        return s;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] ReadFIArray<T>(this BinaryReader source, Func<BinaryReader, int, T> factory, int count, T[] obj = default) {
+        var s = obj ?? new T[count]; if (count > 0) for (var i = 0; i < s.Length; i++) s[i] = factory(source, i);
+        return s;
+    }
 
     // Struct : Array - Pattern
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8PArray<T>(this BinaryReader source, string pat, T[] obj = default) where T : struct => ReadPArray<T>(source, pat, source.ReadByte(), obj);
@@ -413,7 +430,12 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadLV7PArray<T>(this BinaryReader source, string pat, bool endian = false, T[] obj = default) where T : struct => ReadPArray<T>(source, pat, (int)source.ReadVInt7X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadLV8PArray<T>(this BinaryReader source, string pat, bool endian = false, T[] obj = default) where T : struct => ReadPArray<T>(source, pat, (int)source.ReadVInt8X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadPArray<T>(this BinaryReader source, string pat, uint count, T[] obj = default) where T : struct => ReadPArray<T>(source, pat, (int)count, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadPArray<T>(this BinaryReader source, string pat, int count, T[] obj = default) where T : struct => count > 0 ? MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count, obj) : obj ?? [];
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] ReadPArray<T>(this BinaryReader source, string pat, int count, T[] obj = default) where T : struct {
+        if (obj == null) return count > 0 ? MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count, obj) : [];
+        if (count > 0) { }
+        return obj;
+    }
 
     // Struct : Array - Struct
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8SArray<T>(this BinaryReader source, int sizeOf = 0, T[] obj = default) where T : struct => ReadSArray<T>(source, source.ReadByte(), sizeOf, obj);
@@ -422,11 +444,15 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadLV7SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false, T[] obj = default) where T : struct => ReadSArray<T>(source, (int)source.ReadVInt7X(endian), sizeOf, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadLV8SArray<T>(this BinaryReader source, int sizeOf = 0, bool endian = false, T[] obj = default) where T : struct => ReadSArray<T>(source, (int)source.ReadVInt8X(endian), sizeOf, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSArray<T>(this BinaryReader source, uint count, int sizeOf = 0, T[] obj = default) where T : struct => ReadSArray<T>(source, (int)count, sizeOf, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSArray<T>(this BinaryReader source, int count, int sizeOf = 0, T[] obj = default) where T : struct => count > 0 ? MarshalSArray<T>(source.ReadBytes, count, sizeOf, obj) : obj ?? [];
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T[] ReadSArray<T>(this BinaryReader source, int count, int sizeOf = 0, T[] obj = default) where T : struct {
+        if (obj == null) return count > 0 ? MarshalSArray<T>(source.ReadBytes, count, sizeOf, obj) : [];
+        return obj;
+    }
 
     // Struct : Array - Each
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSEach<T>(this BinaryReader source, int count, T[] obj = default) where T : struct { var list = obj ?? new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalS<T>(source.ReadBytes, -1); return list; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadTEach<T>(this BinaryReader source, int sizeOf, int count, T[] obj = default) where T : struct { var list = obj ?? new T[count]; if (count > 0) for (var i = 0; i < list.Length; i++) list[i] = MarshalT<T>(source.ReadBytes(sizeOf)); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadSEach<T>(this BinaryReader source, int count, T[] obj = default) where T : struct { var s = obj ?? new T[count]; if (count > 0) for (var i = 0; i < s.Length; i++) s[i] = MarshalS<T>(source.ReadBytes, -1); return s; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadTEach<T>(this BinaryReader source, int sizeOf, int count, T[] obj = default) where T : struct { var s = obj ?? new T[count]; if (count > 0) for (var i = 0; i < s.Length; i++) s[i] = MarshalT<T>(source.ReadBytes(sizeOf)); return s; }
 
     // Struct : Array - Type
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static T[] ReadL8TArray<T>(this BinaryReader source, int sizeOf, T[] obj = default) where T : struct => ReadTArray<T>(source, sizeOf, source.ReadByte());
@@ -442,8 +468,16 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadLV7FList<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false, List<T> obj = default) => ReadFList(source, factory, (int)source.ReadVInt7X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadLV8FList<T>(this BinaryReader source, Func<BinaryReader, T> factory, bool endian = false, List<T> obj = default) => ReadFList(source, factory, (int)source.ReadVInt8X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadFList<T>(this BinaryReader source, Func<BinaryReader, T> factory, uint count, List<T> obj = default) => ReadFList(source, factory, (int)count, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadFList<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count, List<T> obj = default) { var list = obj ?? new List<T>(count); if (count > 0) for (var i = 0; i < count; i++) list.Add(factory(source)); return list; }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadFList<T>(this BinaryReader source, Func<BinaryReader, int, T> factory, int count, List<T> obj = default) { var list = obj ?? new List<T>(count); if (count > 0) for (var i = 0; i < count; i++) list.Add(factory(source, i)); return list; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static List<T> ReadFList<T>(this BinaryReader source, Func<BinaryReader, T> factory, int count, List<T> obj = default) {
+        var s = obj ?? new List<T>(count); if (count > 0) for (var i = 0; i < count; i++) s.Add(factory(source));
+        return s;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static List<T> ReadFIList<T>(this BinaryReader source, Func<BinaryReader, int, T> factory, int count, List<T> obj = default) {
+        var s = obj ?? new List<T>(count); if (count > 0) for (var i = 0; i < count; i++) s.Add(factory(source, i));
+        return s;
+    }
 
     // Struct : List - Pattern
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadL8PList<T>(this BinaryReader source, string pat, List<T> obj = default) where T : struct => ReadPList<T>(source, pat, source.ReadByte(), obj);
@@ -452,7 +486,11 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadLV7PList<T>(this BinaryReader source, string pat, bool endian = false, List<T> obj = default) where T : struct => ReadPList<T>(source, pat, (int)source.ReadVInt7X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadLV8PList<T>(this BinaryReader source, string pat, bool endian = false, List<T> obj = default) where T : struct => ReadPList<T>(source, pat, (int)source.ReadVInt8X(endian), obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadPList<T>(this BinaryReader source, string pat, uint count, List<T> obj = default) where T : struct => ReadPList<T>(source, pat, (int)count, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadPList<T>(this BinaryReader source, string pat, int count, List<T> obj = default) where T : struct => count > 0 ? [.. MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count)] : obj ?? [];
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static List<T> ReadPList<T>(this BinaryReader source, string pat, int count, List<T> obj = default) where T : struct {
+        if (obj == null) return count > 0 ? [.. MarshalPArray<T>(pat, sizeOf => source.ReadBytes(sizeOf * count), count)] : [];
+        return obj;
+    }
 
     // Struct : List - Struct
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadL8SList<T>(this BinaryReader source, int sizeOf = 0, List<T> obj = default) where T : struct => ReadSList<T>(source, source.ReadByte(), sizeOf, obj);
@@ -461,7 +499,11 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadLV7SList<T>(this BinaryReader source, int sizeOf = 0, bool endian = false, List<T> obj = default) where T : struct => ReadSList<T>(source, (int)source.ReadVInt7X(endian), sizeOf, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadLV8SList<T>(this BinaryReader source, int sizeOf = 0, bool endian = false, List<T> obj = default) where T : struct => ReadSList<T>(source, (int)source.ReadVInt8X(endian), sizeOf, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadSList<T>(this BinaryReader source, uint count, int sizeOf = 0, List<T> obj = default) where T : struct => ReadSList<T>(source, (int)count, sizeOf, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static List<T> ReadSList<T>(this BinaryReader source, int count, int sizeOf = 0, List<T> obj = default) where T : struct => count > 0 ? [.. MarshalSArray<T>(source.ReadBytes, count, sizeOf)] : obj ?? [];
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static List<T> ReadSList<T>(this BinaryReader source, int count, int sizeOf = 0, List<T> obj = default) where T : struct {
+        if (obj == null) return count > 0 ? [.. MarshalSArray<T>(source.ReadBytes, count, sizeOf)] : [];
+        return obj;
+    }
 
     // Struct : Many - Factory
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) => ReadFMany(source, keyFactory, valueFactory, source.ReadByte(), sorted, obj);
@@ -469,7 +511,11 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) => ReadFMany(source, keyFactory, valueFactory, (int)source.ReadUInt32X(endian), sorted, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadLV8FMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) => ReadFMany(source, keyFactory, valueFactory, (int)source.ReadVInt8X(endian), sorted, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, uint count, bool sorted = false, IDictionary<TKey, TValue> obj = default) => ReadFMany(source, keyFactory, valueFactory, (int)count, sorted, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) { var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(keyFactory(source), valueFactory(source)); return set; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IDictionary<TKey, TValue> ReadFMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TKey> keyFactory, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) {
+        var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(keyFactory(source), valueFactory(source));
+        return set;
+    }
 
     // Struct : Many - Pattern
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, source.ReadByte(), sorted, obj);
@@ -477,7 +523,11 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadUInt32X(endian), sorted, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadLV8PMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)source.ReadVInt8X(endian), sorted, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, uint count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadPMany<TKey, TValue>(source, pat, valueFactory, (int)count, sorted, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct { var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(source.ReadP<TKey>(pat), valueFactory(source)); return set; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IDictionary<TKey, TValue> ReadPMany<TKey, TValue>(this BinaryReader source, string pat, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct {
+        var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(source.ReadP<TKey>(pat), valueFactory(source));
+        return set;
+    }
 
     // Struct : Many - Struct
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, source.ReadByte(), sorted, obj);
@@ -485,14 +535,22 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)source.ReadUInt32X(endian), sorted, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadLV8SMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)source.ReadVInt8X(endian), sorted, obj);
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, uint count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => ReadSMany<TKey, TValue>(source, valueFactory, (int)count, sorted, obj);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct { var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(source.ReadS<TKey>(), valueFactory(source)); return set; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IDictionary<TKey, TValue> ReadSMany<TKey, TValue>(this BinaryReader source, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct {
+        var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(source.ReadS<TKey>(), valueFactory(source));
+        return set;
+    }
 
     // Struct : Many - Type
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL8TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadByte(), sorted, obj);
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL16TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, source.ReadUInt16X(endian), sorted, obj);
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadL32TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadUInt32X(endian), sorted, obj);
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadLV8TMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, bool endian = false, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct => source.ReadTMany<TKey, TValue>(sizeOf, valueFactory, (int)source.ReadCInt32X(endian), sorted, obj);
-    //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static IDictionary<TKey, TValue> ReadTMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct { var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(source.ReadT<TKey>(sizeOf), valueFactory(source)); return set; }
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //public static IDictionary<TKey, TValue> ReadTMany<TKey, TValue>(this BinaryReader source, int sizeOf, Func<BinaryReader, TValue> valueFactory, int count, bool sorted = false, IDictionary<TKey, TValue> obj = default) where TKey : struct {
+    //    var set = obj ?? (sorted ? new SortedDictionary<TKey, TValue>() : new Dictionary<TKey, TValue>()); for (var i = 0; i < count; i++) set.Add(source.ReadT<TKey>(sizeOf), valueFactory(source));
+    //    return set;
+    //}
 
     #endregion
 

@@ -178,6 +178,9 @@ class Reflect:
         return name
 
     @staticmethod
+    def getDefaultConstructor(type: Type) -> callable: return type.func
+
+    @staticmethod
     def getAllPropertiesFields(type: Type) -> tuple[list, list]:
         properties, fields = [], []
         for s in type.members:
