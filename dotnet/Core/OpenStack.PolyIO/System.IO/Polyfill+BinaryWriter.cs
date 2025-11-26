@@ -1,8 +1,10 @@
-﻿using System.Buffers.Binary;
+﻿#pragma warning disable CS8500
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using static System.UnsafeX;
+
 
 namespace System.IO;
 

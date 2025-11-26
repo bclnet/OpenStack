@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
 	<UseWPF>true</UseWPF>  
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->

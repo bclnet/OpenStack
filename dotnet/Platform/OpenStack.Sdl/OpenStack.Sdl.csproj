@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="ppy.SDL3-CS" Version="2025.920.0" />
+	  <PackageReference Include="ppy.SDL3-CS" Version="2025.1118.0" />
 	</ItemGroup>
 
 	<ItemGroup>

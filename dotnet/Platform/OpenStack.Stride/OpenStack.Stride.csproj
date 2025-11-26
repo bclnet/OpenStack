@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Stride" Version="4.2.1.2442" />
-	  <PackageReference Include="Stride.Engine" Version="4.2.1.2442" />
+	  <PackageReference Include="Stride" Version="4.3.0.2507" />
+	  <PackageReference Include="Stride.Engine" Version="4.3.0.2507" />
 	</ItemGroup>
 
 	<ItemGroup>
