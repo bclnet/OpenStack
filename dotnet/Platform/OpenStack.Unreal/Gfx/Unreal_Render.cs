@@ -1,5 +1,4 @@
 ﻿using System;
-using static OpenStack.Debug;
 
 namespace OpenStack.Gfx.Unreal;
 
@@ -39,8 +38,8 @@ public class TextureRenderer : Renderer {
     }
 
     public override void Start() {
-        Log($"MakeTexture");
-        Log($"Done");
+        Log.Info($"MakeTexture");
+        Log.Info($"Done");
     }
 
     public override void Update(float deltaTime) {

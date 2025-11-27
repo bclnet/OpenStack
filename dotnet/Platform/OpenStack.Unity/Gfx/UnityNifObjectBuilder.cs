@@ -2,7 +2,6 @@
 using GameX.Gamebryo.Formats.Nif;
 using System;
 using UnityEngine;
-using static OpenStack.Debug;
 using Object = UnityEngine.GameObject;
 
 namespace OpenStack.Gfx.Unity;
@@ -19,7 +18,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     readonly bool _isStatic = isStatic;
 
     public Object BuildObject() {
-        Assert(_source.Name != null && _source.Roots.Length > 0);
+        Log.Assert(_source.Name != null && _source.Roots.Length > 0);
 
         // NIF files can have any number of root NiObjects.
         // If there is only one root, instantiate that directly.
@@ -29,7 +28,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             var gobj = InstantiateRootNiObject(rootNiObject);
             // If the file doesn't contain any NiObjects we are looking for, return an empty Object.
             if (gobj == null) {
-                Log($"{_source.Name} resulted in A null Object when instantiated.");
+                Log.Info($"{_source.Name} resulted in A null Object when instantiated.");
                 gobj = new Object(_source.Name);
             }
             // If gobj != null and the root NiObject is an NiNode, discard any transformations (Morrowind apparently does).
@@ -41,7 +40,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             return gobj;
         }
         else {
-            Log(_source.Name + " has multiple roots.");
+            Log.Info(_source.Name + " has multiple roots.");
             var gobj = new Object(_source.Name);
             foreach (var rootRef in _source.Roots) {
                 var child = InstantiateRootNiObject(rootRef.Value);
@@ -127,7 +126,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     //}
 
     Object InstantiateNiTriShape(NiTriShape triShape, bool visual, bool collidable) {
-        Assert(visual || collidable);
+        Log.Assert(visual || collidable);
         var mesh = NiTriShapeDataToMesh((NiTriShapeData)triShape.Data.Value);
         var obj = new Object(triShape.Name);
         if (visual) {
@@ -273,7 +272,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     void AddColliderFromNiObject(NiObject niObject, Object obj) {
         if (niObject.GetType() == typeof(NiTriShape)) InstantiateNiTriShape((NiTriShape)niObject, false, true).transform.SetParent(obj.transform, false);
         else if (niObject.GetType() == typeof(AvoidNode)) { }
-        else Log($"Unsupported collider NiObject: {niObject.GetType().Name}");
+        else Log.Info($"Unsupported collider NiObject: {niObject.GetType().Name}");
     }
 
     bool IsMarkerFileName(string name) => name.ToLowerInvariant() switch {

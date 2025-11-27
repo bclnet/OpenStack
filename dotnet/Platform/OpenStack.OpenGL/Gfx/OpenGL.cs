@@ -9,7 +9,6 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using static OpenStack.Debug;
 
 namespace OpenStack.Gfx.OpenGL;
 
@@ -173,7 +172,7 @@ public abstract class ShaderLoader {
             ShaderDefines[shaderFileName] = defines;
             var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
             CachedShaders[newShaderCacheHash] = shader;
-            Log($"Shader {name}({string.Join(", ", args.Keys)}) compiled and linked succesfully");
+            Log.Info($"Shader {name}({string.Join(", ", args.Keys)}) compiled and linked succesfully");
         }
 #endif
         return shader;

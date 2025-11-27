@@ -13,7 +13,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static Gee.External.Capstone.Arm.ArmOperandType;
 using static Gee.External.Capstone.Arm.ArmRegisterId;
-using static OpenStack.Debug;
 using static OpenStack.Vfx.Util;
 using static OpenStack.Vfx.X3ds.Crypt;
 using static OpenStack.Vfx.X3ds.Ncch;
@@ -27,7 +26,7 @@ namespace OpenStack.Vfx.X3ds;
 /// </summary>
 public class X3dsFileSystem : FileSystem {
     public X3dsFileSystem(FileSystem vfx, string path, string basePath) {
-        Log("X3dsFileSystem");
+        Log.Info("X3dsFileSystem");
     }
 
     public override bool FileExists(string path) => throw new NotImplementedException();
@@ -325,7 +324,7 @@ public unsafe class Ncch {
                         }
                         try {
                             using var w = File.Open(ExeFsFileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-                            if (Verbose) Log($"save: {ExeFsFileName}");
+                            if (Verbose) Log.Info($"save: {ExeFsFileName}");
                             w.Write(exeFs, 0, (int)OffsetAndSize[kOffsetSizeExeFs * 2 + 1]);
                         }
                         catch (IOException) { result = false; }
@@ -335,9 +334,9 @@ public unsafe class Ncch {
                         ExtractFile(r, ExeFsFileName, OffsetAndSize[kOffsetSizeExeFs * 2], OffsetAndSize[kOffsetSizeExeFs * 2 + 1], true, "exefs");
                     }
                 }
-                else if (Verbose) Log($"INFO: exefs is not exists, {ExeFsFileName} will not be create");
+                else if (Verbose) Log.Info($"INFO: exefs is not exists, {ExeFsFileName} will not be create");
             }
-            else if (OffsetAndSize[kOffsetSizeExeFs * 2 + 1] != 0 && Verbose) Log("INFO: exefs is not extract");
+            else if (OffsetAndSize[kOffsetSizeExeFs * 2 + 1] != 0 && Verbose) Log.Info("INFO: exefs is not extract");
             KeyIndex = kEncryptKeyNew;
             CalculateCounter(kAesCtrType.RomFs);
             if (!ExtractFile(r, RomFsFileName, OffsetAndSize[kOffsetSizeRomFs * 2], OffsetAndSize[kOffsetSizeRomFs * 2 + 1], false, "romfs")) result = false;
@@ -509,11 +508,11 @@ public unsafe class Ncch {
             var sProgramId = ToHexString(programId);
             if (!ExtKey.TryGetValue(sProgramId, out var extKey)) {
                 DownloadBegin = DownloadEnd = int.Parse(sProgramId.Substring(9, 5), NumberStyles.HexNumber);
-                if (!Download(false)) Log("INFO: download failed");
-                if (!ExtKey.TryGetValue(sProgramId, out extKey)) { Log($"ERROR: can not find ext key for {sProgramId}\n"); break; }
+                if (!Download(false)) Log.Info("INFO: download failed");
+                if (!ExtKey.TryGetValue(sProgramId, out extKey)) { Log.Info($"ERROR: can not find ext key for {sProgramId}\n"); break; }
             }
-            if (extKey.Length != 16) { Log($"ERROR: can not find ext key for {sProgramId}\n"); break; }
-            //if (extKey.Length != 32 || extKey.Any(x => "0123456789ABCDEFabcdef".IndexOf(x) != -1)) { Log($"ERROR: can not find ext key for {sProgramId}\n"); break; }
+            if (extKey.Length != 16) { Log.Info($"ERROR: can not find ext key for {sProgramId}\n"); break; }
+            //if (extKey.Length != 32 || extKey.Any(x => "0123456789ABCDEFabcdef".IndexOf(x) != -1)) { Log.Info($"ERROR: can not find ext key for {sProgramId}\n"); break; }
             Array.Reverse(programId);
             var bigNum = new BigInteger([.. extKey, .. programId]);
             //u8 uBytes[32] = { };
@@ -561,8 +560,8 @@ public unsafe class Ncch {
             var line = z.Trim();
             if (string.IsNullOrEmpty(line) || line.StartsWith("//")) continue;
             var vals = line.Split(" ");
-            if (vals.Length != 2) { Log($"INFO: unknown ext key record {line}"); continue; }
-            else if (!ExtKey.TryAdd(vals[0], FromHexString(vals[1]))) Log($"INFO: multiple ext key for {vals[0]}");
+            if (vals.Length != 2) { Log.Info($"INFO: unknown ext key record {line}"); continue; }
+            else if (!ExtKey.TryAdd(vals[0], FromHexString(vals[1]))) Log.Info($"INFO: multiple ext key for {vals[0]}");
         }
     }
 
@@ -605,24 +604,24 @@ public unsafe class Ncch {
             if (size != 0)
                 try {
                     using var w = File.Open(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-                    if (Verbose) Log($"save: {fileName}");
+                    if (Verbose) Log.Info($"save: {fileName}");
                     if (plainData || EncryptMode == kEncryptMode.NotEncrypt) w.CopyFile(s, offset, size);
                     else FEncryptAesCtrCopyFile(w, s, Key[KeyIndex], Counter, offset, size);
                 }
                 catch (IOException) { result = false; }
-            else if (Verbose) Log($"INFO: {type} does not exist, {fileName} will not be create");
+            else if (Verbose) Log.Info($"INFO: {type} does not exist, {fileName} will not be create");
         }
-        else if (size != 0 && Verbose) Log($"INFO: {type} is not extract");
+        else if (size != 0 && Verbose) Log.Info($"INFO: {type} is not extract");
         return result;
     }
 
     bool CreateHeader(Stream w) {
         try {
             using var r = File.Open(HeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {HeaderFileName}");
+            if (Verbose) Log.Info($"load: {HeaderFileName}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = (int)r.Position;
-            if (fileSize < sizeof(NcchHeader)) { Log("ERROR: ncch header is too short\n"); return false; }
+            if (fileSize < sizeof(NcchHeader)) { Log.Info("ERROR: ncch header is too short\n"); return false; }
             r.Seek(0, SeekOrigin.Begin);
             r.Read(ref Header, 0, sizeof(NcchHeader));
             unchecked {
@@ -649,10 +648,10 @@ public unsafe class Ncch {
         if (string.IsNullOrEmpty(ExtendedHeaderFileName)) { ClearExtendedHeader(); return true; }
         try {
             using var r = File.Open(ExtendedHeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {ExtendedHeaderFileName}");
+            if (Verbose) Log.Info($"load: {ExtendedHeaderFileName}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = (int)r.Position;
-            if (fileSize < sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended)) { ClearExtendedHeader(); Log("ERROR: extendedheader is too short\n"); return false; }
+            if (fileSize < sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended)) { ClearExtendedHeader(); Log.Info("ERROR: extendedheader is too short\n"); return false; }
             Header.Ncch.ExtendedHeaderSize = (uint)sizeof(NcchExtendedHeader);
             r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[sizeof(NcchExtendedHeader) + sizeof(NcchAccessControlExtended)];
@@ -672,7 +671,7 @@ public unsafe class Ncch {
         if (string.IsNullOrEmpty(LogoRegionFileName)) { ClearLogoRegion(); return true; }
         try {
             using var r = File.Open(LogoRegionFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {LogoRegionFileName}");
+            if (Verbose) Log.Info($"load: {LogoRegionFileName}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = (int)r.Position;
             var logoRegionSize = Align(r.Position, MediaUnitSize);
@@ -693,7 +692,7 @@ public unsafe class Ncch {
         if (string.IsNullOrEmpty(PlainRegionFileName)) { ClearPlainRegion(); return true; }
         try {
             using var r = File.Open(PlainRegionFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {PlainRegionFileName}");
+            if (Verbose) Log.Info($"load: {PlainRegionFileName}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = (int)r.Position;
             Header.Ncch.PlainRegionOffset = Header.Ncch.ContentSize;
@@ -711,11 +710,11 @@ public unsafe class Ncch {
         if (string.IsNullOrEmpty(ExeFsFileName)) { ClearExeFs(); return true; }
         try {
             using var r = File.Open(ExeFsFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {ExeFsFileName}");
+            if (Verbose) Log.Info($"load: {ExeFsFileName}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = (int)r.Position;
             var superBlockSize = (int)Align(sizeof(ExeFs.ExeFsSuperBlock), MediaUnitSize);
-            if (fileSize < superBlockSize) { ClearExeFs(); Log("ERROR: exefs is too short\n"); return false; }
+            if (fileSize < superBlockSize) { ClearExeFs(); Log.Info("ERROR: exefs is too short\n"); return false; }
             Header.Ncch.ExeFsOffset = Header.Ncch.ContentSize;
             Header.Ncch.ExeFsSize = (uint)(Align(fileSize, MediaUnitSize) / MediaUnitSize);
             Header.Ncch.ExeFsHashRegionSize = (uint)(superBlockSize / MediaUnitSize);
@@ -723,7 +722,7 @@ public unsafe class Ncch {
             var buf = new byte[superBlockSize];
             r.Read(buf, 0, superBlockSize);
             ExeFs.ExeFsSuperBlock superBlock = ToStruct<ExeFs.ExeFsSuperBlock>(buf);
-            if (ExeFs.IsExeFsSuperBlock(ref superBlock)) { ClearExeFs(); Log("INFO: exefs is encrypted"); return false; }
+            if (ExeFs.IsExeFsSuperBlock(ref superBlock)) { ClearExeFs(); Log.Info("INFO: exefs is encrypted"); return false; }
             fixed (byte* _ = Header.Ncch.ExeFsSuperBlockHash) ToSha256(buf, superBlockSize, _);
             r.Seek(0, SeekOrigin.Begin);
             var exeFs = new byte[fileSize];
@@ -749,17 +748,17 @@ public unsafe class Ncch {
         try {
             using var r = File.Open(RomFsFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             var encrypted = !RomFs.IsRomFsFile(r);
-            if (encrypted) { ClearRomFs(); Log("INFO: romfs is encrypted"); return false; }
-            if (Verbose) Log($"load: {RomFsFileName}");
+            if (encrypted) { ClearRomFs(); Log.Info("INFO: romfs is encrypted"); return false; }
+            if (Verbose) Log.Info($"load: {RomFsFileName}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = (int)r.Position;
             var superBlockSize = Align(sizeof(RomFs.SRomFsHeader), RomFs.SHA256BlockSize);
-            if (fileSize < superBlockSize) { ClearRomFs(); Log("ERROR: romfs is too short\n"); return false; }
+            if (fileSize < superBlockSize) { ClearRomFs(); Log.Info("ERROR: romfs is too short\n"); return false; }
             r.Seek(0, SeekOrigin.Begin);
             RomFs.SRomFsHeader header = new();
             r.Read(ref header, 0, sizeof(RomFs.SRomFsHeader));
             superBlockSize = Align(Align(sizeof(RomFs.SRomFsHeader), RomFs.SHA256BlockSize) + header.Level0Size, MediaUnitSize);
-            if (fileSize < superBlockSize) { ClearRomFs(); Log("ERROR: romfs is too short\n"); return false; }
+            if (fileSize < superBlockSize) { ClearRomFs(); Log.Info("ERROR: romfs is too short\n"); return false; }
             Header.Ncch.RomFsHashRegionSize = (uint)(superBlockSize / MediaUnitSize);
             r.Seek(0, SeekOrigin.Begin);
             var buf = new byte[superBlockSize];
@@ -939,7 +938,7 @@ public unsafe class Ncsd {
                 if (!CreateNcch(w, i)) result = false;
             var fileSize = w.Position;
             fixed (byte* _ = &CardInfo.Reserved1[248]) *(long*)_ = fileSize;
-            if (NotPad && Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD2) { NotPad = false; if (Verbose) Log("INFO: not support --not-pad with CARD2 type"); }
+            if (NotPad && Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD2) { NotPad = false; if (Verbose) Log.Info("INFO: not support --not-pad with CARD2 type"); }
             if (NotPad) Header.Ncsd.MediaSize = (uint)(fileSize / MediaUnitSize);
             else {
                 var minPower = Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD1 ? 27 : 29;
@@ -958,7 +957,7 @@ public unsafe class Ncsd {
     public bool TrimFile(Stream s) {
         try {
             s.Read(ref Header, 0, sizeof(SNcsdHeader));
-            if (Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD2) { if (Verbose) Log("INFO: not support --trim with CARD2 type"); return false; }
+            if (Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD2) { if (Verbose) Log.Info("INFO: not support --trim with CARD2 type"); return false; }
             s.Read(ref CardInfo, 0, sizeof(CardInfoHeader));
             CalculateMediaUnitSize();
             for (var i = LastPartitionIndex + 1; i < 8; i++)
@@ -978,7 +977,7 @@ public unsafe class Ncsd {
     public bool PadFile(Stream s) {
         try {
             s.Read(ref Header, 0, sizeof(SNcsdHeader));
-            if (Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD2) { if (Verbose) Log("INFO: not support --pad with CARD2 type"); return false; }
+            if (Header.Ncsd.Flags[MEDIA_TYPE_INDEX] == (byte)MediaType.CARD2) { if (Verbose) Log.Info("INFO: not support --pad with CARD2 type"); return false; }
             s.Read(ref CardInfo, 0, sizeof(CardInfoHeader));
             CalculateMediaUnitSize();
             CalculateValidSize();
@@ -1047,7 +1046,7 @@ public unsafe class Ncsd {
             if (offset != 0 || size != 0) {
                 try {
                     using var w = File.Open(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-                    if (Verbose) Log($"save: {fileName}");
+                    if (Verbose) Log.Info($"save: {fileName}");
                     if (mediaUnitSize) {
                         offset *= MediaUnitSize;
                         size *= MediaUnitSize;
@@ -1057,13 +1056,13 @@ public unsafe class Ncsd {
                 catch (IOException) { result = false; }
             }
             else if (Verbose) {
-                if (typeId < 0 || typeId >= 8) Log($"INFO: {type} is not exists, {fileName} will not be create");
-                else Log($"INFO: {type} {typeId} is not exists, {fileName} will not be create");
+                if (typeId < 0 || typeId >= 8) Log.Info($"INFO: {type} is not exists, {fileName} will not be create");
+                else Log.Info($"INFO: {type} {typeId} is not exists, {fileName} will not be create");
             }
         }
         else if ((offset != 0 || size != 0) && Verbose) {
-            if (typeId < 0 || typeId >= 8) Log($"INFO: {type} is not extract");
-            else Log($"INFO: {type} {typeId} is not extract");
+            if (typeId < 0 || typeId >= 8) Log.Info($"INFO: {type} is not extract");
+            else Log.Info($"INFO: {type} {typeId} is not extract");
         }
         return result;
     }
@@ -1073,8 +1072,8 @@ public unsafe class Ncsd {
             using (var r = File.Open(HeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                 r.Seek(0, SeekOrigin.End);
                 var fileSize = r.Position;
-                if (fileSize < sizeof(SNcsdHeader) + sizeof(CardInfoHeader)) { Log("ERROR: ncsd header is too short\n"); return false; }
-                if (Verbose) Log($"load: {HeaderFileName}");
+                if (fileSize < sizeof(SNcsdHeader) + sizeof(CardInfoHeader)) { Log.Info("ERROR: ncsd header is too short\n"); return false; }
+                if (Verbose) Log.Info($"load: {HeaderFileName}");
                 r.Seek(0, SeekOrigin.Begin);
                 r.Read(ref Header, 0, sizeof(SNcsdHeader));
                 r.Read(ref CardInfo, 0, sizeof(CardInfoHeader));
@@ -1091,7 +1090,7 @@ public unsafe class Ncsd {
         if (string.IsNullOrEmpty(NcchFileName[index])) { ClearNcch(index); return true; }
         try {
             using var r = File.Open(NcchFileName[index], FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {NcchFileName[index]}");
+            if (Verbose) Log.Info($"load: {NcchFileName[index]}");
             r.Seek(0, SeekOrigin.End);
             var fileSize = r.Position;
             if (index == 0) {
@@ -1243,10 +1242,10 @@ public unsafe class ExeFs {
 
     bool ExtractHeader() {
         var result = true;
-        if (string.IsNullOrEmpty(HeaderFileName)) { if (Verbose) Log("INFO: exefs header is not extract\n"); return result; }
+        if (string.IsNullOrEmpty(HeaderFileName)) { if (Verbose) Log.Info("INFO: exefs header is not extract\n"); return result; }
         try {
             using var s = File.Open(HeaderFileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-            if (Verbose) Log($"save: {HeaderFileName}\n");
+            if (Verbose) Log.Info($"save: {HeaderFileName}\n");
             s.Write(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
             return result;
         }
@@ -1261,12 +1260,12 @@ public unsafe class ExeFs {
         var topSection = false;
         if (!Path.TryGetValue(name, out var z)) {
             if (index == 0) { path = $"{ExeFsDirName}/code.bin"; topSection = true; }
-            else { if (Verbose) Log($"INFO: unknown entry Name {name}\n"); path = $"{ExeFsDirName}/{name}.bin"; }
+            else { if (Verbose) Log.Info($"INFO: unknown entry Name {name}\n"); path = $"{ExeFsDirName}/{name}.bin"; }
         }
         else path = $"{ExeFsDirName}/{z}";
         try {
             using var s = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Write);
-            if (Verbose) Log($"save: {Path}\n");
+            if (Verbose) Log.Info($"save: {Path}\n");
             if (topSection && Uncompress) {
                 var compressedSize = header.Size;
                 s.Seek(sizeof(ExeFsSuperBlock) + header.Offset, SeekOrigin.Begin);
@@ -1277,9 +1276,9 @@ public unsafe class ExeFs {
                     var uncompressed = new byte[uncompressedSize];
                     result = BackwardLz77.Uncompress(compressed, compressedSize, uncompressed, ref uncompressedSize);
                     if (result) s.Write(uncompressed, 0, (int)uncompressedSize);
-                    else Log($"ERROR: uncompress error\n\n");
+                    else Log.Info($"ERROR: uncompress error\n\n");
                 }
-                else Log($"ERROR: get uncompressed RomSize error\n\n");
+                else Log.Info($"ERROR: get uncompressed RomSize error\n\n");
             }
             if (!topSection || !Uncompress || !result) s.CopyFile(S, sizeof(ExeFsSuperBlock) + header.Offset, header.Size);
             return result;
@@ -1292,8 +1291,8 @@ public unsafe class ExeFs {
             using var s = File.Open(HeaderFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             s.Seek(0, SeekOrigin.End);
             var fileSize = s.Position;
-            if (fileSize < sizeof(ExeFsSuperBlock)) { Log("ERROR: exefs header is too short\n\n"); return false; }
-            if (Verbose) Log($"load: {HeaderFileName}\n");
+            if (fileSize < sizeof(ExeFsSuperBlock)) { Log.Info("ERROR: exefs header is too short\n\n"); return false; }
+            if (Verbose) Log.Info($"load: {HeaderFileName}\n");
             s.Seek(0, SeekOrigin.Begin);
             s.Read(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
             S.Write(ref SuperBlock, 0, sizeof(ExeFsSuperBlock));
@@ -1310,7 +1309,7 @@ public unsafe class ExeFs {
         var topSection = false;
         if (!Path.TryGetValue(name, out var z)) {
             if (index == 0) { path = $"{ExeFsDirName}/code.bin"; topSection = true; }
-            else { if (Verbose) Log($"INFO: unknown entry Name {name}\n"); path = $"{ExeFsDirName}/{name}.bin"; }
+            else { if (Verbose) Log.Info($"INFO: unknown entry Name {name}\n"); path = $"{ExeFsDirName}/{name}.bin"; }
         }
         else path = $"{ExeFsDirName}/{z}";
         try {
@@ -1318,7 +1317,7 @@ public unsafe class ExeFs {
             byte[] data;
             using (var s = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                 header.Offset = (uint)(S.Position - sizeof(ExeFsSuperBlock));
-                if (Verbose) Log($"load: {path}\n");
+                if (Verbose) Log.Info($"load: {path}\n");
                 s.Seek(0, SeekOrigin.End);
                 fileSize = (uint)s.Position;
                 s.Seek(0, SeekOrigin.Begin);
@@ -1576,7 +1575,7 @@ public unsafe class RomFs {
                 dirName += s.EntryName;
             }
             else dirName = dirName[..^1]; //was: sDirName.erase(sDirName.end() - 1);
-            if (Verbose) Log($"save: {dirName}");
+            if (Verbose) Log.Info($"save: {dirName}");
             if (Directory.CreateDirectory(dirName) == null) { ExtractStack.Pop(); return false; }
             PushExtractStackElement(false, s.Entry.Dir.ChildFileOffset, prefix);
             s.ExtractState = kExtractState.ChildDir;
@@ -1603,7 +1602,7 @@ public unsafe class RomFs {
             var path = RomFsDirName + s.Prefix + s.EntryName;
             try {
                 using var w = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Write);
-                if (Verbose) Log($"save: {path}");
+                if (Verbose) Log.Info($"save: {path}");
                 w.CopyFile(r, Level3Offset + RomFsMetaInfo.DataOffset + s.Entry.File.FileOffset, s.Entry.File.FileSize);
             }
             catch (IOException) { result = false; }
@@ -1674,7 +1673,7 @@ public unsafe class RomFs {
                 try {
                     ignores.Add(new Regex(line, RegexOptions.ECMAScript | RegexOptions.IgnoreCase));
                 }
-                catch (ArgumentException e) { Log($"ERROR: {e.Message}\n"); }
+                catch (ArgumentException e) { Log.Info($"ERROR: {e.Message}\n"); }
         }
     }
 
@@ -1706,7 +1705,7 @@ public unsafe class RomFs {
         s.Entry.File.ParentDirOffset = parentDirOffset;
         s.Entry.File.SiblingFileOffset = InvalidOffset;
         s.Entry.File.FileOffset = Align(RomFsHeader.Level3.Size, FileSizeAlignment);
-        if (s.Path.Length != s.Entry.File.FileSize >> 1) { result = false; Log($"ERROR: {s.Path} stat error\n"); }
+        if (s.Path.Length != s.Entry.File.FileSize >> 1) { result = false; Log.Info($"ERROR: {s.Path} stat error\n"); }
         s.Entry.File.PrevFileOffset = InvalidOffset;
         s.Entry.File.NameSize = s.EntryName.Length * 2;
         s.EntryNameSize = (int)Align(s.Entry.File.NameSize, EntryNameAlignment);
@@ -2105,7 +2104,7 @@ public unsafe class RomFs {
     bool WriteBufferFromFile(Stream w, int level, string path, long size) {
         try {
             using var r = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (Verbose) Log($"load: {path}");
+            if (Verbose) Log.Info($"load: {path}");
             while (size > 0) {
                 var size2 = size > _write_bufferSize ? _write_bufferSize : size;
                 r.Read(_write_buf, 0, (int)size2);
@@ -2200,7 +2199,7 @@ public unsafe class Code {
             using (var s = File.Open(FileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                 s.Seek(0, SeekOrigin.End);
                 var codeSize = (int)s.Position;
-                if (codeSize < 4) { Log("ERROR: code is too short\n\n"); return false; }
+                if (codeSize < 4) { Log.Info("ERROR: code is too short\n\n"); return false; }
                 Array.Resize(ref code, codeSize);
                 s.Seek(0, SeekOrigin.Begin);
                 s.Read(code, 0, code.Length);
@@ -2210,112 +2209,112 @@ public unsafe class Code {
             bool resultArm = LockArm(), resultThumb = resultArm && LockThumb();
             using (var s = File.Open(FileName, FileMode.Create, FileAccess.Write, FileShare.Write))
                 s.Write(code, 0, code.Length);
-            if (!resultArm && !resultThumb) Log("ERROR: lock failed\n\n");
+            if (!resultArm && !resultThumb) Log.Info("ERROR: lock failed\n\n");
             return resultArm || resultThumb;
         }
         catch (IOException) { return false; }
     }
 
     bool LockArm() {
-        if (Verbose) Log("INFO: lock arm\n");
+        if (Verbose) Log.Info("INFO: lock arm\n");
         try {
             var result = true;
             using (Handle = new CapstoneArmDisassembler(ArmDisassembleMode.Arm) { EnableInstructionDetails = true }) {
                 if (RegionCode >= 0) {
-                    if (Verbose) Log("INFO: lock region arm\n");
+                    if (Verbose) Log.Info("INFO: lock region arm\n");
                     var resultRegion = LockRegionArm();
-                    if (!resultRegion) Log("ERROR: lock region arm failed\n\n");
+                    if (!resultRegion) Log.Info("ERROR: lock region arm failed\n\n");
                     result = result && resultRegion;
                 }
                 if (LanguageCode >= 0) {
-                    if (Verbose) Log("INFO: lock language arm\n");
+                    if (Verbose) Log.Info("INFO: lock language arm\n");
                     var resultLanguage = LockLanguageArm();
-                    if (!resultLanguage) Log("ERROR: lock language arm failed\n\n");
+                    if (!resultLanguage) Log.Info("ERROR: lock language arm failed\n\n");
                     result = result && resultLanguage;
                 }
-                if (!result) Log("ERROR: lock arm failed\n\n");
+                if (!result) Log.Info("ERROR: lock arm failed\n\n");
                 return result;
             }
         }
-        catch (CapstoneException) { Log("ERROR: open arm handlefailed\n\n"); return false; }
+        catch (CapstoneException) { Log.Info("ERROR: open arm handlefailed\n\n"); return false; }
     }
 
     bool LockThumb() {
-        if (Verbose) Log("INFO: lock thumb\n");
+        if (Verbose) Log.Info("INFO: lock thumb\n");
         try {
             var result = true;
             using (Handle = new CapstoneArmDisassembler(ArmDisassembleMode.Thumb) { EnableInstructionDetails = true }) {
                 if (RegionCode >= 0) {
-                    if (Verbose) Log("INFO: lock region thumb\n");
+                    if (Verbose) Log.Info("INFO: lock region thumb\n");
                     var resultRegion = LockRegionThumb();
-                    if (!resultRegion) Log("ERROR: lock region thumb failed\n\n");
+                    if (!resultRegion) Log.Info("ERROR: lock region thumb failed\n\n");
                     result = result && resultRegion;
                 }
                 if (LanguageCode >= 0) {
-                    if (Verbose) Log("INFO: lock language thumb\n");
+                    if (Verbose) Log.Info("INFO: lock language thumb\n");
                     var resultLanguage = LockLanguageThumb();
-                    if (!resultLanguage) Log("ERROR: lock language thumb failed\n\n");
+                    if (!resultLanguage) Log.Info("ERROR: lock language thumb failed\n\n");
                     result = result && resultLanguage;
                 }
             }
-            if (!result) Log("ERROR: lock thumb failed\n\n");
+            if (!result) Log.Info("ERROR: lock thumb failed\n\n");
             return result;
         }
-        catch (CapstoneException) { Log("ERROR: open thumb handle failed\n\n"); return false; }
+        catch (CapstoneException) { Log.Info("ERROR: open thumb handle failed\n\n"); return false; }
     }
 
     bool LockRegionArm() {
-        if (Verbose) Log("INFO: find arm nn::cfg::CTR::detail::IpcUser::GetRegion\n");
+        if (Verbose) Log.Info("INFO: find arm nn::cfg::CTR::detail::IpcUser::GetRegion\n");
         SFunction functionGetRegion = new();
         FindGetRegionFunctionArm(ref functionGetRegion);
         if (functionGetRegion.First == functionGetRegion.Last || functionGetRegion.Last == 0) return false;
         if (Verbose) {
-            Log("INFO: nn::cfg::CTR::detail::IpcUser::GetRegion\n");
-            Log("INFO:   func:\n");
-            Log($"INFO:     first: {functionGetRegion.First * 4:08X}\n");
-            Log($"INFO:     last:  {functionGetRegion.Last * 4:08X}\n");
+            Log.Info("INFO: nn::cfg::CTR::detail::IpcUser::GetRegion\n");
+            Log.Info("INFO:   func:\n");
+            Log.Info($"INFO:     first: {functionGetRegion.First * 4:08X}\n");
+            Log.Info($"INFO:     last:  {functionGetRegion.Last * 4:08X}\n");
         }
         return PatchGetRegionFunctionArm(functionGetRegion);
     }
 
     bool LockRegionThumb() {
-        if (Verbose) Log("INFO: find thumb nn::cfg::CTR::detail::IpcUser::GetRegion\n");
+        if (Verbose) Log.Info("INFO: find thumb nn::cfg::CTR::detail::IpcUser::GetRegion\n");
         SFunction functionGetRegion = new();
         FindGetRegionFunctionThumb(ref functionGetRegion);
         if (functionGetRegion.First == functionGetRegion.Last || functionGetRegion.Last == 0) return false;
         if (Verbose) {
-            Log("INFO: nn::cfg::CTR::detail::IpcUser::GetRegion\n");
-            Log("INFO:   func:\n");
-            Log($"INFO:     first: {functionGetRegion.First:08X}\n");
-            Log($"INFO:     last:  {functionGetRegion.Last:8X}\n");
+            Log.Info("INFO: nn::cfg::CTR::detail::IpcUser::GetRegion\n");
+            Log.Info("INFO:   func:\n");
+            Log.Info($"INFO:     first: {functionGetRegion.First:08X}\n");
+            Log.Info($"INFO:     last:  {functionGetRegion.Last:8X}\n");
         }
         return PatchGetRegionFunctionThumb(functionGetRegion);
     }
 
     bool LockLanguageArm() {
-        if (Verbose) Log("INFO: find arm nn::cfg::CTR::GetLanguage\n");
+        if (Verbose) Log.Info("INFO: find arm nn::cfg::CTR::GetLanguage\n");
         SFunction functionGetLanguage = new();
         FindGetLanguageFunctionArm(functionGetLanguage);
         if (functionGetLanguage.First == functionGetLanguage.Last || functionGetLanguage.Last == 0) return false;
         if (Verbose) {
-            Log("INFO: nn::cfg::CTR::GetLanguage\n");
-            Log("INFO:   func:\n");
-            Log($"INFO:     first: {functionGetLanguage.First * 4:08X}\n");
-            Log($"INFO:     last:  {functionGetLanguage.Last * 4:08X}\n");
+            Log.Info("INFO: nn::cfg::CTR::GetLanguage\n");
+            Log.Info("INFO:   func:\n");
+            Log.Info($"INFO:     first: {functionGetLanguage.First * 4:08X}\n");
+            Log.Info($"INFO:     last:  {functionGetLanguage.Last * 4:08X}\n");
         }
         return PatchGetLanguageFunctionArm(functionGetLanguage);
     }
 
     bool LockLanguageThumb() {
-        if (Verbose) Log("INFO: find thumb nn::cfg::CTR::GetLanguageRaw\n");
+        if (Verbose) Log.Info("INFO: find thumb nn::cfg::CTR::GetLanguageRaw\n");
         SFunction functionGetLanguage = new();
         FindGetLanguageFunctionThumb(functionGetLanguage);
         if (functionGetLanguage.First == functionGetLanguage.Last || functionGetLanguage.Last == 0) return false;
         if (Verbose) {
-            Log("INFO: nn::cfg::CTR::GetLanguageRaw\n");
-            Log("INFO:   func:\n");
-            Log($"INFO:     first: {functionGetLanguage.First:08X}\n");
-            Log($"INFO:     last:  {functionGetLanguage.Last:08X}\n");
+            Log.Info("INFO: nn::cfg::CTR::GetLanguageRaw\n");
+            Log.Info("INFO:   func:\n");
+            Log.Info($"INFO:     first: {functionGetLanguage.First:08X}\n");
+            Log.Info($"INFO:     last:  {functionGetLanguage.Last:08X}\n");
         }
         return PatchGetLanguageFunctionThumb(functionGetLanguage);
     }
@@ -2620,7 +2619,7 @@ public unsafe class Code {
             //cs_free(m_pInsn, m_uDisasmCount);
             if (over) {
                 Arm[i] = 0xE3A00000U | (uint)(rt << 12) | (uint)RegionCode;
-                Log($"INFO:   modify:  {i * 4:08X}  mov r{rt}, #0x{RegionCode:x} ; {Arm[i] & 0xFF:02X} {Arm[i] >> 8 & 0xFF:02X} {Arm[i] >> 16 & 0xFF:02X} {Arm[i] >> 24 & 0xFF:02X}\n");
+                Log.Info($"INFO:   modify:  {i * 4:08X}  mov r{rt}, #0x{RegionCode:x} ; {Arm[i] & 0xFF:02X} {Arm[i] >> 8 & 0xFF:02X} {Arm[i] >> 16 & 0xFF:02X} {Arm[i] >> 24 & 0xFF:02X}\n");
                 return true;
             }
         }
@@ -2666,7 +2665,7 @@ public unsafe class Code {
             //cs_free(m_pInsn, m_uDisasmCount);
             if (over) {
                 fixed (byte* _ = &Thumb[i]) *(uint*)_ = 0x2000U | (uint)(rt << 8) | (uint)RegionCode;
-                Log($"INFO:   modify:  {i:08X}  mov r{rt}, #0x{RegionCode:x} ; {Thumb[i]:02X} {Thumb[i + 1]:02X}\n");
+                Log.Info($"INFO:   modify:  {i:08X}  mov r{rt}, #0x{RegionCode:x} ; {Thumb[i]:02X} {Thumb[i + 1]:02X}\n");
                 return true;
             }
         }
@@ -2686,7 +2685,7 @@ public unsafe class Code {
             //cs_free(m_pInsn, m_uDisasmCount);
             if (over) {
                 Arm[i] = 0xE3A00000U | (uint)LanguageCode;
-                Log($"INFO:   modify:  {i * 4:08X}  mov r0, #0x{LanguageCode:x} ; {Arm[i] & 0xFF:02X} {Arm[i] >> 8 & 0xFF:02X} {Arm[i] >> 16 & 0xFF:02X} {Arm[i] >> 24 & 0xFF:02X}\n");
+                Log.Info($"INFO:   modify:  {i * 4:08X}  mov r0, #0x{LanguageCode:x} ; {Arm[i] & 0xFF:02X} {Arm[i] >> 8 & 0xFF:02X} {Arm[i] >> 16 & 0xFF:02X} {Arm[i] >> 24 & 0xFF:02X}\n");
                 return true;
             }
         }
@@ -2732,7 +2731,7 @@ public unsafe class Code {
             //cs_free(m_pInsn, m_uDisasmCount);
             if (over) {
                 fixed (byte* _ = &Thumb[i]) *(uint*)_ = 0x2000U | (uint)LanguageCode;
-                Log($"INFO:   modify:  {i:08X}  mov r0, #0x{LanguageCode:x} ; {Thumb[i]:02X} {Thumb[i + 1]:02X}\n");
+                Log.Info($"INFO:   modify:  {i:08X}  mov r0, #0x{LanguageCode:x} ; {Thumb[i]:02X} {Thumb[i + 1]:02X}\n");
                 return true;
             }
         }
@@ -3047,7 +3046,7 @@ public class Space {
         long top = offset, bottom = offset + size;
         for (var i = 0; i < Buffers.Count; i++) {
             var buffer = Buffers[i];
-            if ((top >= buffer.Top && top < buffer.Bottom) || (bottom > buffer.Top && bottom <= buffer.Bottom)) { Log($"ERROR: [0x{top:x}, 0x{bottom:x}) [0x{buffer.Top:x}, 0x{buffer.Bottom:x}) overlap\n\n"); return false; }
+            if ((top >= buffer.Top && top < buffer.Bottom) || (bottom > buffer.Top && bottom <= buffer.Bottom)) { Log.Info($"ERROR: [0x{top:x}, 0x{bottom:x}) [0x{buffer.Top:x}, 0x{buffer.Bottom:x}) overlap\n\n"); return false; }
             if (bottom < buffer.Top) { Buffers.Insert(i, new SBuffer(top, bottom)); return true; }
             else if (bottom == buffer.Top) { buffer.Top = top; return true; }
             else if (top == buffer.Bottom) {

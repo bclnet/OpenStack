@@ -1,6 +1,4 @@
-﻿using static OpenStack.Debug;
-
-namespace OpenStack.Gfx.Sdl;
+﻿namespace OpenStack.Gfx.Sdl;
 
 #region TestTriRenderer
 
@@ -35,8 +33,8 @@ public class SpriteRenderer : Renderer {
     }
 
     public override void Start() {
-        Log($"MakeSprite");
-        Log($"Done");
+        Log.Info($"MakeSprite");
+        Log.Info($"Done");
     }
 }
 

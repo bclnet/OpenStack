@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static OpenStack.Debug;
 using static System.Buffers.Binary.BinaryPrimitives;
 
 namespace OpenStack.Vfx.N64;
@@ -16,7 +15,7 @@ namespace OpenStack.Vfx.N64;
 public class N64FileSystem : FileSystem {
     public N64FileSystem(FileSystem vfx, string path, string basePath) {
         var disc = new N64Rom(vfx, path);
-        Log("N64FileSystem");
+        Log.Info("N64FileSystem");
     }
 
     public override bool FileExists(string path) => throw new NotImplementedException();
@@ -89,17 +88,17 @@ unsafe class N64Rom {
         Header.Name[20] = (sbyte)'\0';
         fixed (sbyte* _name = Header.Name) Name = new string(_name).Trim();
         // display
-        Log($"Name: {Name}");
-        Log($"MD5: {Util.ToHexString(Md5)}");
-        Log($"CRC: {ReverseEndianness(Header.CRC1):X08} {ReverseEndianness(Header.CRC2):X08}");
-        Log($"Imagetype: {ImageToString(ImageType)}");
-        Log($"Rom size: {RomSize} bytes (or {RomSize / 1024 / 1024} Mb or {RomSize / 1024 / 1024 * 8} Megabits)");
-        if (Verbose) Log($"ClockRate = {ReverseEndianness(Header.ClockRate):Center}");
-        Log($"Version: {ReverseEndianness(Header.Release):Center}");
-        Log($"Manufacturer: {(ReverseEndianness(Header.ManufacturerID) == (byte)'N' ? "Nintendo" : ReverseEndianness(Header.ManufacturerID))}");
-        if (Verbose) Log($"CartridgeID: {ReverseEndianness(Header.CartridgeID)}");
-        Log($"Country: {CountryCodeToString(ReverseEndianness(Header.CountryCode))}");
-        if (Verbose) Log($"PC = {ReverseEndianness(Header.PC)}");
+        Log.Info($"Name: {Name}");
+        Log.Info($"MD5: {Util.ToHexString(Md5)}");
+        Log.Info($"CRC: {ReverseEndianness(Header.CRC1):X08} {ReverseEndianness(Header.CRC2):X08}");
+        Log.Info($"Imagetype: {ImageToString(ImageType)}");
+        Log.Info($"Rom size: {RomSize} bytes (or {RomSize / 1024 / 1024} Mb or {RomSize / 1024 / 1024 * 8} Megabits)");
+        if (Verbose) Log.Info($"ClockRate = {ReverseEndianness(Header.ClockRate):Center}");
+        Log.Info($"Version: {ReverseEndianness(Header.Release):Center}");
+        Log.Info($"Manufacturer: {(ReverseEndianness(Header.ManufacturerID) == (byte)'N' ? "Nintendo" : ReverseEndianness(Header.ManufacturerID))}");
+        if (Verbose) Log.Info($"CartridgeID: {ReverseEndianness(Header.CartridgeID)}");
+        Log.Info($"Country: {CountryCodeToString(ReverseEndianness(Header.CountryCode))}");
+        if (Verbose) Log.Info($"PC = {ReverseEndianness(Header.PC)}");
     }
 
     static bool IsValidRom(byte* src, int size) {

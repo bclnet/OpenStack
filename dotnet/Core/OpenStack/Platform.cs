@@ -63,8 +63,8 @@ public abstract class Platform(string id, string name) {
     /// Activates the platform.
     /// </summary>
     public virtual void Activate() {
-        Debug.AssertFunc = AssertFunc;
-        Debug.LogFunc = LogFunc;
+        Log.AssertFunc = AssertFunc;
+        Log.Func = LogFunc;
     }
 
     /// <summary>

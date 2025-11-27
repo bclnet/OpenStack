@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using static OpenStack.Debug;
 using static OpenStack.Vfx.Disc.CueFormat;
 
 namespace OpenStack.Vfx.Disc;
@@ -22,7 +21,7 @@ namespace OpenStack.Vfx.Disc;
 public class DiscFileSystem : FileSystem {
     public DiscFileSystem(FileSystem vfx, string path, string basePath) {
         var disc = new DiscMount(vfx, path);
-        Log("DiscFileSystem");
+        Log.Info("DiscFileSystem");
     }
 
     public override IEnumerable<string> Glob(string path, string searchPattern) {
@@ -282,7 +281,7 @@ class Blob_ECM(FileSystem vfx) : Blob {
             }
         }
         var listIndex = Index.BinarySearchLowerBound(idx => idx.LogicalOffset, offset);
-        Assert(listIndex < Index.Count, "insertion point may not be after end");
+        Log.Assert(listIndex < Index.Count, "insertion point may not be after end");
         return listIndex;
     }
 
@@ -3135,7 +3134,7 @@ class CueFormat {
         if (cue.HasError) return null;
         var cmp = new CueCompiler(cue, new DiscContext(vfx, ""));
         if (cmp.HasError) return null;
-        if (cmp.LoadTime > mount.SlowLoadAbortThreshold) { mount.SlowLoadAborted = true; Warn("Loading terminated due to slow load threshold"); return null; }
+        if (cmp.LoadTime > mount.SlowLoadAbortThreshold) { mount.SlowLoadAborted = true; Log.Warn("Loading terminated due to slow load threshold"); return null; }
         return new CueDisc(vfx, cmp);
     }
 
@@ -3289,7 +3288,7 @@ class CueFormat {
         public CDTEXTFILE? CDTextFile;
         public bool HasError = false;
 
-        void Error(string message) { HasError = true; Debug.Error(message); }
+        void Error(string message) { HasError = true; Log.Error(message); }
 
         public CueFile(Stream stream, bool strict = false) {
             var s = (TextReader)new StreamReader(stream, Encoding.UTF8);
@@ -3310,15 +3309,15 @@ class CueFormat {
                     }
                 if (key.StartsWith(';')) { p.Eof = true; Commands.Add(new COMMENT(line)); }
                 else switch (key) {
-                        default: Warn($"Unknown command: {key}"); break;
+                        default: Log.Warn($"Unknown command: {key}"); break;
                         case "CATALOG":
-                            if (Catalog != null) Warn("Multiple CATALOG commands detected. Subsequent ones are ignored.");
-                            else if (p.Eof) Warn("Ignoring empty CATALOG command");
+                            if (Catalog != null) Log.Warn("Multiple CATALOG commands detected. Subsequent ones are ignored.");
+                            else if (p.Eof) Log.Warn("Ignoring empty CATALOG command");
                             else Commands.Add(Catalog = new CATALOG(p.ReadToken()));
                             break;
                         case "CDTEXTFILE":
-                            if (CDTextFile != null) Warn("Multiple CDTEXTFILE commands detected. Subsequent ones are ignored.");
-                            else if (p.Eof) Warn("Ignoring empty CDTEXTFILE command");
+                            if (CDTextFile != null) Log.Warn("Multiple CDTEXTFILE commands detected. Subsequent ones are ignored.");
+                            else if (p.Eof) Log.Warn("Ignoring empty CDTEXTFILE command");
                             else Commands.Add(CDTextFile = new CDTEXTFILE(p.ReadPath()));
                             break;
                         case "FILE": {
@@ -3342,13 +3341,13 @@ class CueFormat {
                                 while (!p.Eof)
                                     switch (z = p.ReadToken().ToUpperInvariant()) {
                                         case "DATA":
-                                        default: Warn($"Unknown FLAG: {z}"); break;
+                                        default: Log.Warn($"Unknown FLAG: {z}"); break;
                                         case "DCP": flags |= CueTrackFlags.DCP; break;
                                         case "4CH": flags |= CueTrackFlags._4CH; break;
                                         case "PRE": flags |= CueTrackFlags.PRE; break;
                                         case "SCMS": flags |= CueTrackFlags.SCMS; break;
                                     }
-                                if (flags == CueTrackFlags.None) Warn("Empty FLAG command");
+                                if (flags == CueTrackFlags.None) Log.Warn("Empty FLAG command");
                                 Commands.Add(new FLAGS(flags));
                             }
                             break;
@@ -3363,11 +3362,11 @@ class CueFormat {
                             }
                             break;
                         case "ISRC":
-                            if (ISrc != null) Warn("Multiple ISRC commands detected. Subsequent ones are ignored.");
-                            else if (p.Eof) Warn("Ignoring empty ISRC command");
+                            if (ISrc != null) Log.Warn("Multiple ISRC commands detected. Subsequent ones are ignored.");
+                            else if (p.Eof) Log.Warn("Ignoring empty ISRC command");
                             else {
                                 var isrc = p.ReadToken();
-                                if (isrc.Length != 12) Warn($"Invalid ISRC code ignored: {isrc}");
+                                if (isrc.Length != 12) Log.Warn($"Invalid ISRC code ignored: {isrc}");
                                 else Commands.Add(ISrc = new ISRC(isrc));
                             }
                             break;
@@ -3418,7 +3417,7 @@ class CueFormat {
                 if (!p.Eof) {
                     var remainder = p.ReadLine();
                     if (remainder.TrimStart().StartsWith(';')) Commands.Add(new COMMENT(remainder));
-                    else Warn($"Unknown text at end of line after processing command: {key}");
+                    else Log.Warn($"Unknown text at end of line after processing command: {key}");
                 }
             }
         }
@@ -3603,7 +3602,7 @@ class CueFormat {
         CueFile2 _file;
         bool _fileHasTrack;
 
-        void Error(string message) { HasError = true; Debug.Error(message); }
+        void Error(string message) { HasError = true; Log.Error(message); }
 
         public CueCompiler(CueFile file, DiscContext ctx) {
             File = file;
@@ -3619,12 +3618,12 @@ class CueFormat {
                     case CueFile.TITLE titleCmd: _cdtext.Title = titleCmd.Value; break;
                     case CueFile.ISRC isrcCmd: _cdtext.ISrc = isrcCmd.Value; break;
                     case CueFile.FLAGS flagsCmd: // flags can only be set when a track command is running
-                        if (_track == null) Warn("Ignoring invalid flag commands outside of a track command");
+                        if (_track == null) Log.Warn("Ignoring invalid flag commands outside of a track command");
                         else _track.Flags |= flagsCmd.Flags;
                         break;
                     case CueFile.SESSION session:
                         if (session.Number == _session) break; // this may occur for SESSION 1 at the beginning, so we'll silence warnings from this
-                        if (session.Number != _session + 1) Warn("Ignoring non-sequential session commands");
+                        if (session.Number != _session + 1) Log.Warn("Ignoring non-sequential session commands");
                         else { _session = session.Number; SessionInfos.Add(new()); SessionFormatDetermined = false; }
                         break;
                     case CueFile.TRACK trackCmd: OpenTrack(ref trackCmd); break;
@@ -3646,7 +3645,7 @@ class CueFormat {
             var options = Ctx.FileResolver.Resolve(f.Path);
             if (options.Count == 0) { CueFiles.Add(null); Error($"Couldn't resolve referenced cue file: {f.Path}; you can commonly repair the cue file yourself, or a file might be missing"); return; } // add a null entry to keep the count from being wrong later (quiets a warning)
             var choice = options[0];
-            if (options.Count > 1) Warn($"Multiple options resolving referenced cue file; choosing: {Path.GetFileName(choice)}");
+            if (options.Count > 1) Log.Warn($"Multiple options resolving referenced cue file; choosing: {Path.GetFileName(choice)}");
             var cfi = new CueFile2 { FullPath = choice };
             CueFiles.Add(cfi);
             _file = cfi;
@@ -3741,7 +3740,7 @@ class CueFormat {
                     case CueFileType.ECM: LoadTime = Math.Max(LoadTime, 1); break;
                 }
             // check whether processing was available
-            if (needsCodec && !FFmpegService.QueryServiceAvailable(out var version)) Warn("Decoding service will be required for further processing, but is not available");
+            if (needsCodec && !FFmpegService.QueryServiceAvailable(out var version)) Log.Warn("Decoding service will be required for further processing, but is not available");
         }
     }
 
@@ -4249,7 +4248,7 @@ class MdsFormat {
                 var trackHeader = new byte[80];
                 var track = new ATrack();
                 var bytesRead = s.Read(trackHeader, offset: 0, count: trackHeader.Length);
-                Assert(bytesRead == trackHeader.Length, "reached end-of-file while reading track header");
+                Log.Assert(bytesRead == trackHeader.Length, "reached end-of-file while reading track header");
                 track.Mode = r.ReadByte();
                 track.SubMode = r.ReadByte();
                 track.ADR_Control = r.ReadByte();
@@ -4308,7 +4307,7 @@ class MdsFormat {
 
                         // read the filename
                         var bytesRead2 = s.Read(fname, offset: 0, count: fname.Length);
-                        Assert(bytesRead2 == fname.Length, "reached end-of-file while reading track filename");
+                        Log.Assert(bytesRead2 == fname.Length, "reached end-of-file while reading track filename");
 
                         // if widechar is 1 filename is stored using 16-bit, otherwise 8-bit is used
                         fileName = f.WideChar == 1
@@ -6029,7 +6028,7 @@ class Synthesize_DiscTOCFromRawTOCEntries(IReadOnlyList<RawTOCEntry> entries) {
             var point = q.q_index.DecimalValue;
             // see ECMD-394 page 5-14 for info about point = 0xA0, 0xA1, 0xA2
             switch (point) {
-                case 0x00: Log("unexpected POINT=00 in lead-in Q-channel"); break;
+                case 0x00: Log.Info("unexpected POINT=00 in lead-in Q-channel"); break;
                 case 255: throw new InvalidOperationException("point == 255");
                 case <= 99:
                     minFoundTrack = Math.Min(minFoundTrack, point);
@@ -6041,20 +6040,20 @@ class Synthesize_DiscTOCFromRawTOCEntries(IReadOnlyList<RawTOCEntry> entries) {
                 // 0xA0 bcd
                 case 100: {
                         r.FirstRecordedTrackNumber = q.ap_min.DecimalValue;
-                        if (q.ap_frame.DecimalValue != 0) Log("PFRAME should be 0 for POINT=0xA0");
+                        if (q.ap_frame.DecimalValue != 0) Log.Info("PFRAME should be 0 for POINT=0xA0");
                         switch (q.ap_sec.DecimalValue) {
                             case 0x00: r.SessionFormat = DiscSessionFormat.Type00_CDROM_CDDA; break;
                             case 0x10: r.SessionFormat = DiscSessionFormat.Type10_CDI; break;
                             case 0x20: r.SessionFormat = DiscSessionFormat.Type20_CDXA; break;
-                            default: Log("Unrecognized session format: PSEC should be one of {0x00,0x10,0x20} for POINT=0xA0"); break;
+                            default: Log.Info("Unrecognized session format: PSEC should be one of {0x00,0x10,0x20} for POINT=0xA0"); break;
                         }
                         break;
                     }
                 // 0xA1 bcd
                 case 101: {
                         r.LastRecordedTrackNumber = q.ap_min.DecimalValue;
-                        if (q.ap_sec.DecimalValue != 0) Log("PSEC should be 0 for POINT=0xA1");
-                        if (q.ap_frame.DecimalValue != 0) Log("PFRAME should be 0 for POINT=0xA1");
+                        if (q.ap_sec.DecimalValue != 0) Log.Info("PSEC should be 0 for POINT=0xA1");
+                        if (q.ap_frame.DecimalValue != 0) Log.Info("PFRAME should be 0 for POINT=0xA1");
                         break;
                     }
                 // 0xA2 bcd

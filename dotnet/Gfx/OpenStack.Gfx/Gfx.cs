@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using static OpenStack.Debug;
 
 [assembly: InternalsVisibleTo("OpenStack.Gl")]
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -121,7 +120,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
     }
 
     async Task<(Object obj, object tag)> LoadObject(object path) {
-        Assert(!CachedObjects.ContainsKey(path));
+        Log.Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
@@ -175,7 +174,7 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     }
 
     async Task<(Object obj, object tag)> LoadObject(object path) {
-        Assert(!CachedObjects.ContainsKey(path));
+        Log.Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
@@ -290,7 +289,7 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
     }
 
     async Task<ISprite> LoadSprite(object path) {
-        Assert(!CachedSprites.ContainsKey(path));
+        Log.Assert(!CachedSprites.ContainsKey(path));
         PreloadSprite(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
@@ -411,7 +410,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
 
     async Task<ITexture> LoadTexture(object path) {
         path = Source.FindPath<ITexture>(path);
-        Assert(!CachedTextures.ContainsKey(path));
+        Log.Assert(!CachedTextures.ContainsKey(path));
         PreloadTexture(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
@@ -531,7 +530,7 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
     }
 
     async Task<MaterialProp> LoadMaterial(object path) {
-        Assert(!CachedMaterials.ContainsKey(path));
+        Log.Assert(!CachedMaterials.ContainsKey(path));
         PreloadMaterial(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);

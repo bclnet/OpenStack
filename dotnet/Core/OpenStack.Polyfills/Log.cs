@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 namespace OpenStack;
 
 /// <summary>
-/// Debug
+/// Log
 /// </summary>
-public class Debug {
+public class Log {
     public static Action<bool> AssertFunc;
-    public static Action<string> LogFunc;
+    public static Action<string> Func;
     public static void Assert(bool condition, string message = null) { } // => AssertFunc(condition);
-    public static void Log(string message = null) => LogFunc(message);
-    public static void Warn(string message) => LogFunc($"WARN: {message}");
-    public static void Error(string message) => LogFunc($"ERROR: {message}");
-    public static void Trace(string message) => LogFunc($"TRACE: {message}");
+    public static void Info(string message = null) => Func(message);
+    public static void Warn(string message) => Func($"WARN: {message}");
+    public static void Error(string message) => Func($"ERROR: {message}");
+    public static void Trace(string message) => Func($"TRACE: {message}");
 }
 
 /// <summary>

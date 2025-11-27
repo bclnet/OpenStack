@@ -1,5 +1,4 @@
 ﻿using Godot;
-using static OpenStack.Debug;
 using XTexture = Godot.Texture;
 
 namespace OpenStack.Gfx.Godot;
@@ -45,7 +44,7 @@ public class TextureRenderer : Renderer {
         var path = Obj is string z ? z : null;
         if (string.IsNullOrEmpty(path)) return;
 
-        Log($"MakeTexture {path}");
+        Log.Info($"MakeTexture {path}");
 
         //var material = Parent
         var surfaceTool = new SurfaceTool();
@@ -97,7 +96,7 @@ public class TextureRenderer : Renderer {
         //obj.AddChild
         //(meshRenderer.material, _) = Gfx.MaterialManager.CreateMaterial(new FixedMaterialInfo { MainFilePath = path });
         Parent.AddChild(obj);
-        Log($"Done {obj}");
+        Log.Info($"Done {obj}");
     }
 
     public override void Update(float deltaTime) {

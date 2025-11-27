@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using static OpenStack.Debug;
 
 [assembly: InternalsVisibleTo("OpenStack.SfxTests")]
 
@@ -52,7 +51,7 @@ public class AudioManager<Audio>(ISource source, AudioBuilderBase<Audio> builder
     }
 
     async Task<object> LoadAudio(object path) {
-        Assert(!CachedAudios.ContainsKey(path));
+        Log.Assert(!CachedAudios.ContainsKey(path));
         PreloadAudio(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
