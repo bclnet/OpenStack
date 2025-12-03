@@ -132,9 +132,9 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     public ObjectSpriteManager<Node, Sprite2D> ObjectManager => _objectManager;
     public Sprite2D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path) => throw new NotImplementedException();
+    public Node CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // GodotGfxSprite3D
@@ -154,9 +154,9 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     public ObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
     public Sprite3D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path) => throw new NotImplementedException();
+    public Node CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // GodotGfxModel
@@ -185,10 +185,10 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path) => throw new NotImplementedException();
+    public Node CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // GodotSfx

@@ -897,7 +897,7 @@ public class OpenGLParticleRenderer : EginRenderer {
 
         void SetupChildParticles(IEnumerable<string> childNames) {
             foreach (var childName in childNames) {
-                var childSystem = _gfx.LoadFileObject<IParticleSystem>(childName).Result;
+                var childSystem = _gfx.GetAsset<IParticleSystem>(childName).Result;
                 _childParticleRenderers.Add(new ParticleRenderer(_gfx, childSystem, _systemRenderState.GetControlPoint(0)));
             }
         }

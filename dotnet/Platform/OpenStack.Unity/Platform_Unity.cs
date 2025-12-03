@@ -306,10 +306,10 @@ public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
     public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
     public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public GameObject CreateObject(object path) => throw new NotImplementedException();
+    public GameObject CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
 
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // UnityGfxSprite3D
@@ -329,10 +329,10 @@ public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
     public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
     public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public GameObject CreateObject(object path) => throw new NotImplementedException();
+    public GameObject CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
 
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // UnityGfxModel
@@ -358,11 +358,11 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public GameObject CreateObject(object path) => _objectManager.CreateObject(path).obj;
+    public GameObject CreateAsset(object path) => _objectManager.CreateObject(path).obj;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
 
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // UnitySfx

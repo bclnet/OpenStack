@@ -243,9 +243,9 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
     public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public object CreateObject(object path) => throw new NotImplementedException();
+    public object CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 /// <summary>
@@ -274,10 +274,10 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public ShaderManager<Shader> ShaderManager => _shaderManager;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public object CreateObject(object path) => _objectManager.CreateObject(path).obj;
+    public object CreateAsset(object path) => _objectManager.CreateObject(path).obj;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 
     // cache
     QuadIndexBuffer _quadIndices;

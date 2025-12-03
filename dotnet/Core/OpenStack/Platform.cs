@@ -174,7 +174,7 @@ public static class PlatformX {
 public class TestGfxSprite(ISource source) : IOpenGfxSprite {
     readonly ISource _source = source;
     public object Source => _source;
-    public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
+    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void PreloadSprite(object path) => throw new NotSupportedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
 }
@@ -182,7 +182,7 @@ public class TestGfxSprite(ISource source) : IOpenGfxSprite {
 public class TestGfxModel(ISource source) : IOpenGfxModel {
     readonly ISource _source = source;
     public object Source => _source;
-    public Task<T> LoadFileObject<T>(object path) => throw new NotSupportedException();
+    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void PreloadTexture(object path) => throw new NotSupportedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
 }

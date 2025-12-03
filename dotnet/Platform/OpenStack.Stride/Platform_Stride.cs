@@ -83,9 +83,9 @@ public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path) => throw new NotImplementedException();
+    public object CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // StrideGfxModel
@@ -111,10 +111,10 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public ShaderManager<int> ShaderManager => _shaderManager;
     public Texture CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Entity CreateObject(object path) => throw new NotImplementedException();
+    public Entity CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public int CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // StrideSfx

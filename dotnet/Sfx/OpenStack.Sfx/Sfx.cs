@@ -41,7 +41,7 @@ public class AudioManager<Audio>(ISource source, AudioBuilderBase<Audio> builder
     public void PreloadAudio(object path) {
         if (CachedAudios.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<object>(path);
+        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<object>(path);
     }
 
     public void DeleteAudio(object path) {

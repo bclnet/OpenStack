@@ -27,9 +27,9 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path) => throw new NotImplementedException();
+    public object CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // O3deGfxModel
@@ -56,10 +56,10 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public ShaderManager<object> ShaderManager => _shaderManager;
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path) => throw new NotImplementedException();
+    public object CreateAsset(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<T> LoadFileObject<T>(object path) => _source.LoadFileObject<T>(path);
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
 }
 
 // O3deSfx

@@ -116,7 +116,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
     public void PreloadObject(object path) {
         if (CachedObjects.ContainsKey(path)) return;
         // start loading the object asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<object>(path);
+        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<object>(path);
     }
 
     async Task<(Object obj, object tag)> LoadObject(object path) {
@@ -170,7 +170,7 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     public void PreloadObject(object path) {
         if (CachedObjects.ContainsKey(path)) return;
         // start loading the object asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<object>(path);
+        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<object>(path);
     }
 
     async Task<(Object obj, object tag)> LoadObject(object path) {
@@ -279,7 +279,7 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
     public void PreloadSprite(object path) {
         if (CachedSprites.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<ISprite>(path);
+        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<ISprite>(path);
     }
 
     public void DeleteSprite(object path) {
@@ -398,7 +398,7 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
         path = Source.FindPath<ITexture>(path);
         if (CachedTextures.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<ITexture>(path);
+        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<ITexture>(path);
     }
 
     public void DeleteTexture(object path) {
@@ -526,7 +526,7 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
     public void PreloadMaterial(object path) {
         if (CachedMaterials.ContainsKey(path)) return;
         // start loading the material file asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.LoadFileObject<MaterialProp>(path);
+        if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<MaterialProp>(path);
     }
 
     async Task<MaterialProp> LoadMaterial(object path) {
@@ -575,7 +575,7 @@ public interface IModelApi<Object, Material> {
 /// IOpenGfx
 /// </summary>
 public interface IOpenGfx {
-    Task<T> LoadFileObject<T>(object path);
+    Task<T> GetAsset<T>(object path);
     void PreloadObject(object path);
 }
 
@@ -592,7 +592,7 @@ public interface IOpenGfxSprite : IOpenGfx {
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
     SpriteManager<Sprite> SpriteManager { get; }
     ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
-    Object CreateObject(object path);
+    Object CreateAsset(object path);
 }
 
 /// <summary>
@@ -611,7 +611,7 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     ShaderManager<Shader> ShaderManager { get; }
     Texture CreateTexture(object path, Range? level = null);
-    Object CreateObject(object path);
+    Object CreateAsset(object path);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
 }
 

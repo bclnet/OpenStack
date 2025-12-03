@@ -74,7 +74,7 @@ class ObjectSpriteManager:
     def preloadObject(self, path: object) -> None:
         if path in self._cachedObjects: return
         # start loading the object asynchronously if we haven't already started.
-        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.loadFileObject(object, path)
+        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     async def _loadObject(self, path: object) -> (Object, object):
         assert(not path in self._cachedObjects)
@@ -116,7 +116,7 @@ class ObjectModelManager:
     def preloadObject(self, path: object) -> None:
         if path in self._cachedPrefabs: return
         # start loading the object asynchronously if we haven't already started.
-        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.loadFileObject(object, path)
+        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     async def _loadObject(self, path: object) -> (Object, object):
         assert(not path in self._cachedObjects)
@@ -209,7 +209,7 @@ class SpriteManager:
     def preloadSprite(self, path: object) -> None:
         if path in self._cachedSprites: return
         # start loading the texture file asynchronously if we haven't already started.
-        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.loadFileObject(object, path)
+        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     def deleteSprite(self, path: object) -> None:
         if not path in self._cachedSprites: return
@@ -301,7 +301,7 @@ class TextureManager:
     def preloadTexture(self, path: object) -> None:
         if path in self._cachedTextures: return
         # start loading the texture file asynchronously if we haven't already started.
-        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.loadFileObject(object, path)
+        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     def deleteTexture(self, path: object) -> None:
         if not path in self._cachedTextures: return
@@ -397,7 +397,7 @@ class MaterialManager:
     def preloadMaterial(self, path: object) -> None:
         if path in self._cachedMaterials: return
         # start loading the material file asynchronously if we haven't already started.
-        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.loadFileObject(MaterialProp, path)
+        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(MaterialProp, path)
 
     async def _loadMaterial(self, path: object) -> MaterialProp:
         assert(not path in self._cachedMaterials)
@@ -432,7 +432,7 @@ class IModelApi:
 
 # IOpenGfx:
 class IOpenGfx:
-    def loadFileObject(self, type: type, path: object): pass
+    def getAsset(self, type: type, path: object): pass
     def preloadObject(self, path: object) -> None: pass
 
 # IOpenGfxSpriteX
