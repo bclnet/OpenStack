@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using XShader = Godot.Shader;
+#pragma warning disable CS0649
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 

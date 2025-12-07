@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static System.Buffers.Binary.BinaryPrimitives;
+#pragma warning disable CS0162
 
 namespace OpenStack.Vfx.N64;
 

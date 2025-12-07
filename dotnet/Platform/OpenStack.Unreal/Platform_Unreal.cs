@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+#pragma warning disable CS0649
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 

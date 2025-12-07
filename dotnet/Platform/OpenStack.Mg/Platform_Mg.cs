@@ -1,8 +1,8 @@
 ﻿using OpenStack.Gfx;
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+#pragma warning disable CS0649
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
@@ -44,6 +44,7 @@ public class MgPlatform : Platform {
     MgPlatform() : base("MG", "MonoGame") {
         GfxFactory = source => [new MgGfxSprite2D(source), null, null];
         SfxFactory = source => [new MgSfx(source)];
+        LogFunc = Console.WriteLine;
     }
 }
 

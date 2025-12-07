@@ -1,9 +1,11 @@
-﻿using OpenStack.Gfx;
+﻿using OpenStack.Client;
+using OpenStack.Gfx;
 using OpenStack.Sfx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace OpenStack;
@@ -85,6 +87,9 @@ public class UnknownPlatform : Platform {
 /// PlatformX
 /// </summary>
 public static class PlatformX {
+    public static readonly float Epsilon = GetPlatformEpsilon();
+    static float GetPlatformEpsilon() { float epsilon = 1f, comparison; do { epsilon *= 0.5f; comparison = 1.0f + epsilon; } while (comparison > 1.0f); return epsilon; }
+
     //public static Action Hook;
 
     /// <summary>

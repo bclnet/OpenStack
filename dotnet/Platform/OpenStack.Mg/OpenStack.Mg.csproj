@@ -7,7 +7,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Client_Mg.png" />
+	  <None Remove="Name\shaders\IsometricWorld.fxc" />
+	  <None Remove="Name\shaders\xBR.fxc" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Client_Mg.png" />
+	  <EmbeddedResource Include="Name\shaders\IsometricWorld.fxc" />
+	  <EmbeddedResource Include="Name\shaders\Readme.md" />
+	  <EmbeddedResource Include="Name\shaders\xBR.fxc" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+	  <PackageReference Include="ppy.SDL3-CS" Version="2025.1205.0" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -10,6 +10,7 @@ using UnityEngine;
 using static OpenStack.Gfx.TextureFormat;
 using TextureFormat = UnityEngine.TextureFormat;
 using XShader = UnityEngine.Shader;
+#pragma warning disable CS0649
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 

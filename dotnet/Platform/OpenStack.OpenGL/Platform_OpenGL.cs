@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using static OpenStack.Gfx.TextureFormat;
+#pragma warning disable CS0649
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 

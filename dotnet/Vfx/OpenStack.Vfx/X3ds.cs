@@ -16,6 +16,7 @@ using static Gee.External.Capstone.Arm.ArmRegisterId;
 using static OpenStack.Vfx.Util;
 using static OpenStack.Vfx.X3ds.Crypt;
 using static OpenStack.Vfx.X3ds.Ncch;
+#pragma warning disable CS9084, CS0649
 
 namespace OpenStack.Vfx.X3ds;
 
@@ -2997,7 +2998,7 @@ public unsafe class BackwardLz77 {
         if (windowLen == 4098) info.WindowPos = (ushort)((windowPos + 1) % 4098);
         else info.WindowLen++;
     }
-    static readonly int CompressWorkSize = (4098 + 4098 + 256 + 256) * sizeof(ushort);
+    //static readonly int CompressWorkSize = (4098 + 4098 + 256 + 256) * sizeof(ushort);
 }
 
 #endregion

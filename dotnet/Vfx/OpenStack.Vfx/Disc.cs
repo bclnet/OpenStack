@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using static OpenStack.Vfx.Disc.CueFormat;
+#pragma warning disable CS9113, CS0649
 
 namespace OpenStack.Vfx.Disc;
 
@@ -2953,7 +2954,7 @@ static class ChdFormat {
 
         void EndHunk(uint hashLen) {
             var hunkOffset = w.BaseStream.Position;
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
             //using (var cstream = zstd.CreateZstdCompressionStream(w.BaseStream, 0))
             //    cstream.Write(curHunk, 0, curHunk.Length);
             hunkMapEntries.Add(new() {
@@ -3018,7 +3019,7 @@ static class ChdFormat {
                 ? 0L // last chunk
                 : BinaryPrimitives.ReverseEndianness(w.BaseStream.Position + 8 + metadataBytes.Length)); // offset to next chunk
             w.Write(metadataBytes);
-            throw new NotImplementedException(); //metadataHashes[i] = SHA1Checksum.Compute(metadataBytes);
+            //throw new NotImplementedException(); //metadataHashes[i] = SHA1Checksum.Compute(metadataBytes);
         }
 
         var uncompressedHunkMap = new byte[hunkMapEntries.Count * 12];

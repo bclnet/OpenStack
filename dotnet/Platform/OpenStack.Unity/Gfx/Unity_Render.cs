@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+#pragma warning disable CS9113
 
 namespace OpenStack.Gfx.Unity;
 
