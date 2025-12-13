@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace System.Numerics;
+namespace System.Drawing;
 
 /// <summary>
 /// Represents a BoundingBox.
@@ -17,8 +17,8 @@ public struct BoundingBox : IEquatable<BoundingBox>, IFormattable {
     public Vector3 Max;
 
     /// <summary>Creates a box whose elements have the specified values.</summary>
-    /// <param name="min">The value to assign to the <see cref="System.Numerics.BoundingBox.Min" /> field.</param>
-    /// <param name="max">The value to assign to the <see cref="System.Numerics.BoundingBox.Max" /> field.</param>
+    /// <param name="min">The value to assign to the <see cref="System.Drawing.BoundingBox.Min" /> field.</param>
+    /// <param name="max">The value to assign to the <see cref="System.Drawing.BoundingBox.Max" /> field.</param>
     public BoundingBox(Vector3 min, Vector3 max) {
         Min = min;
         Max = max;
@@ -27,7 +27,7 @@ public struct BoundingBox : IEquatable<BoundingBox>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
     /// <param name="obj">The object to compare with the current instance.</param>
     /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
-    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.BoundingBox" /> object and their <see cref="System.Numerics.BoundingBox.Min" /> and <see cref="System.Numerics.BoundingBox.Max" /> elements are equal.</remarks>
+    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Drawing.BoundingBox" /> object and their <see cref="System.Drawing.BoundingBox.Min" /> and <see cref="System.Drawing.BoundingBox.Max" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
         => (obj is BoundingBox other) && Equals(other);
@@ -35,7 +35,7 @@ public struct BoundingBox : IEquatable<BoundingBox>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and another ray are equal.</summary>
     /// <param name="other">The other ray.</param>
     /// <returns><see langword="true" /> if the two rays are equal; otherwise, <see langword="false" />.</returns>
-    /// <remarks>Two boxes are equal if their <see cref="System.Numerics.BoundingBox.Min" /> and <see cref="System.Numerics.BoundingBox.Max" /> elements are equal.</remarks>
+    /// <remarks>Two boxes are equal if their <see cref="System.Drawing.BoundingBox.Min" /> and <see cref="System.Drawing.BoundingBox.Max" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(BoundingBox other) {
         return Min.Equals(other.Min)

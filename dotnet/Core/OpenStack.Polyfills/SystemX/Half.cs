@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#pragma warning disable CS8632
 
 namespace SystemX;
 

@@ -4,7 +4,7 @@
 //using System.Runtime.CompilerServices;
 //using System.Runtime.InteropServices;
 
-//namespace System.Numerics;
+//namespace System.Drawing;
 
 ///// <summary>Represents a rectangle with four single-precision floating-point values.</summary>
 //public partial struct Rectangle : IEquatable<Rectangle>, IFormattable  {
@@ -24,21 +24,21 @@
 
 //    public static readonly Dictionary<char, Func<int, int, int>> Ops = [];
 
-//    /// <summary>Creates a new <see cref="System.Numerics.Rectangle" /> object whose four elements have the same value.</summary>
+//    /// <summary>Creates a new <see cref="System.Drawing.Rectangle" /> object whose four elements have the same value.</summary>
 //    /// <param name="value">The value to assign to all four elements.</param>
 //    public Rectangle(int value) : this(value, value, value, value) { }
 
-//    /// <summary>Creates a new <see cref="System.Numerics.Rectangle" /> object from the specified <see cref="System.Numerics.Rectangle" /> object and a Width and a Height component.</summary>
+//    /// <summary>Creates a new <see cref="System.Drawing.Rectangle" /> object from the specified <see cref="System.Drawing.Rectangle" /> object and a Width and a Height component.</summary>
 //    /// <param name="value">The rectangle to use for the X and Y components.</param>
 //    /// <param name="width">The Width component.</param>
 //    /// <param name="height">The Height component.</param>
 //    public Rectangle(Vector2<int> value, int width, int height) : this(value.X, value.Y, width, height) { }
 
 //    /// <summary>Creates a rectangle whose elements have the specified values.</summary>
-//    /// <param name="x">The value to assign to the <see cref="System.Numerics.Rectangle.X" /> field.</param>
-//    /// <param name="y">The value to assign to the <see cref="System.Numerics.Rectangle.Y" /> field.</param>
-//    /// <param name="width">The value to assign to the <see cref="System.Numerics.Rectangle.Width" /> field.</param>
-//    /// <param name="height">The value to assign to the <see cref="System.Numerics.Rectangle.Height" /> field.</param>
+//    /// <param name="x">The value to assign to the <see cref="System.Drawing.Rectangle.X" /> field.</param>
+//    /// <param name="y">The value to assign to the <see cref="System.Drawing.Rectangle.Y" /> field.</param>
+//    /// <param name="width">The value to assign to the <see cref="System.Drawing.Rectangle.Width" /> field.</param>
+//    /// <param name="height">The value to assign to the <see cref="System.Drawing.Rectangle.Height" /> field.</param>
 //    public Rectangle(int x, int y, int width, int height) {
 //        X = x;
 //        Y = y;
@@ -108,7 +108,7 @@
 //    /// <param name="left">The first rectangle to add.</param>
 //    /// <param name="right">The second rectangle to add.</param>
 //    /// <returns>The summed rectangle.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Addition" /> method defines the addition operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Addition" /> method defines the addition operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator +(Rectangle left, Rectangle right) {
 //        return new Rectangle(
@@ -123,7 +123,7 @@
 //    /// <param name="left">The first rectangle.</param>
 //    /// <param name="right">The second rectangle.</param>
 //    /// <returns>The rectangle that results from dividing <paramref name="left" /> by <paramref name="right" />.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Division" /> method defines the division operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Division" /> method defines the division operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator /(Rectangle left, Rectangle right) {
 //        return new Rectangle(
@@ -138,7 +138,7 @@
 //    /// <param name="value1">The rectangle.</param>
 //    /// <param name="value2">The scalar value.</param>
 //    /// <returns>The result of the division.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Division" /> method defines the division operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Division" /> method defines the division operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator /(Rectangle value1, int value2) {
 //        return value1 / new Rectangle(value2);
@@ -148,7 +148,7 @@
 //    /// <param name="left">The first rectangle to compare.</param>
 //    /// <param name="right">The second rectangle to compare.</param>
 //    /// <returns><see langword="true" /> if <paramref name="left" /> and <paramref name="right" /> are equal; otherwise, <see langword="false" />.</returns>
-//    /// <remarks>Two <see cref="System.Numerics.Rectangle" /> objects are equal if each element in <paramref name="left" /> is equal to the corresponding element in <paramref name="right" />.</remarks>
+//    /// <remarks>Two <see cref="System.Drawing.Rectangle" /> objects are equal if each element in <paramref name="left" /> is equal to the corresponding element in <paramref name="right" />.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static bool operator ==(Rectangle left, Rectangle right) {
 //        return (left.X.Equals(right.X))
@@ -170,7 +170,7 @@
 //    /// <param name="left">The first rectangle.</param>
 //    /// <param name="right">The second rectangle.</param>
 //    /// <returns>The element-wise product rectangle.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Multiply" /> method defines the multiplication operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Multiply" /> method defines the multiplication operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator *(Rectangle left, Rectangle right) {
 //        return new Rectangle(
@@ -185,7 +185,7 @@
 //    /// <param name="left">The rectangle.</param>
 //    /// <param name="right">The scalar value.</param>
 //    /// <returns>The scaled rectangle.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Multiply" /> method defines the multiplication operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Multiply" /> method defines the multiplication operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator *(Rectangle left, int right) {
 //        return left * new Rectangle(right);
@@ -195,7 +195,7 @@
 //    /// <param name="left">The rectangle.</param>
 //    /// <param name="right">The scalar value.</param>
 //    /// <returns>The scaled rectangle.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Multiply" /> method defines the multiplication operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Multiply" /> method defines the multiplication operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator *(int left, Rectangle right) {
 //        return right * left;
@@ -205,7 +205,7 @@
 //    /// <param name="left">The first rectangle.</param>
 //    /// <param name="right">The second rectangle.</param>
 //    /// <returns>The rectangle that results from subtracting <paramref name="right" /> from <paramref name="left" />.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_Subtraction" /> method defines the subtraction operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_Subtraction" /> method defines the subtraction operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator -(Rectangle left, Rectangle right) {
 //        return new Rectangle(
@@ -219,7 +219,7 @@
 //    /// <summary>Negates the specified rectangle.</summary>
 //    /// <param name="value">The rectangle to negate.</param>
 //    /// <returns>The negated rectangle.</returns>
-//    /// <remarks>The <see cref="System.Numerics.Rectangle.op_UnaryNegation" /> method defines the unary negation operation for <see cref="System.Numerics.Rectangle" /> objects.</remarks>
+//    /// <remarks>The <see cref="System.Drawing.Rectangle.op_UnaryNegation" /> method defines the unary negation operation for <see cref="System.Drawing.Rectangle" /> objects.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public static Rectangle operator -(Rectangle value) {
 //        return Zero - value;
@@ -403,7 +403,7 @@
 //    /// <summary>Returns a value that indicates whether this instance and another rectangle are equal.</summary>
 //    /// <param name="other">The other rectangle.</param>
 //    /// <returns><see langword="true" /> if the two vectors are equal; otherwise, <see langword="false" />.</returns>
-//    /// <remarks>Two vectors are equal if their <see cref="System.Numerics.Rectangle.X" />, <see cref="System.Numerics.Rectangle.Y" />, <see cref="System.Numerics.Rectangle.Width" />, and <see cref="System.Numerics.Rectangle.Height" /> elements are equal.</remarks>
+//    /// <remarks>Two vectors are equal if their <see cref="System.Drawing.Rectangle.X" />, <see cref="System.Drawing.Rectangle.Y" />, <see cref="System.Drawing.Rectangle.Width" />, and <see cref="System.Drawing.Rectangle.Height" /> elements are equal.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public readonly bool Equals(Rectangle other) {
 //        return X.Equals(other.X)
@@ -415,7 +415,7 @@
 //    /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
 //    /// <param name="obj">The object to compare with the current instance.</param>
 //    /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
-//    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.Rectangle" /> object and their corresponding elements are equal.</remarks>
+//    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Drawing.Rectangle" /> object and their corresponding elements are equal.</remarks>
 //    [MethodImpl(MethodImplOptions.AggressiveInlining)]
 //    public override readonly bool Equals(object obj) {
 //        return (obj is Rectangle other) && Equals(other);

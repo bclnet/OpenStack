@@ -17,3 +17,11 @@ class ExClientHost(Game, IClientHost):
         if self.scene: self.scene.dispose()
         self.scene = scene
         self.scene.load() 
+
+    def loadContent(self) -> None:
+        super().loadContent()
+        self.client.loadContent()
+
+    def unloadContent(self) -> None:
+        self.client.unloadContent()
+        super().unloadContent()

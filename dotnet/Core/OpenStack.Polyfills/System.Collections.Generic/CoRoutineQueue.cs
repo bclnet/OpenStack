@@ -8,28 +8,29 @@ namespace System.Collections.Generic;
 /// </summary>
 public class CoroutineQueue {
     List<IEnumerator> _tasks = [];
-    Stopwatch _stopwatch = new();
+    Stopwatch _watch = new();
 
     /// <summary>
     /// Adds a task coroutine and returns it.
     /// </summary>
-    public IEnumerator AddTask(IEnumerator taskCoroutine) { _tasks.Add(taskCoroutine); return taskCoroutine; }
+    public IEnumerator Add(IEnumerator task) { _tasks.Add(task); return task; }
 
-    public void CancelTask(IEnumerator taskCoroutine) => _tasks.Remove(taskCoroutine);
+    public void Cancel(IEnumerator task) => _tasks.Remove(task);
 
-    public void RunTasks(float desiredWorkTime) {
+    public void Clear() => _tasks.Clear();
+
+    public void Run(float desiredWorkTime) {
         Assert(desiredWorkTime >= 0);
         if (_tasks.Count == 0) return;
-        _stopwatch.Reset();
-        _stopwatch.Start();
-        // Run the tasks.
+        _watch.Reset(); _watch.Start();
         do {
-            if (!_tasks[0].MoveNext()) _tasks.RemoveAt(0); // Try to execute an iteration of a task. Remove the task if it's execution has completed.
-        } while (_tasks.Count > 0 && _stopwatch.Elapsed.TotalSeconds < desiredWorkTime);
-        _stopwatch.Stop();
+            // try to execute an iteration of a task. remove the task if it's execution has completed.
+            if (!_tasks[0].MoveNext()) _tasks.RemoveAt(0);
+        } while (_tasks.Count > 0 && _watch.Elapsed.TotalSeconds < desiredWorkTime);
+        _watch.Stop();
     }
 
-    public void WaitForTask(IEnumerator taskCoroutine) { Assert(_tasks.Contains(taskCoroutine)); while (taskCoroutine.MoveNext()) { } _tasks.Remove(taskCoroutine); }
+    public void WaitFor(IEnumerator task) { Assert(_tasks.Contains(task)); while (task.MoveNext()) { } _tasks.Remove(task); }
 
-    public void WaitForAllTasks() { foreach (var task in _tasks) while (task.MoveNext()) { } _tasks.Clear(); }
+    public void WaitForAll() { foreach (var task in _tasks) while (task.MoveNext()) { } _tasks.Clear(); }
 }

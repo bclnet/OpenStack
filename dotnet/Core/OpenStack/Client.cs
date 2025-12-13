@@ -69,8 +69,8 @@ public interface IClientHost : IDisposable {
 /// </summary>
 public abstract class ClientBase() : IDisposable {
     public virtual void Dispose() { }
-    protected virtual async Task LoadContent() { }
-    protected virtual async Task UnloadContent() { }
+    public virtual async Task LoadContent() { }
+    public virtual async Task UnloadContent() { }
 }
 
 /// <summary>

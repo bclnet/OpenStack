@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace System.Numerics;
+namespace System.Drawing;
 
 /// <summary>
 /// Represents a curve.
@@ -41,9 +41,9 @@ public class Curve : IEquatable<Curve>, IFormattable {
     public Key[] Keys;
 
     /// <summary>Creates a curve whose elements have the specified values.</summary>
-    /// <param name="preLoop">The value to assign to the <see cref="System.Numerics.Curve.PreLoop" /> field.</param>
-    /// <param name="postLoop">The value to assign to the <see cref="System.Numerics.Curve.PostLoop" /> field.</param>
-    /// <param name="keys">The value to assign to the <see cref="System.Numerics.Curve.Keys" /> field.</param>
+    /// <param name="preLoop">The value to assign to the <see cref="System.Drawing.Curve.PreLoop" /> field.</param>
+    /// <param name="postLoop">The value to assign to the <see cref="System.Drawing.Curve.PostLoop" /> field.</param>
+    /// <param name="keys">The value to assign to the <see cref="System.Drawing.Curve.Keys" /> field.</param>
     public Curve(int preLoop, int postLoop, Key[] keys) {
         PreLoop = (LoopType)preLoop;
         PostLoop = (LoopType)postLoop;
@@ -53,7 +53,7 @@ public class Curve : IEquatable<Curve>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
     /// <param name="obj">The object to compare with the current instance.</param>
     /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
-    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.curve2" /> object and their <see cref="System.Numerics.curve2.X" /> and <see cref="System.Numerics.curve2.Y" /> elements are equal.</remarks>
+    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Drawing.curve2" /> object and their <see cref="System.Drawing.curve2.X" /> and <see cref="System.Drawing.curve2.Y" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals([NotNullWhen(true)] object? obj)
         => (obj is Curve other) && Equals(other);
@@ -61,7 +61,7 @@ public class Curve : IEquatable<Curve>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and another curve are equal.</summary>
     /// <param name="other">The other curve.</param>
     /// <returns><see langword="true" /> if the two curves are equal; otherwise, <see langword="false" />.</returns>
-    /// <remarks>Two curves are equal if their <see cref="System.Numerics.curve2.X" /> and <see cref="System.Numerics.curve2.Y" /> elements are equal.</remarks>
+    /// <remarks>Two curves are equal if their <see cref="System.Drawing.curve2.X" /> and <see cref="System.Drawing.curve2.Y" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Curve other) {
         return PreLoop.Equals(other.PreLoop)

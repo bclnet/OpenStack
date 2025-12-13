@@ -16,6 +16,13 @@ class Point:
         self.y = y
 Point.empty = Point(0, 0)
 
+class Point3D:
+    def __init__(self, x: int, y: int, z: int):
+        self.x = x
+        self.y = y
+        self.z = z
+Point3D.empty = Point3D(0, 0)
+
 class Rectangle:
     def __init__(self, x: int, y: int, width: int, height: int):
         self.x = x

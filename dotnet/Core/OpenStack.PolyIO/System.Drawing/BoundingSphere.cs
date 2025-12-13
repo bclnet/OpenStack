@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace System.Numerics;
+namespace System.Drawing;
 
 /// <summary>
 /// Represents a BoundingSphere.
@@ -17,8 +17,8 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable {
     public float Radius;
 
     /// <summary>Creates a bounding sphere whose elements have the specified values.</summary>
-    /// <param name="center">The value to assign to the <see cref="System.Numerics.BoundingSphere.Center" /> field.</param>
-    /// <param name="radius">The value to assign to the <see cref="System.Numerics.BoundingSphere.Radius" /> field.</param>
+    /// <param name="center">The value to assign to the <see cref="System.Drawing.BoundingSphere.Center" /> field.</param>
+    /// <param name="radius">The value to assign to the <see cref="System.Drawing.BoundingSphere.Radius" /> field.</param>
     public BoundingSphere(Vector3 center, float radius) {
         Center = center;
         Radius = radius;
@@ -27,7 +27,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
     /// <param name="obj">The object to compare with the current instance.</param>
     /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
-    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.BoundingSphere" /> object and their <see cref="System.Numerics.BoundingSphere.Center" /> and <see cref="System.Numerics.BoundingSphere.Radius" /> elements are equal.</remarks>
+    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Drawing.BoundingSphere" /> object and their <see cref="System.Drawing.BoundingSphere.Center" /> and <see cref="System.Drawing.BoundingSphere.Radius" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
         => (obj is BoundingSphere other) && Equals(other);
@@ -35,7 +35,7 @@ public struct BoundingSphere : IEquatable<BoundingSphere>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and another ray are equal.</summary>
     /// <param name="other">The other ray.</param>
     /// <returns><see langword="true" /> if the two rays are equal; otherwise, <see langword="false" />.</returns>
-    /// <remarks>Two spheres are equal if their <see cref="System.Numerics.BoundingSphere.Center" /> and <see cref="System.Numerics.BoundingSphere.Radius" /> elements are equal.</remarks>
+    /// <remarks>Two spheres are equal if their <see cref="System.Drawing.BoundingSphere.Center" /> and <see cref="System.Drawing.BoundingSphere.Radius" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(BoundingSphere other) {
         return Center.Equals(other.Center)

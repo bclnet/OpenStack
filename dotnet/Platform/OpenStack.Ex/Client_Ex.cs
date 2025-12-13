@@ -2,11 +2,12 @@
 using OpenStack.Client;
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
 namespace OpenStack;
 
-public unsafe class ExClientHost : Game, IClientHost {
+public class ExClientHost : Game, IClientHost {
     public ClientBase Client;
     public SceneBase Scene;
     public IPluginHost PluginHost;
@@ -21,4 +22,14 @@ public unsafe class ExClientHost : Game, IClientHost {
     public T GetScene<T>() where T : SceneBase => Scene as T;
 
     public void SetScene(SceneBase scene) { Scene?.Dispose(); Scene = scene; Scene?.Load(); }
+
+    protected override async Task LoadContent() {
+        await base.LoadContent();
+        await Client.LoadContent();
+    }
+
+    protected override async Task UnloadContent() {
+        await Client.UnloadContent();
+        await base.UnloadContent();
+    }
 }

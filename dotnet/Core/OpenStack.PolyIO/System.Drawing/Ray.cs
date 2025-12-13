@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace System.Numerics;
+namespace System.Drawing;
 
 /// <summary>
 /// Represents a ray.
@@ -17,8 +17,8 @@ public struct Ray : IEquatable<Ray>, IFormattable {
     public Vector3 Direction;
 
     /// <summary>Creates a ray whose elements have the specified values.</summary>
-    /// <param name="position">The value to assign to the <see cref="System.Numerics.Ray.Position" /> field.</param>
-    /// <param name="direction">The value to assign to the <see cref="System.Numerics.Ray.Direction" /> field.</param>
+    /// <param name="position">The value to assign to the <see cref="System.Drawing.Ray.Position" /> field.</param>
+    /// <param name="direction">The value to assign to the <see cref="System.Drawing.Ray.Direction" /> field.</param>
     public Ray(Vector3 position, Vector3 direction) {
         Position = position;
         Direction = direction;
@@ -27,7 +27,7 @@ public struct Ray : IEquatable<Ray>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
     /// <param name="obj">The object to compare with the current instance.</param>
     /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
-    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.Ray" /> object and their <see cref="System.Numerics.Ray.Position" /> and <see cref="System.Numerics.Ray.Direction" /> elements are equal.</remarks>
+    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Drawing.Ray" /> object and their <see cref="System.Drawing.Ray.Position" /> and <see cref="System.Drawing.Ray.Direction" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
         => (obj is Ray other) && Equals(other);
@@ -35,7 +35,7 @@ public struct Ray : IEquatable<Ray>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and another ray are equal.</summary>
     /// <param name="other">The other ray.</param>
     /// <returns><see langword="true" /> if the two rays are equal; otherwise, <see langword="false" />.</returns>
-    /// <remarks>Two rays are equal if their <see cref="System.Numerics.Ray.Position" /> and <see cref="System.Numerics.Ray.Direction" /> elements are equal.</remarks>
+    /// <remarks>Two rays are equal if their <see cref="System.Drawing.Ray.Position" /> and <see cref="System.Drawing.Ray.Direction" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(Ray other) {
         return Position.Equals(other.Position)

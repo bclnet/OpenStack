@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace System.Numerics;
+namespace System.Drawing;
 
 /// <summary>
 /// Represents a BoundingFrustum.
@@ -14,7 +14,7 @@ public struct BoundingFrustum : IEquatable<BoundingFrustum>, IFormattable {
     public Matrix4x4 Frustum;
 
     /// <summary>Creates a bounding sphere whose elements have the specified values.</summary>
-    /// <param name="frustum">The value to assign to the <see cref="System.Numerics.BoundingFrustum.Frustum" /> field.</param>
+    /// <param name="frustum">The value to assign to the <see cref="System.Drawing.BoundingFrustum.Frustum" /> field.</param>
     public BoundingFrustum(Matrix4x4 frustum) {
         Frustum = frustum;
     }
@@ -22,7 +22,7 @@ public struct BoundingFrustum : IEquatable<BoundingFrustum>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and a specified object are equal.</summary>
     /// <param name="obj">The object to compare with the current instance.</param>
     /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
-    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.BoundingFrustum" /> object and their <see cref="System.Numerics.BoundingFrustum.Center" /> and <see cref="System.Numerics.BoundingFrustum.Radius" /> elements are equal.</remarks>
+    /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Drawing.BoundingFrustum" /> object and their <see cref="System.Drawing.BoundingFrustum.Center" /> and <see cref="System.Drawing.BoundingFrustum.Radius" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override readonly bool Equals([NotNullWhen(true)] object? obj)
         => (obj is BoundingFrustum other) && Equals(other);
@@ -30,7 +30,7 @@ public struct BoundingFrustum : IEquatable<BoundingFrustum>, IFormattable {
     /// <summary>Returns a value that indicates whether this instance and another ray are equal.</summary>
     /// <param name="other">The other ray.</param>
     /// <returns><see langword="true" /> if the two rays are equal; otherwise, <see langword="false" />.</returns>
-    /// <remarks>Two frustums are equal if their <see cref="System.Numerics.BoundingFrustum.Frustum" /> elements are equal.</remarks>
+    /// <remarks>Two frustums are equal if their <see cref="System.Drawing.BoundingFrustum.Frustum" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(BoundingFrustum other) {
         return Frustum.Equals(other.Frustum);
