@@ -25,7 +25,7 @@ public class TestBone : Bone {
         var parent = new Bone(0, "Parent", Vector3.One, Quaternion.Zero);
         // test
         SetParent(parent);
-        Assert.AreEqual(1, parent.Children.Count);
+        Assert.HasCount(1, parent.Children);
     }
 }
 
@@ -47,7 +47,7 @@ public class TestFrame : Frame {
 
     [TestMethod]
     public void Test_Init() {
-        Assert.AreEqual(1, Bones.Length);
+        Assert.HasCount(1, Bones);
         Assert.AreEqual(1f, Bones[0].Position.X);
         Assert.AreEqual(0f, Bones[0].Angle.X);
         Assert.AreEqual(1f, Bones[0].Scale);
@@ -93,7 +93,7 @@ public class TestFrameCache : FrameCache {
     public void Test_Init() {
         Assert.AreEqual((-1, 1), (PreviousFrame.frameIndex, PreviousFrame.frame.Bones.Length));
         Assert.AreEqual((-1, 1), (NextFrame.frameIndex, NextFrame.frame.Bones.Length));
-        Assert.AreEqual(1, InterpolatedFrame.Bones.Length);
+        Assert.HasCount(1, InterpolatedFrame.Bones);
         Assert.AreEqual(TestSkeleton.Skeleton, Skeleton);
     }
     [TestMethod]
@@ -106,8 +106,8 @@ public class TestFrameCache : FrameCache {
     public void Test_GetFrame() {
         var actual1 = GetFrame(TestAnimation.Animation, 1f);
         var actual2 = GetFrame(TestAnimation.Animation, 1);
-        Assert.IsTrue(actual1 != null);
-        Assert.IsTrue(actual2 != null);
+        Assert.IsNotNull(actual1);
+        Assert.IsNotNull(actual2 != null);
     }
 }
 
@@ -120,7 +120,7 @@ public class TestAnimationController : AnimationController {
 
     [TestMethod]
     public void Test_Init() {
-        Assert.IsTrue(FrameCache != null);
+        Assert.IsNotNull(FrameCache);
     }
     [TestMethod]
     public void Test_Frame() {
