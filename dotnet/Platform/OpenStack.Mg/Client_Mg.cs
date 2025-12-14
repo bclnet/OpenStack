@@ -83,6 +83,7 @@ public unsafe class MgClientHost : Game, IClientHost {
 
     protected override void LoadContent() {
         base.LoadContent();
+        Client.LoadContent().Wait();
         using var ms = typeof(MgClientHost).Assembly.GetManifestResourceStream("OpenStack.Mg.Client_Mg.png");
         _background = Texture2D.FromStream(GraphicsDevice, ms);
         Log.Trace("Loading plugins...");
@@ -94,6 +95,7 @@ public unsafe class MgClientHost : Game, IClientHost {
     }
 
     protected override void UnloadContent() {
+        Client.UnloadContent().Wait();
         int top, left;
         SDL_GetWindowBordersSize((SDL_Window*)Window.Handle, &top, &left, null, null);
         Settings_WindowPosition = new Point(Math.Max(0, Window.ClientBounds.X - left), Math.Max(0, Window.ClientBounds.Y - top));
