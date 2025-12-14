@@ -1878,7 +1878,7 @@ class CcdFormat {
                 disc.Sessions.Add(new() { Number = curSession });
             }
             var tno = BCD2.FromDecimal(entry.TrackNo); // this should actually be zero. im not sure if this is stored as BCD2 or not
-            // special values taken from this: http://www.staff.uni-mainz.de/tacke/scsi/SCSI2-14.html
+            // special values taken from this: https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-14.html
             var ino = BCD2.FromDecimal(entry.Point);
             ino.BCDValue = entry.Point switch {
                 0xA0 or 0xA1 or 0xA2 => (byte)entry.Point,

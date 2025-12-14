@@ -85,7 +85,7 @@ static inline bool HasSSE3() {
 #define MXCSR_DAZ (1 << 6)
 #define MXCSR_FTZ (1 << 15)
 
-//:ref http://www.info.univ-angers.fr/~richer/ens/l3info/ao/intel_intrinsics.pdf
+//:ref https://www.info.univ-angers.fr/~richer/ens/l3info/ao/intel_intrinsics.pdf
 static void EnableMXCSRFlag(int flag, bool enable, const char* name) {
 	int sse_mode = _mm_getcsr();
 	if (enable && (sse_mode & flag) == flag) { Printf("%s mode is already enabled\n", name); return; }

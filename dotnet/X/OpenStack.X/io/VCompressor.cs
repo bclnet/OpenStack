@@ -1563,11 +1563,11 @@ namespace System.NumericsX.OpenStack
     /// 
     /// Dictionary entries 0-255 are always going to have the values 0-255
     /// 
-    /// http://www.unisys.com/about__unisys/lzw
-    /// http://www.dogma.net/markn/articles/lzw/lzw.htm
-    /// http://www.cs.cf.ac.uk/Dave/Multimedia/node214.html
-    /// http://www.cs.duke.edu/csed/curious/compression/lzw.html
-    /// http://oldwww.rasip.fer.hr/research/compress/algorithms/fund/lz/lzw.html
+    /// https://www.unisys.com/about__unisys/lzw
+    /// https://www.dogma.net/markn/articles/lzw/lzw.htm
+    /// https://www.cs.cf.ac.uk/Dave/Multimedia/node214.html
+    /// https://www.cs.duke.edu/csed/curious/compression/lzw.html
+    /// https://oldwww.rasip.fer.hr/research/compress/algorithms/fund/lz/lzw.html
     /// </summary>
     /// <seealso cref="Gengine.Library.Core.VCompressor_BitStream" />
     public class VCompressor_LZW : VCompressor_BitStream

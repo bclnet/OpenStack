@@ -4,7 +4,7 @@ using System.Text;
 
 namespace System.NumericsX.OpenStack.System
 {
-    // http://pinvoke.net/default.aspx/user32/OpenClipboard.html
+    // https://pinvoke.net/default.aspx/user32/OpenClipboard.html
     public static class NativeW
     {
         public static ushort LOWORD(uint l) => (ushort)(l & 0xffff);
