@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using static System.Diagnostics.Debug;
 
-namespace System.Collections.Generic;
+namespace System.Collections;
 
 /// <summary>
 /// Distributes work (the execution of coroutines) over several frames to avoid freezes by soft-limiting execution time.
