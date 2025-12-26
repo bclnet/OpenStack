@@ -112,14 +112,14 @@ class Reader:
     def readGuid(self) -> bytes: return self.f.read(16)
 
     # position
-    def align(self, align: int = 4): align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
-    def tell(self): return self.f.tell()
-    def seek(self, offset: int): self.f.seek(offset, os.SEEK_SET); return self
-    def seekAndAlign(self, offset: int, align: int = 4): self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_SET); return self
-    def skip(self, count: int): self.f.seek(count, os.SEEK_CUR); return self
-    def skipAndAlign(self, count: int, align: int = 4): offset = self.f.tell() + count; self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_CUR); return self
-    def end(self, offset: int): self.f.seek(offset, os.SEEK_END); return self
-    def peek(self, action, offset: int = 0, origin: int = os.SEEK_CUR):
+    def align(self, align: int = 4) -> 'Reader': align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
+    def tell(self) -> int: return self.f.tell()
+    def seek(self, offset: int) -> 'Reader': self.f.seek(offset, os.SEEK_SET); return self
+    def seekAndAlign(self, offset: int, align: int = 4) -> 'Reader': self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_SET); return self
+    def skip(self, count: int) -> 'Reader': self.f.seek(count, os.SEEK_CUR); return self
+    def skipAndAlign(self, count: int, align: int = 4) -> int: offset = self.f.tell() + count; self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_CUR); return self
+    def end(self, offset: int) -> 'Reader': self.f.seek(offset, os.SEEK_END); return self
+    def peek(self, action, offset: int = 0, origin: int = os.SEEK_CUR) -> object:
         f = self.f
         pos = f.tell()
         f.seek(offset, origin)
@@ -127,7 +127,7 @@ class Reader:
         f.seek(pos)
         return value
     def atEnd(self) -> bool: return self.f.tell() == self.length
-    def ensureAtEnd(self, end: int = -1):
+    def ensureAtEnd(self, end: int = -1) -> None:
         if (self.f.tell() if end == -1 else end) != self.length: raise Exception('Not at end')
 
 
