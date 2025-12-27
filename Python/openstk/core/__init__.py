@@ -2,7 +2,7 @@ from openstk.core.core import ISource, IStream, IWriteToStream, X_LumpON, X_Lump
 from openstk.core.find import findType
 import openstk.core.log as log
 from openstk.core.pool import CoroutineQueue, IGenericPool, GenericPool, SinglePool, StaticPool
-from openstk.core.reader import Reader
+from openstk.core.reader import BinaryReader
 from openstk.core.typex import TypeX
 import openstk.core.unsafe as unsafe
 from openstk.core.util import _throw, parallelFor, _pathExtension, _pathTempFile, decodePath, _int_tryParse, YamlDict
@@ -12,7 +12,7 @@ __all__ = [
     'findType',
     'log',
     'CoroutineQueue', 'IGenericPool', 'GenericPool', 'SinglePool', 'StaticPool',
-    'Reader',
+    'BinaryReader',
     'TypeX',
     'unsafe',
     '_throw', 'parallelFor', '_pathExtension', '_pathTempFile', 'decodePath', '_int_tryParse', 'YamlDict',

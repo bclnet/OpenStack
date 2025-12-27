@@ -1,9 +1,9 @@
 import io
 from unittest import TestCase, main
-from poly import Reader
+from poly import BinaryReader
 
 # TestReader
-class TestReader(Reader, TestCase):
+class TestReader(BinaryReader, TestCase):
     test = io.BytesIO(b'some initial binary data: \x00\x01')
     def __init__(self, method: str):
         TestCase.__init__(self, method)

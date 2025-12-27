@@ -10,7 +10,7 @@ class IFileSystem:
     def glob(self, path: str, searchPattern: str) -> list[str]: pass
     def fileExists(self, path: str) -> bool: pass
     def fileInfo(self, path: str) -> (str, int): pass
-    def openReader(self, path: str, mode: str = 'rb') -> Reader: pass
+    def openReader(self, path: str, mode: str = 'rb') -> BinaryReader: pass
     # def openWriter(self, path: str, mode: str = 'rb') -> Writer: pass
     def findPaths(self, path: str, searchPattern: str) -> str:
         if (expandStartIdx := searchPattern.find('(')) != -1 and \

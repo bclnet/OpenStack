@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 from enum import IntEnum, Enum, Flag
-from openstk import Reader, Writer
+from openstk import BinaryReader, Writer
 
 #region Texture Enums
 
@@ -218,7 +218,7 @@ class DDS_HEADER:
         elif self.ddspf.dwSize != 32: raise Exception(f'Invalid DDS file pixel format size: {self.ddspf.dwSize}.')
 
     @staticmethod
-    def read(r: Reader, readMagic: bool = True) -> (DDS_HEADER, DDS_HEADER_DXT10, object, bytes):
+    def read(r: BinaryReader, readMagic: bool = True) -> (DDS_HEADER, DDS_HEADER_DXT10, object, bytes):
         if readMagic:
             magic = r.readUInt32()
             if magic != DDS_HEADER.MAGIC: raise Exception(f'Invalid DDS file magic: "{magic}".')

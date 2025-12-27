@@ -6,8 +6,8 @@ from io import BytesIO
 from openstk.core.util import _throw
 from decimal import Decimal
 
-# Reader
-class Reader:
+# BinaryReader
+class BinaryReader:
     def __init__(self, f): self.f = f; self.__update()
     def __enter__(self): return self
     def __exit__(self, type, value, traceback): self.f.close()
@@ -18,8 +18,9 @@ class Reader:
         f.seek(pos, os.SEEK_SET)
 
     # base
-    def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
-    def readBytes(self, size: int) -> bytearray: return self.f.read(size)
+    def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
+    
+    # string
     def readChar(self) -> chr:
         result = self.f.read(1)[0]
         if (result & 0x80):
@@ -29,22 +30,32 @@ class Reader:
             while byteCount > 0: byteCount -= 1; result <<= 6; result |= self.f.read(1)[0] & 0x3F
         return chr(result)
     def readChars(self, count: int) -> list[chr]: return [self.readChar() for x in range(count)]
-    def length(self) -> int: return self.length
-    def readBoolean(self) -> bool: return self.readByte() != 0
     def readString(self) -> str: length = self.readIntV7(); return self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
-
-    def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
-    def readToEnd(self) -> bytearray: length = self.length - self.f.tell(); return self.f.read(length)
     def readLine(self) -> str: return self.f.readline().decode('utf-8')
-    def readToValue(self, value: int = b'\x00', length: int = 65535, ms: BytesIO = None) -> bytearray:
-        if not ms: ms = BytesIO()
-        else: ms.seek(0); ms.truncate(0)
-        f = self.f; length = min(length, self.length - self.f.tell())
-        while length > 0 and (c := f.read(1)) != value: length -= 1; ms.write(c)
-        ms.seek(0)
-        return ms.read()
-    
-    # primatives : bytes
+
+    # position
+    def length(self) -> int: return self.length
+    def align(self, align: int = 4) -> 'BinaryReader': align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
+    def tell(self) -> int: return self.f.tell()
+    def seek(self, offset: int) -> 'BinaryReader': self.f.seek(offset, os.SEEK_SET); return self
+    def seekAndAlign(self, offset: int, align: int = 4) -> 'BinaryReader': self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_SET); return self
+    def skip(self, count: int) -> 'BinaryReader': self.f.seek(count, os.SEEK_CUR); return self
+    def skipAndAlign(self, count: int, align: int = 4) -> int: offset = self.f.tell() + count; self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_CUR); return self
+    def end(self, offset: int) -> 'BinaryReader': self.f.seek(offset, os.SEEK_END); return self
+    def peek(self, action, offset: int = 0, origin: int = os.SEEK_CUR) -> object:
+        f = self.f
+        pos = f.tell()
+        f.seek(offset, origin)
+        value = action(self)
+        f.seek(pos)
+        return value
+    def atEnd(self, end: int = None) -> bool: return self.f.tell() >= (end or self.length)
+    def ensureAtEnd(self, end: int = -1) -> None:
+        if (self.f.tell() if end == -1 else end) != self.length: raise Exception('Not at end')
+
+    # bytes
+    def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
+    def readBytes(self, size: int) -> bytearray: return self.f.read(size)
     def readL8Bytes(self, maxLength: int = 0, endian: bool = False) -> bytearray:
         length = self.readByte()
         if maxLength > 0 and length > maxLength: raise Exception('byte length exceeds maximum length')
@@ -57,8 +68,17 @@ class Reader:
         length = self.readUInt32X(endian)
         if maxLength > 0 and length > maxLength: raise Exception('byte length exceeds maximum length')
         return self.f.read(length) if length > 0 else None
+    def readToEnd(self) -> bytearray: length = self.length - self.f.tell(); return self.f.read(length)
+    def readToValue(self, value: int = b'\x00', length: int = 65535, ms: BytesIO = None) -> bytearray:
+        if not ms: ms = BytesIO()
+        else: ms.seek(0); ms.truncate(0)
+        f = self.f; length = min(length, self.length - self.f.tell())
+        while length > 0 and (c := f.read(1)) != value: length -= 1; ms.write(c)
+        ms.seek(0)
+        return ms.read()
 
     # primatives : normal
+    def readBoolean(self) -> bool: return self.readByte() != 0
     def readDouble(self) -> float: return unpack('<d', self.f.read(8))[0]
     def readSByte(self) -> int: return int.from_bytes(self.f.read(1), 'little', signed=True)
     def readInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=True)
@@ -111,24 +131,7 @@ class Reader:
     def readBool32(self) -> bool: return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
     def readGuid(self) -> bytes: return self.f.read(16)
 
-    # position
-    def align(self, align: int = 4) -> 'Reader': align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
-    def tell(self) -> int: return self.f.tell()
-    def seek(self, offset: int) -> 'Reader': self.f.seek(offset, os.SEEK_SET); return self
-    def seekAndAlign(self, offset: int, align: int = 4) -> 'Reader': self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_SET); return self
-    def skip(self, count: int) -> 'Reader': self.f.seek(count, os.SEEK_CUR); return self
-    def skipAndAlign(self, count: int, align: int = 4) -> int: offset = self.f.tell() + count; self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_CUR); return self
-    def end(self, offset: int) -> 'Reader': self.f.seek(offset, os.SEEK_END); return self
-    def peek(self, action, offset: int = 0, origin: int = os.SEEK_CUR) -> object:
-        f = self.f
-        pos = f.tell()
-        f.seek(offset, origin)
-        value = action(self)
-        f.seek(pos)
-        return value
-    def atEnd(self) -> bool: return self.f.tell() == self.length
-    def ensureAtEnd(self, end: int = -1) -> None:
-        if (self.f.tell() if end == -1 else end) != self.length: raise Exception('Not at end')
+
 
 
     # string : special
