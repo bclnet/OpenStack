@@ -648,28 +648,28 @@ public static partial class Polyfill {
             M33 = r.ReadSingle(),
             M34 = r.ReadSingle()
         };
-    /// <summary>
-    /// Reads a column-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
-    /// </summary>
-    public static Matrix4x4 ReadMatrixColumn3x3As4x4(this BinaryReader r)
-        => new() {
-            M11 = r.ReadSingle(),
-            M21 = r.ReadSingle(),
-            M31 = r.ReadSingle(),
-            M41 = 1f,
-            M12 = r.ReadSingle(),
-            M22 = r.ReadSingle(),
-            M32 = r.ReadSingle(),
-            M42 = 1f,
-            M13 = r.ReadSingle(),
-            M23 = r.ReadSingle(),
-            M33 = r.ReadSingle(),
-            M43 = 1f,
-            M14 = 0f,
-            M24 = 0f,
-            M34 = 0f,
-            M44 = 1f
-        };
+    // /// <summary>
+    // /// Reads a column-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
+    // /// </summary>
+    // public static Matrix4x4 ReadMatrixColumn3x3As4x4(this BinaryReader r)
+    //     => new() {
+    //         M11 = r.ReadSingle(),
+    //         M21 = r.ReadSingle(),
+    //         M31 = r.ReadSingle(),
+    //         M41 = 1f,
+    //         M12 = r.ReadSingle(),
+    //         M22 = r.ReadSingle(),
+    //         M32 = r.ReadSingle(),
+    //         M42 = 1f,
+    //         M13 = r.ReadSingle(),
+    //         M23 = r.ReadSingle(),
+    //         M33 = r.ReadSingle(),
+    //         M43 = 1f,
+    //         M14 = 0f,
+    //         M24 = 0f,
+    //         M34 = 0f,
+    //         M44 = 1f
+    //     };
     /// <summary>
     /// Reads a row-major 3x3 matrix but returns a functionally equivalent 4x4 matrix.
     /// </summary>
@@ -692,25 +692,25 @@ public static partial class Polyfill {
             M43 = 0f,
             M44 = 1f
         };
-    public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader r)
-        => new() {
-            M11 = r.ReadSingle(),
-            M21 = r.ReadSingle(),
-            M31 = r.ReadSingle(),
-            M41 = r.ReadSingle(),
-            M12 = r.ReadSingle(),
-            M22 = r.ReadSingle(),
-            M32 = r.ReadSingle(),
-            M42 = r.ReadSingle(),
-            M13 = r.ReadSingle(),
-            M23 = r.ReadSingle(),
-            M33 = r.ReadSingle(),
-            M43 = r.ReadSingle(),
-            M14 = r.ReadSingle(),
-            M24 = r.ReadSingle(),
-            M34 = r.ReadSingle(),
-            M44 = r.ReadSingle()
-        };
+    // public static Matrix4x4 ReadMatrixColumn4x4(this BinaryReader r)
+    //     => new() {
+    //         M11 = r.ReadSingle(),
+    //         M21 = r.ReadSingle(),
+    //         M31 = r.ReadSingle(),
+    //         M41 = r.ReadSingle(),
+    //         M12 = r.ReadSingle(),
+    //         M22 = r.ReadSingle(),
+    //         M32 = r.ReadSingle(),
+    //         M42 = r.ReadSingle(),
+    //         M13 = r.ReadSingle(),
+    //         M23 = r.ReadSingle(),
+    //         M33 = r.ReadSingle(),
+    //         M43 = r.ReadSingle(),
+    //         M14 = r.ReadSingle(),
+    //         M24 = r.ReadSingle(),
+    //         M34 = r.ReadSingle(),
+    //         M44 = r.ReadSingle()
+    //     };
     public static Matrix4x4 ReadMatrix4x4(this BinaryReader r)
         => new() {
             M11 = r.ReadSingle(),

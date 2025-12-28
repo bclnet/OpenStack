@@ -79,13 +79,13 @@ class BinaryReader:
 
     # primatives : normal
     def readBoolean(self) -> bool: return self.readByte() != 0
+    def readByte(self) -> int: return int.from_bytes(self.f.read(1), 'little', signed=False)
     def readDouble(self) -> float: return unpack('<d', self.f.read(8))[0]
     def readSByte(self) -> int: return int.from_bytes(self.f.read(1), 'little', signed=True)
     def readInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=True)
     def readInt32(self) -> int: return int.from_bytes(self.f.read(4), 'little', signed=True)
     def readInt64(self) -> int: return int.from_bytes(self.f.read(8), 'little', signed=True)
     def readSingle(self) -> float: return unpack('<f', self.f.read(4))[0]
-    def readByte(self) -> int: return int.from_bytes(self.f.read(1), 'little', signed=False)
     def readUInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=False)
     def readUInt32(self) -> int: return int.from_bytes(self.f.read(4), 'little', signed=False)
     def readUInt64(self) -> int: return int.from_bytes(self.f.read(8), 'little', signed=False)
@@ -130,9 +130,6 @@ class BinaryReader:
     def readIntV8X(self, endian: bool) -> int: return self.readIntV8() if not endian else _throw('NotImplementedError')
     def readBool32(self) -> bool: return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
     def readGuid(self) -> bytes: return self.f.read(16)
-
-
-
 
     # string : special
     def readL16OString(self, codepage: int = 1252) -> str: raise Exception('not implemented')
@@ -280,7 +277,7 @@ class BinaryReader:
     def readL8FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readByte(), obj)
     def readL16FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUInt16X(endian), obj)
     def readL32FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUInt32X(endian), obj)
-    def readC32FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readCInt32X(endian), obj)
+    def readV8FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readIntV8X(endian), obj)
     def readFMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, count: int, obj: object = None) -> dict[object, object]:
         if not obj: return {keyFactory(self):valueFactory(self) for i in range(count)} if count else {}
         if count > 0:
@@ -291,7 +288,7 @@ class BinaryReader:
     def readL8PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readByte(), obj)
     def readL16PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readUInt16X(endian), obj)
     def readL32PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readUInt32X(endian), obj)
-    def readC32PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readCInt32X(endian), obj)
+    def readV8PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readIntV8X(endian), obj)
     def readPMany(self, clsKey: object, pat: str, valueFactory: callable, count: int, obj: dict[object, object] = None) -> dict[object, object]:
         if not obj: return {self.readP(clsKey, pat):valueFactory(self) for i in range(count)} if count else {}
         if count > 0:
@@ -302,7 +299,7 @@ class BinaryReader:
     def readL8SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readByte(), obj)
     def readL16SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readUInt16X(endian), obj)
     def readL32SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readUInt32X(endian), obj)
-    def readC32SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readCInt32X(endian), obj)
+    def readV8SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readIntV8X(endian), obj)
     def readSMany(self, clsKey: object, valueFactory: callable, count: int, obj: dict[object, object] = None) -> dict[object, object]:
         if not obj: return {self.readS(clsKey):valueFactory(self) for i in range(count)} if count else {}
         if count > 0:
@@ -313,7 +310,7 @@ class BinaryReader:
     # def readL8TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readByte())
     # def readL16TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt16X(endian))
     # def readL32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt32X(endian))
-    # def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readCInt32X(endian))
+    # def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readIntV8X(endian))
     # def readTMany(self, clsKey: object, sizeOf: int, valueFactory: callable, count: int) -> dict[object, object]:
     #     if not obj: return {self.readT(clsKey, sizeOf):valueFactory(self) for i in range(count)} if count else {}
     #     if count > 0:
