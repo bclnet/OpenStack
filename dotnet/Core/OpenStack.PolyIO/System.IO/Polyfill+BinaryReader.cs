@@ -159,7 +159,7 @@ public static partial class Polyfill {
         return value;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool AtEnd(this BinaryReader source, long? end = null) => source.BaseStream.Position >= (end ?? source.BaseStream.Length);
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void EnsureAtEnd(this BinaryReader source, long? end = -1) { if ((end == -1 ? source.BaseStream.Position : end) != source.BaseStream.Length) throw new Exception("Not at end"); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static void EnsureAtEnd(this BinaryReader source, long? end = -1, string message = "Not at end") { if (source.BaseStream.Position != (end ?? source.BaseStream.Length)) throw new Exception(message); }
 
     #endregion
 

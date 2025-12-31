@@ -50,8 +50,8 @@ class BinaryReader:
         f.seek(pos)
         return value
     def atEnd(self, end: int = None) -> bool: return self.f.tell() >= (end or self.length)
-    def ensureAtEnd(self, end: int = -1) -> None:
-        if (self.f.tell() if end == -1 else end) != self.length: raise Exception('Not at end')
+    def ensureAtEnd(self, end: int = -1, message: str = 'Not at end') -> None:
+        if self.f.tell() != (end or self.length): raise Exception(message)
 
     # bytes
     def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)

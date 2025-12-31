@@ -250,9 +250,9 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         // apply materialProperty
         if (mat != null) {
             mp.Alpha = mat.Alpha;
-            mp.DiffuseColor = mat.DiffuseColor.ToColor();
-            mp.EmissiveColor = mat.EmissiveColor.ToColor();
-            mp.SpecularColor = mat.SpecularColor.ToColor();
+            mp.DiffuseColor = mat.DiffuseColor.AsColor;
+            mp.EmissiveColor = mat.EmissiveColor.AsColor;
+            mp.SpecularColor = mat.SpecularColor.AsColor;
             mp.Glossiness = mat.Glossiness;
         }
 
