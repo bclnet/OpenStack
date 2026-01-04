@@ -65,6 +65,7 @@ public unsafe static class UnsafeX {
             => (typeof(T).GetField("Struct", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             ?? throw new Exception($"{typeof(T).Name} needs a Struct field"))
             .GetValue(null);
+        public static (string p, int s) Get(int sizeOf) => StructM != null ? (StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : StructT;
     }
 
     #region MarshalP
@@ -125,7 +126,7 @@ public unsafe static class UnsafeX {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // READ
     public static T MarshalS<T>(Func<int, byte[]> bytesFunc, int sizeOf) where T : struct {
-        var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
+        var (p, s) = Shape<T>.Get(sizeOf);
         if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
         var bytes = bytesFunc(s);
         if (p[0] == '>') bytes = MarshalSApply(bytes, p);
@@ -135,7 +136,7 @@ public unsafe static class UnsafeX {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // WRITE
     public static byte[] MarshalS<T>(T value, int sizeOf) where T : struct {
-        var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
+        var (p, s) = Shape<T>.Get(sizeOf);
         if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
         var bytes = new byte[s];
         fixed (byte* _ = bytes) Marshal.StructureToPtr(value, (IntPtr)_, false);
@@ -145,7 +146,7 @@ public unsafe static class UnsafeX {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // READ
     public static T[] MarshalSArray<T>(Func<int, byte[]> bytesFunc, int count, int sizeOf, T[] obj = null) where T : struct {
-        var (p, s) = Shape<T>.StructM != null ? (Shape<T>.StructM.TryGetValue(sizeOf, out var pat) ? pat : throw new ArgumentOutOfRangeException(nameof(sizeOf), $"{sizeOf}"), sizeOf) : Shape<T>.StructT;
+        var (p, s) = Shape<T>.Get(sizeOf);
         if (sizeOf > 0 && sizeOf != s) throw new Exception($"Sizes are different: {sizeOf}|{s}");
         var bytes = bytesFunc(s * count);
         if (p[0] == '>') bytes = MarshalSApply(bytes, p);

@@ -6,6 +6,10 @@ from io import BytesIO
 from openstk.core.util import _throw
 from decimal import Decimal
 
+def _structGet(cls, sizeOf: int) -> tuple:
+    if isinstance(cls._struct, tuple): return cls._struct
+    elif isinstance(cls._struct, dict): return (cls._struct[sizeOf], sizeOf)
+
 # BinaryReader
 class BinaryReader:
     def __init__(self, f): self.f = f; self.__update()
@@ -170,7 +174,7 @@ class BinaryReader:
     # struct : single  - https://docs.python.org/3/library/struct.html 
     def readF(self, factory: callable) -> object: return factory(self)
     def readP(self, cls: callable, pat: str) -> object: cls = cls or (lambda s: s[0]); return cls(unpack(pat, self.f.read(calcsize(pat))))
-    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = cls._struct; return cls(unpack(pat, self.f.read(size)))
+    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = _structGet(cls, sizeOf); return cls(unpack(pat, self.f.read(size)))
 
     # struct : array - factory
     def readL8FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readByte(), obj)
