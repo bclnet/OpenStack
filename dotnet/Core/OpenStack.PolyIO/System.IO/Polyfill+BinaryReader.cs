@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -277,6 +278,18 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadL32XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = (int)source.ReadUInt32X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadLV8XString(this BinaryReader source, Encoding encoding, int maxLength = 0, bool endian = false) { var length = (int)source.ReadVInt8X(endian); if (maxLength > 0 && length > maxLength) throw new FormatException("string length exceeds maximum length"); return length > 0 ? encoding.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null; }
 
+    public static List<string> ReadVAStringList(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) {
+        ms ??= new MemoryStream();
+        var r = new List<string>();
+        byte c;
+        while (length > 0) {
+            ms.SetLength(0);
+            while (length-- > 0 && (c = source.ReadByte()) != stopValue) ms.WriteByte(c);
+            r.Add(Encoding.ASCII.GetString(ms.ToArray()));
+        }
+        return r;
+    }
+
     #region not used
 
     //public static string ReadLString(this BinaryReader source, int byteLength = 4, bool zstring = false) //:was ReadPString
@@ -361,17 +374,6 @@ public static partial class Polyfill {
     }
 
 
-    public static List<string> ReadZAStringList(this BinaryReader source, int length = int.MaxValue) {
-        var buf = new MemoryStream();
-        var list = new List<string>();
-        byte c;
-        while (length > 0) {
-            buf.SetLength(0);
-            while (length-- > 0 && (c = source.ReadByte()) != 0) buf.WriteByte(c);
-            list.Add(Encoding.ASCII.GetString(buf.ToArray()));
-        }
-        return list;
-    }
 
     public static string ReadO32Encoding(this BinaryReader source, Encoding encoding) {
         var currentOffset = source.BaseStream.Position;
