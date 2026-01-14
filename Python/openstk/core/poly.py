@@ -2,28 +2,35 @@ class Int2:
     def __repl__(self): return f'{self.x},{self.y}'
     def __init__(self, *args):
         match len(args):
-            case 1: r = args[0]; self.x: int = r[0]; self.y: int = r[1]
-            case 2: self.x: int = args[0]; self.y: int = args[1]
+            case 0: self.x, self.y, self.z = (0, 0)
+            case 1: r = args[0]; self.x, self.y = r
+            case 2: self.x, self.y = args
+            case _: raise NotImplementedError('Int2')
 
 class Byte3:
     def __repl__(self): return f'{self.x},{self.y},{self.z}'
     def __init__(self, *args):
         match len(args):
-            case 1: r = args[0]; self.x: int = r[0]; self.y: int = r[1]; self.z: int = r[2]
-            case 3: self.x: int = args[0]; self.y: int = args[1]; self.z: int = args[2]
+            case 0: self.x, self.y, self.z = (0, 0, 0)
+            case 1: r = args[0]; self.x, self.y, self.z = r
+            case 3: self.x, self.y, self.z = args
+            case _: raise NotImplementedError('Byte3')
 
 class Int3:
     def __repl__(self): return f'{self.x},{self.y},{self.z}'
     def __init__(self, *args):
         match len(args):
-            case 1: r = args[0]; self.x: int = r[0]; self.y: int = r[1]; self.z: int = r[2]
-            case 3: self.x: int = args[0]; self.y: int = args[1]; self.z: int = args[2]
+            case 0: self.x, self.y, self.z = (0, 0, 0)
+            case 1: r = args[0]; self.x, self.y, self.z = r
+            case 3: self.x, self.y, self.z = args
+            case _: raise NotImplementedError('Int3')
 
 class Float3:
     def __repl__(self): return f'{self.x},{self.y},{self.z}'
     def __init__(self, *args):
         match len(args):
-            case 0: self.x: float = 0; self.y: float = 0; self.z: float = 0
-            case 1: r = args[0]; self.x: float = r[0]; self.y: float = r[1]; self.z: float = r[2]
-            case 3: self.x: float = args[0]; self.y: float = args[1]; self.z: float = args[2]
+            case 0: self.x, self.y, self.z = (0., 0., 0.)
+            case 1: r = args[0]; self.x, self.y, self.z = r
+            case 3: self.x, self.y, self.z = args
+            case _: raise NotImplementedError('Float3')
 

@@ -34,7 +34,6 @@ class CircularBuffer:
         self._tail = (self._tail + size) % len(self._buffer)
         self.length += size
 
-
 # Huffman
 class Huffman:
     _decTree: list[int] = [
