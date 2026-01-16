@@ -2,20 +2,20 @@ from openstk.core.core import ISource, IStream, IWriteToStream, X_LumpON, X_Lump
 from openstk.core.find import findType
 import openstk.core.log as log
 from openstk.core.poly import Int2, Byte3, Int3, Float3
-from openstk.core.pool import CoroutineQueue, IGenericPool, GenericPool, SinglePool, StaticPool
+from openstk.core.pool import parallelFor, CoroutineQueue, IGenericPool, GenericPool, SinglePool, StaticPool
 from openstk.core.reader import BinaryReader
 from openstk.core.typex import TypeX
 import openstk.core.unsafe as unsafe
-from openstk.core.util import _throw, parallelFor, _pathExtension, _pathTempFile, decodePath, _int_tryParse, YamlDict
+from openstk.core.util import _throw, _pathExtension, _pathTempFile, decodePath, _int_tryParse, YamlDict
 from openstk.core.writer import Writer
 __all__ = [
     'ISource', 'IStream', 'IWriteToStream', 'X_LumpON', 'X_LumpNO', 'X_LumpNO2', 'X_Lump2NO',
     'findType',
     'log',
     'Int2', 'Byte3', 'Int3', 'Float3',
-    'CoroutineQueue', 'IGenericPool', 'GenericPool', 'SinglePool', 'StaticPool',
+    'parallelFor', 'CoroutineQueue', 'IGenericPool', 'GenericPool', 'SinglePool', 'StaticPool',
     'BinaryReader',
     'TypeX',
     'unsafe',
-    '_throw', 'parallelFor', '_pathExtension', '_pathTempFile', 'decodePath', '_int_tryParse', 'YamlDict',
+    '_throw', '_pathExtension', '_pathTempFile', 'decodePath', '_int_tryParse', 'YamlDict',
     'Writer']

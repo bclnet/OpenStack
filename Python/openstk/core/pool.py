@@ -1,6 +1,19 @@
-import time
+import time, asyncio
 from typing import Iterator, Generic, TypeVar # https://stackoverflow.com/questions/74472798/how-to-define-python-generic-classes
 T = TypeVar('T')
+
+# async def _parallelForTask(f: int, t: int, s: int, c: callable) -> list[object]: [await c(idx) for idx in range(f, t, s)]
+# async def parallelFor(f: int, t: int, o: set, c: callable) -> list[object]: await asyncio.gather(*[_parallelForTask(f, t, i + 1, c) for i in range(o['max'] or 1)])
+
+async def parallelFor(f: int, t: int, options: set, func: callable) -> list[any]:
+    semaphore = asyncio.Semaphore(options['max'] or 1)
+    async def _func(i):
+        async with semaphore: return await func(i)
+    tasks = [_func(i) for i in range(f, t)]
+    for s in asyncio.as_completed(tasks): await s
+
+# async def parallelFor(f: int, t: int, options: set, func: callable) -> list[any]:
+#     for i in range(f, t): await func(i)
 
 class IGenericPool(Generic[T]):
     def get(self) -> None: pass

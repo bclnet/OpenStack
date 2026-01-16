@@ -11,15 +11,14 @@ def _structGet(cls, sizeOf: int) -> tuple:
     elif isinstance(cls._struct, dict): return (cls._struct[sizeOf], sizeOf)
 
 # BinaryReader
+_brn = 0
 class BinaryReader:
-    def __init__(self, f): self.f = f; self.__update()
+    def __init__(self, f, length: int = None): self.f = f; self.length = length; self.__update()
     def __enter__(self): return self
     def __exit__(self, type, value, traceback): self.f.close()
     def __update(self):
-        f = self.f
-        pos = f.tell()
-        self.length = f.seek(0, os.SEEK_END)
-        f.seek(pos, os.SEEK_SET)
+        # global _brn; _brn += + 1; self.n = f'R{_brn}';
+        if self.length == None: f = self.f; pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
 
     # base
     def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
