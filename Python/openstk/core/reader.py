@@ -153,13 +153,13 @@ class BinaryReader:
     def readL32UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     # def readLV8UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
 
-    # string : ascii
-    def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('ascii', 'replace').rstrip('\00') if length != 0 else None
-    def readVAString(self, length: int = sys.maxsize, stopValue: int = b'\x00', ms: BytesIO = None) -> str: return self.readToValue(stopValue, length, ms).decode('ascii', 'replace')
-    def readL8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
-    def readL16AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
-    def readL32AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
-    # def readLV8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('ascii').rstrip('\00') if length != 0 else None
+    # string : ascii (latin1)
+    def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('latin1', 'replace').rstrip('\00') if length != 0 else None
+    def readVAString(self, length: int = sys.maxsize, stopValue: int = b'\x00', ms: BytesIO = None) -> str: return self.readToValue(stopValue, length, ms).decode('latin1', 'replace')
+    def readL8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
+    def readL16AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
+    def readL32AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
+    # def readLV8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
 
     # string : x
     def readFXString(self, encoding: str, length: int) -> str: return self.f.read(length)[:length].decode(encoding, 'replace').rstrip('\00') if length != 0 else None
@@ -177,7 +177,7 @@ class BinaryReader:
             while length > 0 and (c := self.f.read(1)) != stopValue: length -= 1; ms.write(c)
             length -= 1
             ms.seek(0)
-            r.append(ms.read().decode('ascii', 'replace'))
+            r.append(ms.read().decode('latin1', 'replace'))
         return r
 
     # struct : single  - https://docs.python.org/3/library/struct.html 
