@@ -290,6 +290,18 @@ public static partial class Polyfill {
         return r;
     }
 
+    public static List<string> ReadVUStringList(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) {
+        ms ??= new MemoryStream();
+        var r = new List<string>();
+        byte c;
+        while (length > 0) {
+            ms.SetLength(0);
+            while (length-- > 0 && (c = source.ReadByte()) != stopValue) ms.WriteByte(c);
+            r.Add(Encoding.UTF8.GetString(ms.ToArray()));
+        }
+        return r;
+    }
+
     #region not used
 
     //public static string ReadLString(this BinaryReader source, int byteLength = 4, bool zstring = false) //:was ReadPString

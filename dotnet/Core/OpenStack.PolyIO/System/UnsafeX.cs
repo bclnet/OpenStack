@@ -200,6 +200,13 @@ public unsafe static class UnsafeX {
         return i > 0 ? Encoding.ASCII.GetString(data, i) : null;
     }
 
+    public static byte[] FixedByteArray(byte* data, int size) {
+        var value = new byte[size];
+        var span = new Span<byte>(data, size);
+        span.CopyTo(value);
+        return value;
+    }
+
     public static T[] FixedTArray<T>(T* data, int length) {
         var value = new T[length];
         fixed (T* p = value) for (var i = 0; i < length; i++) p[i] = data[i];
