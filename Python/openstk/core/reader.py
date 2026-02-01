@@ -13,6 +13,7 @@ def _structGet(cls, sizeOf: int) -> tuple:
 # BinaryReader
 _brn = 0
 class BinaryReader:
+    def dispose(self): self.f.close()
     def __init__(self, f, length: int = None): self.f = f; self.length = length; self.__update()
     def __enter__(self): return self
     def __exit__(self, type, value, traceback): self.f.close()
@@ -182,8 +183,8 @@ class BinaryReader:
 
     # struct : single  - https://docs.python.org/3/library/struct.html 
     def readF(self, factory: callable) -> object: return factory(self)
-    def readP(self, cls: callable, pat: str) -> object: cls = cls or (lambda s: s[0]); return cls(unpack(pat, self.f.read(calcsize(pat))))
-    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = _structGet(cls, sizeOf); return cls(unpack(pat, self.f.read(size)))
+    def readP(self, cls: callable, pat: str) -> object: cls = cls or (lambda s: s[0]); z = unpack(pat, self.f.read(calcsize(pat))); return cls(z[0] if len(z) == 1 else z)
+    def readS(self, cls: object, sizeOf: int = -1) -> object: pat, size = _structGet(cls, sizeOf); z = unpack(pat, self.f.read(size)); return cls(z[0] if len(z) == 1 else z)
 
     # struct : array - factory
     def readL8FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readByte(), obj)
@@ -209,11 +210,11 @@ class BinaryReader:
     def readLV7PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readIntV7X(endian), obj)
     def readLV8PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readIntV8X(endian), obj)
     def readPArray(self, cls: callable, pat: str, count: int, obj: list[object] = None) -> list[object]:
-        cls = cls or (lambda s: s[0])
-        if not obj: return [cls(s) for s in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
+        cls = cls or (lambda s: s)
+        if not obj: return [cls(s[0] if len(s) == 1 else s) for s in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
         elif count > 0:
             i = 0
-            for s in iter_unpack(pat, self.f.read(calcsize(pat) * count)): obj[i] = s; i+=1
+            for s in iter_unpack(pat, self.f.read(calcsize(pat) * count)): obj[i] = cls(s[0] if len(s) == 1 else s); i+=1
         return obj
 
     # struct : array - struct
@@ -267,11 +268,11 @@ class BinaryReader:
     def readLV7PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readIntV7X(endian), obj)
     def readLV8PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readIntV8X(endian), obj)
     def readPList(self, cls: callable, pat: str, count: int, obj: list[object] = None) -> list[object]:
-        cls = cls or (lambda s: s[0])
-        if not obj: return [cls(s) for s in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
+        cls = cls or (lambda s: s)
+        if not obj: return [cls(s[0] if len(s) == 1 else s) for s in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
         elif count > 0:
             i = 0
-            for s in iter_unpack(pat, self.f.read(calcsize(pat) * count)): obj[i] = s; i+=1
+            for s in iter_unpack(pat, self.f.read(calcsize(pat) * count)): obj[i] = s[0] if len(s) == 1 else s; i+=1
         return obj
 
     # struct : list - struct
