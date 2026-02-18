@@ -334,7 +334,7 @@ class BinaryReader:
     # numerics
     def readHalf(self) -> float: raise NotImplementedError()
     def readHalf16(self) -> float: raise NotImplementedError()
-    def readVector2(self) -> ndarray: return array([self.readSingle(), self.readSingle()])
+    def readVector2(self) -> ndarray: return array(unpack('<2f', self.f.read(8)))
     def readHalfVector2(self) -> ndarray: return array([self.readHalf(), self.readHalf()])
     def readVector3(self) -> ndarray: return array(unpack('<3f', self.f.read(12)))
     def readHalfVector3(self) -> ndarray: return array([self.readHalf(), self.readHalf(), self.readHalf()])
