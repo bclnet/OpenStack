@@ -4,7 +4,8 @@ using System.Runtime.InteropServices;
 namespace System.Numerics;
 
 // MARK Vector2
-
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct Byte2 { public byte X; public byte Y; public override string ToString() => $"{X},{Y}}"; }
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Int2 { public int X; public int Y; public override string ToString() => $"{X},{Y}"; }
 
