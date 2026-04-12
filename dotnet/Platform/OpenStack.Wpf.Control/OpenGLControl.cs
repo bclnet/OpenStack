@@ -2,6 +2,7 @@ using OpenStack.Gfx;
 using OpenStack.Gfx.Egin;
 using OpenStack.Sfx;
 using OpenTK.Input;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using Key = OpenTK.Input.Key;
@@ -10,7 +11,7 @@ namespace OpenStack.Wpf.Control;
 
 #region OpenGLControl
 
-public abstract class OpenGLControl : GLControl {
+public abstract class OpenGLControl(Func<object, object, object, string, object> shellState) : GLControl {
     int Id = 0;
 
     #region Binding

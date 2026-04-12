@@ -24,7 +24,7 @@ public abstract class StrideControl : UserControl {
     Thread GameThread;
     IntPtr WindowHandle;
 
-    public StrideControl() {
+    public StrideControl(Func<object, object, object, string, object> shellState) {
         GameThread = new Thread(SafeAction.Wrap(GameRunThread)) {
             IsBackground = true,
             Name = "Game Thread"

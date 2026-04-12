@@ -1,16 +1,17 @@
 using OpenStack.Gfx;
 using OpenStack.Sfx;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 
 namespace OpenStack.Wpf.Control;
 
-public abstract class O3deControl : ShellControl {
+public abstract class O3deControl(Func<object, object, object, string, object> shellState) : ShellControl {
     #region Binding
 
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
-    protected override ShellState GetShellState() => new(Source, Path, Value, Type);
+    protected override object GetShellState() => shellState(Source, Path, Value, Type);
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));

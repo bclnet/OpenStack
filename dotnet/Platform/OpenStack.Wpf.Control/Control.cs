@@ -18,27 +18,6 @@ public static class WindowsNative {
     [DllImport("User32.dll")] public static extern bool MoveWindow(IntPtr handle, int x, int y, int width, int height, bool redraw);
 }
 
-public class ShellState {
-    public string FamilyId;
-    public string ArcUri;
-    public string Path;
-    public string Type;
-    ShellState() { }
-    public ShellState(object source, object path, object value, string type) {
-        var i = (MetaItem)path;
-        var a = i.Archive;
-        FamilyId = a.Family.Id;
-        ArcUri = a.Game.ToUris(a.Edition?.Id).FirstOrDefault()?.ToString();
-        Path = i.Path;
-        Type = type;
-    }
-    public override string ToString() => string.Join('|', [FamilyId, ArcUri, Path, Type]);
-    public static ShellState Parse(string state) {
-        var p = state.Split('|');
-        return new() { FamilyId = p[0], ArcUri = p[1], Path = p[2], Type = p[3] };
-    }
-}
-
 public abstract class ShellControl : UserControl {
     public ShellControl() {
         AddChild(Host = new WindowsFormsHost());
@@ -50,10 +29,10 @@ public abstract class ShellControl : UserControl {
 
     #region Attach
 
-    static readonly string ShellFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Game2.exe");
+    static readonly string ShellFile = "C:\\T_\\junk\\Shell3D.exe"; // Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Game2.exe");
     readonly WindowsFormsHost Host;
     Process Process;
-    protected abstract ShellState GetShellState();
+    protected abstract object GetShellState();
 
     void OnLoaded(object sender, RoutedEventArgs e) {
         Process = null;
@@ -67,7 +46,7 @@ public abstract class ShellControl : UserControl {
         if (!processFile.Exists) return;
         Process = new Process();
         var si = Process.StartInfo;
-        si.Arguments = GetShellState()?.ToString();
+        si.Arguments = $"{GetShellState()} -logfile C:\\T_\\junk\\here.log";
         si.FileName = ShellFile;
         si.UseShellExecute = true;
         si.CreateNoWindow = true;

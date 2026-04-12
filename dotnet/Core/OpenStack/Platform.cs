@@ -1,11 +1,9 @@
-﻿using OpenStack.Client;
-using OpenStack.Gfx;
+﻿using OpenStack.Gfx;
 using OpenStack.Sfx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OpenStack;
@@ -209,3 +207,4 @@ public class TestPlatform : Platform {
 }
 
 #endregion
+

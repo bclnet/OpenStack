@@ -151,6 +151,8 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
     public override Material CreateMaterial(object path) {
         switch (path) {
             case MaterialStdProp p: {
+                    if (_litShader == null) Log.Error("Missing: _litShader");
+                    if (_terrainShader == null) Log.Error("Missing: _terrainShader");
                     var m = new Material(_litShader);
                     if (p.AlphaBlended) m.SetFloat(Cutoff, 0.5f);
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");

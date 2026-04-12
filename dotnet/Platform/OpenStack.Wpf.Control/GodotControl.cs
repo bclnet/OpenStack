@@ -1,16 +1,17 @@
 using OpenStack.Gfx;
 using OpenStack.Sfx;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 
 namespace OpenStack.Wpf.Control;
 
-public abstract class GodotControl : ShellControl {
+public abstract class GodotControl(Func<object, object, object, string, object> shellState) : ShellControl {
     #region Binding
 
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
-    protected override ShellState GetShellState() => new(Source, Path, Value, Type);
+    protected override object GetShellState() => shellState(Source, Path, Value, Type);
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));

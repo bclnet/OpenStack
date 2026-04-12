@@ -1,12 +1,13 @@
 using OpenStack.Gfx;
 using OpenStack.Sfx;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace OpenStack.Wpf.Control;
 
-public abstract class SdlControl : UserControl {
+public abstract class SdlControl(Func<object, object, object, string, object> shellState) : UserControl {
     #region Binding
 
     protected Renderer Renderer;
