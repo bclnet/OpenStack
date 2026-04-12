@@ -20,8 +20,9 @@ public abstract class OpenGLControl : GLControl {
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
-    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
 
     public IList<IOpenGfx> Gfx {
@@ -34,14 +35,19 @@ public abstract class OpenGLControl : GLControl {
         set => SetValue(SfxProperty, value);
     }
 
+    public object Source {
+        get => GetValue(SourceProperty);
+        set => SetValue(SourceProperty, value);
+    }
+
     public object Path {
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
     }
 
-    public object Source {
-        get => GetValue(SourceProperty);
-        set => SetValue(SourceProperty, value);
+    public object Value {
+        get => GetValue(ValueProperty);
+        set => SetValue(ValueProperty, value);
     }
 
     public string Type {
@@ -50,10 +56,10 @@ public abstract class OpenGLControl : GLControl {
     }
 
     void OnSourceChanged() {
-        if (Gfx == null || Path == null || Source == null || Type == null) return;
+        if (Gfx == null || Path == null || Value == null || Type == null) return;
         Renderer = (EginRenderer)CreateRenderer();
         Renderer?.Start();
-        if (Source is ITextureSelect z2) z2.Select(Id);
+        if (Value is ITextureSelect z2) z2.Select(Id);
         //Camera.SetLocation(new Vector3(200));
         //Camera.LookAt(new Vector3(0));
     }

@@ -39,14 +39,12 @@ public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
         //TestAllCells();
     }
 
-    //public static Int3 GetCellId(Vector3 point, int world) => new Int3(Mathf.FloorToInt(point.x / ConvertUtils.ExteriorCellSideLengthInMeters), Mathf.FloorToInt(point.z / ConvertUtils.ExteriorCellSideLengthInMeters), world);
 
-    //static void TestLoadCell(Vector3 position)
-    //{
-    //    var cellId = GetCellId(position, 60);
-    //    var cell = DatFile.FindCellRecord(cellId);
-    //    var land = ((TesDataPack)DatFile).FindLANDRecord(cellId);
-    //    Log($"LAND #{land?.Id}");
+    //static void TestLoadCell(Vector3 position) {
+    //    var cellid = GetCellId(position, 60);
+    //    var cell = datfile.findcellrecord(cellid);
+    //    var land = ((tesdatapack)datfile).findlandrecord(cellid);
+    //    Log.Info($"land #{land?.id}");
     //}
 
     //static void TestAllCells()

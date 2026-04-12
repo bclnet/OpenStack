@@ -39,26 +39,26 @@ class FileSystem:
 
     @staticmethod
     def createMatcher(searchPattern: str) -> callable:
-        if not searchPattern: return lambda x: True
+        if not searchPattern: return lambda s: True
         wildcardCount = searchPattern.count('*')
-        if wildcardCount <= 0: return lambda x: x.casefold() == searchPattern.casefold()
+        if wildcardCount <= 0: return lambda s: s.casefold() == searchPattern.casefold()
         elif wildcardCount == 1:
             newPattern = searchPattern.replace('*', '')
-            if searchPattern.startswith('*'): return lambda x: x.casefold().endswith(newPattern)
-            elif searchPattern.endswith('*'): return lambda x: x.casefold().startswith(newPattern)
+            if searchPattern.startswith('*'): return lambda s: s.casefold().endswith(newPattern)
+            elif searchPattern.endswith('*'): return lambda s: s.casefold().startswith(newPattern)
         regexPattern = f'^{re.escape(searchPattern).replace('\\*', '.*')}$'
-        def _lambdax(x: str):
-            try: return re.match(x, regexPattern)
+        def _lambdax(s: str):
+            try: return re.match(s, regexPattern)
             except: return False
         return _lambdax
     
 # tag::AggregateFileSystem[]
 class AggregateFileSystem(FileSystem):
     def __init__(self, aggreate: list[FileSystem]): self.aggreate = aggreate
-    def glob(self, path: str, searchPattern: str) -> list[str]: return [y for z in [x.glob(path, searchPattern) for x in self.aggreate] for y in z]
-    def fileExists(self, path: str) -> bool: return any(x.fileExists(path) for x in self.aggreate)
-    def fileInfo(self, path: str) -> tuple[str, int]: return next(iter([x.fileInfo(path) for x in self.aggreate if x]))
-    def open(self, path: str, mode: str = None) -> object: return next(iter([x.open(path, mode) for x in self.aggreate if x]))
+    def glob(self, path: str, searchPattern: str) -> list[str]: return [y for z in [s.glob(path, searchPattern) for s in self.aggreate] for y in z]
+    def fileExists(self, path: str) -> bool: return any(s.fileExists(path) for s in self.aggreate)
+    def fileInfo(self, path: str) -> tuple[str, int]: return next(iter([s for s in [s.fileInfo(path) for s in self.aggreate] if s]))
+    def open(self, path: str, mode: str = None) -> object: return next(iter([s for s in [s.open(path, mode) for s in self.aggreate] if s]))
 # end::AggregateFileSystem[]
 
 # tag::VirtualFileSystem[]
@@ -66,10 +66,10 @@ class VirtualFileSystem(FileSystem):
     def __init__(self, virtuals: dict[str, object]): self.virtuals = virtuals
     def glob(self, path: str, searchPattern: str) -> list[str]:
         matcher = FileSystem.createMatcher(searchPattern)
-        return [x for x in self.virtuals.keys() if matcher(x)]
+        return [s for s in self.virtuals.keys() if matcher(s)]
     def fileExists(self, path: str) -> bool: return path in self.virtuals
     def fileInfo(self, path: str) -> tuple[str, int]: return (path, len(self.virtuals[path]) if self.virtuals[path] else 0) if path in self.virtuals else (None, 0)
-    def open(self, path: str, mode: str = None) -> object: return self.virtuals[path] or io.BytesIO() if path in self.virtuals else None
+    def open(self, path: str, mode: str = None) -> object: return io.BytesIO(self.virtuals[path]) if path in self.virtuals else None
 # end::VirtualFileSystem[]
 
 # tag::DirectoryFileSystem[]
@@ -77,10 +77,12 @@ class DirectoryFileSystem(FileSystem):
     def __init__(self, baseRoot: str, basePath: str): self.baseRoot = baseRoot; self.basePath = basePath or ''; self.root = baseRoot; self.skip = len(baseRoot) + 1
     def glob(self, path: str, searchPattern: str) -> list[str]:
         g = pathlib.Path(os.path.join(self.root, path)).glob(searchPattern if searchPattern else '**/*')
-        return [str(x)[self.skip:] for x in g if x.is_file()]
+        return [str(s)[self.skip:] for s in g if s.is_file()]
     def fileExists(self, path: str) -> bool: return os.path.exists(os.path.join(self.root, path))
     def fileInfo(self, path: str) -> tuple[str, int]: return (path, os.stat(path).st_size) if os.path.exists(path := os.path.join(self.root, path)) else (None, 0)
-    def open(self, path: str, mode: str = None) -> object: return open(os.path.join(self.root, path), mode or 'rb')
+    def open(self, path: str, mode: str = None) -> object:
+        newPath = os.path.join(self.root, path)
+        return open(newPath, mode or 'rb') if os.path.exists(newPath) else None
     def next(self) -> FileSystem:
         if os.path.isfile(self.root) or '*' in os.path.basename(self.root):
             self.root = os.path.dirname(self.root); self.skip = len(self.root) + 1
@@ -111,13 +113,13 @@ class NetworkFileSystem(FileSystem):
 
 # tag::ZipFileSystem[]
 class ZipFileSystem(FileSystem):
-    def __init__(self, vfx: FileSystem, path: str, basePath: str): self.path = path; self.basePath = basePath or ''; self.root = ''; self.zip = ZipFile(vfx.open(path)); self.zipnames = self.zip.namelist(); self.zipinfo = { x.filename:x for x in self.zip.infolist() }
+    def __init__(self, vfx: FileSystem, path: str, basePath: str): self.path = path; self.basePath = basePath or ''; self.root = ''; self.zip = ZipFile(vfx.open(path)); self.zipnames = self.zip.namelist(); self.zipinfo = { s.filename:s for s in self.zip.infolist() }
     def glob(self, path: str, searchPattern: str) -> list[str]:
         root = os.path.join(self.root, path); skip = len(root)
         matcher = FileSystem.createMatcher(searchPattern)
         return [fn[skip:] for fn in self.zipnames if not fn.endswith('/') and len(fn) > skip and fn.startswith(root) and matcher(fn[skip:])]
     def fileExists(self, path: str) -> bool: return self.zip.read(os.path.join(self.root, path)) != None
-    def fileInfo(self, path: str) -> tuple[str, int]: x = self.zipinfo[os.path.join(self.root, path)]; return (x.filename, x.file_size) if x else (None, 0)
+    def fileInfo(self, path: str) -> tuple[str, int]: s = self.zipinfo[os.path.join(self.root, path)]; return (s.filename, s.file_size) if s else (None, 0)
     def open(self, path: str, mode: str = None) -> object: return io.BytesIO(self.zip.read(os.path.join(self.root, path)))
     @staticmethod
     def _lambdax(self):

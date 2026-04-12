@@ -19,7 +19,10 @@ class BinaryReader:
     def __exit__(self, type, value, traceback): self.f.close()
     def __update(self):
         # global _brn; _brn += + 1; self.n = f'R{_brn}';
-        if self.length == None: f = self.f; pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
+        f = self.f
+        if self.length == None:
+            if isinstance(f, bytes): self.length = len(f)
+            else: pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
 
     # base
     def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
@@ -33,7 +36,7 @@ class BinaryReader:
             result &= (1 << (8 - byteCount)) - 1
             while byteCount > 0: byteCount -= 1; result <<= 6; result |= self.f.read(1)[0] & 0x3F
         return chr(result)
-    def readChars(self, count: int) -> list[chr]: return [self.readChar() for x in range(count)]
+    def readChars(self, count: int) -> list[chr]: return [self.readChar() for s in range(count)]
     def readString(self) -> str: length = self.readIntV7(); return self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readLine(self) -> str: return self.f.readline().decode('utf-8')
 

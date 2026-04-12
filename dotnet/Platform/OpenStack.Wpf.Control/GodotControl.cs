@@ -10,11 +10,13 @@ public abstract class GodotControl : ShellControl {
 
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
+    protected override ShellState GetShellState() => new(Source, Path, Value, Type);
 
     public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
     public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
-    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
+    public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
+    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(GodotControl), new PropertyMetadata((d, e) => (d as GodotControl).OnSourceChanged()));
 
     public IList<IOpenGfx> Gfx {
@@ -27,14 +29,19 @@ public abstract class GodotControl : ShellControl {
         set => SetValue(SfxProperty, value);
     }
 
+    public object Source {
+        get => GetValue(SourceProperty);
+        set => SetValue(SourceProperty, value);
+    }
+
     public object Path {
         get => GetValue(PathProperty);
         set => SetValue(PathProperty, value);
     }
 
-    public object Source {
-        get => GetValue(SourceProperty);
-        set => SetValue(SourceProperty, value);
+    public object Value {
+        get => GetValue(ValueProperty);
+        set => SetValue(ValueProperty, value);
     }
 
     public string Type {
@@ -43,7 +50,7 @@ public abstract class GodotControl : ShellControl {
     }
 
     void OnSourceChanged() {
-        if (Gfx == null || Path == null || Source == null || Type == null) return;
+        if (Gfx == null || Path == null || Value == null || Type == null) return;
         Renderer = CreateRenderer();
         Renderer?.Start();
     }

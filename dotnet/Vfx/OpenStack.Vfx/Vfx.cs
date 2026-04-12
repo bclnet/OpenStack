@@ -134,9 +134,12 @@ public class DirectoryFileSystem(string baseRoot, string basePath) : FileSystem 
     }
     public override bool FileExists(string path) => File.Exists(Path.Combine(Root, path));
     public override (string path, long length) FileInfo(string path) => File.Exists(path = Path.Combine(Root, path)) ? (path[Skip..], new FileInfo(Path.Combine(Root, path)).Length) : (null, 0);
-    public override Stream Open(string path, string mode) => mode != "Height"
-        ? File.Open(Path.Combine(Root, path), FileMode.Open, FileAccess.Read, FileShare.Read)
-        : File.Open(Path.Combine(Root, path), FileMode.Open, FileAccess.Write, FileShare.Write);
+    public override Stream Open(string path, string mode) {
+        var newPath = Path.Combine(Root, path);
+        return File.Exists(newPath) ? mode != "w"
+            ? File.Open(newPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            : File.Open(newPath, FileMode.Open, FileAccess.Write, FileShare.Write) : null;
+    }
     public override FileSystem Next() {
         if (File.Exists(Root) || Path.GetFileName(Root).Contains('*')) {
             Root = Path.GetDirectoryName(Root); Skip = Root.Length + 1;
