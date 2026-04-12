@@ -2,6 +2,7 @@
 using OpenStack.Vfx.Disc;
 using OpenStack.Vfx.N64;
 using OpenStack.Vfx.X3ds;
+using SharpCompress.Archives;
 using SharpCompress.Archives.SevenZip;
 using System;
 using System.Collections.Generic;
@@ -225,7 +226,7 @@ public class ZipFileSystem(FileSystem vfx, string path, string basePath) : FileS
 /// SevenZipFileSystem
 /// </summary>
 public class SevenZipFileSystem(FileSystem vfx, string path, string basePath) : FileSystem {
-    readonly SevenZipArchive Arc = SevenZipArchive.Open(vfx.Open(path));
+    readonly IArchive Arc = SevenZipArchive.OpenArchive(vfx.Open(path));
     string Root = string.Empty;
 
     public override IEnumerable<string> Glob(string path, string searchPattern) {
@@ -240,7 +241,7 @@ public class SevenZipFileSystem(FileSystem vfx, string path, string basePath) : 
     public override bool FileExists(string path) { path = Path.Combine(Root, path); return Arc.Entries.Any(x => x.Key == path); }
     public override (string path, long length) FileInfo(string path) { path = Path.Combine(Root, path); var x = Arc.Entries.FirstOrDefault(x => x.Key == path); return x != null ? (x.Key, x.Size) : (null, 0); }
     public override Stream Open(string path, string mode) { path = Path.Combine(Root, path); return Arc.Entries.First(x => x.Key == path).OpenEntryStream(); }
-    public override FileSystem Next() => Next2(basePath, Arc.Entries.Count, () => Arc.Entries.First().Key, () => {
+    public override FileSystem Next() => Next2(basePath, Arc.Entries.Count(), () => Arc.Entries.First().Key, () => {
         if (!string.IsNullOrEmpty(basePath)) Root = $"{basePath}{Path.AltDirectorySeparatorChar}";
         return this;
     });
