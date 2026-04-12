@@ -65,7 +65,7 @@ public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
     readonly object Obj = obj;
 
     //object Engine;
-    GameObject PlayerPrefab = GameObject.Find("Player00");
+    GameObject PlayerPrefab = GameObject.Find("Player0");
 
     //public override void Dispose()
     //{
@@ -74,6 +74,8 @@ public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
     //}
 
     public override void Start() {
+        Log.Info($"{Obj}");
+        Log.Info($"{PlayerPrefab}");
         //var assetUri = new Uri("http://192.168.1.3/ASSETS/Morrowind/Morrowind.bsa#Morrowind");
         //var dataUri = new Uri("http://192.168.1.3/ASSETS/Morrowind/Morrowind.esm#Morrowind");
 

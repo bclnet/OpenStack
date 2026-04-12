@@ -7,16 +7,16 @@ namespace System.Numerics;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Byte2 { public byte X; public byte Y; public override string ToString() => $"{X},{Y}"; }
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Int2 { public int X; public int Y; public override string ToString() => $"{X},{Y}"; }
+public struct Int2 { public int X; public int Y; public Int2(int x, int y) { X = x; Y = y; } public override string ToString() => $"{X},{Y}"; public static Int2 Zero = new(0, 0); }
 
 // MARK Vector3
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Byte3 { public byte X; public byte Y; public byte Z; public override string ToString() => $"{X},{Y},{Z}"; }
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Int3 { public int X; public int Y; public int Z; public Int3(int x, int y, int z) { X = x; Y = y; Z = z; } public override string ToString() => $"{X},{Y},{Z}"; }
+public struct Int3 { public int X; public int Y; public int Z; public Int3(int x, int y, int z) { X = x; Y = y; Z = z; } public override string ToString() => $"{X},{Y},{Z}"; public static Int3 Zero = new(0, 0, 0); }
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Float3 { public float X; public float Y; public float Z; public override string ToString() => $"{X},{Y},{Z}"; public Vector3 ToVector3() => new Vector3(X, Y, Z); }
+public struct Float3 { public float X; public float Y; public float Z; public override string ToString() => $"{X},{Y},{Z}"; public Vector3 ToVector3() => new(X, Y, Z); }
 
 public static class Polyfill {
     public static Vector3 ParseVector3(string input) {
