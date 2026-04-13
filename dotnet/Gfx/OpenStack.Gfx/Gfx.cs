@@ -160,7 +160,7 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
 
-    public (Object obj, object tag) CreateObject(object path) {
+    public (Object obj, object tag) CreateObject(object path, object parent) {
         Builder.EnsurePrefab();
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path).Result;
@@ -611,7 +611,7 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     ShaderManager<Shader> ShaderManager { get; }
     Texture CreateTexture(object path, Range? level = null);
-    Object CreateAsset(object path);
+    Object CreateObject(object path, object parent = null);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
 }
 

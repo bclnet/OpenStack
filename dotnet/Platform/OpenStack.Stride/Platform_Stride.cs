@@ -112,7 +112,7 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public ShaderManager<int> ShaderManager => _shaderManager;
     public Texture CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Entity CreateAsset(object path) => throw new NotImplementedException();
+    public Entity CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public int CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);

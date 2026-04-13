@@ -275,7 +275,7 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public ShaderManager<Shader> ShaderManager => _shaderManager;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public object CreateAsset(object path) => _objectManager.CreateObject(path).obj;
+    public object CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);

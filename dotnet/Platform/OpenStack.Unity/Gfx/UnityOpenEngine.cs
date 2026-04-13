@@ -5,23 +5,23 @@ using UnityEngine;
 
 namespace OpenStack.Gfx.Unity;
 
-public class OpenEngine : IDisposable {
+public class UnityOpenEngine : IDisposable {
     const bool RenderSunShadows = true;
     const float AmbientIntensity = 1.5f;
     const float DesiredWorkTimePerFrame = 1.0f / 200;
     const int CellRadiusOnLoad = 2;
     static Color DefaultAmbientColor = new(137, 140, 160, 255);
-    public static OpenEngine Current;
+    public static UnityOpenEngine Current;
 
-    readonly IDatabase Db;
+    readonly CellManager.IQuery Query;
     readonly CellManager CellManager;
     readonly CoroutineQueue Queue = new();
     readonly GameObject SunObj;
 
-    public OpenEngine(Func<IDatabase, CoroutineQueue, CellManager> manager, IDatabase db, bool sunCycle = false) {
+    public UnityOpenEngine(Func<CellManager.IQuery, CoroutineQueue, CellManager> manager, CellManager.IQuery query, bool sunCycle = false) {
         if (manager == null) throw new ArgumentNullException(nameof(manager));
-        Db = db ?? throw new ArgumentNullException(nameof(Db));
-        CellManager = manager(Db, Queue) ?? throw new ArgumentNullException(nameof(manager));
+        Query = query ?? throw new ArgumentNullException(nameof(Query));
+        CellManager = manager(Query, Queue) ?? throw new ArgumentNullException(nameof(manager));
 
         // ambient
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
@@ -31,7 +31,7 @@ public class OpenEngine : IDisposable {
         SunObj = GameObjectX.CreateDirectionalLight(Vector3.zero, Quaternion.Euler(new Vector3(50, 330, 0)));
         SunObj.GetComponent<Light>().shadows = RenderSunShadows ? LightShadows.Soft : LightShadows.None;
         SunObj.SetActive(false);
-        if (sunCycle) SunObj.AddComponent<SunCycle>();
+        if (sunCycle) SunObj.AddComponent<SunCycleComponent>();
 
         //// water
         //Water = GameObject.Instantiate(TesGame.instance.WaterPrefab);
@@ -54,19 +54,19 @@ public class OpenEngine : IDisposable {
         //Cursor.SetCursor(Asset.LoadTexture("tx_cursor", 1), Vector2.zero, CursorMode.Auto);
     }
 
-    public void Dispose() => Db.Dispose();
+    public void Dispose() => Query.Dispose();
 
     public virtual void Update() {
         if (PlayerCamera == null) return;
         // The current cell can be null if the player is outside of the defined game world.
-        if (CurrentCell == null || !CurrentCell.IsInterior) CellManager.UpdateCells(PlayerCamera.transform.position, CurrentWorld);
+        if (CurrentCell == null || !CurrentCell.IsInterior) CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), CurrentWorld);
         Queue.Run(DesiredWorkTimePerFrame);
     }
 
     #region Player Spawn
 
     protected int CurrentWorld;
-    protected object CurrentCell;
+    protected CellManager.ICellRecord CurrentCell;
     protected Transform PlayerTransform;
     protected PlayerComponent PlayerComponent;
     protected GameObject PlayerCamera;
@@ -92,28 +92,21 @@ public class OpenEngine : IDisposable {
     /// </summary>
     /// <param name="playerPrefab">The player prefab.</param>
     /// <param name="position">The target position of the player.</param>
-    public void SpawnPlayer(GameObject playerPrefab, Vector3 position) {
-        var cellId = CellManager.GetCellId(position, _currentWorld);
-        CurrentCell = DataPack.FindCellRecord(cellId);
+    public void SpawnPlayer(GameObject playerPrefab, Vector3 position, bool update = false) {
+        var cellId = Query.GetCellId(position, CurrentWorld);
+        CurrentCell = Query.FindCellRecord(cellId);
         Debug.Assert(CurrentCell != null);
         CreatePlayer(playerPrefab, position, out PlayerCamera);
-        var cellInfo = CellManager.StartCreatingCell(cellId);
-        Queue.WaitFor(cellInfo.ObjectsCreationCoroutine);
-        if (cellId.z != -1) OnExteriorCell(CurrentCell);
-        else OnInteriorCell(CurrentCell);
-    }
-
-    /// <summary>
-    /// Spawns the player outside using the position of the player.
-    /// </summary>
-    /// <param name="playerPrefab">The player prefab.</param>
-    /// <param name="position">The target position of the player.</param>
-    public void SpawnPlayerAndUpdate(GameObject playerPrefab, Vector3 position) {
-        var cellId = CellManager.GetCellId(position, _currentWorld);
-        CurrentCell = DataPack.FindCellRecord(cellId);
-        CreatePlayer(playerPrefab, position, out PlayerCamera);
-        CellManager.UpdateCells(PlayerCamera.transform.position, _currentWorld, true, CellRadiusOnLoad);
-        OnExteriorCell(CurrentCell);
+        if (update) {
+            CellManager.UpdateCells(PlayerCamera.transform.position, CurrentWorld, true, CellRadiusOnLoad);
+            OnExteriorCell(CurrentCell);
+        }
+        else {
+            var cell = CellManager.BeginCell(cellId);
+            Queue.WaitFor(cell.Task);
+            if (cellId.Z != -1) OnExteriorCell(CurrentCell);
+            else OnInteriorCell(CurrentCell);
+        }
     }
 
     protected virtual void OnExteriorCell(object cell) {
@@ -126,8 +119,7 @@ public class OpenEngine : IDisposable {
     }
 
     protected virtual void OnInteriorCell(object cell) {
-        var cellAmbientLight = cell.AmbientLight;
-        if (cellAmbientLight != null) RenderSettings.ambientLight = cellAmbientLight.Value;
+        if (cell.AmbientLight != null) RenderSettings.ambientLight = cell.AmbientLight;
         SunObj.SetActive(false);
         //UnderwaterEffect.enabled = cell.WHGT != null;
         //if (cell.WHGT != null)

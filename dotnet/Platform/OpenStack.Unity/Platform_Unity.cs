@@ -361,7 +361,7 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public GameObject CreateAsset(object path) => _objectManager.CreateObject(path).obj;
+    public GameObject CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
 

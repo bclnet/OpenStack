@@ -186,7 +186,7 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Node CreateAsset(object path) => throw new NotImplementedException();
+    public Node CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
