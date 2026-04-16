@@ -3,11 +3,13 @@ using OpenStack.Gfx;
 using OpenStack.Gfx.Unity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using static OpenStack.Gfx.TextureFormat;
+// using static OpenStack.Gfx.TextureFormat;
 using TextureFormat = UnityEngine.TextureFormat;
 using XShader = UnityEngine.Shader;
 #pragma warning disable CS0649
@@ -22,9 +24,36 @@ namespace OpenStack;
 class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {
     GameObject _prefab;
 
+    public void AttachObject(AttachObjectMethod method, params object[] args) {
+        GameObject s, v;
+        switch (method) {
+            case AttachObjectMethod.Find:
+                s = (GameObject)args[0]; v = (GameObject)args[1];
+                var found = GameObjectX.FindChildRecursively(v, (string)args[2]);
+                if (found != null) { v = found; goto AttachObjectMethod.All; }
+                break;
+            case AttachObjectMethod.Transform:
+                s = (GameObject)args[0]; v = (GameObject)args[1];
+                s.transform.parent = v.transform;
+                break;
+            case AttachObjectMethod.All:
+                s = (GameObject)args[0]; v = (GameObject)args[1];
+                s.transform.position = v.transform.position;
+                s.transform.rotation = v.transform.rotation;
+                s.transform.parent = v.transform;
+                break;
+            case AttachObjectMethod.AllCenter:
+                s = (GameObject)args[0]; v = (GameObject)args[1];
+                s.transform.position = GameObjectX.CalcVisualBoundsRecursive(v).center;
+                s.transform.rotation = v.transform.rotation;
+                s.transform.parent = v.transform;
+                break;
+        }
+    }
+
     public override GameObject CreateNewObject(GameObject prefab) => GameObject.Instantiate(prefab);
 
-    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager) {
+    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager, object parent) {
         //var abc = source.Begin("UN");
         //try
         //{
@@ -32,14 +61,15 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
         //finally { source.End(); }
         var file = (Binary_Nif)source;
         // Start pre-loading all the NIF's textures.
-        foreach (var texturePath in file.GetTexturePaths())
-            materialManager.TextureManager.PreloadTexture(texturePath);
+        foreach (var texturePath in file.GetTexturePaths()) materialManager.TextureManager.PreloadTexture(texturePath);
         var objBuilder = new UnityNifObjectBuilder(file, materialManager, false);
         var prefab = objBuilder.BuildObject();
         prefab.transform.parent = _prefab.transform;
         // Add LOD support to the prefab.
         var LODComponent = prefab.AddComponent<LODGroup>();
         LODComponent.SetLODs([new(0.015f, prefab.GetComponentsInChildren<UnityEngine.Renderer>())]);
+        // parent
+        if (parent != null) prefab.transform.parent = parent.transform;
         return prefab;
     }
 

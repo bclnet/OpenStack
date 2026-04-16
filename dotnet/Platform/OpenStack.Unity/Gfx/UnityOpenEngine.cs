@@ -41,14 +41,14 @@ public class UnityOpenEngine : IDisposable {
         //if (!TesGame.instance.WaterBackSideTransparent)
         //{
         //    var side = Water.transform.GetChild(0);
-        //    var sideMaterial = side.GetComponent<Renderer>().sharedMaterial;
-        //    sideMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-        //    sideMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-        //    sideMaterial.SetInt("_ZWrite", 1);
-        //    sideMaterial.DisableKeyword("_ALPHATEST_ON");
-        //    sideMaterial.DisableKeyword("_ALPHABLEND_ON");
-        //    sideMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        //    sideMaterial.renderQueue = -1;
+        //    var m = side.GetComponent<Renderer>().sharedMaterial;
+        //    m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+        //    m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+        //    m.SetInt("_ZWrite", 1);
+        //    m.DisableKeyword("_ALPHATEST_ON");
+        //    m.DisableKeyword("_ALPHABLEND_ON");
+        //    m.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        //    m.renderQueue = -1;
         //}
 
         //Cursor.SetCursor(Asset.LoadTexture("tx_cursor", 1), Vector2.zero, CursorMode.Auto);
@@ -98,7 +98,7 @@ public class UnityOpenEngine : IDisposable {
         Debug.Assert(CurrentCell != null);
         CreatePlayer(playerPrefab, position, out PlayerCamera);
         if (update) {
-            CellManager.UpdateCells(PlayerCamera.transform.position, CurrentWorld, true, CellRadiusOnLoad);
+            CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), CurrentWorld, true, CellRadiusOnLoad);
             OnExteriorCell(CurrentCell);
         }
         else {

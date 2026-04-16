@@ -571,12 +571,20 @@ public interface IModelApi<Object, Material> {
 
 #region OpenGfx
 
+public enum AttachObjectMethod {
+    Find,
+    Transform,
+    All,
+    AllCenter,
+}
+
 /// <summary>
 /// IOpenGfx
 /// </summary>
 public interface IOpenGfx {
     Task<T> GetAsset<T>(object path);
     void PreloadObject(object path);
+    void AttachObject(AttachObjectMethod method, params object[] args);
 }
 
 /// <summary>
@@ -592,7 +600,7 @@ public interface IOpenGfxSprite : IOpenGfx {
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
     SpriteManager<Sprite> SpriteManager { get; }
     ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
-    Object CreateAsset(object path);
+    Object CreateObject(object path);
 }
 
 /// <summary>

@@ -180,6 +180,7 @@ public class TestGfxSprite(ISource source) : IOpenGfxSprite {
     public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void PreloadSprite(object path) => throw new NotSupportedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
+    public void AttachObject(AttachObjectMethod method, params object[] args) => throw new NotSupportedException();
 }
 
 public class TestGfxModel(ISource source) : IOpenGfxModel {
@@ -188,6 +189,7 @@ public class TestGfxModel(ISource source) : IOpenGfxModel {
     public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void PreloadTexture(object path) => throw new NotSupportedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
+    public void AttachObject(AttachObjectMethod method, params object[] args) => throw new NotSupportedException();
 }
 
 public class TestSfx(ISource source) : IOpenSfx {

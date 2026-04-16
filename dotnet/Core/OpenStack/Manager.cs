@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using static OpenStack.CellManager;
 
@@ -19,14 +20,14 @@ public interface IDatabase {
 
 #region CellManager
 
-public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICellRecord, ILandRecord, object, object, IEnumerator> coroutine) {
+public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) {
     const int DefaultRadius = 4;
     const int DetailRadius = 3;
 
-    public class Cell(object cellObj, object contObj, ICellRecord record, IEnumerator task) {
+    public class Cell(object cellObj, object contObj, ICell record, IEnumerator task) {
         public object CellObj = cellObj;
         public object ContObj = contObj;
-        public ICellRecord Record = record;
+        public ICell Record = record;
         public IEnumerator Task = task;
     }
 
@@ -36,33 +37,40 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         public string ModelPath;
     }
 
-    public interface ICellRecord {
+    public interface ICell {
+        uint Id { get; }
         bool IsInterior { get; }
         Int3 GridId { get; }
         string EDID { get; }
     }
-    public interface ILandRecord {
-        string VTEX { get;}
-    }
-    public interface ILightRecord { }
 
-    public interface IQuery : IDisposable {
-        //const float PointFactor = 0.5f;
-        //public Int3 GetPoint(Vector3 point, int world) => new((int)Math.Floor(point.X / PointFactor), (int)Math.Floor(point.Z / PointFactor), world);
+    public interface ILand {
+        Int3 GridId { get; }
+        ushort[] VTEX { get; }
+    }
+
+    public interface ILtex {
+        long INTV { get; }
+        string ICON { get; }
+    }
+
+    public interface ILigh { }
+
+    public interface IQuery {
         Int3 GetCellId(Vector3 point, int world);
-        ICellRecord FindCell(Int3 cell);
-        ICellRecord FindCellByName(string name, int id, int world);
-        ILandRecord FindLand(Int3 cell);
+        ICell FindCell(Int3 cell);
+        ICell FindCellByName(string name, int id, int world);
+        ILand FindLand(Int3 cell);
+        ILtex FindLtex(int index);
     }
 
     public IQuery Query = query;
     public CoroutineQueue Queue = queue;
-    public Func<ICellRecord, ILandRecord, object, object, IEnumerator> Coroutine = coroutine;
+    public Func<ICell, ILand, object, object, IEnumerator> TaskFunc = taskFunc;
     public Dictionary<Int3, Cell> Cells = [];
 
     public abstract (object, object) GfxCreateContainers(string name);
     public abstract void GfxSetVisible(object container, bool visible);
-    //public abstract (object, object) GfxCreateObject(string name); // CreateObject(r.ModelPath); modelObj.transform.parent = parent.transform;
 
     //: StartCreatingCell
     public Cell BeginCell(Int3 point) {
@@ -108,14 +116,14 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     }
 
     //: StartInstantiatingCell
-    Cell BuildCell(ICellRecord cell) {
+    Cell BuildCell(ICell cell) {
         Debug.Assert(cell != null);
         string cellName;
-        ILandRecord land = null;
+        ILand land = null;
         if (!cell.IsInterior) { cellName = $"cell {cell.GridId}"; land = Query.FindLand(cell.GridId); }
         else cellName = cell.EDID;
         var (contObj, cellObj) = GfxCreateContainers(cellName);
-        var task = Coroutine(cell, land, contObj, cellObj);
+        var task = TaskFunc(cell, land, contObj, cellObj);
         Queue.Add(task);
         return new Cell(contObj, cellObj, cell, task);
     }
@@ -133,13 +141,15 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
 
 public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBase, Shader> {
     const string DefaultLandTexturePath = "textures/_land_default.dds";
-    IOpenGfxModel<Object, MaterialBuilderBase, TextureBuilderBase, Shader> GfxModel;
-    public IQuery Query;
+    protected IOpenGfxModel<Object, MaterialBuilderBase, TextureBuilderBase, Shader> GfxModel;
+    protected IQuery Query;
+
+    protected abstract object GfxCreateLight(ILigh light, bool indoors);
 
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
     /// </summary>
-    IEnumerator CellCoroutine(ICellRecord cell, ILandRecord land, object contObj, object cellObj) {
+    IEnumerator CellCoroutine(ICell cell, ILand land, object contObj, object cellObj) {
         // Start pre-loading all required textures for the terrain.
         if (land != null) {
             var landTextures = GetLandTextures(land);
@@ -149,8 +159,7 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         }
 
         // Extract information about referenced objects.
-        var refs = GetCellRefs(cell);
-        yield return null;
+        var refs = GetCellRefs(cell); yield return null;
 
         // Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
         foreach (var r in refs) if (r.ModelPath != null) GfxModel.PreloadObject(r.ModelPath);
@@ -164,13 +173,10 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         }
 
         // Instantiate objects.
-        foreach (var refCellObjInfo in refs) {
-            CellObject(cell, contObj, refCellObjInfo);
-            yield return null;
-        }
+        foreach (var r in refs) { CellObject(cell, contObj, r); yield return null; }
     }
 
-    CellRef[] GetCellRefs(ICellRecord cell) {
+    CellRef[] GetCellRefs(ICell cell) {
         return [];
 
         //if (_data.Format != GameFormatId.TES3) return [];
@@ -194,90 +200,52 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     /// <summary>
     /// Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     /// </summary>
-    void CellObject(ICellRecord cell, object parent, CellRef r) {
+    void CellObject(ICell cell, object parent, CellRef r) {
         if (r.Record == null) { Log.Info("Unknown Object: ((CELLRecord.RefObj)r.Obj).EDID"); return; }
         object modelObj = null;
         // If the object has a model, instantiate it.
-        if (r.ModelPath != null) {
-            modelObj = GfxModel.CreateObject(r.ModelPath, parent);
-            PostCellObject(modelObj, r);
-        }
+        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath, parent); PostCellObject(modelObj, r); }
         // If the object has a light, instantiate it.
-        if (r.Record is ILightRecord) {
-            var lightObj = GfxCreateLight((ILightRecord)r.Record, cell.IsInterior);
+        if (r.Record is ILigh record) {
+            var lightObj = GfxCreateLight(record, cell.IsInterior);
             // If the object also has a model, parent the model to the light.
-            //    if (modelObj != null) {
-            //        // Some NIF files have nodes named "AttachLight". Parent it to the light if it exists.
-            //        var attachLightObj = GameObjectUtils.FindChildRecursively(modelObj, "AttachLight");
-            //        if (attachLightObj == null) {
-            //            //attachLightObj = GameObjectUtils.FindChildWithNameSubstringRecursively(modelObj, "Emitter");
-            //            attachLightObj = modelObj;
-            //        }
-            //        if (attachLightObj != null) {
-            //            lightObj.transform.position = attachLightObj.transform.position;
-            //            lightObj.transform.rotation = attachLightObj.transform.rotation;
-            //            lightObj.transform.parent = attachLightObj.transform;
-            //        }
-            //        else // If there is no "AttachLight", center the light in the model's bounds.
-            //        {
-            //            lightObj.transform.position = GameObjectUtils.CalcVisualBoundsRecursive(modelObj).center;
-            //            lightObj.transform.rotation = modelObj.transform.rotation;
-            //            lightObj.transform.parent = modelObj.transform;
-            //        }
-            //    }
-            //    else // If the light has no associated model, instantiate the light as a standalone object.
-            //    {
-            //        PostCellObject(lightObj, r);
-            //        lightObj.transform.parent = parent.transform;
-            //    }
-            //}
+            if (modelObj != null) GfxModel.AttachObject(AttachObjectMethod.Find, lightObj, modelObj, "AttachLight");
+            // If the light has no associated model, instantiate the light as a standalone object.
+            else { PostCellObject(lightObj, r); GfxModel.AttachObject(AttachObjectMethod.Transform, lightObj, parent); }
         }
     }
 
-    object GfxCreateLight(ILightRecord light, bool indoors) {
-        return null;
-        ////var game = TesSettings.Game;
-        //var lightObj = new GameObject("GfxCreateLight") { isStatic = true };
-        //var lightComponent = lightObj.AddComponent<Light>();
-        //lightComponent.range = 3 * (light.DATA.Radius / ConvertUtils.MeterInUnits);
-        //lightComponent.color = light.DATA.LightColor.ToColor32();
-        //lightComponent.intensity = 1.5f;
-        //lightComponent.bounceIntensity = 0f;
-        //lightComponent.shadows = game.RenderLightShadows ? LightShadows.Soft : LightShadows.None;
-        //if (!indoors && !game.RenderExteriorCellLights) // disabling exterior cell lights because there is no day/night cycle
-        //    lightComponent.enabled = false;
-        //return lightObj;
-    }
+    
 
     /// <summary>
     /// Finishes initializing an instantiated cell object.
     /// </summary>
     protected void PostCellObject(object gameObject, CellRef r) {
-    //    var refObj = (CELLRecord.RefObj)refCellObjInfo.RefObj;
-    //    // Handle object transforms.
-    //    if (refObj.XSCL != null) gameObject.transform.localScale = Vector3.one * refObj.XSCL.Value.Value;
-    //    gameObject.transform.position += NifUtils.NifPointToUnityPoint(refObj.DATA.Position.ToVector3());
-    //    gameObject.transform.rotation *= NifUtils.NifEulerAnglesToUnityQuaternion(refObj.DATA.EulerAngles.ToVector3());
-    //    var tagTarget = gameObject;
-    //    var coll = gameObject.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
-    //    if (coll != null) tagTarget = coll.gameObject;
-    //    ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
-    //    ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
-    //    ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
-    //    ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
-    //    ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
-    //    ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
-    //    ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
-    //    ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
-    //    ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
-    //    ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
-    //    ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
-    //    ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
-    //    ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
-    //    ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
-    //    ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
-    //    ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
-    //    ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
+        //    var refObj = (CELLRecord.RefObj)refCellObjInfo.RefObj;
+        //    // Handle object transforms.
+        //    if (refObj.XSCL != null) gameObject.transform.localScale = Vector3.one * refObj.XSCL.Value.Value;
+        //    gameObject.transform.position += NifUtils.NifPointToUnityPoint(refObj.DATA.Position.ToVector3());
+        //    gameObject.transform.rotation *= NifUtils.NifEulerAnglesToUnityQuaternion(refObj.DATA.EulerAngles.ToVector3());
+        //    var tagTarget = gameObject;
+        //    var coll = gameObject.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
+        //    if (coll != null) tagTarget = coll.gameObject;
+        //    ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
+        //    ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
+        //    ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
+        //    ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
+        //    ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
+        //    ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
+        //    ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
+        //    ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
+        //    ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
+        //    ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
+        //    ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
+        //    ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
+        //    ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
+        //    ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
+        //    ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
+        //    ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
+        //    ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
     }
 
     //void ProcessObjectType<RecordType>(GameObject gameObject, RefCellObjInfo info, string tag) where RecordType : Record {
@@ -292,25 +260,25 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     //    }
     //}
 
-    List<string> GetLandTextures(ILandRecord land) {
+    List<string> GetLandTextures(ILand land) {
         // Don't return anything if the LAND doesn't have height data or texture data.
         if (land.VTEX == null) return null;
         var textureFilePaths = new List<string>();
-        //var distinctTextureIndices = land.VTEX.TextureIndicesT3.Distinct().ToList();
-        //for (var i = 0; i < distinctTextureIndices.Count; i++) {
-        //    var textureIndex = ((short)distinctTextureIndices[i] - 1);
-        //    if (textureIndex < 0) { textureFilePaths.Add(DefaultLandTexturePath); continue; }
-        //    var ltex = Query.FindLTEXRecord(textureIndex);
-        //    var textureFilePath = ltex.ICON.Value;
-        //    textureFilePaths.Add(textureFilePath);
-        //}
+        var indices = land.VTEX.Distinct().ToList();
+        for (var i = 0; i < indices.Count; i++) {
+            var textureIndex = ((short)indices[i] - 1);
+            if (textureIndex < 0) { textureFilePaths.Add(DefaultLandTexturePath); continue; }
+            var ltex = Query.FindLtex(textureIndex);
+            var textureFilePath = ltex.ICON;
+            textureFilePaths.Add(textureFilePath);
+        }
         return textureFilePaths;
     }
 
     /// <summary>
     /// Creates terrain representing a LAND record.
     /// </summary>
-    IEnumerator LandCoroutine(ILandRecord land, object parent) {
+    IEnumerator LandCoroutine(ILand land, object parent) {
         //    Debug.Assert(land != null);
         //    // Don't create anything if the LAND doesn't have height data.
         //    if (land.VHGT.HeightData == null) yield break;
