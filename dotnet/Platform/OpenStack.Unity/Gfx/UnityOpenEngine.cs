@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using static OpenStack.CellManager;
 
 namespace OpenStack.Gfx.Unity;
 
@@ -13,12 +14,12 @@ public class UnityOpenEngine : IDisposable {
     static Color DefaultAmbientColor = new(137, 140, 160, 255);
     public static UnityOpenEngine Current;
 
-    readonly CellManager.IQuery Query;
+    readonly IQuery Query;
     readonly CellManager CellManager;
     readonly CoroutineQueue Queue = new();
     readonly GameObject SunObj;
 
-    public UnityOpenEngine(Func<CellManager.IQuery, CoroutineQueue, CellManager> manager, CellManager.IQuery query, bool sunCycle = false) {
+    public UnityOpenEngine(Func<IQuery, CoroutineQueue, CellManager> manager, IQuery query, bool sunCycle = false) {
         if (manager == null) throw new ArgumentNullException(nameof(manager));
         Query = query ?? throw new ArgumentNullException(nameof(Query));
         CellManager = manager(Query, Queue) ?? throw new ArgumentNullException(nameof(manager));
@@ -66,7 +67,7 @@ public class UnityOpenEngine : IDisposable {
     #region Player Spawn
 
     protected int CurrentWorld;
-    protected CellManager.ICellRecord CurrentCell;
+    protected ICellRecord CurrentCell;
     protected Transform PlayerTransform;
     protected PlayerComponent PlayerComponent;
     protected GameObject PlayerCamera;
@@ -93,12 +94,12 @@ public class UnityOpenEngine : IDisposable {
     /// <param name="playerPrefab">The player prefab.</param>
     /// <param name="position">The target position of the player.</param>
     public void SpawnPlayer(GameObject playerPrefab, Vector3 position, bool update = false) {
-        var cellId = Query.GetCellId(position, CurrentWorld);
-        CurrentCell = Query.FindCellRecord(cellId);
+        var cellId = Query.GetCellId(position.FromUnity(), CurrentWorld);
+        CurrentCell = Query.FindCell(cellId);
         Debug.Assert(CurrentCell != null);
         CreatePlayer(playerPrefab, position, out PlayerCamera);
         if (update) {
-            CellManager.UpdateCells(PlayerCamera.transform.position, CurrentWorld, true, CellRadiusOnLoad);
+            CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), CurrentWorld, true, CellRadiusOnLoad);
             OnExteriorCell(CurrentCell);
         }
         else {
@@ -109,7 +110,7 @@ public class UnityOpenEngine : IDisposable {
         }
     }
 
-    protected virtual void OnExteriorCell(object cell) {
+    protected virtual void OnExteriorCell(ICellRecord cell) {
         RenderSettings.ambientLight = DefaultAmbientColor;
         SunObj.SetActive(true);
         //Water.transform.position = Vector3.zero;
@@ -118,8 +119,8 @@ public class UnityOpenEngine : IDisposable {
         //UnderwaterEffect.Level = 0.0f;
     }
 
-    protected virtual void OnInteriorCell(object cell) {
-        if (cell.AmbientLight != null) RenderSettings.ambientLight = cell.AmbientLight;
+    protected virtual void OnInteriorCell(ICellRecord cell) {
+        if (cell.AmbientLight != null) RenderSettings.ambientLight = cell.AmbientLight.Value.ToUnity();
         SunObj.SetActive(false);
         //UnderwaterEffect.enabled = cell.WHGT != null;
         //if (cell.WHGT != null)

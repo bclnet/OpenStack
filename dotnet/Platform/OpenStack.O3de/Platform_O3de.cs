@@ -1,15 +1,26 @@
-﻿using OpenStack.Gfx;
+﻿using OpenStack.Client;
+using OpenStack.Gfx;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-#pragma warning disable CS0649
+#pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack;
 
-#region OpenGfx
+#region Client
+
+public class O3deClientHost : IClientHost {
+    public void Dispose() => throw new NotImplementedException();
+    public void Run() => throw new NotImplementedException();
+}
+
+
+#endregion
+
+#region Platform
 
 // O3deGfxSprite3D
 public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {

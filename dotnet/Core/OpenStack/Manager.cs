@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Numerics;
 using static OpenStack.CellManager;
 
@@ -19,7 +20,7 @@ public interface IDatabase {
 
 #region CellManager
 
-public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICellRecord, ILandRecord, object, object, IEnumerator> coroutine) {
+public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICellRecord, ILandRecord, object, object, IEnumerator> taskFunc) {
     const int DefaultRadius = 4;
     const int DetailRadius = 3;
 
@@ -40,9 +41,10 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         bool IsInterior { get; }
         Int3 GridId { get; }
         string EDID { get; }
+        Color? AmbientLight { get; }
     }
     public interface ILandRecord {
-        string VTEX { get;}
+        object VTEX { get;}
     }
     public interface ILightRecord { }
 
@@ -57,7 +59,7 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
 
     public IQuery Query = query;
     public CoroutineQueue Queue = queue;
-    public Func<ICellRecord, ILandRecord, object, object, IEnumerator> Coroutine = coroutine;
+    public Func<ICellRecord, ILandRecord, object, object, IEnumerator> TaskFunc = taskFunc;
     public Dictionary<Int3, Cell> Cells = [];
 
     public abstract (object, object) GfxCreateContainers(string name);
@@ -115,7 +117,7 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         if (!cell.IsInterior) { cellName = $"cell {cell.GridId}"; land = Query.FindLand(cell.GridId); }
         else cellName = cell.EDID;
         var (contObj, cellObj) = GfxCreateContainers(cellName);
-        var task = Coroutine(cell, land, contObj, cellObj);
+        var task = TaskFunc(cell, land, contObj, cellObj);
         Queue.Add(task);
         return new Cell(contObj, cellObj, cell, task);
     }

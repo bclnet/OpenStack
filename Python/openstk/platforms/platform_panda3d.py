@@ -1,9 +1,18 @@
 from __future__ import annotations
 import os, io, numpy as np
+from openstk import Platform
 from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
-from openstk.platforms import Platform, SystemSfx
+from openstk.platforms.platform_system import SystemSfx
 
-#region OpenGfx
+#region Client
+
+# Panda3dClientHost
+class Panda3dClientHost(IClientHost):
+    def __init__(self, client: callable): pass
+
+#endregion
+
+#region Platform
 
 # Panda3dObjectModelBuilder
 class Panda3dObjectModelBuilder(ObjectModelBuilderBase):

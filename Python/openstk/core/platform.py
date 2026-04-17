@@ -2,27 +2,8 @@ from __future__ import annotations
 import os, sys
 from enum import Enum
 from openstk import ISource, decodePath, YamlDict
-
-#region FileSystem
-
-# IFileSystem
-class IFileSystem:
-    def glob(self, path: str, searchPattern: str) -> list[str]: pass
-    def fileExists(self, path: str) -> bool: pass
-    def fileInfo(self, path: str) -> (str, int): pass
-    def openReader(self, path: str, mode: str = 'rb') -> BinaryReader: pass
-    # def openWriter(self, path: str, mode: str = 'rb') -> Writer: pass
-    def findPaths(self, path: str, searchPattern: str) -> str:
-        if (expandStartIdx := searchPattern.find('(')) != -1 and \
-            (expandMidIdx := searchPattern.find(':', expandStartIdx)) != -1 and \
-            (expandEndIdx := searchPattern.find(')', expandMidIdx)) != -1 and \
-            expandStartIdx < expandEndIdx:
-            for expand in searchPattern[expandStartIdx + 1: expandEndIdx].split(':'):
-                for found in self.findPaths(path, searchPattern[:expandStartIdx] + expand + searchPattern[expandEndIdx+1:]): yield found
-            return
-        for path in self.glob(path, searchPattern): yield path
-
-#endregion
+from openstk.platforms.platform_test import TestPlatform
+from openstk.platforms.platform_unknown import UnknownPlatform
 
 #region Platform
 
@@ -38,11 +19,6 @@ class Platform:
     def __init__(self, id: str, name: str): self.id = id; self.name = name
     def activate(self) -> None: pass
     def deactivate(self) -> None: pass
-
-# UnknownPlatform
-class UnknownPlatform(Platform):
-    def __init__(self): super().__init__('UK', 'Unknown')
-UnknownPlatform.This = UnknownPlatform()
 
 # PlatformX
 class PlatformX:
@@ -92,39 +68,6 @@ class PlatformX:
     applicationPath = os.getcwd()
     options = YamlDict('~/.gamex.yaml')
     current: Platform = None
-
-#endregion
-
-#region Test Platform
-
-# TestGfxSprite
-class TestGfxSprite:
-    source: object
-    def __init__(self, source): self.source = source
-    def loadFileObject(self, type: type, path: object): raise NotImplementedError()
-    def preloadSprite(self, path: object) -> None: raise NotImplementedError()
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
-
-# TestGfxModel
-class TestGfxModel:
-    source: object
-    def __init__(self, source): self.source = source
-    def loadFileObject(self, type: type, path: object): raise NotImplementedError()
-    def preloadTexture(self, path: object) -> None: raise NotImplementedError()
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
-
-# TestSfx
-class TestSfx:
-    source: object
-    def __init__(self, source): self.source = source
-
-# TestPlatform
-class TestPlatform(Platform):
-    def __init__(self):
-        super().__init__('TT', 'Test')
-        self.gfxFactory = staticmethod(lambda source: [TestGfxSprite(source), TestGfxSprite(source), TestGfxModel(source)])
-        self.sfxFactory = staticmethod(lambda source: [TestSfx(source)])
-TestPlatform.This = TestPlatform()
 
 #endregion
 

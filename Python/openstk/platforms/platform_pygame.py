@@ -1,12 +1,22 @@
 from __future__ import annotations
 import os, io, numpy as np
+from openstk import Platform
 from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
-from openstk.platforms import Platform, SystemSfx
+from openstk.platforms.platform_system import SystemSfx
+from openstk.client import IClientHost
 
 # typedefs
 class ISource: pass
 
-#region OpenGfx
+#region Client
+
+# PygameClientHost
+class PygameClientHost(IClientHost):
+    def __init__(self, client: callable): pass
+
+#endregion
+
+#region Platform
 
 # PygameObjectModelBuilder
 class PygameObjectModelBuilder(ObjectModelBuilderBase):

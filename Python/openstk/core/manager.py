@@ -1,53 +1,60 @@
 from __future__ import annotations
 import os, math
-from openstk import CoroutineQueue
-from openstk.core.drawing import Point3D
+from openstk import Int3, CoroutineQueue
+# from openstk.sys.drawing import Point3D
+
+# IDatabase
+class IDatabase:
+    def convert(self, source: object) -> object: pass
+    def query(self, source: object) -> list[object]: pass
 
 # CellManager
 class CellManager:
-    pointFactor: float = .5
     cellRadius: int = 1 #4
     detailRadius: int = 1 #3
-    defaultLandTexturePath: str = 'textures/_land_default.dds'
+
+
 
     class Cell:
-        def __init__(self, obj: object, container: object, record: object, action: Enumerator):
-            self.obj = obj
-            self.container = container
+        def __init__(self, cellObj: object, contObj: object, record: ICellRecord, task: Enumerator):
+            self.cellObj = obj
+            self.contObj = container
             self.record = record
-            self.action = action
-        def setVisible(self, visible: bool):
-            pass
-            # if visible:
-            #     if not self.container.activeSelf: self.container.SetActive(True)
-            # else:
-            #     if self.container.activeSelf: self.container.setActive(False)
+            self.task = action
 
-    class Reference:
-        def __init__(self, obj: object, record: object, path: str):
+    class CellRef:
+        def __init__(self, obj: object, record: object, modelPath: str):
             self.obj = obj
             self.record = record
-            self.path = path
+            self.modelPath = modelPath
 
-    def __init__(self, archive: Archive, queue: CoroutineQueue):
+    class ICellRecord:
+        isInterior: bool
+        gridId: Int3
+        edid: str
+        ambientLight: Color
+
+
+    (IQuery query, CoroutineQueue queue, Func<ICellRecord, ILandRecord, object, object, IEnumerator> coroutine)
+    def __init__(self, query: IQuery, queue: CoroutineQueue, :
         self.archive = archive
         self.queue = queue
         self.cells: dict[int, Cell] = {}
 
-        def getPoint(self, position: Vector3, world: int = -1) -> Point3D: return Point3D(position.x // CellManager.pointFactor), position.z // CellManager.pointFactor, world)
+        # def getPoint(self, position: Vector3, world: int = -1) -> Int3: return Int3(position.x // CellManager.pointFactor, position.z // CellManager.pointFactor, world)
 
-        def beginCell(self, point: Point3D) -> Cell:
+        def beginCell(self, point: Int3) -> Cell:
             record = self.data.findCellRecord(point)
             if not record: return None
             cell = self.buildCell(record)
-            self.cells[point if point.z != -1 else Point3D.zero] = cell
+            self.cells[point if point.z != -1 else Int3.zero] = cell
             return cell
 
         def beginCellByName(self, name: str, id: int, world: int = -1) -> Cell:
             record = self.data.findCellRecordByName(name, id, world)
             if not record: return None
             cell = self.buildCell(record)
-            self.cells[Point3D.zero] = cell
+            self.cells[Int3.zero] = cell
             return cell
         
         def updateCells(self, position: Vector3, world: int = -1, immediate: bool = False, radius: int = -1) -> None:
@@ -65,7 +72,7 @@ class CellManager:
             for r in range(radius + 1):
                 for s in range(minX, maxX + 1):
                     for y in range(minY, maxY + 1):
-                        p = Point3D(s, y, world)
+                        p = Int3(s, y, world)
                         d = math.max(math.abs(point.x - p.x), math.abs(point.y - p.y))
                         if d == r and p not in self.cells:
                             cell = beginCell(p)
@@ -75,4 +82,20 @@ class CellManager:
             for p, cell in self.cells:
                 d = math.max(math.abs(point.x - p.x), math.abs(point.y - p.y))
                 cell.setVisible(d <= self.detailRadius)
-              
+
+
+        def setVisible(self, visible: bool):
+            pass
+            # if visible:
+            #     if not self.container.activeSelf: self.container.SetActive(True)
+            # else:
+            #     if self.container.activeSelf: self.container.setActive(False)
+
+
+class CellBuilder:
+    # pointFactor: float = .5
+    defaultLandTexturePath: str = 'textures/_land_default.dds'
+    gfxModel: IOpenGfxModel
+    query: IQuery
+
+    def __init__(self, obj: object, container: object, record: object, action: Enumerator):

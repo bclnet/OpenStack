@@ -24,7 +24,7 @@ public class Log {
 /// <param name="directory"></param>
 /// <param name="file"></param>
 public class LogFile(string directory, string file) : IDisposable {
-    readonly FileStream logStream = new        (
+    readonly FileStream logStream = new(
             $"{directory}/{DateTime.Now:yyyy-MM-dd_hh-mm-ss}_{file}",
             FileMode.Append,
             FileAccess.Write,

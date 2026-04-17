@@ -1,4 +1,5 @@
-﻿using OpenStack.Gfx;
+﻿using OpenStack.Client;
+using OpenStack.Gfx;
 using OpenStack.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -7,13 +8,23 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using static OpenStack.Gfx.TextureFormat;
-#pragma warning disable CS0649
+#pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack;
 
-#region OpenGfx
+#region Client
+
+public class OpenGLClientHost : IClientHost {
+    public void Dispose() => throw new NotImplementedException();
+    public void Run() => throw new NotImplementedException();
+}
+
+
+#endregion
+
+#region Platform
 
 /// <summary>
 /// OpenGLObjectBuilder

@@ -7,30 +7,69 @@ namespace OpenStack.Gfx.Unity;
 
 // UnityExtensions
 public static class UnityExtensions {
-    // NifUtils
+
+    /// <summary>
+    /// FromUnity
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static System.Numerics.Vector3 FromUnity(this Vector3 source) => new System.Numerics.Vector3(source.x, source.y, source.z);
+
+    /// <summary>
+    /// FromUnityX
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static System.Numerics.Vector3 FromUnityX(this Vector3 source) { MathX.Swap(ref source.y, ref source.z); return new System.Numerics.Vector3(source.x, source.y, source.z); }
+
     /// <summary>
     /// ToUnity
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static Vector3 ToUnity(this System.Numerics.Vector3 source) { MathX.Swap(ref source.Y, ref source.Z); return new Vector3(source.X, source.Y, source.Z); }
-    //public static Vector3 ToUnity(this System.Numerics.Vector3 source) => new(source.X, source.Z, source.Y);
+    public static Color ToUnity(this System.Drawing.Color source) => new(source.R, source.G, source.B, source.A);
+    /// <summary>
+    /// ToUnity
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static Vector3 ToUnity(this System.Numerics.Vector3 source) => new(source.X, source.Z, source.Y);
     /// <summary>
     /// ToUnity
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
     public static Quaternion ToUnity(this System.Numerics.Quaternion source) => new(source.X, source.Y, source.Z, source.W);
+
+    /// <summary>
+    /// ToUnityX
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static Vector3 ToUnityX(this System.Numerics.Vector3 source) { MathX.Swap(ref source.Y, ref source.Z); return new Vector3(source.X, source.Y, source.Z); }
+
     /// <summary>
     /// ToUnityRotation
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
     public static Matrix4x4 ToUnityRotation(this System.Numerics.Matrix4x4 source) => new() {
-        m00 = source.M11, m01 = source.M13, m02 = source.M12, m03 = 0,
-        m10 = source.M31, m11 = source.M33, m12 = source.M32, m13 = 0,
-        m20 = source.M21, m21 = source.M23, m22 = source.M22, m23 = 0,
-        m30 = 0, m31 = 0, m32 = 0, m33 = 1
+        m00 = source.M11,
+        m01 = source.M13,
+        m02 = source.M12,
+        m03 = 0,
+        m10 = source.M31,
+        m11 = source.M33,
+        m12 = source.M32,
+        m13 = 0,
+        m20 = source.M21,
+        m21 = source.M23,
+        m22 = source.M22,
+        m23 = 0,
+        m30 = 0,
+        m31 = 0,
+        m32 = 0,
+        m33 = 1
     };
 
     /// <summary>
@@ -51,9 +90,9 @@ public static class UnityExtensions {
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static Quaternion ToUnityQuaternionAsEulerAngles(this System.Numerics.Vector3 source) // NifEulerAnglesToUnityQuaternion
+    public static Quaternion ToUnityQuaternionAsEulerAnglesX(this System.Numerics.Vector3 source) // NifEulerAnglesToUnityQuaternion
     {
-        var newAngles = source.ToUnity();
+        var newAngles = source.ToUnityX();
         return Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.x, Vector3.right) *
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.y, Vector3.up) *
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.z, Vector3.forward);

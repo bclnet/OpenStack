@@ -1,4 +1,5 @@
 ﻿using Godot;
+using OpenStack.Client;
 using OpenStack.Gfx;
 using OpenStack.Gfx.Godot;
 using System;
@@ -6,13 +7,22 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using XShader = Godot.Shader;
-#pragma warning disable CS0649
+#pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack;
 
-#region OpenGfx
+#region Client
+
+public class GodotClientHost : IClientHost {
+    public void Dispose() => throw new NotImplementedException();
+    public void Run() => throw new NotImplementedException();
+}
+
+#endregion
+
+#region Platform
 
 // GodotObjectBuilder : MISSING
 

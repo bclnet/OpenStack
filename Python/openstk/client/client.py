@@ -84,5 +84,3 @@ class SceneBase:
     def onTextInput(self, text: str) -> None: pass
     # def onKeyDown(self, e: object) -> None: pass
     # def onKeyUp(self, e: object) -> None: pass
-
-

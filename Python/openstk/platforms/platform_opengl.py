@@ -2,16 +2,26 @@ from __future__ import annotations
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
+from openstk import Platform
 from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.gfx.opengl import ShaderDebugLoader
 from openstk.gfx.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
-from openstk.platforms import Platform, SystemSfx
+from openstk.platforms.platform_system import SystemSfx
+from openstk.client import IClientHost
 
 # typedefs
 class Shader: pass
 class ISource: pass
 
-#region OpenGfx
+#region Client
+
+# OpenGLClientHost
+class OpenGLClientHost(IClientHost):
+    def __init__(self, client: callable): pass
+
+#endregion
+
+#region Platform
 
 # OpenGLObjectModelBuilder
 class OpenGLObjectModelBuilder(ObjectModelBuilderBase):

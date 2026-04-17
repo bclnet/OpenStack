@@ -2,7 +2,6 @@
 using System;
 using UnityEngine;
 using Image = UnityEngine.UIElements.Image;
-using UnityEngine.Windows;
 
 namespace OpenStack.Gfx.Unity.Components;
 
@@ -58,7 +57,7 @@ public class PlayerComponent : MonoBehaviour {
         }
     }
 
-    void Start() {
+    public void Start() {
         if (Camera.main == null) throw new InvalidOperationException("Camera.main missing");
         Transform = GetComponent<Transform>();
         CamTransform = Camera.main.GetComponent<Transform>();
@@ -69,26 +68,24 @@ public class PlayerComponent : MonoBehaviour {
         var camera = Camera.main;
         camera.renderingPath = RenderingPath.Forward; // game.RenderPath;
         camera.farClipPlane = 1.0f; // game.CameraFarClip;
-        Crosshair = FindObjectOfType<UICrosshairComponent>();
+        Crosshair = FindAnyObjectByType<UICrosshairComponent>();
     }
 
-    void Update() {
+    public void Update() {
         if (Paused) return;
         Rotate();
         if (InputManager.GetKeyDown(KeyCode.Tab)) IsFlying = !IsFlying;
-        if (IsGrounded && !IsFlying && InputManager.GetButtonDown("Jump")) { var newVelocity = Rigidbody.velocity; newVelocity.y = 5; UnityEngine.Rigidbody.velocity = newVelocity; }
+        if (IsGrounded && !IsFlying && InputManager.GetButtonDown("Jump")) { var newVelocity = Rigidbody.linearVelocity; newVelocity.y = 5; Rigidbody.linearVelocity = newVelocity; }
         if (InputManager.GetButtonDown("Light")) Lantern.enabled = !Lantern.enabled;
         //// clamp
         //var lastPostion = _transform.position;
         //if (lastPostion.y < 0) { lastPostion.y = 0; _transform.position = lastPostion; }
     }
 
-    void FixedUpdate() {
+    public void FixedUpdate() {
         IsGrounded = CalculateIsGrounded();
-        if (IsGrounded || IsFlying)
-            SetVelocity();
-        else if (!IsGrounded || !IsFlying)
-            ApplyAirborneForce();
+        if (IsGrounded || IsFlying) SetVelocity();
+        else if (!IsGrounded || !IsFlying) ApplyAirborneForce();
 
     }
 
@@ -100,8 +97,7 @@ public class PlayerComponent : MonoBehaviour {
         else if (InputManager.GetKeyDown(KeyCode.BackQuote)) { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
         var eulerAngles = new Vector3(CamTransform.localEulerAngles.x, Transform.localEulerAngles.y, 0);
         // Make eulerAngles.x range from -180 to 180 so we can clamp it between a negative and positive angle.
-        if (eulerAngles.x > 180)
-            eulerAngles.x = eulerAngles.x - 360;
+        if (eulerAngles.x > 180) eulerAngles.x -= 360;
         var deltaMouse = MouseSensitivity * (new Vector2(InputManager.GetAxis("Mouse X"), InputManager.GetAxis("Mouse Y")));
         eulerAngles.x = Mathf.Clamp(eulerAngles.x - deltaMouse.y, MinVerticalAngle, MaxVerticalAngle);
         eulerAngles.y = Mathf.Repeat(eulerAngles.y + deltaMouse.x, 360);
@@ -111,9 +107,9 @@ public class PlayerComponent : MonoBehaviour {
 
     void SetVelocity() {
         Vector3 velocity;
-        if (!IsFlying) { velocity = Transform.TransformVector(CalculateLocalVelocity()); velocity.y = Rigidbody.velocity.y; }
+        if (!IsFlying) { velocity = Transform.TransformVector(CalculateLocalVelocity()); velocity.y = Rigidbody.linearVelocity.y; }
         else velocity = CamTransform.TransformVector(CalculateLocalVelocity());
-        Rigidbody.velocity = velocity;
+        Rigidbody.linearVelocity = velocity;
     }
 
     void ApplyAirborneForce() {

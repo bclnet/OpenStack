@@ -1,4 +1,5 @@
-﻿using OpenStack.Gfx;
+﻿using OpenStack.Client;
+using OpenStack.Gfx;
 using Stride.Core.Diagnostics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -7,13 +8,22 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-#pragma warning disable CS0649
+#pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack;
 
-#region OpenGfx
+#region Client
+
+public class StrideClientHost : IClientHost {
+    public void Dispose() => throw new NotImplementedException();
+    public void Run() => throw new NotImplementedException();
+}
+
+#endregion
+
+#region Platform
 
 // StrideObjectBuilder : MISSING
 

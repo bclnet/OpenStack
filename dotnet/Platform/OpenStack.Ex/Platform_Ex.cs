@@ -1,14 +1,48 @@
-﻿using OpenStack.Gfx;
+﻿using EnginX;
+using OpenStack.Client;
+using OpenStack.Gfx;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-#pragma warning disable CS0649
+#pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack;
 
-#region OpenGfx
+#region Client
+
+public class ExClientHost : Game, IClientHost {
+    public ClientBase Client;
+    public SceneBase Scene;
+    public IPluginHost PluginHost;
+
+    public ExClientHost(Func<ClientBase> client) {
+        Client = client();
+        DeviceManager = new GraphicsDeviceManager(this);
+        //PluginHost = pluginHost; IPluginHost pluginHost, string title
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetScene<T>() where T : SceneBase => Scene as T;
+
+    public void SetScene(SceneBase scene) { Scene?.Dispose(); Scene = scene; Scene?.Load(); }
+
+    protected override async Task LoadContent() {
+        await base.LoadContent();
+        await Client.LoadContent();
+    }
+
+    protected override async Task UnloadContent() {
+        await Client.UnloadContent();
+        await base.UnloadContent();
+    }
+}
+
+
+#endregion
+
+#region Platform
 
 // ExObjectBuilder
 // MISSING

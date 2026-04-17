@@ -1,4 +1,5 @@
 ﻿using GameX.Gamebryo.Formats;
+using OpenStack.Client;
 using OpenStack.Gfx;
 using OpenStack.Gfx.Unity;
 using System;
@@ -10,13 +11,33 @@ using UnityEngine;
 using static OpenStack.Gfx.TextureFormat;
 using TextureFormat = UnityEngine.TextureFormat;
 using XShader = UnityEngine.Shader;
-#pragma warning disable CS0649
+#pragma warning disable CS0649, CS0169, CS8500
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
 namespace OpenStack;
 
-#region OpenGfx
+#region Client
+
+public class UnityClientHost : MonoBehaviour, IClientHost {
+    [field: SerializeField] public string Family { get; set; }
+    [field: SerializeField] public Uri Game { get; set; }
+
+    public void Dispose() {
+        throw new NotImplementedException();
+    }
+
+    public void Run() => throw new NotSupportedException();
+
+    public void SetClient(ClientBase client) {
+        throw new NotImplementedException();
+    }
+}
+
+
+#endregion
+
+#region Platform
 
 // UnityObjectModelBuilder
 class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {

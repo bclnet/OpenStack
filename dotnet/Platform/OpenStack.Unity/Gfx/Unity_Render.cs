@@ -107,10 +107,10 @@ public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
 
     public override void Start() {
         var path = Obj is string z ? z : null;
-        if (!string.IsNullOrEmpty(path)) MakeObject(path);
+        if (!string.IsNullOrEmpty(path)) MakeObject(path, null);
     }
 
-    void MakeObject(object path) => Gfx.ObjectManager.CreateObject(path);
+    void MakeObject(object path, object parent) => Gfx.ObjectManager.CreateObject(path, parent);
 }
 
 #endregion
