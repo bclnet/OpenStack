@@ -255,9 +255,10 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
     public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public object CreateAsset(object path) => throw new NotImplementedException();
+    public object CreateObject(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, params object[] args) => throw new NotImplementedException();
 }
 
 /// <summary>
@@ -290,6 +291,7 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, params object[] args) => throw new NotImplementedException();
 
     // cache
     QuadIndexBuffer _quadIndices;

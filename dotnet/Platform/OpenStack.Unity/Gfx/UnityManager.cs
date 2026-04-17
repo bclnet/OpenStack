@@ -23,6 +23,20 @@ public class UnityCellManager(IQuery query, CoroutineQueue queue, Func<ICellReco
 }
 
 public class UnityCellBuilder : CellBuilder<GameObject, object, object, Shader> {
+    const bool RenderLightShadows = false;
+    const bool RenderExteriorCellLights = false;
+
+    protected override object GfxCreateLight(ILightRecord light, bool indoors) {
+        var s = new GameObject("GfxCreateLight") { isStatic = true };
+        var c = s.AddComponent<Light>();
+        c.range = 3 * (light.DATA.Radius / ConvertUtils.MeterInUnits);
+        c.color = light.DATA.LightColor.ToColor32();
+        c.intensity = 1.5f;
+        c.bounceIntensity = 0f;
+        c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
+        if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
+        return s;
+    }
 }
 
 #endregion
