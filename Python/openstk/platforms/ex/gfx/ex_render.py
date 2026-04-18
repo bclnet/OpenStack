@@ -1,23 +1,23 @@
 from __future__ import annotations
 import os, numpy as np
-from panda3d.core import *
+from pyengine3d import *
 from openstk.gfx import Renderer
 
 # typedefs
-class Panda3dGfxModel: pass
+class ExGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region Panda3dTextureRenderer
+#region ExTextureRenderer
 
-# Panda3dTextureRenderer
-class Panda3dTextureRenderer(Renderer):
-    gfx: Panda3dGfxModel
+# ExTextureRenderer
+class ExTextureRenderer(Renderer):
+    gfx: ExGfxModel
     obj: object
     tex: int
     frameDelay: int = 0
 
-    def __init__(self, gfx: Panda3dGfxModel, obj: object):
+    def __init__(self, gfx: ExGfxModel, obj: object):
         self.gfx = gfx
         self.obj = obj
         # gfx.textureManager.deleteTexture(obj)
@@ -40,59 +40,59 @@ class Panda3dTextureRenderer(Renderer):
 
 #endregion
 
-#region Panda3dObjectRenderer
+#region ExObjectRenderer
 
-# Panda3dObjectRenderer
-class Panda3dObjectRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-#endregion
-
-#region Panda3dMaterialRenderer
-
-# Panda3dMaterialRenderer
-class Panda3dMaterialRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+# ExObjectRenderer
+class ExObjectRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dGridRenderer
+#region ExMaterialRenderer
 
-# Panda3dGridRenderer
-class Panda3dGridRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-#endregion
-
-#region Panda3dParticleRenderer
-
-# Panda3dParticleRenderer
-class Panda3dParticleRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+# ExMaterialRenderer
+class ExMaterialRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dCellRenderer
+#region ExGridRenderer
 
-# Panda3dCellRenderer
-class Panda3dCellRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-#endregion
-
-#region Panda3dWorldRenderer
-
-# Panda3dWorldRenderer
-class Panda3dWorldRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+# ExGridRenderer
+class ExGridRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dTestTriRenderer
+#region ExParticleRenderer
+
+# ExParticleRenderer
+class ExParticleRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
+
+#endregion
+
+#region ExCellRenderer
+
+# ExCellRenderer
+class ExCellRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
+
+#endregion
+
+#region ExWorldRenderer
+
+# ExWorldRenderer
+class ExWorldRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
+
+#endregion
+
+#region ExTestTriRenderer
 
 # OpenGLTestTriRenderer
-class Panda3dTestTriRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+class ExTestTriRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
 
     def start(self):
         scene = self.scene = base.loader.loadModel('models/environment')

@@ -1,79 +1,55 @@
 from __future__ import annotations
 import os, io, numpy as np
 from openstk.core import Platform
-from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
-from openstk.platforms.system import SystemSfx
 from openstk.client import IClientHost
-
-# typedefs
-class ISource: pass
+from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.platforms.system import SystemSfx
 
 #region Client
 
-# PygameClientHost
-class PygameClientHost(IClientHost):
+# Tiny3dClientHost
+class Tiny3dClientHost(IClientHost):
     def __init__(self, client: callable): pass
 
 #endregion
 
 #region Platform
 
-# PygameObjectModelBuilder
-class PygameObjectModelBuilder(ObjectModelBuilderBase):
+# Tiny3dObjectModelBuilder
+class Tiny3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
-# PygameShaderBuilder
-class PygameShaderBuilder(ShaderBuilderBase):
-    def createShader(self, path: object, args: dict[str, bool]) -> Shader: raise NotImplementedError()
+# Tiny3dShaderBuilder
+class Tiny3dShaderBuilder(ShaderBuilderBase):
+    _loader: ShaderLoader = None
+    def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
-# PygameTextureBuilder
-class PygameTextureBuilder(TextureBuilderBase):
-    _defaultTexture: int = -1
+# Tiny3dTextureBuilder
+class Tiny3dTextureBuilder(TextureBuilderBase):
+    _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> int:
-        if self._defaultTexture > -1: return self._defaultTexture
+        if self._defaultTexture: return self._defaultTexture
         self._defaultTexture = self._createDefaultTexture()
         return self._defaultTexture
 
     def release(self) -> None:
-        if self._defaultTexture > -1: glDeleteTexture(self._defaultTexture); self._defaultTexture = -1
+        if self._defaultTexture: self._defaultTexture.release(); self._defaultTexture = None
 
-    def _createDefaultTexture(self) -> int: return self.createSolidTexture(4, 4, np.array([
-        0.9, 0.2, 0.8, 1.0,
-        0.0, 0.9, 0.0, 1.0,
-        0.9, 0.2, 0.8, 1.0,
-        0.0, 0.9, 0.0, 1.0,
-
-        0.0, 0.9, 0.0, 1.0,
-        0.9, 0.2, 0.8, 1.0,
-        0.0, 0.9, 0.0, 1.0,
-        0.9, 0.2, 0.8, 1.0,
-
-        0.9, 0.2, 0.8, 1.0,
-        0.0, 0.9, 0.0, 1.0,
-        0.9, 0.2, 0.8, 1.0,
-        0.0, 0.9, 0.0, 1.0,
-
-        0.0, 0.9, 0.0, 1.0,
-        0.9, 0.2, 0.8, 1.0,
-        0.0, 0.9, 0.0, 1.0,
-        0.9, 0.2, 0.8, 1.0
-        ], dtype = np.float32))
+    def _createDefaultTexture(self) -> int: return base.loader.loadModel('maps/noise.rgb')
 
     def createTexture(self, reuse: int, source: ITexture, level2: range = None) -> int:
-        pass
+        try:
+            if not bytes: return self.defaultTexture
+            return base.loader.loadModel('maps/noise.rgb')
+        finally: source.end()
 
-    def createSolidTexture(self, width: int, height: int, pixels: np.array) -> int:
-        pass
+    def deleteTexture(self, texture: int) -> None: texture.release()
 
-    def createNormalMap(self, source: int, strength: float) -> int: raise NotImplementedError()
-
-    def deleteTexture(self, texture: int) -> None: pass
-
-# PygameMaterialBuilder
-class PygameMaterialBuilder(MaterialBuilderBase):
+# Tiny3dMaterialBuilder
+class Tiny3dMaterialBuilder(MaterialBuilderBase):
     _defaultMaterial: GLRenderMaterial
     @property
     def defaultMaterial(self) -> int:
@@ -117,22 +93,22 @@ class PygameMaterialBuilder(MaterialBuilderBase):
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')
 
-# PygameGfxModel
-class PygameGfxModel(IOpenGfxModel):
+# Tiny3dGfx
+class Tiny3dGfxModel(IOpenGfxModel):
     source: ISource
     textureManager: TextureManager
     materialManager: MaterialManager
     objectManager: ObjectModelManager
     shaderManager: ShaderManager
 
-    def __init__(self, source: PakFile):
+    def __init__(self, source: ISource):
         self.source = source
-        self.textureManager = TextureManager(source, PygameTextureBuilder())
-        self.materialManager = MaterialManager(source, self.textureManager, PygameMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectModelManager(source, self.materialManager, PygameObjectModelBuilder())
-        self.shaderManager = ShaderManager(source, PygameShaderBuilder())
+        self.textureManager = TextureManager(source, Tiny3dTextureBuilder())
+        self.materialManager = MaterialManager(source, self.textureManager, Tiny3dMaterialBuilder(self.textureManager))
+        self.objectManager = ObjectModelManager(source, self.materialManager, Tiny3dObjectModelBuilder())
+        self.shaderManager = ShaderManager(source, Tiny3dShaderBuilder())
 
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
@@ -140,12 +116,12 @@ class PygameGfxModel(IOpenGfxModel):
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
     def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
-# PygamePlatform
-class PygamePlatform(Platform):
+# Tiny3dPlatform
+class Tiny3dPlatform(Platform):
     def __init__(self):
-        super().__init__('PG', 'Pygame')
-        self.gfxFactory = staticmethod(lambda source: [None, None, PygameGfxModel(source)])
+        super().__init__('T3', 'Tiny3d')
+        self.gfxFactory = staticmethod(lambda source: [None, None, Tiny3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-PygamePlatform.This = PygamePlatform()
+Tiny3dPlatform.This = Tiny3dPlatform()
 
 #endregion

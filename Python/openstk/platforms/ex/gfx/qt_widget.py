@@ -3,9 +3,8 @@ from PyQt6.QtCore import Qt, QEvent, QTimer, QElapsedTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 from openstk.gfx import ITextureSelect, MouseState, KeyboardState
-# panda3d
-from panda3d.core import loadPrcFileData, WindowProperties #, FrameBufferProperties
-from direct.showbase.ShowBase import ShowBase
+# pyengine3d
+from pyengine3d import loadPrcFileData, WindowProperties #, FrameBufferProperties
 
 # typedefs
 class Renderer: pass
@@ -14,10 +13,9 @@ class Camera: pass
 class IOpenGfx: pass
 class IOpenSfx: pass
 
-#region Panda3dWidget
-# https://discourse.panda3d.org/t/panda-in-pyqt/3964/35?page=2
+#region ExWidget
 
-class Panda3dWidget(QWidget, ShowBase):
+class ExWidget(QWidget, ShowBase):
     renderer: Renderer = None
     id: int = 0
 

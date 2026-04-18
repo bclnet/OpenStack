@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 from datetime import timedelta
-from openstk.core import _throw, Stopwatch
+from openstk.core.util import _throw, Stopwatch
 
 # GraphicsDevice
 class GraphicsDevice: pass

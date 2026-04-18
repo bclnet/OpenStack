@@ -1,23 +1,23 @@
 from __future__ import annotations
 import os, numpy as np
-from panda3d.core import *
+from pyengine3d import *
 from openstk.gfx import Renderer
 
 # typedefs
-class Panda3dGfxModel: pass
+class Vanilla3dGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region Panda3dTextureRenderer
+#region Vanilla3dTextureRenderer
 
-# Panda3dTextureRenderer
-class Panda3dTextureRenderer(Renderer):
-    gfx: Panda3dGfxModel
+# Vanilla3dTextureRenderer
+class Vanilla3dTextureRenderer(Renderer):
+    gfx: Vanilla3dGfxModel
     obj: object
     tex: int
     frameDelay: int = 0
 
-    def __init__(self, gfx: Panda3dGfxModel, obj: object):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object):
         self.gfx = gfx
         self.obj = obj
         # gfx.textureManager.deleteTexture(obj)
@@ -40,59 +40,59 @@ class Panda3dTextureRenderer(Renderer):
 
 #endregion
 
-#region Panda3dObjectRenderer
+#region Vanilla3dObjectRenderer
 
-# Panda3dObjectRenderer
-class Panda3dObjectRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-#endregion
-
-#region Panda3dMaterialRenderer
-
-# Panda3dMaterialRenderer
-class Panda3dMaterialRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+# Vanilla3dObjectRenderer
+class Vanilla3dObjectRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dGridRenderer
+#region Vanilla3dMaterialRenderer
 
-# Panda3dGridRenderer
-class Panda3dGridRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-#endregion
-
-#region Panda3dParticleRenderer
-
-# Panda3dParticleRenderer
-class Panda3dParticleRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+# Vanilla3dMaterialRenderer
+class Vanilla3dMaterialRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dCellRenderer
+#region Vanilla3dGridRenderer
 
-# Panda3dCellRenderer
-class Panda3dCellRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-#endregion
-
-#region Panda3dWorldRenderer
-
-# Panda3dWorldRenderer
-class Panda3dWorldRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+# Vanilla3dGridRenderer
+class Vanilla3dGridRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dTestTriRenderer
+#region Vanilla3dParticleRenderer
+
+# Vanilla3dParticleRenderer
+class Vanilla3dParticleRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
+
+#endregion
+
+#region Vanilla3dCellRenderer
+
+# Vanilla3dCellRenderer
+class Vanilla3dCellRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
+
+#endregion
+
+#region Vanilla3dWorldRenderer
+
+# Vanilla3dWorldRenderer
+class Vanilla3dWorldRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
+
+#endregion
+
+#region Vanilla3dTestTriRenderer
 
 # OpenGLTestTriRenderer
-class Panda3dTestTriRenderer(Renderer):
-    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+class Vanilla3dTestTriRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
     def start(self):
         scene = self.scene = base.loader.loadModel('models/environment')

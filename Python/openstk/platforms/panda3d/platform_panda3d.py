@@ -1,8 +1,9 @@
 from __future__ import annotations
 import os, io, numpy as np
 from openstk.core import Platform
+from openstk.client import IClientHost
 from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
-from openstk.platforms.platform_system import SystemSfx
+from openstk.platforms.system import SystemSfx
 
 #region Client
 
@@ -110,12 +111,12 @@ class Panda3dGfxModel(IOpenGfxModel):
         self.objectManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
         self.shaderManager = ShaderManager(source, Panda3dShaderBuilder())
 
+    def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
 # Panda3dPlatform

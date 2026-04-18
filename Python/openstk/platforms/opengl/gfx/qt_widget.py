@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 from openstk.gfx import ITextureSelect, MouseState, KeyboardState
 # opengl
 from OpenGL.GL import *
-from openstk.gfx.qt_widget.opengl import QOpenGLWidget
+from openstk.platforms.opengl.gfx.qt_widgetbase import QOpenGLWidget
 
 # typedefs
 class Renderer: pass
@@ -27,17 +27,18 @@ class OpenGLWidget(QOpenGLWidget):
         super().__init__(interval)
         self.gfx: list[IOpenGfx] = parent.gfx
         self.sfx: list[IOpenSfx] = parent.sfx
+        self.source: object = tab
         self.path: object = parent.path
-        self.source: object = tab.value
+        self.value: object = tab.value
         self.type: str = tab.type
         
     def createRenderer(self) -> Renderer: pass
     
     def onSourceChanged(self) -> None:
-        if not self.gfx or not self.source or not self.type: return
+        if not self.gfx or not self.path or not self.value or not self.type: return
         self.renderer = self.createRenderer()
         if self.renderer: self.renderer.start()
-        if isinstance(self.source, ITextureSelect): self.source.select(self.id)
+        if isinstance(self.value, ITextureSelect): self.value.select(self.id)
 
     # Render
 

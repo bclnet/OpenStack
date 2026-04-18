@@ -70,8 +70,8 @@ class PlatformX:
 
 #endregion
 
-from openstk.platforms.platform_test import TestPlatform
-from openstk.platforms.platform_unknown import UnknownPlatform
+from openstk.platforms.test import TestPlatform
+from openstk.platforms.unknown import UnknownPlatform
 
 PlatformX.platforms = { UnknownPlatform.This }
 PlatformX.current = PlatformX.activate(TestPlatform.This if PlatformX.inTestHost else UnknownPlatform.This)

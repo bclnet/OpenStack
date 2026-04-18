@@ -249,12 +249,12 @@ class OpenGLGfxModel(IOpenGfxModel):
         self.shaderManager = ShaderManager(source, OpenGLShaderBuilder())
         self.meshBufferCache = GLMeshBufferCache()
 
+    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
     # cache

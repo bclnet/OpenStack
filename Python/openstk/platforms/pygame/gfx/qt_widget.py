@@ -31,8 +31,9 @@ class PygameWidget(QWidget):
         super().__init__()
         self.gfx: IOpenGfx = parent.gfx
         self.sfx: IOpenSfx = parent.sfx
+        self.source: object = tab
         self.path: object = parent.path
-        self.source: object = tab.value
+        self.value: object = tab.value
         self.type: str = tab.type
 
         # create a Pygame surface and pass it to a QWindow
@@ -75,10 +76,10 @@ class PygameWidget(QWidget):
     def createRenderer(self) -> Renderer: pass
     
     def onSourceChanged(self) -> None:
-        if not self.gfx or not self.source or not self.type: return
+        if not self.gfx or not self.path or not self.value or not self.type: return
         self.renderer = self.createRenderer()
         if self.renderer: self.renderer.start()
-        if isinstance(self.source, ITextureSelect): self.source.select(self.id)
+        if isinstance(self.value, ITextureSelect): self.value.select(self.id)
 
     # Render
 
