@@ -39,9 +39,10 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateAsset(object path) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // O3deGfxModel
@@ -66,12 +67,13 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public MaterialManager<object, object> MaterialManager => _materialManager;
     public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public ShaderManager<object> ShaderManager => _shaderManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // O3deSfx

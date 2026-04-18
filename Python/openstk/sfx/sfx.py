@@ -1,5 +1,5 @@
 import numpy as np
-from openstk import ISource
+from openstk.core import ISource
 
 # typedefs
 class Audio: pass

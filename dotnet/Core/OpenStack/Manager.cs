@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using static OpenStack.CellManager;
@@ -42,12 +43,12 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         bool IsInterior { get; }
         Int3 GridId { get; }
         string EDID { get; }
-		Color? AmbientLight { get; }
+        Color? AmbientLight { get; }
     }
 
     public interface ILand {
         Int3 GridId { get; }
-        ushort[] VTEX { get; }
+        object VTEX { get; }
     }
 
     public interface ILtex {
@@ -55,7 +56,10 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         string ICON { get; }
     }
 
-    public interface ILigh { }
+    public interface ILigh {
+        float Radius { get; }
+        Color LightColor { get; }
+    }
 
     public interface IQuery {
         Int3 GetCellId(Vector3 point, int world);
@@ -77,8 +81,7 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     public Cell BeginCell(Int3 point) {
         var record = Query.FindCell(point);
         if (record == null) return null;
-        var cell = BuildCell(record);
-        Cells[point.Z != -1 ? point : Int3.Zero] = cell;
+        var cell = BuildCell(record); Cells[point.Z != -1 ? point : Int3.Zero] = cell;
         return cell;
     }
 
@@ -87,8 +90,7 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         if (world != -1) throw new ArgumentOutOfRangeException("world");
         var record = Query.FindCellByName(name, id, world);
         if (record == null) return null;
-        var cell = BuildCell(record);
-        Cells[Int3.Zero] = cell;
+        var cell = BuildCell(record); Cells[Int3.Zero] = cell;
         return cell;
     }
 
@@ -100,16 +102,19 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
 
         // destroy out of range cells
         var outOfRange = new List<Int3>();
-        foreach (var s in Cells.Keys) if (s.X < minX || s.X > maxX || s.Y < minY || s.Y > maxY) outOfRange.Add(s);
+        foreach (var s in Cells.Keys)
+            if (s.X < minX || s.X > maxX || s.Y < minY || s.Y > maxY) outOfRange.Add(s);
         foreach (var s in outOfRange) DestroyCell(s);
 
         // create new cells
         for (var r = 0; r <= radius; r++)
             for (var x = minX; x <= maxX; x++)
                 for (var y = minY; y <= maxY; y++) {
-                    var p = new Int3(x, y, world);
-                    var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y));
-                    if (d == r && !Cells.ContainsKey(p)) { var cell = BeginCell(p); if (cell != null && immediate) Queue.WaitFor(cell.Task); }
+                    var p = new Int3(x, y, world); var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y));
+                    if (d == r && !Cells.ContainsKey(p)) {
+                        var cell = BeginCell(p);
+                        if (cell != null && immediate) Queue.WaitFor(cell.Task);
+                    }
                 }
 
         // update LODs
@@ -118,14 +123,13 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
 
     //: StartInstantiatingCell
     Cell BuildCell(ICell cell) {
-        Debug.Assert(cell != null);
+        //Debug.Assert(cell != null);
         string cellName;
         ILand land = null;
         if (!cell.IsInterior) { cellName = $"cell {cell.GridId}"; land = Query.FindLand(cell.GridId); }
         else cellName = cell.EDID;
         var (contObj, cellObj) = GfxCreateContainers(cellName);
-        var task = TaskFunc(cell, land, contObj, cellObj);
-        Queue.Add(task);
+        var task = TaskFunc(cell, land, contObj, cellObj); Queue.Add(task);
         return new Cell(contObj, cellObj, cell, task);
     }
 
@@ -145,12 +149,12 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     protected IOpenGfxModel<Object, MaterialBuilderBase, TextureBuilderBase, Shader> GfxModel;
     protected IQuery Query;
 
-    protected abstract object GfxCreateLight(ILigh light, bool indoors);
+    protected abstract Object GfxCreateLight(ILigh light, bool indoors);
 
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
     /// </summary>
-    IEnumerator CellCoroutine(ICell cell, ILand land, object contObj, object cellObj) {
+    public IEnumerator CellCoroutine(ICell cell, ILand land, Object contObj, Object cellObj) {
         // Start pre-loading all required textures for the terrain.
         if (land != null) {
             var landTextures = GetLandTextures(land);
@@ -163,7 +167,8 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         var refs = GetCellRefs(cell); yield return null;
 
         // Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
-        foreach (var r in refs) if (r.ModelPath != null) GfxModel.PreloadObject(r.ModelPath);
+        foreach (var r in refs)
+            if (r.ModelPath != null) GfxModel.PreloadObject(r.ModelPath);
         yield return null;
 
         // Instantiate terrain.
@@ -201,9 +206,9 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     /// <summary>
     /// Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     /// </summary>
-    void CellObject(ICell cell, object parent, CellRef r) {
+    void CellObject(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) { Log.Info("Unknown Object: ((CELLRecord.RefObj)r.Obj).EDID"); return; }
-        object modelObj = null;
+        Object modelObj = default;
         // If the object has a model, instantiate it.
         if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath, parent); PostCellObject(modelObj, r); }
         // If the object has a light, instantiate it.
@@ -216,12 +221,10 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         }
     }
 
-    
-
     /// <summary>
     /// Finishes initializing an instantiated cell object.
     /// </summary>
-    protected void PostCellObject(object gameObject, CellRef r) {
+    protected void PostCellObject(Object gameObject, CellRef r) {
         //    var refObj = (CELLRecord.RefObj)refCellObjInfo.RefObj;
         //    // Handle object transforms.
         //    if (refObj.XSCL != null) gameObject.transform.localScale = Vector3.one * refObj.XSCL.Value.Value;
@@ -249,7 +252,7 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         //    ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
     }
 
-    //void ProcessObjectType<RecordType>(GameObject gameObject, RefCellObjInfo info, string tag) where RecordType : Record {
+    //void ProcessObjectType<RecordType>(Object gameObject, RefCellObjInfo info, string tag) where RecordType : Record {
     //    var record = info.ReferencedRecord;
     //    if (record is RecordType) {
     //        var obj = GameObjectUtils.FindTopLevelObject(gameObject);
@@ -262,24 +265,24 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     //}
 
     List<string> GetLandTextures(ILand land) {
-        // Don't return anything if the LAND doesn't have height data or texture data.
         if (land.VTEX == null) return null;
-        var textureFilePaths = new List<string>();
-        var indices = land.VTEX.Distinct().ToList();
-        for (var i = 0; i < indices.Count; i++) {
-            var textureIndex = ((short)indices[i] - 1);
-            if (textureIndex < 0) { textureFilePaths.Add(DefaultLandTexturePath); continue; }
-            var ltex = Query.FindLtex(textureIndex);
-            var textureFilePath = ltex.ICON;
-            textureFilePaths.Add(textureFilePath);
+        var paths = new List<string>();
+        int[] indexs = land.VTEX is ushort[] us ? [.. us.Distinct().Cast<int>()]
+            : land.VTEX is uint[] ui ? [.. ui.Distinct().Cast<int>()]
+            : throw new Exception();
+        for (var i = 0; i < indexs.Length; i++) {
+            var index = indexs[i] - 1;
+            if (index < 0) { paths.Add(DefaultLandTexturePath); continue; }
+            var ltex = Query.FindLtex(index);
+            paths.Add(ltex.ICON);
         }
-        return textureFilePaths;
+        return paths;
     }
 
     /// <summary>
     /// Creates terrain representing a LAND record.
     /// </summary>
-    IEnumerator LandCoroutine(ILand land, object parent) {
+    IEnumerator LandCoroutine(ILand land, Object parent) {
         //    Debug.Assert(land != null);
         //    // Don't create anything if the LAND doesn't have height data.
         //    if (land.VHGT.HeightData == null) yield break;

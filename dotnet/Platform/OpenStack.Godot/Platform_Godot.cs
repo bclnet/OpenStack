@@ -141,11 +141,12 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     public ISource Source => _source;
     public SpriteManager<Sprite2D> SpriteManager => _spriteManager;
     public ObjectSpriteManager<Node, Sprite2D> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Sprite2D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public Node CreateAsset(object path) => throw new NotImplementedException();
+    public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, Node source, params object[] args) => throw new NotImplementedException();
 }
 
 // GodotGfxSprite3D
@@ -163,11 +164,12 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     public ISource Source => _source;
     public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
     public ObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Sprite3D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public Node CreateAsset(object path) => throw new NotImplementedException();
+    public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, Node source, params object[] args) => throw new NotImplementedException();
 }
 
 // GodotGfxModel
@@ -194,12 +196,13 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     public MaterialManager<Material, Texture> MaterialManager => _materialManager;
     public ObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, Node source, params object[] args) => throw new NotImplementedException();
 }
 
 // GodotSfx

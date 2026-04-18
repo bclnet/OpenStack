@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os, io, pathlib
+from openstk.core.platform import Platform
 
 #region Platform
 
@@ -7,7 +8,7 @@ import os, io, pathlib
 class TestGfxSprite:
     source: object
     def __init__(self, source): self.source = source
-    def loadFileObject(self, type: type, path: object): raise NotImplementedError()
+    def getAsset(self, type: type, path: object): raise NotImplementedError()
     def preloadSprite(self, path: object) -> None: raise NotImplementedError()
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
 
@@ -15,7 +16,7 @@ class TestGfxSprite:
 class TestGfxModel:
     source: object
     def __init__(self, source): self.source = source
-    def loadFileObject(self, type: type, path: object): raise NotImplementedError()
+    def getAsset(self, t: type, path: object): raise NotImplementedError()
     def preloadTexture(self, path: object) -> None: raise NotImplementedError()
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
 

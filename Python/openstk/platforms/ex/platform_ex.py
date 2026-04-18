@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk import Platform, SystemSfx
+from openstk.core import Platform, SystemSfx
 from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
 from openstk.client import IClientHost
 from .enginx.eng import Game, GraphicsDeviceManager
@@ -53,10 +53,10 @@ class ExGfxSprite2D(IOpenGfxSprite):
 
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    def createObject(self, path: object) -> (object, dict[str, object]): raise NotImplementedError()
+    def createObject(self, path: object, parent: object) -> (object, dict[str, object]): raise NotImplementedError()
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
-    def loadFileObject(self, type: type, path: object) -> object: return self.source.loadFileObject(type, path)
-
+    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
 # ExPlatform
 class ExPlatform(Platform):

@@ -110,7 +110,7 @@ public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
         if (!string.IsNullOrEmpty(path)) MakeObject(path, null);
     }
 
-    void MakeObject(object path, object parent) => Gfx.ObjectManager.CreateObject(path, parent);
+    void MakeObject(object path, GameObject parent) => Gfx.ObjectManager.CreateObject(path, parent);
 }
 
 #endregion

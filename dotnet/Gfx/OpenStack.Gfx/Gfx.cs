@@ -140,8 +140,8 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
 /// <typeparam name="Texture"></typeparam>
 public abstract class ObjectModelBuilderBase<Object, Material, Texture> {
     public abstract void EnsurePrefab();
-    public abstract Object CreateNewObject(Object prefab);
-    public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager);
+    public abstract Object CreateNewObject(Object prefab, Object parent);
+    public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager, Object parent);
 }
 
 /// <summary>
@@ -160,11 +160,11 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
 
-    public (Object obj, object tag) CreateObject(object path, object parent) {
+    public (Object obj, object tag) CreateObject(object path, Object parent) {
         Builder.EnsurePrefab();
         // load & cache the prefab.
-        if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path).Result;
-        return (Builder.CreateNewObject(prefab.obj), prefab.tag);
+        if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path, parent).Result;
+        return (Builder.CreateNewObject(prefab.obj, parent), prefab.tag);
     }
 
     public void PreloadObject(object path) {
@@ -173,12 +173,12 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<object>(path);
     }
 
-    async Task<(Object obj, object tag)> LoadObject(object path) {
+    async Task<(Object obj, object tag)> LoadObject(object path, Object parent) {
         Log.Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return (Builder.CreateObject(obj, MaterialManager), obj);
+        return (Builder.CreateObject(obj, MaterialManager, parent), obj);
     }
 }
 
@@ -584,7 +584,6 @@ public enum AttachObjectMethod {
 public interface IOpenGfx {
     Task<T> GetAsset<T>(object path);
     void PreloadObject(object path);
-    void AttachObject(AttachObjectMethod method, params object[] args);
 }
 
 /// <summary>
@@ -600,7 +599,8 @@ public interface IOpenGfxSprite : IOpenGfx {
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
     SpriteManager<Sprite> SpriteManager { get; }
     ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
-    Object CreateObject(object path);
+    Object CreateObject(object path, Object parent = default);
+    void AttachObject(AttachObjectMethod method, Object source, params object[] args);
 }
 
 /// <summary>
@@ -619,8 +619,9 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     ShaderManager<Shader> ShaderManager { get; }
     Texture CreateTexture(object path, Range? level = null);
-    Object CreateObject(object path, object parent = null);
+    Object CreateObject(object path, Object parent = default);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
+    void AttachObject(AttachObjectMethod method, Object source, params object[] args);
 }
 
 #endregion

@@ -4,7 +4,7 @@ from enum import Enum
 from OpenGL.GL import *
 from openstk.gfx import Renderer, ITextureFrames
 from openstk.gfx.egin import AABB, EginRenderer
-from openstk.gfx.opengl.egin import GLRenderMaterial
+from openstk.platforms.opengl.egin import GLRenderMaterial
 
 sizeof_float = ctypes.sizeof(GLfloat)
 

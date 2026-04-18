@@ -2,11 +2,11 @@ from __future__ import annotations
 import numpy as np
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
-from openstk import Platform
+from openstk.core import Platform
 from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
-from openstk.gfx.opengl import ShaderDebugLoader
-from openstk.gfx.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
-from openstk.platforms.platform_system import SystemSfx
+from openstk.platforms.opengl.gfx import ShaderDebugLoader
+from openstk.platforms.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
+from openstk.platforms.system import SystemSfx
 from openstk.client import IClientHost
 
 # typedefs
@@ -26,8 +26,8 @@ class OpenGLClientHost(IClientHost):
 # OpenGLObjectModelBuilder
 class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
-    def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
+    def createNewObject(self, prefab: object, parent: object) -> object: raise NotImplementedError()
+    def createObject(self, path: object, materialManager: MaterialManager, parent: object) -> object: raise NotImplementedError()
 
 # OpenGLShaderBuilder
 class OpenGLShaderBuilder(ShaderBuilderBase):
@@ -229,9 +229,10 @@ class OpenGLGfxSprite3D(IOpenGfxSprite):
 
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    def createObject(self, path: object) -> (object, dict[str, object]): raise NotImplementedError()
+    def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): raise NotImplementedError()
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
-    def loadFileObject(self, type: type, path: object) -> object: return self.source.loadFileObject(type, path)
+    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
 # OpenGLGfxModel
 class OpenGLGfxModel(IOpenGfxModel):
@@ -250,10 +251,11 @@ class OpenGLGfxModel(IOpenGfxModel):
 
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
+    def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def loadFileObject(self, type: type, path: object) -> object: return self.source.loadFileObject(type, path)
+    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
     # cache
     _quadIndices: QuadIndexBuffer

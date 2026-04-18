@@ -1,9 +1,8 @@
 from __future__ import annotations
 import os, sys
 from enum import Enum
-from openstk import ISource, decodePath, YamlDict
-from openstk.platforms.platform_test import TestPlatform
-from openstk.platforms.platform_unknown import UnknownPlatform
+from openstk.core.core import ISource
+from openstk.core.util import decodePath, YamlDict
 
 #region Platform
 
@@ -63,7 +62,7 @@ class PlatformX:
         OS.OSX if sys.platform == 'darwin' else \
         OS.Linux if sys.platform.startswith('linux') else \
         OS.Unknown
-    platforms: set[object] = { UnknownPlatform.This }
+    platforms: set[object] = {}
     inTestHost: bool = 'unittest' in sys.modules.keys()
     applicationPath = os.getcwd()
     options = YamlDict('~/.gamex.yaml')
@@ -71,4 +70,8 @@ class PlatformX:
 
 #endregion
 
+from openstk.platforms.platform_test import TestPlatform
+from openstk.platforms.platform_unknown import UnknownPlatform
+
+PlatformX.platforms = { UnknownPlatform.This }
 PlatformX.current = PlatformX.activate(TestPlatform.This if PlatformX.inTestHost else UnknownPlatform.This)

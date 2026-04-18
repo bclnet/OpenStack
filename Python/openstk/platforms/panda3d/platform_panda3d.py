@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk import Platform
+from openstk.core import Platform
 from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platforms.platform_system import SystemSfx
 
@@ -115,7 +115,8 @@ class Panda3dGfxModel(IOpenGfxModel):
     def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def loadFileObject(self, type: type, path: object) -> object: return self.source.loadFileObject(type, path)
+    def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
+    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
 # Panda3dPlatform
 class Panda3dPlatform(Platform):

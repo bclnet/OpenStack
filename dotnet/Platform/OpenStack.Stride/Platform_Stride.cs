@@ -92,11 +92,12 @@ public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateAsset(object path) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // StrideGfxModel
@@ -120,12 +121,13 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public MaterialManager<Material, Texture> MaterialManager => _materialManager;
     public ObjectModelManager<Entity, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<int> ShaderManager => _shaderManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Texture CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Entity CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public Entity CreateObject(object path, Entity parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public int CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, Entity source, params object[] args) => throw new NotImplementedException();
 }
 
 // StrideSfx

@@ -31,8 +31,8 @@ public class OpenGLClientHost : IClientHost {
 /// </summary>
 class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int> {
     public override void EnsurePrefab() { }
-    public override object CreateNewObject(object prefab) => throw new NotImplementedException();
-    public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager) => throw new NotImplementedException();
+    public override object CreateNewObject(object prefab, object parnet) => throw new NotImplementedException();
+    public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager, object parnet) => throw new NotImplementedException();
 }
 
 /// <summary>
@@ -253,12 +253,12 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     public ISource Source => _source;
     public SpriteManager<int> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public object CreateObject(object path) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public void AttachObject(AttachObjectMethod method, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 /// <summary>
@@ -285,13 +285,13 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public MaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
     public ObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
     public ShaderManager<Shader> ShaderManager => _shaderManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
     public object CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public void AttachObject(AttachObjectMethod method, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
 
     // cache
     QuadIndexBuffer _quadIndices;

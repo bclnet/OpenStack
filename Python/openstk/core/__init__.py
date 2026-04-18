@@ -5,11 +5,9 @@ from openstk.core.poly.pool import parallelFor, CoroutineQueue, IGenericPool, Ge
 from openstk.core.poly.reader import BinaryReader
 import openstk.core.poly.unsafe as unsafe
 from openstk.core.poly.writer import Writer
-
 from openstk.core.core import ISource, IStream, IWriteToStream, X_LumpON, X_LumpNO, X_LumpNO2, X_Lump2NO
 from openstk.core.manager import IDatabase, CellManager
 from openstk.core.platform import Platform, PlatformX
-
 from openstk.core.util import _throw, _pathExtension, _pathTempFile, decodePath, _int_tryParse, YamlDict
 __all__ = [
     'findType',

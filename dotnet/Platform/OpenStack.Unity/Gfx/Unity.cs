@@ -7,7 +7,6 @@ namespace OpenStack.Gfx.Unity;
 
 // UnityExtensions
 public static class UnityExtensions {
-
     /// <summary>
     /// FromUnity
     /// </summary>
@@ -97,29 +96,6 @@ public static class UnityExtensions {
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.y, Vector3.up) *
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.z, Vector3.forward);
     }
-
-    // GameObjectUtils
-
-    /// <summary>
-    /// Sets the layer of an object and all of it's descendants.
-    /// </summary>
-    public static void SetLayerRecursively(this GameObject source, int layer) {
-        source.layer = layer;
-        foreach (Transform childTransform in source.transform)
-            SetLayerRecursively(childTransform.gameObject, layer);
-    }
-
-    /// <summary>
-    /// Adds mesh colliders to every descandant object with a mesh filter but no mesh collider, including the object itself.
-    /// </summary>
-    public static void AddMissingMeshCollidersRecursively(this GameObject source, bool isStatic = true) {
-        if (!isStatic) return;
-        MeshFilter filter;
-        if (source.GetComponent<Collider>() == null && (filter = source.GetComponent<MeshFilter>()) != null && filter.mesh != null)
-            source.AddComponent<MeshCollider>();
-        foreach (Transform childTransform in source.transform)
-            AddMissingMeshCollidersRecursively(childTransform.gameObject);
-    }
 }
 
 #endregion
@@ -127,6 +103,38 @@ public static class UnityExtensions {
 #region GameObjectX
 
 public static class GameObjectX {
+    public static void AttachObject(this GameObject source, AttachObjectMethod method, params object[] args) {
+        GameObject v;
+        switch (method) {
+            case AttachObjectMethod.Find:
+                v = (GameObject)args[0];
+                var found = v.FindChildRecursively((string)args[1]);
+                if (found != null) {
+                    source.transform.position = v.transform.position;
+                    source.transform.rotation = v.transform.rotation;
+                    source.transform.parent = v.transform;
+                    break;
+                }
+                goto case AttachObjectMethod.AllCenter;
+            case AttachObjectMethod.Transform:
+                v = (GameObject)args[0];
+                source.transform.parent = v.transform;
+                break;
+            case AttachObjectMethod.All:
+                v = (GameObject)args[0];
+                source.transform.position = v.transform.position;
+                source.transform.rotation = v.transform.rotation;
+                source.transform.parent = v.transform;
+                break;
+            case AttachObjectMethod.AllCenter:
+                v = (GameObject)args[0];
+                source.transform.position = v.CalcVisualBoundsRecursive().center;
+                source.transform.rotation = v.transform.rotation;
+                source.transform.parent = v.transform;
+                break;
+        }
+    }
+
     /// <summary>
     /// Creates a camera identical to the one added to new scenes by default.
     /// </summary>
@@ -208,7 +216,7 @@ public static class GameObjectX {
     /// <summary>
     /// Calculate the AABB of an object and it's descendants.
     /// </summary>
-    public static Bounds CalcVisualBoundsRecursive(GameObject gameObject) {
+    public static Bounds CalcVisualBoundsRecursive(this GameObject gameObject) {
         Debug.Assert(gameObject != null);
 
         // Gets all the renderers in the object and it's descendants.
@@ -227,7 +235,7 @@ public static class GameObjectX {
     /// <summary>
     /// Finds a descendant game object by name.
     /// </summary>
-    public static GameObject FindChildRecursively(GameObject parent, string name) {
+    public static GameObject FindChildRecursively(this GameObject parent, string name) {
         var resultTransform = parent.transform.Find(name);
         // Search through each of parent's children.
         if (resultTransform != null) return resultTransform.gameObject;
@@ -242,7 +250,7 @@ public static class GameObjectX {
     /// <summary>
     /// Finds a descendant game object with a name containing nameSubstring.
     /// </summary>
-    public static GameObject FindChildWithNameSubstringRecursively(GameObject parent, string nameSubstring) {
+    public static GameObject FindChildWithNameSubstringRecursively(this GameObject parent, string nameSubstring) {
         // Search through each of parent's children.
         foreach (Transform childTransform in parent.transform) if (childTransform.name.Contains(nameSubstring)) return childTransform.gameObject;
         // Perform the search recursively for each child of parent.
@@ -256,7 +264,7 @@ public static class GameObjectX {
     /// <summary>
     /// Find an ancestor object, or the object itself, with a tag.
     /// </summary>
-    public static GameObject FindObjectWithTagUpHeirarchy(GameObject gameObject, string tag) {
+    public static GameObject FindObjectWithTagUpHeirarchy(this GameObject gameObject, string tag) {
         while (gameObject != null) {
             if (gameObject.tag == tag) return gameObject;
             // Go up one level in the object hierarchy.
@@ -266,7 +274,7 @@ public static class GameObjectX {
         return null;
     }
 
-    public static GameObject FindTopLevelObject(GameObject baseObject) {
+    public static GameObject FindTopLevelObject(this GameObject baseObject) {
         if (baseObject.transform.parent == null) return baseObject;
         var p = baseObject.transform;
         while (p.parent != null) {
@@ -279,7 +287,7 @@ public static class GameObjectX {
     /// <summary>
     /// Set the layer of an object and all of it's descendants.
     /// </summary>
-    public static void SetLayerRecursively(GameObject gameObject, int layer) {
+    public static void SetLayerRecursively(this GameObject gameObject, int layer) {
         gameObject.layer = layer;
         foreach (Transform childTransform in gameObject.transform) SetLayerRecursively(childTransform.gameObject, layer);
     }
@@ -287,14 +295,11 @@ public static class GameObjectX {
     /// <summary>
     /// Adds mesh colliders to every descandant object with a mesh filter but no mesh collider, including the object itself.
     /// </summary>
-    public static void AddMissingMeshCollidersRecursively(GameObject gameObject) {
+    public static void AddMissingMeshCollidersRecursively(this GameObject source) {
+        MeshFilter filter;
         // If gameObject has a MeshFilter but no Collider, add a MeshCollider.
-        if (gameObject.GetComponent<Collider>() == null) {
-            var meshFilter = gameObject.GetComponent<MeshFilter>();
-            if (meshFilter != null && meshFilter.mesh != null) gameObject.AddComponent<MeshCollider>();
-        }
-        // Perform the above procedure on gameObject's children recursively.
-        foreach (Transform childTransform in gameObject.transform) AddMissingMeshCollidersRecursively(childTransform.gameObject);
+        if (source.GetComponent<Collider>() == null && (filter = source.GetComponent<MeshFilter>()) != null && filter.mesh != null) source.AddComponent<MeshCollider>();
+        foreach (Transform childTransform in source.transform) AddMissingMeshCollidersRecursively(childTransform.gameObject);
     }
 }
 

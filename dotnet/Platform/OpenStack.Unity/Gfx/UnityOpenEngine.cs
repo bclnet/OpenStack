@@ -55,7 +55,7 @@ public class UnityOpenEngine : IDisposable {
         //Cursor.SetCursor(Asset.LoadTexture("tx_cursor", 1), Vector2.zero, CursorMode.Auto);
     }
 
-    public void Dispose() => Query.Dispose();
+    public void Dispose() { } // Query.Dispose();
 
     public virtual void Update() {
         if (PlayerCamera == null) return;
@@ -67,7 +67,7 @@ public class UnityOpenEngine : IDisposable {
     #region Player Spawn
 
     protected int CurrentWorld;
-    protected ICellRecord CurrentCell;
+    protected ICell CurrentCell;
     protected Transform PlayerTransform;
     protected PlayerComponent PlayerComponent;
     protected GameObject PlayerCamera;
@@ -110,7 +110,7 @@ public class UnityOpenEngine : IDisposable {
         }
     }
 
-    protected virtual void OnExteriorCell(ICellRecord cell) {
+    protected virtual void OnExteriorCell(ICell cell) {
         RenderSettings.ambientLight = DefaultAmbientColor;
         SunObj.SetActive(true);
         //Water.transform.position = Vector3.zero;
@@ -119,7 +119,7 @@ public class UnityOpenEngine : IDisposable {
         //UnderwaterEffect.Level = 0.0f;
     }
 
-    protected virtual void OnInteriorCell(ICellRecord cell) {
+    protected virtual void OnInteriorCell(ICell cell) {
         if (cell.AmbientLight != null) RenderSettings.ambientLight = cell.AmbientLight.Value.ToUnity();
         SunObj.SetActive(false);
         //UnderwaterEffect.enabled = cell.WHGT != null;

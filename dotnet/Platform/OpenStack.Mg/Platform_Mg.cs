@@ -411,11 +411,12 @@ public class MgGfxSprite2D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateAsset(object path) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // MgSfx

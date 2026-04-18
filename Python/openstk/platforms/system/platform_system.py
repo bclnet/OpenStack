@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os, io, pathlib
-from openstk import ISource, BinaryReader, PlatformX
+from openstk.core import ISource, BinaryReader, PlatformX
 from openstk.sfx import IOpenSfx2, AudioBuilderBase, AudioManager
 
 #region Platform

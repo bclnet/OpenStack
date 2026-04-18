@@ -4,13 +4,11 @@ using OpenStack.Gfx;
 using OpenStack.Gfx.Unity;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-// using static OpenStack.Gfx.TextureFormat;
+using static OpenStack.Gfx.TextureFormat;
 using TextureFormat = UnityEngine.TextureFormat;
 using XShader = UnityEngine.Shader;
 #pragma warning disable CS0649, CS0169, CS8500
@@ -45,36 +43,13 @@ public class UnityClientHost : MonoBehaviour, IClientHost {
 class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {
     GameObject _prefab;
 
-    public void AttachObject(AttachObjectMethod method, params object[] args) {
-        GameObject s, v;
-        switch (method) {
-            case AttachObjectMethod.Find:
-                s = (GameObject)args[0]; v = (GameObject)args[1];
-                var found = GameObjectX.FindChildRecursively(v, (string)args[2]);
-                if (found != null) { v = found; goto AttachObjectMethod.All; }
-                break;
-            case AttachObjectMethod.Transform:
-                s = (GameObject)args[0]; v = (GameObject)args[1];
-                s.transform.parent = v.transform;
-                break;
-            case AttachObjectMethod.All:
-                s = (GameObject)args[0]; v = (GameObject)args[1];
-                s.transform.position = v.transform.position;
-                s.transform.rotation = v.transform.rotation;
-                s.transform.parent = v.transform;
-                break;
-            case AttachObjectMethod.AllCenter:
-                s = (GameObject)args[0]; v = (GameObject)args[1];
-                s.transform.position = GameObjectX.CalcVisualBoundsRecursive(v).center;
-                s.transform.rotation = v.transform.rotation;
-                s.transform.parent = v.transform;
-                break;
-        }
+    public override GameObject CreateNewObject(GameObject prefab, GameObject parent) {
+        var obj = GameObject.Instantiate(prefab);
+        if (parent != null) prefab.transform.parent = parent.transform;
+        return obj;
     }
 
-    public override GameObject CreateNewObject(GameObject prefab) => GameObject.Instantiate(prefab);
-
-    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager, object parent) {
+    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager, GameObject parent) {
         //var abc = source.Begin("UN");
         //try
         //{
@@ -309,7 +284,7 @@ public class UnityModelApi : IModelApi<GameObject, Material> {
         source.transform.rotation = rotation.ToUnityRotation().ToUnityQuaternionAsRotation();
         source.transform.localScale = localScale.ToUnity();
     }
-    public void AddMissingMeshCollidersRecursively(GameObject source, bool isStatic) { if (source.GetComponentInChildren<UnityEngine.Collider>() == null) source.AddMissingMeshCollidersRecursively(isStatic); }
+    public void AddMissingMeshCollidersRecursively(GameObject source, bool isStatic) { if (isStatic && source.GetComponentInChildren<UnityEngine.Collider>() == null) source.AddMissingMeshCollidersRecursively(); }
     public void SetLayerRecursively(GameObject source, int layer) => source.SetLayerRecursively(layer);
 
     public object CreateMesh(object mesh) {
@@ -358,12 +333,12 @@ public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
     public ISource Source => _source;
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
     public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public GameObject CreateAsset(object path) => throw new NotImplementedException();
+    public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, GameObject source, params object[] args) => source.AttachObject(method, args);
 }
 
 // UnityGfxSprite3D
@@ -381,12 +356,12 @@ public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
     public ISource Source => _source;
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
     public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public GameObject CreateAsset(object path) => throw new NotImplementedException();
+    public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, GameObject source, params object[] args) => source.AttachObject(method, args);
 }
 
 // UnityGfxModel
@@ -410,13 +385,13 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public MaterialManager<Material, Texture2D> MaterialManager => _materialManager;
     public ObjectModelManager<GameObject, Material, Texture2D> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public GameObject CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
+    public GameObject CreateObject(object path, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void AttachObject(AttachObjectMethod method, GameObject source, params object[] args) => source.AttachObject(method, args);
 }
 
 // UnitySfx
@@ -442,7 +417,7 @@ public class UnityPlatform : Platform {
         UnsafeX.Memcpy = (dest, src, count) => UnsafeUtility.MemCpy(dest, src, count);
     }
 
-    public override unsafe void Deactivate() {
+    public override void Deactivate() {
         base.Deactivate();
         UnsafeX.Memcpy = null;
     }

@@ -55,7 +55,7 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
         ProcessExtraData(obj, out var shouldAddMissingColliders, out var isMarker);
         if (_source.Name != null && IsMarkerFileName(_source.Name)) { shouldAddMissingColliders = false; isMarker = true; }
         // Add colliders to the object if it doesn't already contain one.
-        if (shouldAddMissingColliders && gobj.GetComponentInChildren<Collider>() == null) gobj.AddMissingMeshCollidersRecursively(_isStatic);
+        if (shouldAddMissingColliders && gobj.GetComponentInChildren<Collider>() == null && _isStatic) gobj.AddMissingMeshCollidersRecursively();
         if (isMarker) gobj.SetLayerRecursively(MarkerLayer);
         return gobj;
     }

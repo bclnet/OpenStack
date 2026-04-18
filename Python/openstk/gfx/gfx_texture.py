@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 from enum import IntEnum, Enum, Flag
-from openstk import BinaryReader, Writer
+from openstk.core import BinaryReader, Writer
 
 #region Texture Enums
 

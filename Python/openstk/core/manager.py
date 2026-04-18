@@ -1,7 +1,8 @@
 from __future__ import annotations
 import os, math
-from openstk import log, CoroutineQueue
-from openstk.core.poly import Int3
+from openstk.core.poly.pool import CoroutineQueue
+from openstk.core.poly.poly import Int3
+import openstk.core.poly.log as log
 
 # IDatabase
 class IDatabase:
@@ -34,14 +35,15 @@ class CellManager:
 
     class ILand:
         GridId: Int3
-        VTEX: list[int]
+        VTEX: object
     
     class ILtex:
         INTV: int
         ICON: str
     
     class ILigh:
-        pass
+        radius: float
+        lightColor: Color
 
     class IQuery:
         def getCellId(self, point: Vector3, world: int) -> Int3: pass
@@ -54,9 +56,7 @@ class CellManager:
         self.query = query
         self.queue = queue
         self.taskFunc = taskFunc
-        self.cells: dict[int, Cell] = {}
-
-        # def getPoint(self, position: Vector3, world: int = -1) -> Point3D: return Point3D(position.x // CellManager.pointFactor), position.z // CellManager.pointFactor, world)
+        self.cells: dict[Int3, Cell] = {}
 
         def gfxCreateContainers(self, name: str) -> name: pass
         def gfxSetVisible(self, cont: str) -> name: pass
@@ -64,21 +64,19 @@ class CellManager:
         def beginCell(self, point: Int3) -> Cell:
             record = self.query.findCell(point)
             if not record: return None
-            cell = self.buildCell(record)
-            self.cells[point if point.z != -1 else Int3.zero] = cell
+            cell = self.buildCell(record); self.cells[point if point.z != -1 else Int3.zero] = cell
             return cell
 
         def beginCellByName(self, name: str, id: int, world: int = -1) -> Cell:
             record = self.query.findCellByName(name, id, world)
             if not record: return None
-            cell = self.buildCell(record)
-            self.cells[Int3.zero] = cell
+            cell = self.buildCell(record); self.cells[Int3.zero] = cell
             return cell
         
         def updateCells(self, position: Vector3, world: int = -1, immediate: bool = False, radius: int = -1) -> None:
             point = self.query.getCellId(position, world)
             if radius < 0: radius = CellManager.defaultRadius
-            minX = point.x - radius, maxX = point.x + radius, minY = point.y - radius, maxY = point.y + radius
+            minX = point.x - radius; maxX = point.x + radius; minY = point.y - radius; maxY = point.y + radius
 
             # destroy out of range cells
             outOfRange = []
@@ -88,10 +86,9 @@ class CellManager:
 
             # create new cells
             for r in range(radius + 1):
-                for s in range(minX, maxX + 1):
+                for x in range(minX, maxX + 1):
                     for y in range(minY, maxY + 1):
-                        p = Int3(s, y, world)
-                        d = math.max(math.abs(point.x - p.x), math.abs(point.y - p.y))
+                        p = Int3(x, y, world); d = math.max(math.abs(point.x - p.x), math.abs(point.y - p.y))
                         if d == r and p not in self.cells:
                             cell = beginCell(p)
                             if cell and immediate: self.queue.waitFor(cell.task)
@@ -106,8 +103,7 @@ class CellManager:
         if not cell.isInterior: cellName = f'cell {cell.gridId}'; land = self.query.findLand(cell.gridId)
         else: cellName = cell.EDID
         (contObj, cellObj) = gfxCreateContainers(cellName)
-        task = self.taskFunc(cell, land, contObj, cellObj)
-        self.queue.add(task)
+        task = self.taskFunc(cell, land, contObj, cellObj); self.queue.add(task)
         return Cell(contObj, cellObj, cell, task)
 
     def destroyCell(self, point: Int3) -> None:
@@ -129,26 +125,27 @@ class CellBuilder:
     def cellCoroutine(cell: ICell, land: ILand, contObj: object, cellObj: object) -> IEnumerator:
         # Start pre-loading all required textures for the terrain.
         if land:
-            landTextures = getLandTextures(land)
+            landTextures = self.getLandTextures(land)
             if landTextures:
                 for landTexture in landTextures: self.gfxModel.preloadTexture(landTexture)
-            yield return None
+            yield None
 
         # Extract information about referenced objects.
-        refs = getCellRefs(cell); yield return None
+        refs = getCellRefs(cell); yield None
 
         # Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
-        for r in refs: if r.modelPath: self.gfxModel.preloadObject(r.modelPath)
-        yield return None
+        for r in refs:
+            if r.modelPath: self.gfxModel.preloadObject(r.modelPath)
+        yield None
 
         # Instantiate terrain.
         if land:
             task = landCoroutine(land, cellObj)
-            while task.moveNext(): yield return None
-            yield return None
+            while task.moveNext(): yield None
+            yield None
 
         # Instantiate objects.
-        for r in refs: cellObject(cell, contObj, r); yield return None
+        for r in refs: cellObject(cell, contObj, r); yield None
 
     def getCellRefs(self, cell: ICell) -> list[CellRef]:
         return []
@@ -160,11 +157,30 @@ class CellBuilder:
         # If the object has a model, instantiate it.
         if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath, parent); postCellObject(modelObj, r)
         # If the object has a light, instantiate it.
-        if r.record is ILigh record:
+        if isinstance(r.record, ILigh):
+            record = r.record
             lightObj = self.gfxCreateLight(record, cell.isInterior)
             # If the object also has a model, parent the model to the light.
             if modelObj: self.gfxModel.attachObject(AttachObjectMethod.Find, lightObj, modelObj, 'AttachLight')
             # If the light has no associated model, instantiate the light as a standalone object.
             else: postCellObject(lightObj, r); GfxModel.AttachObject(AttachObjectMethod.Transform, lightObj, parent)
 
-    pointFactor: float = .5
+    def postCellObject(self, gameObject: object, r: CellRef) -> None:
+        pass
+
+    def getLandTextures(self, land: ILand) -> list[str]:
+        if not land.VTEX: return None
+        paths = []
+        indexs = land.VTEX.distinct()
+        for i in range(len(indexs)):
+            index = indexs[i] - 1
+            if index < 0: paths.append(CellBuilder.defaultLandTexturePath); continue
+            ltex = self.query.findLtex(index)
+            paths.append(ltex.ICON)
+        return paths
+
+    def landCoroutine(self, land: ILand, parent: object):
+        pass
+
+    # pointFactor: float = .5
+    # def getPoint(self, position: Vector3, world: int = -1) -> Point3D: return Point3D(position.x // CellManager.pointFactor), position.z // CellManager.pointFactor, world)

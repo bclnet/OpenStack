@@ -8,7 +8,7 @@ namespace OpenStack.Gfx.Unity;
 #region Extensions
 
 // UnityCellManager
-public class UnityCellManager(IQuery query, CoroutineQueue queue, Func<ICellRecord, ILandRecord, object, object, IEnumerator> coroutine) : CellManager(query, queue, coroutine) {
+public class UnityCellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) : CellManager(query, queue, taskFunc) {
     public override (object, object) GfxCreateContainers(string name) {
         var cellObj = new GameObject(name) { tag = "Cell" };
         var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
@@ -26,11 +26,11 @@ public class UnityCellBuilder : CellBuilder<GameObject, object, object, Shader> 
     const bool RenderLightShadows = false;
     const bool RenderExteriorCellLights = false;
 
-    protected override object GfxCreateLight(ILightRecord light, bool indoors) {
+    protected override GameObject GfxCreateLight(ILigh light, bool indoors) {
         var s = new GameObject("GfxCreateLight") { isStatic = true };
         var c = s.AddComponent<Light>();
-        c.range = 3 * (light.DATA.Radius / ConvertUtils.MeterInUnits);
-        c.color = light.DATA.LightColor.ToColor32();
+        c.range = 3 * light.Radius;
+        c.color = light.LightColor.ToUnity();
         c.intensity = 1.5f;
         c.bounceIntensity = 0f;
         c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;

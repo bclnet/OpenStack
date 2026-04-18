@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os, io, pathlib
+from openstk.core.platform import Platform
 
 #region Platform
 
