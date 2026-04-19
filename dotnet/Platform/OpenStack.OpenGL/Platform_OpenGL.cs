@@ -32,7 +32,7 @@ public class OpenGLClientHost : IClientHost {
 class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int> {
     public override void EnsurePrefab() { }
     public override object CreateNewObject(object prefab, object parnet) => throw new NotImplementedException();
-    public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager, object parnet) => throw new NotImplementedException();
+    public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager) => throw new NotImplementedException();
 }
 
 /// <summary>

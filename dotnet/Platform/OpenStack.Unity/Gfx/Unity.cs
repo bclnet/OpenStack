@@ -19,19 +19,11 @@ public static class UnityExtensions {
     public static System.Numerics.Vector3 FromUnity(this Vector3 source) => new(source.x, source.z, source.y);
 
     /// <summary>
-    /// FromUnityX
-    /// </summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
-    //public static System.Numerics.Vector3 FromUnityX(this Vector3 source) { MathX.Swap(ref source.y, ref source.z); return new System.Numerics.Vector3(source.x, source.y, source.z); }
-
-    /// <summary>
     /// ToUnity
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
     public static Vector2 ToUnity(this System.Numerics.Vector2 source) => new(source.X, source.Y);
-
     /// <summary>
     /// ToUnity
     /// </summary>
@@ -52,35 +44,11 @@ public static class UnityExtensions {
     public static Quaternion ToUnity(this System.Numerics.Quaternion source) => new(source.X, source.Y, source.Z, source.W);
 
     /// <summary>
-    /// ToUnityX
-    /// </summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
-    //public static Vector3 ToUnityX(this System.Numerics.Vector3 source) { MathX.Swap(ref source.Y, ref source.Z); return new Vector3(source.X, source.Y, source.Z); }
-
-    /// <summary>
     /// ToUnityRotation
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static Matrix4x4 ToUnityRotation(this System.Numerics.Matrix4x4 source) => new() {
-        m00 = source.M11,
-        m01 = source.M13,
-        m02 = source.M12,
-        m03 = 0,
-        m10 = source.M31,
-        m11 = source.M33,
-        m12 = source.M32,
-        m13 = 0,
-        m20 = source.M21,
-        m21 = source.M23,
-        m22 = source.M22,
-        m23 = 0,
-        m30 = 0,
-        m31 = 0,
-        m32 = 0,
-        m33 = 1
-    };
+    public static Matrix4x4 ToUnityRotation(this System.Numerics.Matrix4x4 source) => new() { m00 = source.M11, m01 = source.M13, m02 = source.M12, m03 = 0, m10 = source.M31, m11 = source.M33, m12 = source.M32, m13 = 0, m20 = source.M21, m21 = source.M23, m22 = source.M22, m23 = 0, m30 = 0, m31 = 0, m32 = 0, m33 = 1 };
 
     /// <summary>
     /// ToUnityQuaternionAsRotation
@@ -107,6 +75,20 @@ public static class UnityExtensions {
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.y, Vector3.up) *
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.z, Vector3.forward);
     }
+
+    /// <summary>
+    /// ToUnityX
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    //public static Vector3 ToUnity(this System.Numerics.Vector3 source) { MathX.Swap(ref source.Y, ref source.Z); return new Vector3(source.X, source.Y, source.Z); }
+
+    /// <summary>
+    /// FromUnityX
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    //public static System.Numerics.Vector3 FromUnityX(this Vector3 source) { MathX.Swap(ref source.y, ref source.z); return new System.Numerics.Vector3(source.x, source.y, source.z); }
 }
 
 #endregion
@@ -115,30 +97,23 @@ public static class UnityExtensions {
 
 public static class GameObjectX {
     public static void AttachObject(this GameObject source, AttachObjectMethod method, params object[] args) {
-        GameObject v;
+        var v = (GameObject)args[0];
         switch (method) {
             case AttachObjectMethod.Find:
-                v = (GameObject)args[0];
-                var found = v.FindChildRecursively((string)args[1]);
-                if (found != null) {
-                    source.transform.position = v.transform.position;
-                    source.transform.rotation = v.transform.rotation;
-                    source.transform.parent = v.transform;
-                    break;
-                }
-                goto case AttachObjectMethod.AllCenter;
+                v = v.FindChildRecursively((string)args[1]) ?? v;
+                source.transform.position = v.transform.position;
+                source.transform.rotation = v.transform.rotation;
+                source.transform.parent = v.transform;
+                break;
             case AttachObjectMethod.Transform:
-                v = (GameObject)args[0];
                 source.transform.parent = v.transform;
                 break;
             case AttachObjectMethod.All:
-                v = (GameObject)args[0];
                 source.transform.position = v.transform.position;
                 source.transform.rotation = v.transform.rotation;
                 source.transform.parent = v.transform;
                 break;
             case AttachObjectMethod.AllCenter:
-                v = (GameObject)args[0];
                 source.transform.position = v.CalcVisualBoundsRecursive().center;
                 source.transform.rotation = v.transform.rotation;
                 source.transform.parent = v.transform;
@@ -161,13 +136,11 @@ public static class GameObjectX {
 
     public static GameObject CreateDirectionalLight(Vector3 position, Quaternion orientation) {
         var s = new GameObject("Directional Light");
-        var c = s.AddComponent<Light>(); c.type = LightType.Directional;
+        var light = s.AddComponent<Light>(); light.type = LightType.Directional;
         s.transform.position = position;
         s.transform.rotation = orientation;
         return s;
     }
-
-
 
     /// <summary>
     /// Creates a terrain from heights.
@@ -179,14 +152,16 @@ public static class GameObjectX {
     /// <param name="layers">The textures used by the terrain.</param>
     /// <param name="alphaMap">Texture blending information.</param>
     /// <param name="position">The position of the terrain.</param>
-    /// <param name="materialTemplate">The material template.</param>
+    /// <param name="template">The material template.</param>
     /// <param name="parent">The parent.</param>
     /// <returns>A terrain GameObject.</returns>
-    public static GameObject CreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material materialTemplate, GameObject parent = default) {
-        var terrainData = CreateTerrainData(offset, heights, heightRange, sampleDistance, layers, alphaMap);
-        var obj = CreateTerrainFromTerrainData(terrainData, position, materialTemplate);
-        if (parent != null) obj.transform.parent = parent.transform;
-        return obj;
+    public static GameObject CreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material template, GameObject parent = default) {
+        var data = CreateTerrainData(offset, heights, heightRange, sampleDistance, layers, alphaMap);
+        var s = CreateTerrainFromTerrainData(data, position, template);
+        //s.GetComponent<Terrain>().materialType = Terrain.MaterialType.BuiltInLegacyDiffuse;
+        if (parent != null) s.transform.parent = parent.transform;
+        //s.isStatic = true; //TODO: Remove
+        return s;
     }
 
     /// <summary>
@@ -202,33 +177,26 @@ public static class GameObjectX {
         Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
         // Create the TerrainData.
         var heightmapResolution = heights.GetLength(0);
-        var terrainData = new TerrainData { heightmapResolution = heightmapResolution };
+        var s = new TerrainData { heightmapResolution = heightmapResolution };
         //Log($"{terrainData.heightmapResolution} == {heightmapResolution}");
         var terrainWidth = (heightmapResolution + offset) * sampleDistance;
         // If maxHeight is 0, leave all the heights in terrainData at 0 and make the vertical size of the terrain 1 to ensure valid AABBs.
-        if (!Mathf.Approximately(heightRange, 0)) {
-            terrainData.size = new Vector3(terrainWidth, heightRange, terrainWidth);
-            terrainData.SetHeights(0, 0, heights);
-        }
-        else terrainData.size = new Vector3(terrainWidth, 1, terrainWidth);
-        terrainData.terrainLayers = layers;
-        if (alphaMap != null) {
-            Debug.Assert(alphaMap.GetLength(0) == alphaMap.GetLength(1));
-            terrainData.alphamapResolution = alphaMap.GetLength(0);
-            terrainData.SetAlphamaps(0, 0, alphaMap);
-        }
-        return terrainData;
+        if (!Mathf.Approximately(heightRange, 0)) { s.size = new Vector3(terrainWidth, heightRange, terrainWidth); s.SetHeights(0, 0, heights); }
+        else s.size = new Vector3(terrainWidth, 1, terrainWidth);
+        s.terrainLayers = layers;
+        if (alphaMap != null) { Debug.Assert(alphaMap.GetLength(0) == alphaMap.GetLength(1)); s.alphamapResolution = alphaMap.GetLength(0); s.SetAlphamaps(0, 0, alphaMap); }
+        return s;
     }
 
-    static GameObject CreateTerrainFromTerrainData(TerrainData terrainData, Vector3 position, Material materialTemplate) {
+    static GameObject CreateTerrainFromTerrainData(TerrainData data, Vector3 position, Material template) {
         // Create the terrain game object.
-        var terrainObject = new GameObject("terrain") { isStatic = true };
-        var terrain = terrainObject.AddComponent<Terrain>();
-        if (materialTemplate != null) terrain.materialTemplate = materialTemplate;
-        terrain.terrainData = terrainData;
-        terrainObject.AddComponent<TerrainCollider>().terrainData = terrainData;
-        terrainObject.transform.position = position;
-        return terrainObject;
+        var s = new GameObject("terrain") { isStatic = true };
+        var terrain = s.AddComponent<Terrain>();
+        if (template != null) terrain.materialTemplate = template;
+        terrain.terrainData = data;
+        s.AddComponent<TerrainCollider>().terrainData = data;
+        s.transform.position = position;
+        return s;
     }
 
     /// <summary>
@@ -323,7 +291,6 @@ public static class GameObjectX {
 
 #endregion
 
-
 #region CellManager
 
 // UnityCellManager
@@ -358,7 +325,34 @@ public class UnityCellBuilder(IQuery query, UnityGfxModel gfxModel) : CellBuilde
     }
 
     protected override GameObject GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, System.Numerics.Vector3 position, Material material, GameObject parent)
-        => GameObjectX.CreateTerrain(offset, heights, heightRange, sampleDistance, [.. layers.Select(s => new UnityEngine.TerrainLayer { diffuseTexture = (Texture2D)s.Texture, tileSize = s.TileSize.ToUnity(), smoothness = 0, metallic = 0 })], alphaMap, position.ToUnity(), material, parent);
+        => GameObjectX.CreateTerrain(offset, heights, heightRange, sampleDistance, [.. layers.Select(s => new UnityEngine.TerrainLayer { diffuseTexture = s.Texture, tileSize = s.TileSize.ToUnity(), smoothness = 0, metallic = 0 })], alphaMap, position.ToUnity(), material, parent);
+
+    protected override void GfxPostCellObject(GameObject gameObject, ICellXref r, GameObject parent) {
+        if (r.Scale != null) gameObject.transform.localScale = Vector3.one * r.Scale.Value;
+        gameObject.transform.position += r.Position.AsVector3.ToUnity();
+        gameObject.transform.rotation *= r.EulerAngles.AsVector3.ToUnityQuaternionAsEulerAnglesX();
+        var tagTarget = gameObject;
+        var coll = gameObject.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
+        if (coll != null) tagTarget = coll.gameObject;
+        //ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
+        //ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
+        //ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
+        //ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
+        //ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
+        //ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
+        //ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
+        //ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
+        //ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
+        //ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
+        //ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
+        //ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
+        //ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
+        //ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
+        //ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
+        //ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
+        //ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
+        if (parent != null) gameObject.transform.parent = parent.transform;
+    }
 }
 
 #endregion

@@ -978,7 +978,7 @@ public class CellRenderer : EginRenderer {
 /// </summary>
 public class EngineRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
     OpenGLGfxModel Gfx = gfx;
-    readonly ICellDatabase Obj = (ICellDatabase)obj;
+    readonly ICellDatabase Obj = obj as ICellDatabase;
 
     OpenGLOpenEngine Engine;
     object PlayerPrefab = null;
@@ -986,8 +986,6 @@ public class EngineRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
-        //Log.Info($"Obj: {Obj}");
-        //Log.Info($"PlayerPrefab: {PlayerPrefab}");
         var arc = (ISourceWithPlatform)Obj.Archive;
         Gfx = (OpenGLGfxModel)arc.Gfx[2];
         var query = Obj.Query;

@@ -2,7 +2,7 @@ from __future__ import annotations
 import os, math
 from numpy import ndarray, zeros
 from openstk.core.poly.pool import CoroutineQueue
-from openstk.core.poly.poly import Int3
+from openstk.core.poly.poly import Int3, Float3
 from openstk.core.poly.system import getExtrema, changeRange
 import openstk.core.poly.log as log
 
@@ -46,6 +46,9 @@ class CellManager:
 
     class ICellXref:
         name: str
+        scale: float
+        position: Float3
+        eulerAngles: Float3
 
     class ICell:
         id: int
@@ -196,16 +199,12 @@ class CellBuilder:
     def cellObject(self, cell: ICell, parent: object, r: CellRef) -> None:
         if not r.record: log.Info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None
-        # If the object has a model, instantiate it.
-        if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath, parent); self.postCellObject(modelObj, r)
-        # If the object has a light, instantiate it.
+        if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.postCellObject(modelObj, r.Obj, parent)
         if isinstance(r.record, ILigh):
-            record = r.record
-            lightObj = self.gfxCreateLight(record, cell.isInterior)
-            # If the object also has a model, parent the model to the light.
-            if modelObj: self.gfxModel.attachObject(AttachObjectMethod.Find, lightObj, modelObj, 'AttachLight')
-            # If the light has no associated model, instantiate the light as a standalone object.
-            else: self.postCellObject(lightObj, r); self.gfxModel.attachObject(AttachObjectMethod.Transform, lightObj, parent)
+            ligh = r.record
+            s = self.gfxCreateLight(ligh, cell.isInterior)
+            if modelObj: self.gfxModel.attachObject(AttachObjectMethod.Find, s, modelObj, 'AttachLight')
+            else: self.postCellObject(s, r.Obj, parent)
 
     def postCellObject(self, gameObject: object, r: CellRef) -> None:
         pass
@@ -268,12 +267,11 @@ class CellBuilder:
             for x in range(VTEX_COLUMNS):
                 xMajor = x / 4; xMinor = x - (xMajor * 4)
                 texIndex = indexs[(yMajor * 64) + (xMajor * 16) + (yMinor * 4) + xMinor] - 1
-                if texIndex >= 0: alphaMap[y, x, layerIndexs[texIndex]] = 1
-                else: alphaMap[y, x, 0] = 1
+                alphaMap[y, x, layerIndexs[texIndex] if texIndex >= 0 else 0] = 1
 
         # Create the terrain.
         yield None # Yield before creating the terrain GameObject because it takes a while.
         heightRange = (maxHeight - minHeight) / MeterInUnits
-        position = array([land.gridId.y * CellLengthInMeters, minHeight / MeterInUnits, land.gridId.y * CellLengthInMeters])
+        position = array([land.gridId.y * CellLengthInMeters, land.gridId.y * CellLengthInMeters, minHeight / MeterInUnits])
         sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1)
         self.gfxCreateTerrain(-1, newHeights, heightRange, sampleDistance, layers, alphaMap, position, default, parent)

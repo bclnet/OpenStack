@@ -141,7 +141,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
 public abstract class ObjectModelBuilderBase<Object, Material, Texture> {
     public abstract void EnsurePrefab();
     public abstract Object CreateNewObject(Object prefab, Object parent);
-    public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager, Object parent);
+    public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager);
 }
 
 /// <summary>
@@ -169,7 +169,6 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
 
     public void PreloadObject(object path) {
         if (CachedObjects.ContainsKey(path)) return;
-        // start loading the object asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<object>(path);
     }
 
@@ -178,7 +177,7 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
         PreloadObject(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
-        return (Builder.CreateObject(obj, MaterialManager, parent), obj);
+        return (Builder.CreateObject(obj, MaterialManager), obj);
     }
 }
 
@@ -512,6 +511,8 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
     readonly Dictionary<object, (Material material, object tag)> CachedMaterials = [];
     readonly Dictionary<object, Task<MaterialProp>> PreloadTasks = [];
     public TextureManager<Texture> TextureManager { get; } = textureManager;
+
+    public Material DefaultMaterial => Builder.DefaultMaterial;
 
     public (Material mat, object tag) CreateMaterial(object path) {
         if (CachedMaterials.TryGetValue(path, out var c)) return c;

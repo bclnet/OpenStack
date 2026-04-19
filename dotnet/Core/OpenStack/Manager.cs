@@ -45,6 +45,9 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
 
     public interface ICellXref {
         string Name { get; }
+        float? Scale { get; }
+        Float3 Position { get; }
+        Float3 EulerAngles { get; }
     }
 
     public interface ICellXrefModel {
@@ -140,7 +143,6 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         foreach (var (p, cell) in Cells) { var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y)); GfxSetVisible(cell.ContObj, d <= DetailRadius); }
     }
 
-    //: StartInstantiatingCell
     Cell BuildCell(ICell cell) {
         //Debug.Assert(cell != null);
         string cellName;
@@ -177,6 +179,10 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
 
     protected abstract Object GfxCreateLight(ILigh light, bool indoors);
     protected abstract Object GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material materialTemplate, Object parent);
+    /// <summary>
+    /// Finishes initializing an instantiated cell object.
+    /// </summary>
+    protected abstract void GfxPostCellObject(Object gameObject, ICellXref r, Object parent);
 
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
@@ -209,9 +215,9 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
         foreach (var s in cellRefs) { CellObject(cell, contObj, s); yield return null; }
     }
 
-    CellRef[] GetCellRefs(ICell cell) => [.. cell.Xrefs.Select(s => {
+    CellRef[] GetCellRefs(ICell cell) => false ? [] : [.. cell.Xrefs.Select(s => {
         var record = Query.FindByName(s.Name);
-        return new CellRef { Obj = s, Record = record, ModelPath = record != null && record is ICellXrefModel modl && !string.IsNullOrEmpty(modl.ModelPath) ? $"meshes\\{modl.ModelPath}" : null };
+        return new CellRef { Obj = s, Record = record, ModelPath = record != null && record is ICellXrefModel modl ? modl.ModelPath : null };
     })];
 
     /// <summary>
@@ -220,52 +226,16 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
     void CellObject(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) { Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default;
-        // If the object has a model, instantiate it.
-        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath, parent); PostCellObject(modelObj, r); }
-        // If the object has a light, instantiate it.
-        if (r.Record is ILigh record) {
-            var lightObj = GfxCreateLight(record, cell.IsInterior);
-            // If the object also has a model, parent the model to the light.
-            if (modelObj != null) GfxModel.AttachObject(AttachObjectMethod.Find, lightObj, modelObj, "AttachLight");
-            // If the light has no associated model, instantiate the light as a standalone object.
-            else { PostCellObject(lightObj, r); GfxModel.AttachObject(AttachObjectMethod.Transform, lightObj, parent); }
+        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxPostCellObject(modelObj, r.Obj, parent); }
+        if (r.Record is ILigh ligh) {
+            var s = GfxCreateLight(ligh, cell.IsInterior);
+            if (modelObj != null) GfxModel.AttachObject(AttachObjectMethod.Find, s, modelObj, "AttachLight");
+            else GfxPostCellObject(s, r.Obj, parent);
         }
     }
 
-    /// <summary>
-    /// Finishes initializing an instantiated cell object.
-    /// </summary>
-    protected void PostCellObject(Object gameObject, CellRef r) {
-        //    var refObj = (CELLRecord.RefObj)refCellObjInfo.RefObj;
-        //    // Handle object transforms.
-        //    if (refObj.XSCL != null) gameObject.transform.localScale = Vector3.one * refObj.XSCL.Value.Value;
-        //    gameObject.transform.position += NifUtils.NifPointToUnityPoint(refObj.DATA.Position.ToVector3());
-        //    gameObject.transform.rotation *= NifUtils.NifEulerAnglesToUnityQuaternion(refObj.DATA.EulerAngles.ToVector3());
-        //    var tagTarget = gameObject;
-        //    var coll = gameObject.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
-        //    if (coll != null) tagTarget = coll.gameObject;
-        //    ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
-        //    ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
-        //    ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
-        //    ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
-        //    ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
-        //    ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
-        //    ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
-        //    ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
-        //    ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
-        //    ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
-        //    ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
-        //    ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
-        //    ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
-        //    ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
-        //    ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
-        //    ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
-        //    ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
-    }
-
     //void ProcessObjectType<RecordType>(Object gameObject, RefCellObjInfo info, string tag) where RecordType : Record {
-    //    var record = info.ReferencedRecord;
-    //    if (record is RecordType) {
+    //    if (info.Record is RecordType r) {
     //        var obj = GameObjectUtils.FindTopLevelObject(gameObject);
     //        if (obj == null) return;
     //        //var component = GenericObjectComponent.Create(obj, record, tag);
@@ -298,6 +268,7 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
         const int VTEX_ROWS = 16;
         const int VTEX_COLUMNS = VTEX_ROWS;
 
+        var defaultMaterial = GfxModel.MaterialManager.DefaultMaterial;
         var heights = land.Heights;
         if (heights == null) yield break;
         yield return null; // Return before doing any work to provide an IEnumerator handle to the coroutine.
@@ -324,11 +295,12 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
         // Texture the terrain.
         var indexs = land.Vtex ?? new uint[LAND_TEXTUREINDICES]; var layers = new List<TerrainLayer>(); var layerIndexs = new Dictionary<int, int>();
         for (var i = 0; i < indexs.Length; i++) {
-            var index = (int)indexs[i] - 1;
+            var index = (int)(indexs[i] - 1);
             if (layerIndexs.ContainsKey(index)) continue;
             // Load terrain texture.
             var path = index >= 0 ? Query.FindLtex(index).Path : DefaultLandTexturePath;
             var texture = GfxModel.CreateTexture(path);
+            Log.Info($"{path}: {texture}");
             yield return null; // Yield after loading each texture to avoid doing too much work on one frame.
             // Create the splat prototype.
             var layerIndex = layers.Count; layers.Add(new TerrainLayer { Texture = texture, TileSize = new Vector2(6, 6) }); layerIndexs.Add(index, layerIndex);
@@ -341,17 +313,16 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
             for (var x = 0; x < VTEX_COLUMNS; x++) {
                 int xMajor = x / 4, xMinor = x - (xMajor * 4);
                 var texIndex = (int)indexs[(yMajor * 64) + (xMajor * 16) + (yMinor * 4) + xMinor] - 1;
-                if (texIndex >= 0) alphaMap[y, x, layerIndexs[texIndex]] = 1;
-                else alphaMap[y, x, 0] = 1;
+                alphaMap[y, x, texIndex >= 0 ? layerIndexs[texIndex] : 0] = 1;
             }
         }
 
         // Create the terrain.
         yield return null; // Yield before creating the terrain GameObject because it takes a while.
         var heightRange = (maxHeight - minHeight) / MeterInUnits;
-        var position = new Vector3(land.GridId.X * CellLengthInMeters, minHeight / MeterInUnits, land.GridId.Y * CellLengthInMeters);
+        var position = new Vector3(land.GridId.X * CellLengthInMeters, land.GridId.Y * CellLengthInMeters, minHeight / MeterInUnits);
         var sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
-        GfxCreateTerrain(-1, newHeights, heightRange, sampleDistance, [.. layers], alphaMap, position, default, parent);
+        GfxCreateTerrain(0, newHeights, heightRange, sampleDistance, [.. layers], alphaMap, position, defaultMaterial, parent);
     }
 }
 

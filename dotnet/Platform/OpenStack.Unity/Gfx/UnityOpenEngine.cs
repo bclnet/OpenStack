@@ -75,12 +75,12 @@ public class UnityOpenEngine : IDisposable {
     //UnderwaterEffect UnderwaterEffect;
 
     GameObject GfxCreatePlayer(GameObject playerPrefab, Vector3 position, out GameObject playerCamera) {
-        if (playerPrefab == null) throw new InvalidOperationException("playerPrefab missing");
+        if (playerPrefab == null) throw new InvalidOperationException("PlayerPrefab missing");
         var player = GameObject.FindWithTag("Player");
         if (player == null) { player = GameObject.Instantiate(playerPrefab); player.name = "Player"; }
         player.transform.position = position;
         PlayerTransform = player.GetComponent<Transform>();
-        var cameraInPlayer = player.GetComponentInChildren<Camera>() ?? throw new InvalidOperationException("Player:Camera missing");
+        var cameraInPlayer = player.GetComponentInChildren<Camera>() ?? throw new InvalidOperationException("Player: Camera missing");
         playerCamera = cameraInPlayer.gameObject;
         PlayerComponent = player.GetComponent<PlayerComponent>();
         //UnderwaterEffect = playerCamera.GetComponent<UnderwaterEffect>();

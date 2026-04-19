@@ -110,7 +110,7 @@ public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
 
 public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
     UnityGfxModel Gfx = gfx;
-    readonly ICellDatabase Obj = (ICellDatabase)obj;
+    readonly ICellDatabase Obj = obj as ICellDatabase;
 
     UnityOpenEngine Engine;
     GameObject PlayerPrefab = GameObject.Find("Player0");
@@ -118,8 +118,7 @@ public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
-        //Log.Info($"{Obj}");
-        //Log.Info($"{PlayerPrefab}");
+        //Log.Info($"PlayerPrefab: {PlayerPrefab}");
         var arc = (ISourceWithPlatform)Obj.Archive;
         Gfx = (UnityGfxModel)arc.Gfx[2];
         var query = Obj.Query;

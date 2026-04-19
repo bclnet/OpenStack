@@ -41,38 +41,31 @@ public class UnityClientHost : MonoBehaviour, IClientHost {
 
 // UnityObjectModelBuilder
 class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {
-    GameObject _prefab;
+    GameObject _prefabObj;
 
     public override GameObject CreateNewObject(GameObject prefab, GameObject parent) {
         var obj = GameObject.Instantiate(prefab);
-        if (parent != null) prefab.transform.parent = parent.transform;
+        if (parent != null) obj.transform.parent = parent.transform;
         return obj;
     }
 
-    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager, GameObject parent) {
-        //var abc = source.Begin("UN");
-        //try
-        //{
-        //}
-        //finally { source.End(); }
+    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager) {
         var file = (Binary_Nif)source;
         // Start pre-loading all the NIF's textures.
         foreach (var texturePath in file.GetTexturePaths()) materialManager.TextureManager.PreloadTexture(texturePath);
         var objBuilder = new UnityNifObjectBuilder(file, materialManager, false);
         var prefab = objBuilder.BuildObject();
-        prefab.transform.parent = _prefab.transform;
+        prefab.transform.parent = _prefabObj.transform;
         // Add LOD support to the prefab.
         var LODComponent = prefab.AddComponent<LODGroup>();
         LODComponent.SetLODs([new(0.015f, prefab.GetComponentsInChildren<UnityEngine.Renderer>())]);
-        // parent
-        if (parent != null) prefab.transform.parent = parent.transform;
         return prefab;
     }
 
     public override void EnsurePrefab() {
-        if (_prefab != null) return;
-        _prefab = new GameObject("_Prefabs");
-        _prefab.SetActive(false);
+        if (_prefabObj != null) return;
+        _prefabObj = new GameObject("_Prefabs");
+        _prefabObj.SetActive(false);
     }
 }
 

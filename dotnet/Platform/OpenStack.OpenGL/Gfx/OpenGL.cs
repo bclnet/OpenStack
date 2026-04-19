@@ -304,6 +304,10 @@ public class OpenGLCellBuilder(IQuery query, OpenGLGfxModel gfxModel) : CellBuil
 
     protected override object GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, System.Numerics.Vector3 position, GLRenderMaterial material, object parent)
         => null;
+
+    protected override void GfxPostCellObject(object gameObject, ICellXref r, object parent) {
+    }
+
 }
 
 #endregion
