@@ -7,10 +7,18 @@ from openstk.gfx import Renderer
 # typedefs
 class PygameGfxModel: pass
 
-#region PygameTestAnimRenderer
+#region TestTriRenderer
 
-# PygameTextureRenderer
-class PygameTestAnimRenderer(Renderer):
+# TestTriRenderer
+class TestTriRenderer(Renderer):
+    def __init__(self, gfx: PygameGfxModel, obj: object, surf: object): pass
+
+#endregion
+
+#region TestAnimRenderer
+
+# TextureRenderer
+class TestAnimRenderer(Renderer):
     def __init__(self, gfx: PygameGfxModel, obj: object, surf: object):
         self.surf = surf
 
@@ -29,10 +37,3 @@ class PygameTestAnimRenderer(Renderer):
 
 #endregion
 
-#region PygameTestTriRenderer
-
-# PygameTestTriRenderer
-class PygameTestTriRenderer(Renderer):
-    def __init__(self, gfx: PygameGfxModel, obj: object, surf: object): pass
-
-#endregion

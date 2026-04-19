@@ -1,9 +1,10 @@
 from __future__ import annotations
 import os, io, numpy as np
-from openstk.core import Platform, SystemSfx
-from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
+from openstk.core import Platform
+from openstk.platforms.system import SystemSfx
+from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
 from openstk.client import IClientHost
-from .enginx.eng import Game, GraphicsDeviceManager
+from openstk.gfx.egin import Game, GraphicsDeviceManager
 
 # typedefs
 class ISource: pass

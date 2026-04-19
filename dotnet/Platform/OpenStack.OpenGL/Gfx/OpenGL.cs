@@ -2,6 +2,7 @@
 using OpenStack.Algorithms;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using static OpenStack.CellManager;
 
 namespace OpenStack.Gfx.OpenGL;
 
@@ -261,6 +263,47 @@ public class ShaderDebugLoader : ShaderLoader {
     // Reload shaders at runtime
     static string GetShaderDiskPath(string name) => Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName), "../../../../", ShaderDirectory.Replace(".", "/"), name);
 #endif
+}
+
+#endregion
+
+#region CellManager
+
+// OpenGLCellManager
+public class OpenGLCellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) : CellManager(query, queue, taskFunc) {
+    public override (object, object) GfxCreateContainers(string name) {
+        return (null, null);
+        //var cellObj = new GameObject(name) { tag = "Cell" };
+        //var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
+        //return (contObj, cellObj);
+    }
+
+    public override void GfxSetVisible(object source, bool visible) {
+        //var c = (GameObject)source;
+        //if (visible) { if (!c.activeSelf) c.SetActive(true); }
+        //else { if (c.activeSelf) c.SetActive(false); }
+    }
+}
+
+public class OpenGLCellBuilder(IQuery query, OpenGLGfxModel gfxModel) : CellBuilder<object, GLRenderMaterial, int, Shader>(query, gfxModel) {
+    const bool RenderLightShadows = false;
+    const bool RenderExteriorCellLights = false;
+
+    protected override object GfxCreateLight(ILigh light, bool indoors) {
+        return null;
+        //var s = new GameObject("GfxCreateLight") { isStatic = true };
+        //var c = s.AddComponent<Light>();
+        //c.range = 3 * light.Radius;
+        //c.color = light.LightColor.ToUnity();
+        //c.intensity = 1.5f;
+        //c.bounceIntensity = 0f;
+        //c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
+        //if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
+        //return s;
+    }
+
+    protected override object GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, System.Numerics.Vector3 position, GLRenderMaterial material, object parent)
+        => null;
 }
 
 #endregion

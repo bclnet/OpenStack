@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Linq;
 using UnityEngine;
+using static OpenStack.CellManager;
+using XShader = UnityEngine.Shader;
 
 namespace OpenStack.Gfx.Unity;
 
@@ -12,14 +16,21 @@ public static class UnityExtensions {
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static System.Numerics.Vector3 FromUnity(this Vector3 source) => new System.Numerics.Vector3(source.x, source.y, source.z);
+    public static System.Numerics.Vector3 FromUnity(this Vector3 source) => new(source.x, source.z, source.y);
 
     /// <summary>
     /// FromUnityX
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static System.Numerics.Vector3 FromUnityX(this Vector3 source) { MathX.Swap(ref source.y, ref source.z); return new System.Numerics.Vector3(source.x, source.y, source.z); }
+    //public static System.Numerics.Vector3 FromUnityX(this Vector3 source) { MathX.Swap(ref source.y, ref source.z); return new System.Numerics.Vector3(source.x, source.y, source.z); }
+
+    /// <summary>
+    /// ToUnity
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static Vector2 ToUnity(this System.Numerics.Vector2 source) => new(source.X, source.Y);
 
     /// <summary>
     /// ToUnity
@@ -45,7 +56,7 @@ public static class UnityExtensions {
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static Vector3 ToUnityX(this System.Numerics.Vector3 source) { MathX.Swap(ref source.Y, ref source.Z); return new Vector3(source.X, source.Y, source.Z); }
+    //public static Vector3 ToUnityX(this System.Numerics.Vector3 source) { MathX.Swap(ref source.Y, ref source.Z); return new Vector3(source.X, source.Y, source.Z); }
 
     /// <summary>
     /// ToUnityRotation
@@ -91,7 +102,7 @@ public static class UnityExtensions {
     /// <returns></returns>
     public static Quaternion ToUnityQuaternionAsEulerAnglesX(this System.Numerics.Vector3 source) // NifEulerAnglesToUnityQuaternion
     {
-        var newAngles = source.ToUnityX();
+        var newAngles = source.ToUnity();
         return Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.x, Vector3.right) *
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.y, Vector3.up) *
             Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.z, Vector3.forward);
@@ -156,29 +167,51 @@ public static class GameObjectX {
         return s;
     }
 
+
+
+    /// <summary>
+    /// Creates a terrain from heights.
+    /// </summary>
+    /// <param name="offset">offset.</param>
+    /// <param name="heights">Terrain height percentages ranging from 0 to 1.</param>
+    /// <param name="maxHeight">The maximum height of the terrain, corresponding to a height percentage of 1.</param>
+    /// <param name="sampleDistance">The horizontal/vertical distance between height samples.</param>
+    /// <param name="layers">The textures used by the terrain.</param>
+    /// <param name="alphaMap">Texture blending information.</param>
+    /// <param name="position">The position of the terrain.</param>
+    /// <param name="materialTemplate">The material template.</param>
+    /// <param name="parent">The parent.</param>
+    /// <returns>A terrain GameObject.</returns>
+    public static GameObject CreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material materialTemplate, GameObject parent = default) {
+        var terrainData = CreateTerrainData(offset, heights, heightRange, sampleDistance, layers, alphaMap);
+        var obj = CreateTerrainFromTerrainData(terrainData, position, materialTemplate);
+        if (parent != null) obj.transform.parent = parent.transform;
+        return obj;
+    }
+
     /// <summary>
     /// Creates terrain data from heights.
     /// </summary>
-    /// <param name="heightPercents">Terrain height percentages ranging from 0 to 1.</param>
-    /// <param name="maxHeight">The maximum height of the terrain, corresponding to a height percentage of 1.</param>
-    /// <param name="heightSampleDistance">The horizontal/vertical distance between height samples.</param>
-    /// <param name="terrainLayers">The textures used by the terrain.</param>
+    /// <param name="heights">Terrain height percentages ranging from 0 to 1.</param>
+    /// <param name="heightRange">The maximum height of the terrain, corresponding to a height percentage of 1.</param>
+    /// <param name="sampleDistance">The horizontal/vertical distance between height samples.</param>
+    /// <param name="layers">The textures used by the terrain.</param>
     /// <param name="alphaMap">Texture blending information.</param>
     /// <returns>A TerrainData instance.</returns>
-    public static TerrainData CreateTerrainData(int offset, float[,] heightPercents, float maxHeight, float heightSampleDistance, TerrainLayer[] terrainLayers, float[,,] alphaMap) {
-        Debug.Assert(heightPercents.GetLength(0) == heightPercents.GetLength(1) && maxHeight >= 0 && heightSampleDistance >= 0);
+    static TerrainData CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap) {
+        Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
         // Create the TerrainData.
-        var heightmapResolution = heightPercents.GetLength(0);
+        var heightmapResolution = heights.GetLength(0);
         var terrainData = new TerrainData { heightmapResolution = heightmapResolution };
         //Log($"{terrainData.heightmapResolution} == {heightmapResolution}");
-        var terrainWidth = (heightmapResolution + offset) * heightSampleDistance;
+        var terrainWidth = (heightmapResolution + offset) * sampleDistance;
         // If maxHeight is 0, leave all the heights in terrainData at 0 and make the vertical size of the terrain 1 to ensure valid AABBs.
-        if (!Mathf.Approximately(maxHeight, 0)) {
-            terrainData.size = new Vector3(terrainWidth, maxHeight, terrainWidth);
-            terrainData.SetHeights(0, 0, heightPercents);
+        if (!Mathf.Approximately(heightRange, 0)) {
+            terrainData.size = new Vector3(terrainWidth, heightRange, terrainWidth);
+            terrainData.SetHeights(0, 0, heights);
         }
         else terrainData.size = new Vector3(terrainWidth, 1, terrainWidth);
-        terrainData.terrainLayers = terrainLayers;
+        terrainData.terrainLayers = layers;
         if (alphaMap != null) {
             Debug.Assert(alphaMap.GetLength(0) == alphaMap.GetLength(1));
             terrainData.alphamapResolution = alphaMap.GetLength(0);
@@ -187,22 +220,7 @@ public static class GameObjectX {
         return terrainData;
     }
 
-    /// <summary>
-    /// Creates a terrain from heights.
-    /// </summary>
-    /// <param name="heightPercents">Terrain height percentages ranging from 0 to 1.</param>
-    /// <param name="maxHeight">The maximum height of the terrain, corresponding to a height percentage of 1.</param>
-    /// <param name="heightSampleDistance">The horizontal/vertical distance between height samples.</param>
-    /// <param name="terrainLayers">The textures used by the terrain.</param>
-    /// <param name="alphaMap">Texture blending information.</param>
-    /// <param name="position">The position of the terrain.</param>
-    /// <returns>A terrain GameObject.</returns>
-    public static GameObject CreateTerrain(int offset, float[,] heightPercents, float maxHeight, float heightSampleDistance, TerrainLayer[] terrainLayers, float[,,] alphaMap, Vector3 position, Material materialTemplate) {
-        var terrainData = CreateTerrainData(offset, heightPercents, maxHeight, heightSampleDistance, terrainLayers, alphaMap);
-        return CreateTerrainFromTerrainData(terrainData, position, materialTemplate);
-    }
-
-    public static GameObject CreateTerrainFromTerrainData(TerrainData terrainData, Vector3 position, Material materialTemplate) {
+    static GameObject CreateTerrainFromTerrainData(TerrainData terrainData, Vector3 position, Material materialTemplate) {
         // Create the terrain game object.
         var terrainObject = new GameObject("terrain") { isStatic = true };
         var terrain = terrainObject.AddComponent<Terrain>();
@@ -300,6 +318,121 @@ public static class GameObjectX {
         // If gameObject has a MeshFilter but no Collider, add a MeshCollider.
         if (source.GetComponent<Collider>() == null && (filter = source.GetComponent<MeshFilter>()) != null && filter.mesh != null) source.AddComponent<MeshCollider>();
         foreach (Transform childTransform in source.transform) AddMissingMeshCollidersRecursively(childTransform.gameObject);
+    }
+}
+
+#endregion
+
+
+#region CellManager
+
+// UnityCellManager
+public class UnityCellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) : CellManager(query, queue, taskFunc) {
+    public override (object, object) GfxCreateContainers(string name) {
+        var cellObj = new GameObject(name) { tag = "Cell" };
+        var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
+        return (contObj, cellObj);
+    }
+
+    public override void GfxSetVisible(object source, bool visible) {
+        var c = (GameObject)source;
+        if (visible) { if (!c.activeSelf) c.SetActive(true); }
+        else { if (c.activeSelf) c.SetActive(false); }
+    }
+}
+
+public class UnityCellBuilder(IQuery query, UnityGfxModel gfxModel) : CellBuilder<GameObject, Material, Texture2D, XShader>(query, gfxModel) {
+    const bool RenderLightShadows = false;
+    const bool RenderExteriorCellLights = false;
+
+    protected override GameObject GfxCreateLight(ILigh light, bool indoors) {
+        var s = new GameObject("GfxCreateLight") { isStatic = true };
+        var c = s.AddComponent<Light>();
+        c.range = 3 * light.Radius;
+        c.color = light.LightColor.ToUnity();
+        c.intensity = 1.5f;
+        c.bounceIntensity = 0f;
+        c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
+        if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
+        return s;
+    }
+
+    protected override GameObject GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, System.Numerics.Vector3 position, Material material, GameObject parent)
+        => GameObjectX.CreateTerrain(offset, heights, heightRange, sampleDistance, [.. layers.Select(s => new UnityEngine.TerrainLayer { diffuseTexture = (Texture2D)s.Texture, tileSize = s.TileSize.ToUnity(), smoothness = 0, metallic = 0 })], alphaMap, position.ToUnity(), material, parent);
+}
+
+#endregion
+
+#region InputManager
+
+public static class InputManager {
+    //struct XRButtonMapping(XRButton button, bool left) {
+    //    public XRButton Button { get; set; } = button;
+    //    public bool LeftHand { get; set; } = left;
+    //}
+
+    //static Dictionary<string, XRButtonMapping> XRMapping = new()
+    //{
+    //    { "Jump", new XRButtonMapping(XRButton.Thumbstick, true) },
+    //    { "Light", new XRButtonMapping(XRButton.Thumbstick, false) },
+    //    { "Run", new XRButtonMapping(XRButton.Grip, true) },
+    //    { "Slow", new XRButtonMapping(XRButton.Grip, false) },
+    //    { "Attack", new XRButtonMapping(XRButton.Trigger, false) },
+    //    { "Recenter", new XRButtonMapping(XRButton.Menu, false) },
+    //    { "Use", new XRButtonMapping(XRButton.Trigger, true) },
+    //    { "Menu", new XRButtonMapping(XRButton.Menu, true) }
+    //};
+
+    public static float GetAxis(string axis) {
+        var result = 1.0f; // Input.GetAxis(axis);
+        //if (XRSettings.enabled) {
+        //    var input = XRInput.Instance;
+        //    if (axis == "Horizontal") result += input.GetAxis(XRAxis.ThumbstickX, true);
+        //    else if (axis == "Vertical") result += input.GetAxis(XRAxis.ThumbstickY, true);
+        //    else if (axis == "Mouse X") result += input.GetAxis(XRAxis.ThumbstickX, false);
+        //    else if (axis == "Mouse Y") result += input.GetAxis(XRAxis.ThumbstickY, false);
+        //    // Deadzone
+        //    if (Mathf.Abs(result) < 0.15f) result = 0.0f;
+        //}
+        return result;
+    }
+
+    public static bool GetButton(string button) {
+        var result = false; // Input.GetButtonDown(button);
+        //if (XRSettings.enabled) {
+        //    var input = XRInput.Instance;
+        //    if (XRMapping.ContainsKey(button)) {
+        //        var mapping = XRMapping[button];
+        //        result |= input.GetButton(mapping.Button, mapping.LeftHand);
+        //    }
+        //}
+        return result;
+    }
+
+    public static bool GetButtonUp(string button) {
+        var result = false; // UnityEngine.Input.GetButtonUp(button);
+        //if (XRSettings.enabled) {
+        //    var input = XRInput.Instance;
+        //    if (XRMapping.ContainsKey(button)) { var mapping = XRMapping[button]; result |= input.GetButtonUp(mapping.Button, mapping.LeftHand); }
+        //}
+        return result;
+    }
+
+    public static bool GetButtonDown(string button) {
+        var result = false; // UnityEngine.Input.GetButtonDown(button);
+        //if (XRSettings.enabled) {
+        //    var input = XRInput.Instance;
+        //    if (XRMapping.ContainsKey(button)) { var mapping = XRMapping[button]; result |= input.GetButtonDown(mapping.Button, mapping.LeftHand); }
+        //}
+        return result;
+    }
+
+    internal static bool GetKeyDown(KeyCode tab) {
+        throw new NotImplementedException();
+    }
+
+    internal static bool GetMouseButtonDown(int v) {
+        throw new NotImplementedException();
     }
 }
 

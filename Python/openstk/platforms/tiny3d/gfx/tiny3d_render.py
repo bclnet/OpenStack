@@ -1,6 +1,5 @@
 from __future__ import annotations
 import os, numpy as np
-from pyengine3d import *
 from openstk.gfx import Renderer
 
 # typedefs
@@ -8,10 +7,26 @@ class Tiny3dGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region Tiny3dTextureRenderer
+#region TestTriRenderer
 
-# Tiny3dTextureRenderer
-class Tiny3dTextureRenderer(Renderer):
+# TestTriRenderer
+class TestTriRenderer(Renderer):
+    def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
+
+    def start(self):
+        scene = self.scene = base.loader.loadModel('models/environment')
+        scene.reparentTo(base.render)
+        scene.setScale(0.25, 0.25, 0.25)
+        scene.setPos(-8, 42, 0)
+        # self.scene = self.loader.loadModel('teapot')
+        # self.scene.reparentTo(self.render)
+
+#endregion
+
+#region TextureRenderer
+
+# TextureRenderer
+class TextureRenderer(Renderer):
     gfx: Tiny3dGfxModel
     obj: object
     tex: int
@@ -40,66 +55,58 @@ class Tiny3dTextureRenderer(Renderer):
 
 #endregion
 
-#region Tiny3dObjectRenderer
+#region ObjectRenderer
 
-# Tiny3dObjectRenderer
-class Tiny3dObjectRenderer(Renderer):
+# ObjectRenderer
+class ObjectRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Tiny3dMaterialRenderer
+#region MaterialRenderer
 
-# Tiny3dMaterialRenderer
-class Tiny3dMaterialRenderer(Renderer):
+# MaterialRenderer
+class MaterialRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Tiny3dGridRenderer
+#region GridRenderer
 
-# Tiny3dGridRenderer
-class Tiny3dGridRenderer(Renderer):
+# GridRenderer
+class GridRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Tiny3dParticleRenderer
+#region ParticleRenderer
 
-# Tiny3dParticleRenderer
-class Tiny3dParticleRenderer(Renderer):
+# ParticleRenderer
+class ParticleRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Tiny3dCellRenderer
+#region CellRenderer
 
-# Tiny3dCellRenderer
-class Tiny3dCellRenderer(Renderer):
+# CellRenderer
+class CellRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Tiny3dWorldRenderer
+#region EngineRenderer
 
-# Tiny3dWorldRenderer
-class Tiny3dWorldRenderer(Renderer):
+# EngineRenderer
+class EngineRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Tiny3dTestTriRenderer
+#region WorldRenderer
 
-# OpenGLTestTriRenderer
-class Tiny3dTestTriRenderer(Renderer):
+# WorldRenderer
+class WorldRenderer(Renderer):
     def __init__(self, gfx: Tiny3dGfxModel, obj: object): pass
-
-    def start(self):
-        scene = self.scene = base.loader.loadModel('models/environment')
-        scene.reparentTo(base.render)
-        scene.setScale(0.25, 0.25, 0.25)
-        scene.setPos(-8, 42, 0)
-        # self.scene = self.loader.loadModel('teapot')
-        # self.scene.reparentTo(self.render)
 
 #endregion

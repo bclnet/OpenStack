@@ -57,8 +57,8 @@ class AggregateFileSystem(FileSystem):
     def __init__(self, aggreate: list[FileSystem]): self.aggreate = aggreate
     def glob(self, path: str, searchPattern: str) -> list[str]: return [y for z in [s.glob(path, searchPattern) for s in self.aggreate] for y in z]
     def fileExists(self, path: str) -> bool: return any(s.fileExists(path) for s in self.aggreate)
-    def fileInfo(self, path: str) -> tuple[str, int]: return next(iter([s for s in [s.fileInfo(path) for s in self.aggreate] if s]))
-    def open(self, path: str, mode: str = None) -> object: return next(iter([s for s in [s.open(path, mode) for s in self.aggreate] if s]))
+    def fileInfo(self, path: str) -> tuple[str, int]: return next(iter([y for y in (s.fileInfo(path) for s in self.aggreate) if y]))
+    def open(self, path: str, mode: str = None) -> object: return next(iter([y for y in (s.open(path, mode) for s in self.aggreate) if y]))
 # end::AggregateFileSystem[]
 
 # tag::VirtualFileSystem[]
@@ -80,9 +80,7 @@ class DirectoryFileSystem(FileSystem):
         return [str(s)[self.skip:] for s in g if s.is_file()]
     def fileExists(self, path: str) -> bool: return os.path.exists(os.path.join(self.root, path))
     def fileInfo(self, path: str) -> tuple[str, int]: return (path, os.stat(path).st_size) if os.path.exists(path := os.path.join(self.root, path)) else (None, 0)
-    def open(self, path: str, mode: str = None) -> object:
-        newPath = os.path.join(self.root, path)
-        return open(newPath, mode or 'rb') if os.path.exists(newPath) else None
+    def open(self, path: str, mode: str = None) -> object: newPath = os.path.join(self.root, path); return open(newPath, mode or 'rb') if os.path.exists(newPath) else None
     def next(self) -> FileSystem:
         if os.path.isfile(self.root) or '*' in os.path.basename(self.root):
             self.root = os.path.dirname(self.root); self.skip = len(self.root) + 1

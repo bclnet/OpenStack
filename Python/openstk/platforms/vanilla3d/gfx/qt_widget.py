@@ -13,7 +13,7 @@ class IOpenSfx: pass
 
 #region Vanilla3dWidget
 
-class Vanilla3dWidget(QWidget, ShowBase):
+class Vanilla3dWidget(QWidget):
     renderer: Renderer = None
     id: int = 0
 
@@ -26,7 +26,6 @@ class Vanilla3dWidget(QWidget, ShowBase):
         show-frame-rate-meter #t
         """)
         super(QWidget, self).__init__(parent)
-        super(ShowBase, self).__init__()
         self.gfx: IOpenGfx = parent.gfx
         self.sfx: IOpenSfx = parent.sfx
         self.source: object = tab

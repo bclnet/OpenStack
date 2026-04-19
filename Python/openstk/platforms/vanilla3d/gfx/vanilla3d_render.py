@@ -1,6 +1,5 @@
 from __future__ import annotations
 import os, numpy as np
-from pyengine3d import *
 from openstk.gfx import Renderer
 
 # typedefs
@@ -8,10 +7,26 @@ class Vanilla3dGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region Vanilla3dTextureRenderer
+#region TestTriRenderer
 
-# Vanilla3dTextureRenderer
-class Vanilla3dTextureRenderer(Renderer):
+# TestTriRenderer
+class TestTriRenderer(Renderer):
+    def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
+
+    def start(self):
+        scene = self.scene = base.loader.loadModel('models/environment')
+        scene.reparentTo(base.render)
+        scene.setScale(0.25, 0.25, 0.25)
+        scene.setPos(-8, 42, 0)
+        # self.scene = self.loader.loadModel('teapot')
+        # self.scene.reparentTo(self.render)
+
+#endregion
+
+#region TextureRenderer
+
+# TextureRenderer
+class TextureRenderer(Renderer):
     gfx: Vanilla3dGfxModel
     obj: object
     tex: int
@@ -40,66 +55,58 @@ class Vanilla3dTextureRenderer(Renderer):
 
 #endregion
 
-#region Vanilla3dObjectRenderer
+#region ObjectRenderer
 
-# Vanilla3dObjectRenderer
-class Vanilla3dObjectRenderer(Renderer):
+# ObjectRenderer
+class ObjectRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Vanilla3dMaterialRenderer
+#region MaterialRenderer
 
-# Vanilla3dMaterialRenderer
-class Vanilla3dMaterialRenderer(Renderer):
+# MaterialRenderer
+class MaterialRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Vanilla3dGridRenderer
+#region GridRenderer
 
-# Vanilla3dGridRenderer
-class Vanilla3dGridRenderer(Renderer):
+# GridRenderer
+class GridRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Vanilla3dParticleRenderer
+#region ParticleRenderer
 
-# Vanilla3dParticleRenderer
-class Vanilla3dParticleRenderer(Renderer):
+# ParticleRenderer
+class ParticleRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Vanilla3dCellRenderer
+#region CellRenderer
 
-# Vanilla3dCellRenderer
-class Vanilla3dCellRenderer(Renderer):
+# CellRenderer
+class CellRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Vanilla3dWorldRenderer
+#region EngineRenderer
 
-# Vanilla3dWorldRenderer
-class Vanilla3dWorldRenderer(Renderer):
+# EngineRenderer
+class EngineRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Vanilla3dTestTriRenderer
+#region WorldRenderer
 
-# OpenGLTestTriRenderer
-class Vanilla3dTestTriRenderer(Renderer):
+# WorldRenderer
+class WorldRenderer(Renderer):
     def __init__(self, gfx: Vanilla3dGfxModel, obj: object): pass
-
-    def start(self):
-        scene = self.scene = base.loader.loadModel('models/environment')
-        scene.reparentTo(base.render)
-        scene.setScale(0.25, 0.25, 0.25)
-        scene.setPos(-8, 42, 0)
-        # self.scene = self.loader.loadModel('teapot')
-        # self.scene.reparentTo(self.render)
 
 #endregion

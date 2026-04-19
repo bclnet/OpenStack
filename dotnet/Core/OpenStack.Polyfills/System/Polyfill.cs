@@ -34,22 +34,27 @@ public static class Polyfill {
     /// </summary>
     public static void GetExtrema(this float[] source, out float min, out float max) {
         min = float.MaxValue; max = float.MinValue;
-        foreach (var element in source) { min = Math.Min(min, element); max = Math.Max(max, element); }
+        foreach (var s in source) { min = Math.Min(min, s); max = Math.Max(max, s); }
     }
     /// <summary>
     /// Calculates the minimum and maximum values of a 2D array.
     /// </summary>
     public static void GetExtrema(this float[,] source, out float min, out float max) {
         min = float.MaxValue; max = float.MinValue;
-        foreach (var element in source) { min = Math.Min(min, element); max = Math.Max(max, element); }
+        foreach (var s in source) { min = Math.Min(min, s); max = Math.Max(max, s); }
     }
     /// <summary>
     /// Calculates the minimum and maximum values of a 3D array.
     /// </summary>
     public static void GetExtrema(this float[,,] source, out float min, out float max) {
         min = float.MaxValue; max = float.MinValue;
-        foreach (var element in source) { min = Math.Min(min, element); max = Math.Max(max, element); }
+        foreach (var s in source) { min = Math.Min(min, s); max = Math.Max(max, s); }
     }
+
+    /// <summary>
+    /// Calculates the range.
+    /// </summary>
+    public static float ChangeRange(float x, float min0, float max0, float min1, float max1) { var r0 = max0 - min0; var r1 = max1 - min1; var p0 = r0 != 0 ? (x - min0) / r0 : 0; return min1 + (p0 * r1); }
 
     #endregion
 
@@ -62,25 +67,19 @@ public static class Polyfill {
     /// <summary>
     /// Returns a list of flags for enum
     /// </summary>
-    public static List<Enum> GetFlags(this Enum e)
-        => Enum.GetValues(e.GetType()).Cast<Enum>().Where(e.HasFlag).ToList();
+    public static List<Enum> GetFlags(this Enum e) => [.. Enum.GetValues(e.GetType()).Cast<Enum>().Where(e.HasFlag)];
 
     /// <summary>
     /// Returns the # of bits set in a Flags enum
     /// </summary>
     /// <param name="enumVal">The enum uint value</param>
-    public static int EnumNumFlags(uint enumVal) {
-        var cnt = 0;
-        while (enumVal != 0) { enumVal &= enumVal - 1; cnt++; } // remove the next set bit
-        return cnt;
-    }
+    public static int EnumNumFlags(uint enumVal) { var c = 0; while (enumVal != 0) { enumVal &= enumVal - 1; c++; } return c; } // remove the next set bit 
 
     /// <summary>
     /// Returns TRUE if this flags enum has multiple flags set
     /// </summary>
     /// <param name="enumVal">The enum uint value</param>
-    public static bool EnumHasMultiple(uint enumVal)
-        => (enumVal & (enumVal - 1)) != 0;
+    public static bool EnumHasMultiple(uint enumVal) => (enumVal & (enumVal - 1)) != 0;
 
     public static string GetEnumDescription(this Type source, string value) {
         var name = Enum.GetNames(source).FirstOrDefault(f => f.Equals(value, StringComparison.OrdinalIgnoreCase));
@@ -105,12 +104,7 @@ public static class Polyfill {
     /// <param name="source">The source.</param>
     /// <param name="type">The type.</param>
     /// <returns></returns>
-    public static object CastToArray(this IEnumerable source, Type type)
-        => Enumerable_ToArrayMethod.MakeGenericMethod(type).Invoke(null, new[] { Enumerable_CastMethod.MakeGenericMethod(type).Invoke(null, new[] { source }) });
+    public static object CastToArray(this IEnumerable source, Type type) => Enumerable_ToArrayMethod.MakeGenericMethod(type).Invoke(null, [Enumerable_CastMethod.MakeGenericMethod(type).Invoke(null, [source])]);
 
-    public static string Reverse(this string s) {
-        var charArray = s.ToCharArray();
-        Array.Reverse(charArray);
-        return new string(charArray);
-    }
+    public static string Reverse(this string s) { var c = s.ToCharArray(); Array.Reverse(c); return new string(c); }
 }

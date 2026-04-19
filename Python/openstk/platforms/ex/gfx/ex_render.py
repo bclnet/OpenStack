@@ -1,6 +1,5 @@
 from __future__ import annotations
 import os, numpy as np
-from pyengine3d import *
 from openstk.gfx import Renderer
 
 # typedefs
@@ -8,10 +7,26 @@ class ExGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region ExTextureRenderer
+#region TestTriRenderer
 
-# ExTextureRenderer
-class ExTextureRenderer(Renderer):
+# TestTriRenderer
+class TestTriRenderer(Renderer):
+    def __init__(self, gfx: ExGfxModel, obj: object): pass
+
+    def start(self):
+        scene = self.scene = base.loader.loadModel('models/environment')
+        scene.reparentTo(base.render)
+        scene.setScale(0.25, 0.25, 0.25)
+        scene.setPos(-8, 42, 0)
+        # self.scene = self.loader.loadModel('teapot')
+        # self.scene.reparentTo(self.render)
+
+#endregion
+
+#region TextureRenderer
+
+# TextureRenderer
+class TextureRenderer(Renderer):
     gfx: ExGfxModel
     obj: object
     tex: int
@@ -40,66 +55,58 @@ class ExTextureRenderer(Renderer):
 
 #endregion
 
-#region ExObjectRenderer
+#region ObjectRenderer
 
-# ExObjectRenderer
-class ExObjectRenderer(Renderer):
+# ObjectRenderer
+class ObjectRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region ExMaterialRenderer
+#region MaterialRenderer
 
-# ExMaterialRenderer
-class ExMaterialRenderer(Renderer):
+# MaterialRenderer
+class MaterialRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region ExGridRenderer
+#region GridRenderer
 
-# ExGridRenderer
-class ExGridRenderer(Renderer):
+# GridRenderer
+class GridRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region ExParticleRenderer
+#region ParticleRenderer
 
-# ExParticleRenderer
-class ExParticleRenderer(Renderer):
+# ParticleRenderer
+class ParticleRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region ExCellRenderer
+#region CellRenderer
 
-# ExCellRenderer
-class ExCellRenderer(Renderer):
+# CellRenderer
+class CellRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region ExWorldRenderer
+#region EngineRenderer
 
-# ExWorldRenderer
-class ExWorldRenderer(Renderer):
+# EngineRenderer
+class EngineRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
 
 #endregion
 
-#region ExTestTriRenderer
+#region WorldRenderer
 
-# OpenGLTestTriRenderer
-class ExTestTriRenderer(Renderer):
+# WorldRenderer
+class WorldRenderer(Renderer):
     def __init__(self, gfx: ExGfxModel, obj: object): pass
-
-    def start(self):
-        scene = self.scene = base.loader.loadModel('models/environment')
-        scene.reparentTo(base.render)
-        scene.setScale(0.25, 0.25, 0.25)
-        scene.setPos(-8, 42, 0)
-        # self.scene = self.loader.loadModel('teapot')
-        # self.scene.reparentTo(self.render)
 
 #endregion

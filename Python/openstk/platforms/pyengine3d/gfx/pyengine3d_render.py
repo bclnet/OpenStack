@@ -7,10 +7,26 @@ class PyEngine3dGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region PyEngine3dTextureRenderer
+#region TestTriRenderer
 
-# PyEngine3dTextureRenderer
-class PyEngine3dTextureRenderer(Renderer):
+# TestTriRenderer
+class TestTriRenderer(Renderer):
+    def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
+
+    def start(self):
+        scene = self.scene = base.loader.loadModel('models/environment')
+        scene.reparentTo(base.render)
+        scene.setScale(0.25, 0.25, 0.25)
+        scene.setPos(-8, 42, 0)
+        # self.scene = self.loader.loadModel('teapot')
+        # self.scene.reparentTo(self.render)
+
+#endregion
+
+#region TextureRenderer
+
+# TextureRenderer
+class TextureRenderer(Renderer):
     gfx: PyEngine3dGfxModel
     obj: object
     tex: int
@@ -39,66 +55,58 @@ class PyEngine3dTextureRenderer(Renderer):
 
 #endregion
 
-#region PyEngine3dObjectRenderer
+#region ObjectRenderer
 
-# PyEngine3dObjectRenderer
-class PyEngine3dObjectRenderer(Renderer):
+# ObjectRenderer
+class ObjectRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
 
 #endregion
 
-#region PyEngine3dMaterialRenderer
+#region MaterialRenderer
 
-# PyEngine3dMaterialRenderer
-class PyEngine3dMaterialRenderer(Renderer):
+# MaterialRenderer
+class MaterialRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
 
 #endregion
 
-#region PyEngine3dGridRenderer
+#region GridRenderer
 
-# PyEngine3dGridRenderer
-class PyEngine3dGridRenderer(Renderer):
+# GridRenderer
+class GridRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
 
 #endregion
 
-#region PyEngine3dParticleRenderer
+#region ParticleRenderer
 
-# PyEngine3dParticleRenderer
-class PyEngine3dParticleRenderer(Renderer):
+# ParticleRenderer
+class ParticleRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
 
 #endregion
 
-#region PyEngine3dCellRenderer
+#region CellRenderer
 
-# PyEngine3dCellRenderer
-class PyEngine3dCellRenderer(Renderer):
+# CellRenderer
+class CellRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
 
 #endregion
 
-#region PyEngine3dWorldRenderer
+#region EngineRenderer
 
-# PyEngine3dWorldRenderer
-class PyEngine3dWorldRenderer(Renderer):
+# EngineRenderer
+class EngineRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
 
 #endregion
 
-#region PyEngine3dTestTriRenderer
+#region WorldRenderer
 
-# OpenGLTestTriRenderer
-class PyEngine3dTestTriRenderer(Renderer):
+# WorldRenderer
+class WorldRenderer(Renderer):
     def __init__(self, gfx: PyEngine3dGfxModel, obj: object): pass
-
-    def start(self):
-        scene = self.scene = base.loader.loadModel('models/environment')
-        scene.reparentTo(base.render)
-        scene.setScale(0.25, 0.25, 0.25)
-        scene.setPos(-8, 42, 0)
-        # self.scene = self.loader.loadModel('teapot')
-        # self.scene.reparentTo(self.render)
 
 #endregion

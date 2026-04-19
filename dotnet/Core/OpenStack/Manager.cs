@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -15,6 +14,12 @@ namespace OpenStack;
 public interface IDatabase {
     object Convert(object s);
     object Query(object s);
+}
+
+public interface ICellDatabase {
+    ISource Archive { get; }
+    IQuery Query { get; }
+    Vector3 Start { get; }
 }
 
 #endregion
@@ -33,27 +38,38 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     }
 
     public class CellRef {
-        public object Obj;
+        public ICellXref Obj;
         public object Record;
         public string ModelPath;
+    }
+
+    public interface ICellXref {
+        string Name { get; }
+    }
+
+    public interface ICellXrefModel {
+        string ModelPath { get; }
     }
 
     public interface ICell {
         uint Id { get; }
         bool IsInterior { get; }
         Int3 GridId { get; }
-        string EDID { get; }
+        string Name { get; }
         Color? AmbientLight { get; }
+        List<ICellXref> Xrefs { get; }
     }
 
     public interface ILand {
         Int3 GridId { get; }
-        object VTEX { get; }
+        uint[] Vtex { get; }
+        float HeightOffset { get; }
+        sbyte[] Heights { get; }
     }
 
     public interface ILtex {
-        long INTV { get; }
-        string ICON { get; }
+        long Intv { get; }
+        string Path { get; }
     }
 
     public interface ILigh {
@@ -61,8 +77,14 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         Color LightColor { get; }
     }
 
+    public interface IQueryFunc {
+        IQuery GetQuery();
+    }
     public interface IQuery {
+        float MeterInUnits { get; }
+        float CellLengthInMeters { get; }
         Int3 GetCellId(Vector3 point, int world);
+        object FindByName(string name);
         ICell FindCell(Int3 cell);
         ICell FindCellByName(string name, int id, int world);
         ILand FindLand(Int3 cell);
@@ -75,9 +97,8 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     public Dictionary<Int3, Cell> Cells = [];
 
     public abstract (object, object) GfxCreateContainers(string name);
-    public abstract void GfxSetVisible(object container, bool visible);
+    public abstract void GfxSetVisible(object source, bool visible);
 
-    //: StartCreatingCell
     public Cell BeginCell(Int3 point) {
         var record = Query.FindCell(point);
         if (record == null) return null;
@@ -85,7 +106,6 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         return cell;
     }
 
-    //: StartCreatingCellByName
     public Cell BeginCellByName(string name, int id, int world = -1) {
         if (world != -1) throw new ArgumentOutOfRangeException("world");
         var record = Query.FindCellByName(name, id, world);
@@ -94,7 +114,6 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         return cell;
     }
 
-    //: UpdateCells
     public void UpdateCells(Vector3 position, int world = -1, bool immediate = false, int radius = -1) {
         var point = Query.GetCellId(position, world);
         if (radius < 0) radius = DefaultRadius;
@@ -127,7 +146,7 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         string cellName;
         ILand land = null;
         if (!cell.IsInterior) { cellName = $"cell {cell.GridId}"; land = Query.FindLand(cell.GridId); }
-        else cellName = cell.EDID;
+        else cellName = cell.Name;
         var (contObj, cellObj) = GfxCreateContainers(cellName);
         var task = TaskFunc(cell, land, contObj, cellObj); Queue.Add(task);
         return new Cell(contObj, cellObj, cell, task);
@@ -144,12 +163,20 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     }
 }
 
-public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBase, Shader> {
+public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenGfxModel<Object, Material, Texture, Shader> gfxModel) {
     const string DefaultLandTexturePath = "textures/_land_default.dds";
-    protected IOpenGfxModel<Object, MaterialBuilderBase, TextureBuilderBase, Shader> GfxModel;
-    protected IQuery Query;
+    protected IQuery Query = query;
+    protected IOpenGfxModel<Object, Material, Texture, Shader> GfxModel = gfxModel;
+    protected float MeterInUnits = query.MeterInUnits;
+    protected float CellLengthInMeters = query.CellLengthInMeters;
+
+    protected class TerrainLayer {
+        public Texture Texture;
+        public Vector2 TileSize;
+    }
 
     protected abstract Object GfxCreateLight(ILigh light, bool indoors);
+    protected abstract Object GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material materialTemplate, Object parent);
 
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
@@ -164,11 +191,11 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         }
 
         // Extract information about referenced objects.
-        var refs = GetCellRefs(cell); yield return null;
+        var cellRefs = GetCellRefs(cell); yield return null;
 
         // Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
-        foreach (var r in refs)
-            if (r.ModelPath != null) GfxModel.PreloadObject(r.ModelPath);
+        foreach (var s in cellRefs)
+            if (s.ModelPath != null) GfxModel.PreloadObject(s.ModelPath);
         yield return null;
 
         // Instantiate terrain.
@@ -179,35 +206,19 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
         }
 
         // Instantiate objects.
-        foreach (var r in refs) { CellObject(cell, contObj, r); yield return null; }
+        foreach (var s in cellRefs) { CellObject(cell, contObj, s); yield return null; }
     }
 
-    CellRef[] GetCellRefs(ICell cell) {
-        return [];
-
-        //if (_data.Format != GameFormatId.TES3) return [];
-        //var refCellObjInfos = new CellRef[cell.RefObjs.Count];
-        //for (var i = 0; i < cell.RefObjs.Count; i++) {
-        //    var r = new CellRef { Obj = cell.RefObjs[i] };
-        //    // Get the record the RefObjDataGroup references.
-        //    var refObj = (CELLRecord.RefObj)r.RefObj;
-        //    _data._MANYsById.TryGetValue(refObj.EDID.Value, out r.ReferencedRecord);
-        //    if (r.Record != null) {
-        //        var modelFileName = (r.ReferencedRecord is IHaveMODL modl ? modl.MODL.Value : null);
-        //        // If the model file name is valid, store the model file path.
-        //        if (!string.IsNullOrEmpty(modelFileName))
-        //            r.ModelFilePath = "meshes\\" + modelFileName;
-        //    }
-        //    refCellObjInfos[i] = r;
-        //}
-        //return refCellObjInfos;
-    }
+    CellRef[] GetCellRefs(ICell cell) => [.. cell.Xrefs.Select(s => {
+        var record = Query.FindByName(s.Name);
+        return new CellRef { Obj = s, Record = record, ModelPath = record != null && record is ICellXrefModel modl && !string.IsNullOrEmpty(modl.ModelPath) ? $"meshes\\{modl.ModelPath}" : null };
+    })];
 
     /// <summary>
     /// Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     /// </summary>
     void CellObject(ICell cell, Object parent, CellRef r) {
-        if (r.Record == null) { Log.Info("Unknown Object: ((CELLRecord.RefObj)r.Obj).EDID"); return; }
+        if (r.Record == null) { Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default;
         // If the object has a model, instantiate it.
         if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath, parent); PostCellObject(modelObj, r); }
@@ -265,16 +276,14 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     //}
 
     List<string> GetLandTextures(ILand land) {
-        if (land.VTEX == null) return null;
+        if (land.Vtex == null) return null;
         var paths = new List<string>();
-        int[] indexs = land.VTEX is ushort[] us ? [.. us.Distinct().Cast<int>()]
-            : land.VTEX is uint[] ui ? [.. ui.Distinct().Cast<int>()]
-            : throw new Exception();
+        var indexs = land.Vtex.Distinct().ToArray();
         for (var i = 0; i < indexs.Length; i++) {
-            var index = indexs[i] - 1;
+            var index = (int)indexs[i] - 1;
             if (index < 0) { paths.Add(DefaultLandTexturePath); continue; }
             var ltex = Query.FindLtex(index);
-            paths.Add(ltex.ICON);
+            paths.Add(ltex.Path);
         }
         return paths;
     }
@@ -283,95 +292,66 @@ public abstract class CellBuilder<Object, MaterialBuilderBase, TextureBuilderBas
     /// Creates terrain representing a LAND record.
     /// </summary>
     IEnumerator LandCoroutine(ILand land, Object parent) {
-        //    Debug.Assert(land != null);
-        //    // Don't create anything if the LAND doesn't have height data.
-        //    if (land.VHGT.HeightData == null) yield break;
-        //    // Return before doing any work to provide an IEnumerator handle to the coroutine.
-        //    yield return null;
-        //    const int LAND_SIDELENGTH_IN_SAMPLES = 65;
-        //    var heights = new float[LAND_SIDELENGTH_IN_SAMPLES, LAND_SIDELENGTH_IN_SAMPLES];
-        //    // Read in the heights in Morrowind units.
-        //    const int VHGTIncrementToUnits = 8;
-        //    var rowOffset = land.VHGT.ReferenceHeight;
-        //    for (var y = 0; y < LAND_SIDELENGTH_IN_SAMPLES; y++) {
-        //        rowOffset += land.VHGT.HeightData[y * LAND_SIDELENGTH_IN_SAMPLES];
-        //        heights[y, 0] = rowOffset * VHGTIncrementToUnits;
-        //        var colOffset = rowOffset;
-        //        for (var x = 1; x < LAND_SIDELENGTH_IN_SAMPLES; x++) {
-        //            colOffset += land.VHGT.HeightData[(y * LAND_SIDELENGTH_IN_SAMPLES) + x];
-        //            heights[y, x] = colOffset * VHGTIncrementToUnits;
-        //        }
-        //    }
-        //    // Change the heights to percentages.
-        //    heights.GetExtrema(out var minHeight, out var maxHeight);
-        //    for (var y = 0; y < LAND_SIDELENGTH_IN_SAMPLES; y++)
-        //        for (var x = 0; x < LAND_SIDELENGTH_IN_SAMPLES; x++)
-        //            heights[y, x] = Utils.ChangeRange(heights[y, x], minHeight, maxHeight, 0, 1);
+        const int LAND_SIDELENGTH_IN_SAMPLES = 65;
+        const int VHGTIncrementToUnits = 8;
+        const int LAND_TEXTUREINDICES = 256;
+        const int VTEX_ROWS = 16;
+        const int VTEX_COLUMNS = VTEX_ROWS;
 
-        //    // Texture the terrain.
-        //    SplatPrototype[] splatPrototypes = null;
-        //    const int LAND_TEXTUREINDICES = 256;
-        //    var textureIndices = land.VTEX != null ? land.VTEX.Value.TextureIndicesT3 : new ushort[LAND_TEXTUREINDICES];
-        //    // Create splat prototypes.
-        //    var splatPrototypeList = new List<SplatPrototype>();
-        //    var texInd2SplatInd = new Dictionary<ushort, int>();
-        //    for (var i = 0; i < textureIndices.Length; i++) {
-        //        var textureIndex = (int)(textureIndices[i] - 1);
-        //        if (!texInd2SplatInd.ContainsKey((ushort)textureIndex)) {
-        //            // Load terrain texture.
-        //            string textureFilePath;
-        //            if (textureIndex < 0)
-        //                textureFilePath = _defaultLandTextureFilePath;
-        //            else {
-        //                var LTEX = _data.FindLTEXRecord(textureIndex);
-        //                textureFilePath = LTEX.ICON.Value;
-        //            }
-        //            var texture = _asset.LoadTexture(textureFilePath);
-        //            // Yield after loading each texture to avoid doing too much work on one frame.
-        //            yield return null;
-        //            // Create the splat prototype.
-        //            var splat = new SplatPrototype {
-        //                texture = texture,
-        //                smoothness = 0,
-        //                metallic = 0,
-        //                tileSize = new Vector2(6, 6)
-        //            };
-        //            // Update collections.
-        //            var splatIndex = splatPrototypeList.Count;
-        //            splatPrototypeList.Add(splat);
-        //            texInd2SplatInd.Add((ushort)textureIndex, splatIndex);
-        //        }
-        //    }
-        //    splatPrototypes = splatPrototypeList.ToArray();
+        var heights = land.Heights;
+        if (heights == null) yield break;
+        yield return null; // Return before doing any work to provide an IEnumerator handle to the coroutine.
 
-        //    // Create the alpha map.
-        //    var VTEX_ROWS = 16;
-        //    var VTEX_COLUMNS = VTEX_ROWS;
-        //    float[,,] alphaMap = null;
-        //    alphaMap = new float[VTEX_ROWS, VTEX_COLUMNS, splatPrototypes.Length];
-        //    for (var y = 0; y < VTEX_ROWS; y++) {
-        //        var yMajor = y / 4;
-        //        var yMinor = y - (yMajor * 4);
-        //        for (var x = 0; x < VTEX_COLUMNS; x++) {
-        //            var xMajor = x / 4;
-        //            var xMinor = x - (xMajor * 4);
-        //            var texIndex = ((short)textureIndices[(yMajor * 64) + (xMajor * 16) + (yMinor * 4) + xMinor] - 1);
-        //            if (texIndex >= 0) { var splatIndex = texInd2SplatInd[(ushort)texIndex]; alphaMap[y, x, splatIndex] = 1; }
-        //            else alphaMap[y, x, 0] = 1;
-        //        }
-        //    }
+        // Read in the heights in Morrowind units.
+        var newHeights = new float[LAND_SIDELENGTH_IN_SAMPLES, LAND_SIDELENGTH_IN_SAMPLES];
+        var rowOffset = land.HeightOffset;
+        for (var y = 0; y < LAND_SIDELENGTH_IN_SAMPLES; y++) {
+            rowOffset += heights[y * LAND_SIDELENGTH_IN_SAMPLES];
+            newHeights[y, 0] = rowOffset * VHGTIncrementToUnits;
+            var colOffset = rowOffset;
+            for (var x = 1; x < LAND_SIDELENGTH_IN_SAMPLES; x++) {
+                colOffset += heights[(y * LAND_SIDELENGTH_IN_SAMPLES) + x];
+                newHeights[y, x] = colOffset * VHGTIncrementToUnits;
+            }
+        }
 
-        // Yield before creating the terrain GameObject because it takes a while.
-        yield return null;
+        // Change the heights to percentages.
+        newHeights.GetExtrema(out var minHeight, out var maxHeight);
+        for (var y = 0; y < LAND_SIDELENGTH_IN_SAMPLES; y++)
+            for (var x = 0; x < LAND_SIDELENGTH_IN_SAMPLES; x++)
+                newHeights[y, x] = System.Polyfill.ChangeRange(newHeights[y, x], minHeight, maxHeight, 0f, 1f);
 
-        //    // Create the terrain.
-        //    var heightRange = maxHeight - minHeight;
-        //    var terrainPosition = new Vector3(ConvertUtils.ExteriorCellSideLengthInMeters * land.GridId.x, minHeight / ConvertUtils.MeterInUnits, ConvertUtils.ExteriorCellSideLengthInMeters * land.GridId.y);
-        //    var heightSampleDistance = ConvertUtils.ExteriorCellSideLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
-        //    var terrain = GameObjectUtils.CreateTerrain(-1, heights, heightRange / ConvertUtils.MeterInUnits, heightSampleDistance, splatPrototypes, alphaMap, terrainPosition);
-        //    terrain.GetComponent<Terrain>().materialType = Terrain.MaterialType.BuiltInLegacyDiffuse;
-        //    terrain.transform.parent = parent.transform;
-        //    terrain.isStatic = true;
+        // Texture the terrain.
+        var indexs = land.Vtex ?? new uint[LAND_TEXTUREINDICES]; var layers = new List<TerrainLayer>(); var layerIndexs = new Dictionary<int, int>();
+        for (var i = 0; i < indexs.Length; i++) {
+            var index = (int)indexs[i] - 1;
+            if (layerIndexs.ContainsKey(index)) continue;
+            // Load terrain texture.
+            var path = index >= 0 ? Query.FindLtex(index).Path : DefaultLandTexturePath;
+            var texture = GfxModel.CreateTexture(path);
+            yield return null; // Yield after loading each texture to avoid doing too much work on one frame.
+            // Create the splat prototype.
+            var layerIndex = layers.Count; layers.Add(new TerrainLayer { Texture = texture, TileSize = new Vector2(6, 6) }); layerIndexs.Add(index, layerIndex);
+        }
+
+        // Create the alpha map.
+        var alphaMap = new float[VTEX_ROWS, VTEX_COLUMNS, layers.Count];
+        for (var y = 0; y < VTEX_ROWS; y++) {
+            int yMajor = y / 4, yMinor = y - (yMajor * 4);
+            for (var x = 0; x < VTEX_COLUMNS; x++) {
+                int xMajor = x / 4, xMinor = x - (xMajor * 4);
+                var texIndex = (int)indexs[(yMajor * 64) + (xMajor * 16) + (yMinor * 4) + xMinor] - 1;
+                if (texIndex >= 0) alphaMap[y, x, layerIndexs[texIndex]] = 1;
+                else alphaMap[y, x, 0] = 1;
+            }
+        }
+
+        // Create the terrain.
+        yield return null; // Yield before creating the terrain GameObject because it takes a while.
+        var heightRange = (maxHeight - minHeight) / MeterInUnits;
+        var position = new Vector3(land.GridId.X * CellLengthInMeters, minHeight / MeterInUnits, land.GridId.Y * CellLengthInMeters);
+        var sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
+        GfxCreateTerrain(-1, newHeights, heightRange, sampleDistance, [.. layers], alphaMap, position, default, parent);
     }
 }
 

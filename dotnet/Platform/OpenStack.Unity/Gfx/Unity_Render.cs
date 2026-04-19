@@ -15,90 +15,6 @@ public class TestTriRenderer(UnityGfxModel gfx, object obj) : Renderer {
 
 #endregion
 
-#region CellRenderer
-
-//static Estate Estate = EstateManager.GetEstate("Tes");
-//static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Morrowind.bsa#Morrowind")));
-////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Bloodmoon.bsa#Morrowind")));
-////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Tribunal.bsa#Morrowind")));
-////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Oblivion.bsa#Oblivion")));
-////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Skyrim.esm#SkyrimVR")));
-////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Fallout4.esm#Fallout4")));
-////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("Fallout4.esm#Fallout4VR")));
-
-public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    readonly UnityGfxModel Gfx = gfx;
-    readonly object Obj = obj;
-
-    public override void Start() {
-        //TestLoadCell(new Vector3(((-2 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, ((-1 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3((-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3(0 * ConvertUtils.ExteriorCellSideLengthInMeters, 0, 0 * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3((1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3((1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestAllCells();
-    }
-
-
-    //static void TestLoadCell(Vector3 position) {
-    //    var cellid = GetCellId(position, 60);
-    //    var cell = datfile.findcellrecord(cellid);
-    //    var land = ((tesdatapack)datfile).findlandrecord(cellid);
-    //    Log.Info($"land #{land?.id}");
-    //}
-
-    //static void TestAllCells()
-    //{
-    //    var cells = ((TesDataPack)DatFile).GroupByLabel["CELL"].Records;
-    //    Log($"CELLS: {cells.Count}");
-    //    foreach (var record in cells.Cast<CELLRecord>())
-    //        Log(record.EDID.Value);
-    //}
-}
-
-#endregion
-
-#region EngineRenderer
-
-public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    readonly UnityGfxModel Gfx = gfx;
-    readonly object Obj = obj;
-
-    //object Engine;
-    GameObject PlayerPrefab = GameObject.Find("Player0");
-
-    //public override void Dispose()
-    //{
-    //    base.Dispose();
-    //    //Engine?.Dispose();
-    //}
-
-    public override void Start() {
-        Log.Info($"{Obj}");
-        Log.Info($"{PlayerPrefab}");
-        //var assetUri = new Uri("http://192.168.1.3/ASSETS/Morrowind/Morrowind.bsa#Morrowind");
-        //var dataUri = new Uri("http://192.168.1.3/ASSETS/Morrowind/Morrowind.esm#Morrowind");
-
-        //var assetUri = new Uri("game:/Morrowind.bsa#Morrowind");
-        //var dataUri = new Uri("game:/Morrowind.esm#Morrowind");
-
-        ////var assetUri = new Uri("game:/Oblivion*#Oblivion");
-        ////var dataUri = new Uri("game:/Oblivion.esm#Oblivion");
-
-        //Engine = new SimpleEngine(TesEstateHandler.Handler, assetUri, dataUri);
-
-        //// engine
-        //Engine.SpawnPlayer(PlayerPrefab, new Vector3(-137.94f, 2.30f, -1037.6f)); // new Int3(-2, -9)
-
-        // engine - oblivion
-        //Engine.SpawnPlayer(PlayerPrefab, new Int3(0, 0, 60), new Vector3(0, 0, 0));
-    }
-
-    //public override void Update() => Engine?.Update();
-}
-
-#endregion
-
 #region ObjectRenderer
 
 public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
@@ -144,6 +60,75 @@ public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer {
     }
 
     //void MakeCursor(string path) => Cursor.SetCursor((Texture2D)Gfx.TextureManager.CreateTexture(path).tex, Vector2.zero, CursorMode.Auto);
+}
+
+#endregion
+
+#region CellRenderer
+
+//static Estate Estate = EstateManager.GetEstate("Tes");
+//static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Morrowind.bsa#Morrowind")));
+////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Bloodmoon.bsa#Morrowind")));
+////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Tribunal.bsa#Morrowind")));
+////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Oblivion.bsa#Oblivion")));
+////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Skyrim.esm#SkyrimVR")));
+////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Fallout4.esm#Fallout4")));
+////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("Fallout4.esm#Fallout4VR")));
+
+public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
+    readonly UnityGfxModel Gfx = gfx;
+    readonly object Obj = obj;
+
+    public override void Start() {
+        //TestLoadCell(new Vector3(((-2 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, ((-1 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters));
+        //TestLoadCell(new Vector3((-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
+        //TestLoadCell(new Vector3(0 * ConvertUtils.ExteriorCellSideLengthInMeters, 0, 0 * ConvertUtils.ExteriorCellSideLengthInMeters));
+        //TestLoadCell(new Vector3((1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
+        //TestLoadCell(new Vector3((1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters));
+        //TestAllCells();
+    }
+
+    //static void TestLoadCell(Vector3 position) {
+    //    var cellid = GetCellId(position, 60);
+    //    var cell = datfile.findcellrecord(cellid);
+    //    var land = ((tesdatapack)datfile).findlandrecord(cellid);
+    //    Log.Info($"land #{land?.id}");
+    //}
+
+    //static void TestAllCells()
+    //{
+    //    var cells = ((TesDataPack)DatFile).GroupByLabel["CELL"].Records;
+    //    Log($"CELLS: {cells.Count}");
+    //    foreach (var record in cells.Cast<CELLRecord>())
+    //        Log(record.EDID.Value);
+    //}
+}
+
+#endregion
+
+#region EngineRenderer
+
+public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
+    UnityGfxModel Gfx = gfx;
+    readonly ICellDatabase Obj = (ICellDatabase)obj;
+
+    UnityOpenEngine Engine;
+    GameObject PlayerPrefab = GameObject.Find("Player0");
+
+    public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
+
+    public override void Start() {
+        //Log.Info($"{Obj}");
+        //Log.Info($"{PlayerPrefab}");
+        var arc = (ISourceWithPlatform)Obj.Archive;
+        Gfx = (UnityGfxModel)arc.Gfx[2];
+        var query = Obj.Query;
+        var builder = new UnityCellBuilder(query, Gfx);
+        Engine = new UnityOpenEngine(queue => new UnityCellManager(query, queue, (cell, land, contObj, cellObj) => builder.CellCoroutine(cell, land, (GameObject)contObj, (GameObject)cellObj)), false);
+        Engine.SpawnPlayer(PlayerPrefab, Obj.Start);
+    }
+
+    public override void Update(float deltaTime) => Engine?.Update();
 }
 
 #endregion

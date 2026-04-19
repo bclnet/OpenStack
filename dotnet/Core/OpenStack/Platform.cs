@@ -4,11 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace OpenStack;
 
 #region Platform
+
+/// <summary>
+/// ISourceWithPlatform
+/// </summary>
+public interface ISourceWithPlatform : ISource {
+    IOpenGfx[] Gfx { get; }
+    IOpenSfx[] Sfx { get; }
+}
 
 /// <summary>
 /// Gets the platform.

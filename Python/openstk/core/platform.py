@@ -6,6 +6,11 @@ from openstk.core.util import decodePath, YamlDict
 
 #region Platform
 
+# ISourceWithPlatform
+class ISourceWithPlatform(ISource):
+    gfx: list
+    sfx: list
+
 # Platform
 class Platform:
     enabled: bool = True

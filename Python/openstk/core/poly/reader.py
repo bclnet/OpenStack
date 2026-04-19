@@ -18,10 +18,9 @@ class BinaryReader:
     def __enter__(self): return self
     def __exit__(self, type, value, traceback): self.f.close()
     def __update(self):
-        # global _brn; _brn += + 1; self.n = f'R{_brn}';
         f = self.f
         if self.length == None:
-            if isinstance(f, bytes): self.length = len(f)
+            if isinstance(f, BytesIO): self.length = f.getbuffer().nbytes
             else: pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
 
     # base

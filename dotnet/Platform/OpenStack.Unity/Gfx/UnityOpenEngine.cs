@@ -12,17 +12,16 @@ public class UnityOpenEngine : IDisposable {
     const float DesiredWorkTimePerFrame = 1.0f / 200;
     const int CellRadiusOnLoad = 2;
     static Color DefaultAmbientColor = new(137, 140, 160, 255);
-    public static UnityOpenEngine Current;
-
+    //public static UnityOpenEngine Current;
     readonly IQuery Query;
     readonly CellManager CellManager;
     readonly CoroutineQueue Queue = new();
     readonly GameObject SunObj;
 
-    public UnityOpenEngine(Func<IQuery, CoroutineQueue, CellManager> manager, IQuery query, bool sunCycle = false) {
+    public UnityOpenEngine(Func<CoroutineQueue, CellManager> manager, bool sunCycle = false) {
         if (manager == null) throw new ArgumentNullException(nameof(manager));
-        Query = query ?? throw new ArgumentNullException(nameof(Query));
-        CellManager = manager(Query, Queue) ?? throw new ArgumentNullException(nameof(manager));
+        CellManager = manager(Queue) ?? throw new ArgumentNullException(nameof(manager));
+        Query = CellManager.Query;
 
         // ambient
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
@@ -75,7 +74,7 @@ public class UnityOpenEngine : IDisposable {
     //GameObject Water;
     //UnderwaterEffect UnderwaterEffect;
 
-    protected virtual GameObject CreatePlayer(GameObject playerPrefab, Vector3 position, out GameObject playerCamera) {
+    GameObject GfxCreatePlayer(GameObject playerPrefab, Vector3 position, out GameObject playerCamera) {
         if (playerPrefab == null) throw new InvalidOperationException("playerPrefab missing");
         var player = GameObject.FindWithTag("Player");
         if (player == null) { player = GameObject.Instantiate(playerPrefab); player.name = "Player"; }
@@ -93,11 +92,11 @@ public class UnityOpenEngine : IDisposable {
     /// </summary>
     /// <param name="playerPrefab">The player prefab.</param>
     /// <param name="position">The target position of the player.</param>
-    public void SpawnPlayer(GameObject playerPrefab, Vector3 position, bool update = false) {
-        var cellId = Query.GetCellId(position.FromUnity(), CurrentWorld);
+    public void SpawnPlayer(GameObject playerPrefab, System.Numerics.Vector3 position, bool update = false) {
+        var cellId = Query.GetCellId(position, CurrentWorld);
         CurrentCell = Query.FindCell(cellId);
         Debug.Assert(CurrentCell != null);
-        CreatePlayer(playerPrefab, position, out PlayerCamera);
+        GfxCreatePlayer(playerPrefab, position.ToUnity(), out PlayerCamera);
         if (update) {
             CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), CurrentWorld, true, CellRadiusOnLoad);
             OnExteriorCell(CurrentCell);

@@ -3,8 +3,6 @@ from PyQt6.QtCore import Qt, QEvent, QTimer, QElapsedTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 from openstk.gfx import ITextureSelect, MouseState, KeyboardState
-# pyengine3d
-from pyengine3d import loadPrcFileData, WindowProperties #, FrameBufferProperties
 
 # typedefs
 class Renderer: pass
@@ -15,7 +13,7 @@ class IOpenSfx: pass
 
 #region Tiny3dWidget
 
-class Tiny3dWidget(QWidget, ShowBase):
+class Tiny3dWidget(QWidget):
     renderer: Renderer = None
     id: int = 0
 
@@ -28,7 +26,6 @@ class Tiny3dWidget(QWidget, ShowBase):
         show-frame-rate-meter #t
         """)
         super(QWidget, self).__init__(parent)
-        super(ShowBase, self).__init__()
         self.gfx: IOpenGfx = parent.gfx
         self.sfx: IOpenSfx = parent.sfx
         self.source: object = tab

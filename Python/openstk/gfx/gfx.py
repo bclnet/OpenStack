@@ -285,6 +285,7 @@ class TextureManager:
     def defaultTexture(self) -> Texture: return self._builder.defaultTexture
 
     def createTexture(self, path: object, level: range = None) -> (Texture, object):
+        path = self._source.findPath(type(ITexture), path)
         if path in self._cachedTextures: return self._cachedTextures[path]
         # load & cache the texture.
         tag = path if isinstance(path, ITexture) else self._loadTexture(path)
@@ -293,22 +294,26 @@ class TextureManager:
         return (obj, tag)
 
     def reloadTexture(self, path: object, level: range = None) -> (Texture, object):
+        path = self._source.findPath(type(ITexture), path)
         if path not in self._cachedTextures: return (None, None)
         c = self._cachedTextures[path]
         self._builder.createTexture(c[0], c[1], level)
         return c
 
     def preloadTexture(self, path: object) -> None:
+        path = self._source.findPath(type(ITexture), path)
         if path in self._cachedTextures: return
         # start loading the texture file asynchronously if we haven't already started.
         if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     def deleteTexture(self, path: object) -> None:
+        path = self._source.findPath(type(ITexture), path)
         if not path in self._cachedTextures: return
         self._builder.deleteTexture(self._cachedTextures[0])
         self._cachedTextures.remove(path)
 
     async def _loadTexture(self, path: object) -> ITexture:
+        path = self._source.findPath(type(ITexture), path)
         assert(not path in self._cachedTextures)
         self.preloadTexture(s)
         obj = await self._preloadTasks[path]

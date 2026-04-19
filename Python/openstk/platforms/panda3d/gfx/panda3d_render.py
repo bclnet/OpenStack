@@ -8,10 +8,26 @@ class Panda3dGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region Panda3dTextureRenderer
+#region TestTriRenderer
 
-# Panda3dTextureRenderer
-class Panda3dTextureRenderer(Renderer):
+# TestTriRenderer
+class TestTriRenderer(Renderer):
+    def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
+
+    def start(self):
+        scene = self.scene = base.loader.loadModel('models/environment')
+        scene.reparentTo(base.render)
+        scene.setScale(0.25, 0.25, 0.25)
+        scene.setPos(-8, 42, 0)
+        # self.scene = self.loader.loadModel('teapot')
+        # self.scene.reparentTo(self.render)
+
+#endregion
+
+#region TextureRenderer
+
+# TextureRenderer
+class TextureRenderer(Renderer):
     gfx: Panda3dGfxModel
     obj: object
     tex: int
@@ -40,66 +56,58 @@ class Panda3dTextureRenderer(Renderer):
 
 #endregion
 
-#region Panda3dObjectRenderer
+#region ObjectRenderer
 
-# Panda3dObjectRenderer
-class Panda3dObjectRenderer(Renderer):
+# ObjectRenderer
+class ObjectRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dMaterialRenderer
+#region MaterialRenderer
 
-# Panda3dMaterialRenderer
-class Panda3dMaterialRenderer(Renderer):
+# MaterialRenderer
+class MaterialRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dGridRenderer
+#region GridRenderer
 
-# Panda3dGridRenderer
-class Panda3dGridRenderer(Renderer):
+# GridRenderer
+class GridRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dParticleRenderer
+#region ParticleRenderer
 
-# Panda3dParticleRenderer
-class Panda3dParticleRenderer(Renderer):
+# ParticleRenderer
+class ParticleRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dCellRenderer
+#region CellRenderer
 
-# Panda3dCellRenderer
-class Panda3dCellRenderer(Renderer):
+# CellRenderer
+class CellRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dWorldRenderer
+#region EngineRenderer
 
-# Panda3dWorldRenderer
-class Panda3dWorldRenderer(Renderer):
+# EngineRenderer
+class EngineRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
 
 #endregion
 
-#region Panda3dTestTriRenderer
+#region WorldRenderer
 
-# OpenGLTestTriRenderer
-class Panda3dTestTriRenderer(Renderer):
+# WorldRenderer
+class WorldRenderer(Renderer):
     def __init__(self, gfx: Panda3dGfxModel, obj: object): pass
-
-    def start(self):
-        scene = self.scene = base.loader.loadModel('models/environment')
-        scene.reparentTo(base.render)
-        scene.setScale(0.25, 0.25, 0.25)
-        scene.setPos(-8, 42, 0)
-        # self.scene = self.loader.loadModel('teapot')
-        # self.scene.reparentTo(self.render)
 
 #endregion

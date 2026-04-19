@@ -1,10 +1,14 @@
 from __future__ import annotations
-import ctypes, numpy as np
+import ctypes
+from numpy import array, ones, float32, identity
 from enum import Enum
 from OpenGL.GL import *
+from openstk.core import log
 from openstk.gfx import Renderer, ITextureFrames
 from openstk.gfx.egin import AABB, EginRenderer
 from openstk.platforms.opengl.egin import GLRenderMaterial
+from openstk.platforms.opengl.gfx.opengl import OpenGLCellManager, OpenGLCellBuilder
+from openstk.platforms.opengl.gfx.openglopenengine import OpenGLOpenEngine
 
 sizeof_float = ctypes.sizeof(GLfloat)
 
@@ -13,12 +17,61 @@ class OpenGLGfxModel: pass
 class Shader: pass
 class Camera: pass
 
-#region OpenGLTextureRenderer
+#region TestTriRenderer
+
+# TestTriRenderer
+class TestTriRenderer(EginRenderer):
+    gfx: IOpenGLGfx
+    texture: int
+    shader: Shader
+    shaderTag: object
+    quadVao: int
+    background: bool
+    boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
+
+    def __init__(self, gfx: OpenGLGfxModel, obj: object):
+        self.gfx = gfx
+        self.shader, self.shaderTag = gfx.shaderManager.createShader('testtri')
+        self.vao = self._setupVao()
+
+    def _setupVao(self) -> int:
+        glUseProgram(self.shader.program)
+
+        # create and bind vao
+        vao = glGenVertexArrays(1); glBindVertexArray(vao)
+        vbo = glGenBuffers(1); glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        vertices = array([
+            # xyz,           :rgb
+           -0.5, -0.5, 0.0,  1.0, 0.0, 0.0,
+            0.5, -0.5, 0.0,  0.0, 1.0, 0.0,
+            0.0,  0.5, 0.0,  0.0, 0.0, 1.0
+            ], dtype=float32)
+        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+
+        # attributes
+        glEnableVertexAttribArray(0); glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
+        glEnableVertexAttribArray(1); glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
+        glBindVertexArray(0) # unbind vao
+        return vao
+
+    def render(self, camera: Camera, passx: Pass) -> None:
+        # glClear(GL_COLOR_BUFFER_BIT)
+        glUseProgram(self.shader.program)
+        glBindVertexArray(self.vao)
+        glDrawArrays(GL_TRIANGLES, 0, 6)
+        glBindVertexArray(0) # unbind vao
+        glUseProgram(0) # unbind program
+
+    def update(self, deltaTime: float) -> None: pass
+
+#endregion
+
+#region TextureRenderer
 
 FACTOR = 1
 
-# OpenGLTextureRenderer
-class OpenGLTextureRenderer(EginRenderer):
+# TextureRenderer
+class TextureRenderer(EginRenderer):
     gfx: OpenGLGfxModel
     obj: object
     level: range
@@ -49,13 +102,13 @@ class OpenGLTextureRenderer(EginRenderer):
         # create and bind vao
         vao = glGenVertexArrays(1); glBindVertexArray(vao) 
         vbo = glGenBuffers(1); glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        vertices = np.array([
+        vertices = array([
             # position      :normal        :texcoord  :tangent
             -1., -1., +0.,  +0., +0., 1.,  +0., +1.,  +1., +0., +0.,
             -1., +1., +0.,  +0., +0., 1.,  +0., +0.,  +1., +0., +0.,
             +1., -1., +0.,  +0., +0., 1.,  +1., +1.,  +1., +0., +0.,
             +1., +1., +0.,  +0., +0., 1.,  +1., +0.,  +1., +0., +0.
-            ], dtype = np.float32)
+            ], dtype = float32)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
         # attributes
@@ -93,18 +146,18 @@ class OpenGLTextureRenderer(EginRenderer):
 
 #endregion
 
-#region OpenGLObjectRenderer
+#region ObjectRenderer
 
-# OpenGLObjectRenderer
-class OpenGLObjectRenderer(EginRenderer):
+# ObjectRenderer
+class ObjectRenderer(EginRenderer):
     def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
 
 #endregion
 
-#region OpenGLMaterialRenderer
+#region MaterialRenderer
 
-# OpenGLMaterialRenderer
-class OpenGLMaterialRenderer(EginRenderer):
+# MaterialRenderer
+class MaterialRenderer(EginRenderer):
     gfx: OpenGLGfxModel
     material: GLRenderMaterial
     shader: Shader
@@ -125,13 +178,13 @@ class OpenGLMaterialRenderer(EginRenderer):
         # create and bind vao
         vao = glGenVertexArrays(1); glBindVertexArray(vao)
         vbo = glGenBuffers(1); glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        vertices = np.array([
+        vertices = array([
             # position      :normal        :texcoord  :tangent        :blendindices        :blendweight
             -1., -1., +0.,  +0., +0., 1.,  +0., +1.,  +1., +0., +0.,  +0., +0., +0., +0.,  +0., +0., +0., +0.,
             -1., +1., +0.,  +0., +0., 1.,  +0., +0.,  +1., +0., +0.,  +0., +0., +0., +0.,  +0., +0., +0., +0.,
             +1., -1., +0.,  +0., +0., 1.,  +1., +1.,  +1., +0., +0.,  +0., +0., +0., +0.,  +0., +0., +0., +0.,
             +1., +1., +0.,  +0., +0., 1.,  +1., +0.,  +1., +0., +0.,  +0., +0., +0., +0.,  +0., +0., +0., +0.
-            ], dtype = np.float32)
+            ], dtype=float32)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
         
         # attributes
@@ -150,18 +203,18 @@ class OpenGLMaterialRenderer(EginRenderer):
         return vao
 
     def render(self, camera: Camera, passx: Pass) -> None:
-        identity = np.identity(4)
+        identity_ = identity(4)
         glUseProgram(self.shader.program)
         glBindVertexArray(self.vao)
         glEnableVertexAttribArray(0)
         location = self.shader.getUniformLocation('m_vTintColorSceneObject')
-        if location > -1: glUniform4(uniformLocation, np.ones(4))
+        if location > -1: glUniform4(uniformLocation, ones(4))
         location = self.shader.getUniformLocation('m_vTintColorDrawCall')
-        if location > -1: glUniform3(uniformLocation, np.ones(3))
+        if location > -1: glUniform3(uniformLocation, ones(3))
         location = self.shader.getUniformLocation('uProjectionViewMatrix')
-        if location > -1: glUniformMatrix4(uniformLocation, False, identity)
+        if location > -1: glUniformMatrix4(uniformLocation, False, identity_)
         location = self.shader.getUniformLocation('transform')
-        if location > -1: glUniformMatrix4(uniformLocation, False, identity)
+        if location > -1: glUniformMatrix4(uniformLocation, False, identity_)
         self.material.render(self.shader)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
         self.material.postRender()
@@ -172,10 +225,10 @@ class OpenGLMaterialRenderer(EginRenderer):
 
 #endregion
 
-#region OpenGLGridRenderer
+#region GridRenderer
 
-# OpenGLGridRenderer
-class OpenGLGridRenderer(EginRenderer):
+# GridRenderer
+class GridRenderer(EginRenderer):
     shader: Shader
     shaderTag: object
     vao: int
@@ -252,75 +305,55 @@ class OpenGLGridRenderer(EginRenderer):
 
 #endregion
 
-#region OpenGLParticleRenderer
+#region ParticleRenderer
 
-# OpenGLParticleRenderer
-class OpenGLParticleRenderer(EginRenderer):
+# ParticleRenderer
+class ParticleRenderer(EginRenderer):
     def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
 
 #endregion
 
-#region OpenGLCellRenderer
+#region CellRenderer
 
-# OpenGLCellRenderer
-class OpenGLCellRenderer(EginRenderer):
+# CellRenderer
+class CellRenderer(EginRenderer):
     def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
 
 #endregion
 
-#region OpenGLWorldRenderer
+#region EngineRenderer
 
-# OpenGLWorldRenderer
-class OpenGLWorldRenderer(EginRenderer):
-    def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
-
-#endregion
-
-#region OpenGLTestTriRenderer
-
-# OpenGLTestTriRenderer
-class OpenGLTestTriRenderer(EginRenderer):
-    gfx: IOpenGLGfx
-    texture: int
-    shader: Shader
-    shaderTag: object
-    quadVao: int
-    background: bool
-    boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
-
+# EngineRenderer
+class EngineRenderer(EginRenderer):
     def __init__(self, gfx: OpenGLGfxModel, obj: object):
-        self.gfx = gfx
-        self.shader, self.shaderTag = gfx.shaderManager.createShader('testtri')
-        self.vao = self._setupVao()
+        self.gfx: OpenGLGfxModel = gfx
+        self.obj: ICellDatabase = obj
 
-    def _setupVao(self) -> int:
-        glUseProgram(self.shader.program)
+    engine: OpenGLOpenEngine
+    playerPrefab: object = None
 
-        # create and bind vao
-        vao = glGenVertexArrays(1); glBindVertexArray(vao)
-        vbo = glGenBuffers(1); glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        vertices = np.array([
-            # xyz,           :rgb
-           -0.5, -0.5, 0.0,  1.0, 0.0, 0.0,
-            0.5, -0.5, 0.0,  0.0, 1.0, 0.0,
-            0.0,  0.5, 0.0,  0.0, 0.0, 1.0
-            ], dtype = np.float32)
-        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+    def dispose(self) -> None:
+        if self.engine: self.engine.dispose()
 
-        # attributes
-        glEnableVertexAttribArray(0); glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
-        glEnableVertexAttribArray(1); glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
-        glBindVertexArray(0) # unbind vao
-        return vao
+    def start(self) -> None:
+        # log.info(f'Obj: {self.obj}')
+        # log.info(f'PlayerPrefab: {self.playerPrefab}')
+        arc = self.obj.archive
+        self.gfx = arc.gfx[2]
+        query = self.obj.query
+        builder = OpenGLCellBuilder(query, self.gfx)
+        self.engine = OpenGLOpenEngine(lambda queue: OpenGLCellManager(query, queue, lambda cell, land, contObj, cellObj: builder.cellCoroutine(cell, land, contObj, cellObj)), False)
+        self.engine.spawnPlayer(self.playerPrefab, self.obj.start)
 
-    def render(self, camera: Camera, passx: Pass) -> None:
-        # glClear(GL_COLOR_BUFFER_BIT)
-        glUseProgram(self.shader.program)
-        glBindVertexArray(self.vao)
-        glDrawArrays(GL_TRIANGLES, 0, 6)
-        glBindVertexArray(0) # unbind vao
-        glUseProgram(0) # unbind program
+    def update(self, deltaTime: float) -> None:
+        if self.engine: self.engine.update()
 
-    def update(self, deltaTime: float) -> None: pass
+#endregion
+
+#region WorldRenderer
+
+# WorldRenderer
+class WorldRenderer(EginRenderer):
+    def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
 
 #endregion
