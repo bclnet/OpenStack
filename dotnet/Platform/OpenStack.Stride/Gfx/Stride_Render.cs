@@ -8,10 +8,10 @@ namespace OpenStack.Gfx.Stride;
 /// TestTriRenderer
 /// </summary>
 public class TestTriRenderer : Renderer {
-    readonly StrideGfxModel Gfx;
+    readonly StrideGfxModel GfxModel;
 
-    public TestTriRenderer(StrideGfxModel gfx, object obj) {
-        Gfx = gfx;
+    public TestTriRenderer(IOpenGfx[] gfx, object obj) {
+        GfxModel = (StrideGfxModel)gfx[GfX.XModel];
     }
 }
 
@@ -23,18 +23,18 @@ public class TestTriRenderer : Renderer {
 /// TextureRenderer
 /// </summary>
 public class TextureRenderer : Renderer {
-    readonly StrideGfxModel Gfx;
+    readonly StrideGfxModel GfxModel;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(StrideGfxModel gfx, object obj, Range level) {
-        Gfx = gfx;
+    public TextureRenderer(IOpenGfx[] gfx, object obj, Range level) {
+        GfxModel = (StrideGfxModel)gfx[GfX.XModel];
         Obj = obj;
         Level = level;
-        Gfx.TextureManager.DeleteTexture(obj);
-        Texture = Gfx.TextureManager.CreateTexture(obj, level).tex;
+        GfxModel.TextureManager.DeleteTexture(obj);
+        Texture = GfxModel.TextureManager.CreateTexture(obj, level).tex;
     }
 
     public override void Start() {
@@ -43,11 +43,11 @@ public class TextureRenderer : Renderer {
     }
 
     public override void Update(float deltaTime) {
-        if (Obj is not ITextureFrames obj || Gfx == null || !obj.HasFrames) return;
+        if (Obj is not ITextureFrames obj || GfxModel == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        Gfx.TextureManager.ReloadTexture(obj, Level);
+        GfxModel.TextureManager.ReloadTexture(obj, Level);
     }
 }
 

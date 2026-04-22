@@ -144,7 +144,7 @@ class PygameGfxModel(IOpenGfxModel):
 class PygamePlatform(Platform):
     def __init__(self):
         super().__init__('PG', 'Pygame')
-        self.gfxFactory = staticmethod(lambda source: [None, None, PygameGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [PygameGfxApi(source), None, None, PygameGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 PygamePlatform.This = PygamePlatform()
 

@@ -43,7 +43,7 @@ public class SdlGfxSprite2D : IOpenGfxSprite<object, object> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // SdlSfx
@@ -53,7 +53,7 @@ public class SdlSfx(ISource source) : SystemSfx(source) { }
 public class SdlPlatform : Platform {
     public static readonly Platform This = new SdlPlatform();
     SdlPlatform() : base("SD", "SDL 3") {
-        GfxFactory = source => [new SdlGfxSprite2D(source), null, null];
+        GfxFactory = source => [new SdlGfxSprite2D(source), null, null, null];
         SfxFactory = source => [new SdlSfx(source)];
     }
 }

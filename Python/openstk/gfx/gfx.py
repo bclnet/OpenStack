@@ -419,8 +419,20 @@ class MaterialManager:
 class IModel:
     def create(self, platform: str, func: callable) -> object: pass
 
-# IModelApi
-class IModelApi:
+#endregion
+
+#region OpenGfx
+
+# IOpenGfx:
+class IOpenGfx:
+    def getAsset(self, type: type, path: object): pass
+    def preloadObject(self, path: object) -> None: pass
+
+# IOpenGfxApiX
+class IOpenGfxApiX(IOpenGfx): pass
+
+# IOpenGfxApi
+class IOpenGfxApi(IOpenGfxApiX):
     def createObject(self, name: str) -> Object: pass
     def createMesh(self, mesh: object) -> object: pass
     def addMeshRenderer(self, src: Object, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: pass
@@ -430,15 +442,6 @@ class IModelApi:
     def transform(self, src: Object, position: np.ndarray, rotation: np.ndarray, localScale: np.ndarray) -> None: pass
     def addMissingMeshCollidersRecursively(self, src: Object, isStatic: bool) -> None: pass
     def setLayerRecursively(self, src: Object, layer: int) -> None: pass
-
-#endregion
-
-#region OpenGfx
-
-# IOpenGfx:
-class IOpenGfx:
-    def getAsset(self, type: type, path: object): pass
-    def preloadObject(self, path: object) -> None: pass
 
 # IOpenGfxSpriteX
 class IOpenGfxSpriteX(IOpenGfx):
@@ -463,5 +466,12 @@ class IOpenGfxModel(IOpenGfxModelX):
     def createTexture(self, path: object, level: range = None) -> Texture: pass
     def createObject(self, path: object) -> Object: pass
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: pass
+
+# IOpenGfxTerrainX:
+class IOpenGfxTerrainX: pass
+
+# IOpenGfxTerrain
+class IOpenGfxTerrain(IOpenGfxTerrainX):
+    def createTerrain(self) -> Object: pass
 
 #endregion

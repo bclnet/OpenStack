@@ -120,7 +120,7 @@ class Tiny3dGfxModel(IOpenGfxModel):
 class Tiny3dPlatform(Platform):
     def __init__(self):
         super().__init__('T3', 'Tiny3d')
-        self.gfxFactory = staticmethod(lambda source: [None, None, Tiny3dGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [Tiny3dGfxApi(source), None, None, Tiny3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Tiny3dPlatform.This = Tiny3dPlatform()
 

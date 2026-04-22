@@ -22,15 +22,14 @@ RenderMode = 'renderMode_'; RenderModeLength = len(RenderMode)
 
 # ShaderLoader
 class ShaderLoader:
+    ShaderSeed: int = 0x13141516
     _cachedShaders: dict[int, Shader] = {}
     _shaderDefines: dict[str, list[str]] = {}
     
     def _calculateShaderCacheHash(self, name: str, args: dict[str, bool]) -> int:
         b = [name]
         parameters = set(self._shaderDefines[name]).intersection(args.keys())
-        for key in parameters:
-            b.append(key)
-            b.append('t' if args[key] else 'f')
+        for key in parameters: b.append(key); b.append('t' if args[key] else 'f')
         return hash('\n'.join(b))
 
     def getShaderFileByName(self, name: str) -> str: pass
@@ -107,8 +106,7 @@ class ShaderLoader:
         return shader
 
     # Preprocess a vertex shader's source to include the #version plus #defines for parameters
-    def preprocessVertexShader(self, source: str, args: dict[str, bool]) -> str:
-        return self.resolveIncludes(self.updateDefines(source, args))
+    def preprocessVertexShader(self, source: str, args: dict[str, bool]) -> str: return self.resolveIncludes(self.updateDefines(source, args))
 
     # Update default defines with possible overrides from the model
     @staticmethod
@@ -116,31 +114,22 @@ class ShaderLoader:
         # find all #define param_(paramName) (paramValue) using regex
         defines = re.compile('#define param_(\\S*?) (\\S*?)\\s*?\\n').finditer(source)
         for define in defines:
-            # check if this parameter is in the arguments
-            if (key := define[1]) in args:
-                # overwrite default value
-                start, end = define.span(2)
-                source = source[:start] + ('1' if args[key] else '0') + source[end:]
+            if (key := define[1]) in args: start, end = define.span(2); source = source[:start] + ('1' if args[key] else '0') + source[end:]
         return source
 
     # Remove any #includes from the shader and replace with the included code
     def resolveIncludes(self, source: str) -> str:
         includes = re.compile('#include "([^"]*?)";?\\s*\\n').finditer(source)
         for define in includes:
-            # read included code
             includedCode = self.getShaderSource(define[1])
             # recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
             includedCode = self.resolveIncludes(includedCode)
             if not includedCode.endswith('\n'): includedCode += '\n'
-            # replace the include with the code
-            start, end = define.span(0)
-            source = source.replace(source[start:end], includedCode)
+            start, end = define.span(0); source = source.replace(source[start:end], includedCode)
         return source
 
     @staticmethod
-    def findDefines(source: str) -> list[str]:
-        defines = re.compile('#define param_(\\S+)').finditer(source)
-        return [x[1] for x in defines]
+    def findDefines(source: str) -> list[str]: defines = re.compile('#define param_(\\S+)').finditer(source); return [x[1] for x in defines]
 
 # ShaderDebugLoader
 class ShaderDebugLoader(ShaderLoader):
@@ -161,10 +150,10 @@ class ShaderDebugLoader(ShaderLoader):
             case 'multiblend.vfx': return 'multiblend'
             case _:
                 if name.startsWith('vr_'): return 'vr_standard'
+                log.warn(f'Unknown shader {name}, defaulting to simple.')
                 return 'simple'
 
-    def getShaderSource(self, name: str) -> str:
-        return resources.files().joinpath('shaders', name).read_text(encoding='utf-8')
+    def getShaderSource(self, name: str) -> str: return resources.files().joinpath('shaders', name).read_text(encoding='utf-8')
 
 # print(ShaderDebugLoader().loadShader('water_dota.vfx', {'fulltangent': 1}))
 

@@ -60,21 +60,20 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
     }
 
     public ISource Source => _source;
-    public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public SpriteManager<object> SpriteManager => _spriteManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public object CreateObject(object path, object parent) => throw new NotImplementedException();
 }
 
 // ExPlatform
 public class ExPlatform : Platform {
     public static readonly Platform This = new ExPlatform();
     ExPlatform() : base("EX", "EnginX") {
-        GfxFactory = source => [new ExGfxSprite2D(source), null, null];
+        GfxFactory = source => [null, new ExGfxSprite2D(source), null, null, null];
         SfxFactory = source => [new SystemSfx(source)];
     }
 }

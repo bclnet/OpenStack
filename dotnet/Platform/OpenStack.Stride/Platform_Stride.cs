@@ -97,7 +97,7 @@ public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // StrideGfxModel
@@ -127,7 +127,7 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public Entity CreateObject(object path, Entity parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public int CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, Entity source, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(GfxAttach method, Entity source, params object[] args) => throw new NotImplementedException();
 }
 
 // StrideSfx
@@ -140,7 +140,7 @@ public class StridePlatform : Platform {
     StridePlatform() : base("ST", "Stride") {
         Log = GlobalLogger.GetLogger(typeof(StridePlatform).FullName);
         Log.Debug("Start loading MyTexture");
-        GfxFactory = source => [null, new StrideGfxSprite3D(source), new StrideGfxModel(source)];
+        GfxFactory = source => [null, new StrideGfxSprite3D(source), new StrideGfxModel(source), null];
         SfxFactory = source => [new StrideSfx(source)];
         LogFunc = a => Log.Info(a);
     }

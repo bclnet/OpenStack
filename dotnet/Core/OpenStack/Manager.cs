@@ -1,4 +1,5 @@
 ﻿using OpenStack.Gfx;
+using SevenZip;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ public interface ICellDatabase {
 
 #region CellManager
 
-public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) {
+public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder) {
     const int DefaultRadius = 4;
     const int DetailRadius = 3;
 
@@ -46,8 +47,8 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     public interface ICellXref {
         string Name { get; }
         float? Scale { get; }
-        Float3 Position { get; }
-        Float3 EulerAngles { get; }
+        Vector3 Position { get; }
+        Vector3 EulerAngles { get; }
     }
 
     public interface ICellXrefModel {
@@ -96,11 +97,9 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
 
     public IQuery Query = query;
     public CoroutineQueue Queue = queue;
-    public Func<ICell, ILand, object, object, IEnumerator> TaskFunc = taskFunc;
+    public CellBuilder Builder = builder;
+    //public Func<ICell, ILand, object, object, IEnumerator> TaskFunc = taskFunc;
     public Dictionary<Int3, Cell> Cells = [];
-
-    public abstract (object, object) GfxCreateContainers(string name);
-    public abstract void GfxSetVisible(object source, bool visible);
 
     public Cell BeginCell(Int3 point) {
         var record = Query.FindCell(point);
@@ -140,7 +139,7 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
                 }
 
         // update LODs
-        foreach (var (p, cell) in Cells) { var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y)); GfxSetVisible(cell.ContObj, d <= DetailRadius); }
+        foreach (var (p, cell) in Cells) { var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y)); Builder.SetVisible(cell.ContObj, d <= DetailRadius); }
     }
 
     Cell BuildCell(ICell cell) {
@@ -149,8 +148,8 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
         ILand land = null;
         if (!cell.IsInterior) { cellName = $"cell {cell.GridId}"; land = Query.FindLand(cell.GridId); }
         else cellName = cell.Name;
-        var (contObj, cellObj) = GfxCreateContainers(cellName);
-        var task = TaskFunc(cell, land, contObj, cellObj); Queue.Add(task);
+        var (contObj, cellObj) = Builder.CreateContainers(cellName);
+        var task = Builder.CellCoroutine(cell, land, contObj, cellObj); Queue.Add(task);
         return new Cell(contObj, cellObj, cell, task);
     }
 
@@ -165,29 +164,34 @@ public abstract class CellManager(IQuery query, CoroutineQueue queue, Func<ICell
     }
 }
 
-public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenGfxModel<Object, Material, Texture, Shader> gfxModel) {
+public abstract class CellBuilder {
+    public abstract (object, object) CreateContainers(string name);
+    public abstract void SetVisible(object source, bool visible);
+    public abstract IEnumerator CellCoroutine(ICell cell, ILand land, object contObj, object cellObj);
+}
+
+public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenGfx[] gfx) : CellBuilder {
     const string DefaultLandTexturePath = "textures/_land_default.dds";
     protected IQuery Query = query;
-    protected IOpenGfxModel<Object, Material, Texture, Shader> GfxModel = gfxModel;
+    protected IOpenGfxApi<Object, Material> GfxApi = (IOpenGfxApi<Object, Material>)gfx[GfX.XApi];
+    protected IOpenGfxModel<Object, Material, Texture, Shader> GfxModel = (IOpenGfxModel<Object, Material, Texture, Shader>)gfx[GfX.XModel];
+    protected IOpenGfxTerrain<Object, Material, Texture> GfxTerrain = (IOpenGfxTerrain<Object, Material, Texture>)gfx[GfX.XTerrain];
     protected float MeterInUnits = query.MeterInUnits;
     protected float CellLengthInMeters = query.CellLengthInMeters;
 
-    protected class TerrainLayer {
-        public Texture Texture;
-        public Vector2 TileSize;
+    public override (object, object) CreateContainers(string name) {
+        var cellObj = GfxApi.CreateObject(name, "Cell");
+        var contObj = GfxApi.CreateObject("objects", parent: cellObj);
+        return (contObj, cellObj);
     }
 
-    protected abstract Object GfxCreateLight(ILigh light, bool indoors);
-    protected abstract Object GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material materialTemplate, Object parent);
-    /// <summary>
-    /// Finishes initializing an instantiated cell object.
-    /// </summary>
-    protected abstract void GfxPostCellObject(Object gameObject, ICellXref r, Object parent);
+    public override void SetVisible(object src, bool visible) => GfxApi.SetVisible((Object)src, visible);
 
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
     /// </summary>
-    public IEnumerator CellCoroutine(ICell cell, ILand land, Object contObj, Object cellObj) {
+    public override IEnumerator CellCoroutine(ICell cell, ILand land, object contObj, object cellObj) {
+        Object contObj2 = (Object)contObj, cellObj2 = (Object)cellObj;
         // Start pre-loading all required textures for the terrain.
         if (land != null) {
             var landTextures = GetLandTextures(land);
@@ -206,13 +210,13 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
 
         // Instantiate terrain.
         if (land != null) {
-            var task = LandCoroutine(land, cellObj);
+            var task = LandCoroutine(land, cellObj2);
             while (task.MoveNext()) yield return null;
             yield return null;
         }
 
         // Instantiate objects.
-        foreach (var s in cellRefs) { CellObject(cell, contObj, s); yield return null; }
+        foreach (var s in cellRefs) { CellObject(cell, contObj2, s); yield return null; }
     }
 
     CellRef[] GetCellRefs(ICell cell) => false ? [] : [.. cell.Xrefs.Select(s => {
@@ -226,11 +230,12 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
     void CellObject(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) { Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default;
-        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxPostCellObject(modelObj, r.Obj, parent); }
+        var obj = r.Obj;
+        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxApi.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh) {
-            var s = GfxCreateLight(ligh, cell.IsInterior);
-            if (modelObj != null) GfxModel.AttachObject(AttachObjectMethod.Find, s, modelObj, "AttachLight");
-            else GfxPostCellObject(s, r.Obj, parent);
+            var s = GfxApi.CreateLight(ligh.Radius, ligh.LightColor, cell.IsInterior);
+            if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
+            else GfxApi.PostObject(s, obj.Position, obj.EulerAngles, obj.Scale, parent);
         }
     }
 
@@ -293,7 +298,7 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
                 newHeights[y, x] = System.Polyfill.ChangeRange(newHeights[y, x], minHeight, maxHeight, 0f, 1f);
 
         // Texture the terrain.
-        var indexs = land.Vtex ?? new uint[LAND_TEXTUREINDICES]; var layers = new List<TerrainLayer>(); var layerIndexs = new Dictionary<int, int>();
+        var indexs = land.Vtex ?? new uint[LAND_TEXTUREINDICES]; var layers = new List<GfxTerrainLayer<Texture>>(); var layerIndexs = new Dictionary<int, int>();
         for (var i = 0; i < indexs.Length; i++) {
             var index = (int)(indexs[i] - 1);
             if (layerIndexs.ContainsKey(index)) continue;
@@ -303,7 +308,7 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
             Log.Info($"{path}: {texture}");
             yield return null; // Yield after loading each texture to avoid doing too much work on one frame.
             // Create the splat prototype.
-            var layerIndex = layers.Count; layers.Add(new TerrainLayer { Texture = texture, TileSize = new Vector2(6, 6) }); layerIndexs.Add(index, layerIndex);
+            var layerIndex = layers.Count; layers.Add(new GfxTerrainLayer<Texture> { Texture = texture, TileSize = new Vector2(6, 6) }); layerIndexs.Add(index, layerIndex);
         }
 
         // Create the alpha map.
@@ -322,7 +327,8 @@ public abstract class CellBuilder<Object, Material, Texture, Shader>(IQuery quer
         var heightRange = (maxHeight - minHeight) / MeterInUnits;
         var position = new Vector3(land.GridId.X * CellLengthInMeters, land.GridId.Y * CellLengthInMeters, minHeight / MeterInUnits);
         var sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
-        GfxCreateTerrain(0, newHeights, heightRange, sampleDistance, [.. layers], alphaMap, position, defaultMaterial, parent);
+        var terrainData = GfxTerrain.CreateTerrainData(0, newHeights, heightRange, sampleDistance, [.. layers], alphaMap);
+        GfxTerrain.CreateTerrain(terrainData, position, parent);
     }
 }
 

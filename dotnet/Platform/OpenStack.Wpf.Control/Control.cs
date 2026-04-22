@@ -13,7 +13,7 @@ using static OpenStack.Wpf.Control.WindowsNative;
 namespace OpenStack.Wpf.Control;
 
 public static class WindowsNative {
-    [DllImport("User32.dll", EntryPoint = "SetParent")] public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+    [DllImport("User32.dll", EntryPoint = "Parent")] public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
     [DllImport("User32.dll", EntryPoint = "ShowWindow")] public static extern int ShowWindow(IntPtr hwnd, int nCmdShow);
     [DllImport("User32.dll")] public static extern bool MoveWindow(IntPtr handle, int x, int y, int width, int height, bool redraw);
 }

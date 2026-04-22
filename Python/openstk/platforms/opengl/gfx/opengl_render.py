@@ -4,7 +4,7 @@ from numpy import array, ones, float32, identity
 from enum import Enum
 from OpenGL.GL import *
 from openstk.core import log
-from openstk.gfx import Renderer, ITextureFrames
+from openstk.gfx import GfX, Renderer, ITextureFrames
 from openstk.gfx.egin import AABB, EginRenderer
 from openstk.platforms.opengl.egin import GLRenderMaterial
 from openstk.platforms.opengl.gfx.opengl import OpenGLCellManager, OpenGLCellBuilder
@@ -16,23 +16,17 @@ sizeof_float = ctypes.sizeof(GLfloat)
 class OpenGLGfxModel: pass
 class Shader: pass
 class Camera: pass
+class IOpenGfx: pass
 
 #region TestTriRenderer
 
 # TestTriRenderer
 class TestTriRenderer(EginRenderer):
-    gfx: IOpenGLGfx
-    texture: int
-    shader: Shader
-    shaderTag: object
-    quadVao: int
-    background: bool
-    boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
-
-    def __init__(self, gfx: OpenGLGfxModel, obj: object):
-        self.gfx = gfx
-        self.shader, self.shaderTag = gfx.shaderManager.createShader('testtri')
-        self.vao = self._setupVao()
+    def __init__(self, gfx: list[IOpenGfx], obj: object):
+        self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('testtri')
+        self.vao: int = self._setupVao()
+        self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
     def _setupVao(self) -> int:
         glUseProgram(self.shader.program)
@@ -72,26 +66,17 @@ FACTOR = 1
 
 # TextureRenderer
 class TextureRenderer(EginRenderer):
-    gfx: OpenGLGfxModel
-    obj: object
-    level: range
-    tex: int
-    shader: Shader
-    shaderTag: object
-    vao: int
-    background: bool
-    boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
-    frameDelay: int = 0
-
-    def __init__(self, gfx: OpenGLGfxModel, obj: object, level: range, background: bool = False):
-        self.gfx = gfx
-        self.obj = obj
-        self.level = level
-        gfx.textureManager.deleteTexture(obj)
-        self.tex = gfx.textureManager.createTexture(obj, self.level)[0] or -1
-        self.shader, self.shaderTag = gfx.shaderManager.createShader('plane')
-        self.vao = self._setupVao()
-        self.background = background
+    def __init__(self, gfx: list[IOpenGfx], obj: object, level: range, background: bool = False):
+        self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.obj: object = obj
+        self.level: range = level
+        self.gfxModel.textureManager.deleteTexture(obj)
+        self.tex: int = self.gfxModel.textureManager.createTexture(obj, self.level)[0] or -1
+        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('plane')
+        self.vao: int = self._setupVao()
+        self.background: bool = background
+        self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
+        self.frameDelay: int = 0
 
     def getViewport(self, size: tuple) -> tuple:
         return None if not (o := self.obj) else \
@@ -142,7 +127,7 @@ class TextureRenderer(EginRenderer):
         self.frameDelay += deltaTime
         if self.frameDelay <= obj.fps or not obj.decodeFrame(): return
         self.frameDelay = 0 # reset delay between frames
-        self.gfx.textureManager.reloadTexture(obj)
+        self.gfxModel.textureManager.reloadTexture(obj)
 
 #endregion
 
@@ -150,7 +135,7 @@ class TextureRenderer(EginRenderer):
 
 # ObjectRenderer
 class ObjectRenderer(EginRenderer):
-    def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -158,19 +143,13 @@ class ObjectRenderer(EginRenderer):
 
 # MaterialRenderer
 class MaterialRenderer(EginRenderer):
-    gfx: OpenGLGfxModel
-    material: GLRenderMaterial
-    shader: Shader
-    shaderTag: object
-    vao: int
-    boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
-
-    def __init__(self, gfx: IOpenGLGfx, obj: object):
-        self.gfx = gfx
-        gfx.textureManager.deleteTexture(obj)
-        self.material = gfx.materialManager.createMaterial(obj)[0]
-        self.shader, self.shaderTag = gfx.shaderManager.createShader(material.material.shaderName, material.material.getShaderArgs())
-        self.vao = self._setupVao()
+    def __init__(self, gfx: list[IOpenGfx], obj: object):
+        self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.gfxModel.textureManager.deleteTexture(obj)
+        self.material: GLRenderMaterial = self.gfxModel.materialManager.createMaterial(obj)[0]
+        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader(material.material.shaderName, material.material.getShaderArgs())
+        self.vao: int = self._setupVao()
+        self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
     def _setupVao(self) -> int:
         glUseProgram(self.shader.program)
@@ -229,18 +208,14 @@ class MaterialRenderer(EginRenderer):
 
 # GridRenderer
 class GridRenderer(EginRenderer):
-    shader: Shader
-    shaderTag: object
-    vao: int
-    vertexCount: int
-    boundingBox: AABB
-
-    def __init__(self, gfx: OpenGLGfxModel, cellWidth: float, gridWidthInCells: int):
+    def __init__(self, gfx: list[IOpenGfx], cellWidth: float, gridWidthInCells: int):
+        self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('vrf.grid')
+        self.vao: int = self._setupVao(cellWidth, gridWidthInCells)
         self.boundingBox = AABB(
             -cellWidth * 0.5 * gridWidthInCells, -cellWidth * 0.5 * gridWidthInCells, 0,
             cellWidth * 0.5 * gridWidthInCells, cellWidth * 0.5 * gridWidthInCells, 0)
-        self.shader, self.shaderTag = gfx.shaderManager.createShader('vrf.grid')
-        self.vao = self._setupVao(cellWidth, gridWidthInCells)
+        self.vertexCount: int = 0 
 
     @staticmethod
     def _generateGridVertexBuffer(cellWidth: float, gridWidthInCells: int) -> list[float]:
@@ -328,9 +303,8 @@ class EngineRenderer(EginRenderer):
     def __init__(self, gfx: OpenGLGfxModel, obj: object):
         self.gfx: OpenGLGfxModel = gfx
         self.obj: ICellDatabase = obj
-
-    engine: OpenGLOpenEngine
-    playerPrefab: object = None
+        self.engine: OpenGLOpenEngine
+        self.playerPrefab: object = None
 
     def dispose(self) -> None:
         if self.engine: self.engine.dispose()

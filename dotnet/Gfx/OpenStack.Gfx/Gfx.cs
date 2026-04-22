@@ -16,9 +16,11 @@ namespace OpenStack.Gfx;
 /// GfX
 /// </summary>
 public static class GfX {
-    public const int XSprite2D = 0;
-    public const int XSprite3D = 1;
-    public const int XModel = 2;
+    public const int XApi = 0;
+    public const int XSprite2D = 1;
+    public const int XSprite3D = 2;
+    public const int XModel = 3;
+    public const int XTerrain = 4;
     public static int MaxTextureMaxAnisotropy;
 }
 
@@ -36,16 +38,7 @@ test modes (glAlphaFunc):
 /// <summary>
 /// GfxAlphaMode
 /// </summary>
-public enum GfxAlphaMode {
-    Always,
-    Less,
-    LEqual,
-    Equal,
-    GEqual,
-    Greater,
-    NotEqual,
-    Never
-}
+public enum GfxAlphaMode { Always, Less, LEqual, Equal, GEqual, Greater, NotEqual, Never }
 
 /*
 blend modes (glBlendFunc):
@@ -64,19 +57,7 @@ blend modes (glBlendFunc):
 /// <summary>
 /// GfxBlendMode
 /// </summary>
-public enum GfxBlendMode {
-    Zero,
-    One,
-    DstColor,
-    SrcColor,
-    OneMinusDstColor,
-    SrcAlpha,
-    OneMinusSrcColor,
-    DstAlpha,
-    OneMinusDstAlpha,
-    SrcAlphaSaturate,
-    OneMinusSrcAlpha
-}
+public enum GfxBlendMode { Zero, One, DstColor, SrcColor, OneMinusDstColor, SrcAlpha, OneMinusSrcColor, DstAlpha, OneMinusDstAlpha, SrcAlphaSaturate, OneMinusSrcAlpha }
 
 #endregion
 
@@ -499,6 +480,7 @@ public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Text
     protected TextureManager<Texture> TextureManager = textureManager;
     public float? NormalGeneratorIntensity = 0.75f;
     public abstract Material DefaultMaterial { get; }
+    public abstract Material TerrainMaterial { get; }
     public abstract Material CreateMaterial(object path);
 }
 
@@ -513,6 +495,7 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
     public TextureManager<Texture> TextureManager { get; } = textureManager;
 
     public Material DefaultMaterial => Builder.DefaultMaterial;
+    public Material TerrainMaterial => Builder.TerrainMaterial;
 
     public (Material mat, object tag) CreateMaterial(object path) {
         if (CachedMaterials.TryGetValue(path, out var c)) return c;
@@ -550,41 +533,43 @@ public interface IModel {
     T Create<T>(string platform, Func<object, T> func);
 }
 
-/// <summary>
-/// IModelApi
-/// </summary>
-/// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-public interface IModelApi<Object, Material> {
-    Object CreateObject(string name);
-    object CreateMesh(object mesh);
-    void AddMeshRenderer(Object src, object mesh, Material material, bool enabled, bool isStatic);
-    void AddMeshCollider(Object src, object mesh, bool isKinematic, bool isStatic);
-    //
-    void SetParent(Object src, Object parent);
-    void Transform(Object src, Vector3 position, Quaternion rotation, Vector3 localScale);
-    void Transform(Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
-    void AddMissingMeshCollidersRecursively(Object src, bool isStatic);
-    void SetLayerRecursively(Object src, int layer);
-}
-
 #endregion
 
 #region OpenGfx
 
-public enum AttachObjectMethod {
-    Find,
-    Transform,
-    All,
-    AllCenter,
-}
+public enum GfxAttach { Find, Transform, All, AllCenter }
 
 /// <summary>
 /// IOpenGfx
 /// </summary>
 public interface IOpenGfx {
     Task<T> GetAsset<T>(object path);
-    void PreloadObject(object path);
+}
+
+/// <summary>
+/// IOpenGfxApi
+/// </summary>
+public interface IOpenGfxApi : IOpenGfx { }
+
+/// <summary>
+/// IOpenGfxApi
+/// </summary>
+/// <typeparam name="Object"></typeparam>
+/// <typeparam name="Material"></typeparam>
+public interface IOpenGfxApi<Object, Material> : IOpenGfxApi {
+    Object CreateObject(string name, string tag = null, Object parent = default);
+    object CreateMesh(object mesh);
+    void AddMeshRenderer(Object src, object mesh, Material material, bool enabled, bool isStatic);
+    void AddMeshCollider(Object src, object mesh, bool isKinematic, bool isStatic);
+    void Attach(GfxAttach method, Object source, params object[] args);
+    void Parent(Object src, Object parent);
+    void Transform(Object src, Vector3 position, Quaternion rotation, Vector3 localScale);
+    void Transform(Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
+    void AddMissingMeshCollidersRecursively(Object src, bool isStatic);
+    void SetLayerRecursively(Object src, int layer);
+    void SetVisible(Object src, bool visible);
+    Object CreateLight(float radius, Color color, bool indoors);
+    void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent);
 }
 
 /// <summary>
@@ -598,16 +583,16 @@ public interface IOpenGfxSprite : IOpenGfx {
 /// IOpenGfxSprite
 /// </summary>
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
-    SpriteManager<Sprite> SpriteManager { get; }
     ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
+    SpriteManager<Sprite> SpriteManager { get; }
     Object CreateObject(object path, Object parent = default);
-    void AttachObject(AttachObjectMethod method, Object source, params object[] args);
 }
 
 /// <summary>
 /// IOpenGfxModel
 /// </summary>
 public interface IOpenGfxModel : IOpenGfx {
+    void PreloadObject(object path);
     void PreloadTexture(object path);
 }
 
@@ -615,14 +600,31 @@ public interface IOpenGfxModel : IOpenGfx {
 /// IOpenGfxModel
 /// </summary>
 public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxModel {
-    TextureManager<Texture> TextureManager { get; }
     MaterialManager<Material, Texture> MaterialManager { get; }
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     ShaderManager<Shader> ShaderManager { get; }
-    Texture CreateTexture(object path, Range? level = null);
+    TextureManager<Texture> TextureManager { get; }
     Object CreateObject(object path, Object parent = default);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
-    void AttachObject(AttachObjectMethod method, Object source, params object[] args);
+    Texture CreateTexture(object path, Range? level = null);
+}
+
+public class GfxTerrainLayer<T> {
+    public T Texture;
+    public Vector2 TileSize;
+}
+
+/// <summary>
+/// IOpenGfxTerrain
+/// </summary>
+public interface IOpenGfxTerrain : IOpenGfx { }
+
+/// <summary>
+/// IOpenGfxTerrain
+/// </summary>
+public interface IOpenGfxTerrain<Object, Material, Texture> : IOpenGfxTerrain {
+    object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture>[] layers, float[,,] alphaMap);
+    Object CreateTerrain(object data, Vector3 position, Object parent = default);
 }
 
 #endregion

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Linq;
 using UnityEngine;
 using static OpenStack.CellManager;
 using XShader = UnityEngine.Shader;
@@ -96,31 +94,6 @@ public static class UnityExtensions {
 #region GameObjectX
 
 public static class GameObjectX {
-    public static void AttachObject(this GameObject source, AttachObjectMethod method, params object[] args) {
-        var v = (GameObject)args[0];
-        switch (method) {
-            case AttachObjectMethod.Find:
-                v = v.FindChildRecursively((string)args[1]) ?? v;
-                source.transform.position = v.transform.position;
-                source.transform.rotation = v.transform.rotation;
-                source.transform.parent = v.transform;
-                break;
-            case AttachObjectMethod.Transform:
-                source.transform.parent = v.transform;
-                break;
-            case AttachObjectMethod.All:
-                source.transform.position = v.transform.position;
-                source.transform.rotation = v.transform.rotation;
-                source.transform.parent = v.transform;
-                break;
-            case AttachObjectMethod.AllCenter:
-                source.transform.position = v.CalcVisualBoundsRecursive().center;
-                source.transform.rotation = v.transform.rotation;
-                source.transform.parent = v.transform;
-                break;
-        }
-    }
-
     /// <summary>
     /// Creates a camera identical to the one added to new scenes by default.
     /// </summary>
@@ -155,14 +128,11 @@ public static class GameObjectX {
     /// <param name="template">The material template.</param>
     /// <param name="parent">The parent.</param>
     /// <returns>A terrain GameObject.</returns>
-    public static GameObject CreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material template, GameObject parent = default) {
-        var data = CreateTerrainData(offset, heights, heightRange, sampleDistance, layers, alphaMap);
-        var s = CreateTerrainFromTerrainData(data, position, template);
-        //s.GetComponent<Terrain>().materialType = Terrain.MaterialType.BuiltInLegacyDiffuse;
-        if (parent != null) s.transform.parent = parent.transform;
-        //s.isStatic = true; //TODO: Remove
-        return s;
-    }
+    //public static GameObject CreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material template, GameObject parent = default) {
+    //    var data = CreateTerrainData(offset, heights, heightRange, sampleDistance, layers, alphaMap);
+    //    var s = CreateTerrain(data, position, template);
+    //    return s;
+    //}
 
     /// <summary>
     /// Creates terrain data from heights.
@@ -173,7 +143,7 @@ public static class GameObjectX {
     /// <param name="layers">The textures used by the terrain.</param>
     /// <param name="alphaMap">Texture blending information.</param>
     /// <returns>A TerrainData instance.</returns>
-    static TerrainData CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap) {
+    public static TerrainData CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap) {
         Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
         // Create the TerrainData.
         var heightmapResolution = heights.GetLength(0);
@@ -188,7 +158,7 @@ public static class GameObjectX {
         return s;
     }
 
-    static GameObject CreateTerrainFromTerrainData(TerrainData data, Vector3 position, Material template) {
+    public static GameObject CreateTerrain(TerrainData data, Vector3 position, Material template, GameObject parent = default) {
         // Create the terrain game object.
         var s = new GameObject("terrain") { isStatic = true };
         var terrain = s.AddComponent<Terrain>();
@@ -196,6 +166,8 @@ public static class GameObjectX {
         terrain.terrainData = data;
         s.AddComponent<TerrainCollider>().terrainData = data;
         s.transform.position = position;
+        //s.GetComponent<Terrain>().materialType = Terrain.MaterialType.BuiltInLegacyDiffuse;
+        if (parent != null) s.transform.parent = parent.transform;
         return s;
     }
 
@@ -293,67 +265,7 @@ public static class GameObjectX {
 
 #region CellManager
 
-// UnityCellManager
-public class UnityCellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) : CellManager(query, queue, taskFunc) {
-    public override (object, object) GfxCreateContainers(string name) {
-        var cellObj = new GameObject(name) { tag = "Cell" };
-        var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
-        return (contObj, cellObj);
-    }
-
-    public override void GfxSetVisible(object source, bool visible) {
-        var c = (GameObject)source;
-        if (visible) { if (!c.activeSelf) c.SetActive(true); }
-        else { if (c.activeSelf) c.SetActive(false); }
-    }
-}
-
-public class UnityCellBuilder(IQuery query, UnityGfxModel gfxModel) : CellBuilder<GameObject, Material, Texture2D, XShader>(query, gfxModel) {
-    const bool RenderLightShadows = false;
-    const bool RenderExteriorCellLights = false;
-
-    protected override GameObject GfxCreateLight(ILigh light, bool indoors) {
-        var s = new GameObject("GfxCreateLight") { isStatic = true };
-        var c = s.AddComponent<Light>();
-        c.range = 3 * light.Radius;
-        c.color = light.LightColor.ToUnity();
-        c.intensity = 1.5f;
-        c.bounceIntensity = 0f;
-        c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
-        if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
-        return s;
-    }
-
-    protected override GameObject GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, System.Numerics.Vector3 position, Material material, GameObject parent)
-        => GameObjectX.CreateTerrain(offset, heights, heightRange, sampleDistance, [.. layers.Select(s => new UnityEngine.TerrainLayer { diffuseTexture = s.Texture, tileSize = s.TileSize.ToUnity(), smoothness = 0, metallic = 0 })], alphaMap, position.ToUnity(), material, parent);
-
-    protected override void GfxPostCellObject(GameObject gameObject, ICellXref r, GameObject parent) {
-        if (r.Scale != null) gameObject.transform.localScale = Vector3.one * r.Scale.Value;
-        gameObject.transform.position += r.Position.AsVector3.ToUnity();
-        gameObject.transform.rotation *= r.EulerAngles.AsVector3.ToUnityQuaternionAsEulerAnglesX();
-        var tagTarget = gameObject;
-        var coll = gameObject.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
-        if (coll != null) tagTarget = coll.gameObject;
-        //ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
-        //ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
-        //ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
-        //ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
-        //ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
-        //ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
-        //ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
-        //ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
-        //ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
-        //ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
-        //ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
-        //ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
-        //ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
-        //ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
-        //ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
-        //ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
-        //ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
-        if (parent != null) gameObject.transform.parent = parent.transform;
-    }
-}
+public class UnityCellBuilder(IQuery query, IOpenGfx[] gfx) : CellBuilder<GameObject, Material, Texture2D, XShader>(query, gfx) { }
 
 #endregion
 

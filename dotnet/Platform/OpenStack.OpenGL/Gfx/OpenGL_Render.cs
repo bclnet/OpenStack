@@ -14,15 +14,15 @@ namespace OpenStack.Gfx.OpenGL;
 /// TestTriRenderer
 /// </summary>
 public class TestTriRenderer : EginRenderer {
-    readonly OpenGLGfxModel Gfx;
+    readonly OpenGLGfxModel GfxModel;
     readonly Shader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
-    public TestTriRenderer(OpenGLGfxModel gfx, object obj) {
-        Gfx = gfx;
-        (Shader, ShaderTag) = Gfx.ShaderManager.CreateShader("testtri");
+    public TestTriRenderer(IOpenGfx[] gfx, object obj) {
+        GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("testtri");
         Vao = SetupVao();
     }
 
@@ -67,7 +67,7 @@ public class TestTriRenderer : EginRenderer {
 public class TextureRenderer : EginRenderer {
     const int FACTOR = 1;
 
-    readonly OpenGLGfxModel Gfx;
+    readonly OpenGLGfxModel GfxModel;
     readonly object Obj;
     readonly Range Level;
     readonly int Tex;
@@ -78,13 +78,13 @@ public class TextureRenderer : EginRenderer {
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
     int FrameDelay;
 
-    public TextureRenderer(OpenGLGfxModel gfx, object obj, Range level, bool background = false) {
-        Gfx = gfx;
+    public TextureRenderer(IOpenGfx[] gfx, object obj, Range level, bool background = false) {
+        GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
         Obj = obj;
         Level = level;
-        gfx.TextureManager.DeleteTexture(obj);
-        Tex = gfx.TextureManager.CreateTexture(obj, level).tex;
-        (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("plane");
+        GfxModel.TextureManager.DeleteTexture(obj);
+        Tex = GfxModel.TextureManager.CreateTexture(obj, level).tex;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("plane");
         Vao = SetupVao();
         Background = background;
     }
@@ -139,11 +139,11 @@ public class TextureRenderer : EginRenderer {
     }
 
     public override void Update(float deltaTime) {
-        if (Obj is not ITextureFrames obj || Gfx == null || !obj.HasFrames) return;
+        if (Obj is not ITextureFrames obj || GfxModel == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        Gfx.TextureManager.ReloadTexture(obj, Level);
+        GfxModel.TextureManager.ReloadTexture(obj, Level);
     }
 }
 
@@ -155,7 +155,7 @@ public class TextureRenderer : EginRenderer {
 /// ObjectRenderer
 /// </summary>
 public class ObjectRenderer : EginRenderer {
-    public ObjectRenderer(OpenGLGfxModel gfx, object obj) {
+    public ObjectRenderer(IOpenGfx[] gfx, object obj) {
     }
 }
 
@@ -167,18 +167,18 @@ public class ObjectRenderer : EginRenderer {
 /// MaterialRenderer
 /// </summary>
 public class MaterialRenderer : EginRenderer {
-    readonly OpenGLGfxModel Gfx;
+    readonly OpenGLGfxModel GfxModel;
     readonly GLRenderMaterial Material;
     readonly Shader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
-    public MaterialRenderer(OpenGLGfxModel gfx, object obj) {
-        Gfx = gfx;
-        Gfx.TextureManager.DeleteTexture(obj);
-        Material = Gfx.MaterialManager.CreateMaterial(obj).mat;
-        (Shader, ShaderTag) = Gfx.ShaderManager.CreateShader(Material.Material.ShaderName, Material.Material.ShaderArgs);
+    public MaterialRenderer(IOpenGfx[] gfx, object obj) {
+        GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
+        GfxModel.TextureManager.DeleteTexture(obj);
+        Material = GfxModel.MaterialManager.CreateMaterial(obj).mat;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(Material.Material.ShaderName, Material.Material.ShaderArgs);
         Vao = SetupVao();
     }
 
@@ -247,17 +247,19 @@ public class MaterialRenderer : EginRenderer {
 /// GridRenderer
 /// </summary>
 public class GridRenderer : EginRenderer {
+    readonly OpenGLGfxModel GfxModel;
     readonly Shader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     int VertexCount;
     public AABB BoundingBox { get; }
 
-    public GridRenderer(OpenGLGfxModel gfx, float cellWidth, int gridWidthInCells) {
+    public GridRenderer(IOpenGfx[] gfx, float cellWidth, int gridWidthInCells) {
+        GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
         BoundingBox = new AABB(
             -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,
             cellWidth * 0.5f * gridWidthInCells, cellWidth * 0.5f * gridWidthInCells, 0);
-        (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("vrf.grid");
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("vrf.grid");
         Vao = SetupVao(cellWidth, gridWidthInCells);
     }
 
@@ -333,7 +335,7 @@ public class GridRenderer : EginRenderer {
 
 #region ParticleRenderer
 
-public class ParticleRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
+public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
     #region SpritesRenderer
 
     public class SpritesRenderer : IParticleRenderer {
@@ -959,25 +961,13 @@ public class ParticleRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
 
 #endregion
 
-#region CellRenderer
-
-/// <summary>
-/// CellRenderer
-/// </summary>
-public class CellRenderer : EginRenderer {
-    public CellRenderer(OpenGLGfxModel gfx, object obj) {
-    }
-}
-
-#endregion
-
 #region EngineRenderer
 
 /// <summary>
 /// EngineRenderer
 /// </summary>
-public class EngineRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
-    OpenGLGfxModel Gfx = gfx;
+public class EngineRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
+    IOpenGfx[] Gfx = gfx;
     readonly ICellDatabase Obj = obj as ICellDatabase;
 
     OpenGLOpenEngine Engine;
@@ -986,11 +976,11 @@ public class EngineRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
+        //Log.Info($"PlayerPrefab: {PlayerPrefab}");
         var arc = (ISourceWithPlatform)Obj.Archive;
-        Gfx = (OpenGLGfxModel)arc.Gfx[2];
+        Gfx = arc.Gfx;
         var query = Obj.Query;
-        var builder = new OpenGLCellBuilder(query, Gfx);
-        Engine = new OpenGLOpenEngine(queue => new OpenGLCellManager(query, queue, (cell, land, contObj, cellObj) => builder.CellCoroutine(cell, land, contObj, cellObj)), false);
+        Engine = new OpenGLOpenEngine(queue => new CellManager(query, queue, new OpenGLCellBuilder(query, Gfx)), false);
         Engine.SpawnPlayer(PlayerPrefab, Obj.Start);
     }
 
@@ -1005,7 +995,7 @@ public class EngineRenderer(OpenGLGfxModel gfx, object obj) : EginRenderer {
 /// WorldRenderer
 /// </summary>
 public class WorldRenderer : EginRenderer {
-    public WorldRenderer(OpenGLGfxModel gfx, object obj) {
+    public WorldRenderer(IOpenGfx[] gfx, object obj) {
     }
 }
 

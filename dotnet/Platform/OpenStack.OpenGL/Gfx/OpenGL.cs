@@ -2,7 +2,6 @@
 using OpenStack.Algorithms;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -88,10 +87,7 @@ public abstract class ShaderLoader {
     uint CalculateShaderCacheHash(string name, IDictionary<string, bool> args) {
         var b = new StringBuilder(); b.AppendLine(name);
         var parameters = ShaderDefines[name].Intersect(args.Keys);
-        foreach (var key in parameters) {
-            b.AppendLine(key);
-            b.AppendLine(args[key] ? "t" : "f");
-        }
+        foreach (var key in parameters) { b.AppendLine(key); b.AppendLine(args[key] ? "t" : "f"); }
         return MurmurHash2.Hash(b.ToString(), ShaderSeed);
     }
 
@@ -134,7 +130,7 @@ public abstract class ShaderLoader {
             var shaderSource = GetShaderSource($"{shaderFileName}.frag");
             GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
             // defines: find render modes supported from source, take union to avoid duplicates
-            defines = defines.Union(FindDefines(shaderSource)).ToList();
+            defines = [.. defines.Union(FindDefines(shaderSource))];
         }
         GL.CompileShader(fragmentShader);
         GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out shaderStatus);
@@ -181,21 +177,14 @@ public abstract class ShaderLoader {
     }
 
     // Preprocess a vertex shader's source to include the #version plus #defines for parameters
-    string PreprocessVertexShader(string source, IDictionary<string, bool> args)
-        => ResolveIncludes(UpdateDefines(source, args));
+    string PreprocessVertexShader(string source, IDictionary<string, bool> args) => ResolveIncludes(UpdateDefines(source, args));
 
     // Update default defines with possible overrides from the model
     static string UpdateDefines(string source, IDictionary<string, bool> args) {
         // find all #define param_(paramName) (paramValue) using regex
         var defines = Regex.Matches(source, @"#define param_(\S*?) (\S*?)\s*?\n");
         foreach (Match define in defines)
-            // check if this parameter is in the arguments
-            if (args.TryGetValue(define.Groups[1].Value, out var value)) {
-                // overwrite default value
-                var index = define.Groups[2].Index;
-                var length = define.Groups[2].Length;
-                source = source.Remove(index, Math.Min(length, source.Length - index)).Insert(index, value ? "1" : "0");
-            }
+            if (args.TryGetValue(define.Groups[1].Value, out var value)) { var index = define.Groups[2].Index; var length = define.Groups[2].Length; source = source.Remove(index, Math.Min(length, source.Length - index)).Insert(index, value ? "1" : "0"); }
         return source;
     }
 
@@ -203,28 +192,23 @@ public abstract class ShaderLoader {
     string ResolveIncludes(string source) {
         var includes = Regex.Matches(source, @"#include ""([^""]*?)"";?\s*\n");
         foreach (Match define in includes) {
-            // read included code
             var includedCode = GetShaderSource(define.Groups[1].Value);
             // recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
             includedCode = ResolveIncludes(includedCode);
             if (!includedCode.EndsWith("\n")) includedCode += "\n";
-            // replace the include with the code
             source = source.Replace(define.Value, includedCode);
         }
         return source;
     }
 
-    static List<string> FindDefines(string source) {
-        var defines = Regex.Matches(source, @"#define param_(\S+)");
-        return defines.Cast<Match>().Select(_ => _.Groups[1].Value).ToList();
-    }
+    static List<string> FindDefines(string source) { var defines = Regex.Matches(source, @"#define param_(\S+)"); return [.. defines.Cast<Match>().Select(_ => _.Groups[1].Value)]; }
 }
 
 /// <summary>
 /// ShaderDebugLoader
 /// </summary>
 public class ShaderDebugLoader : ShaderLoader {
-    const string ShaderDirectory = "OpenStack.OpenGL.Gfx.Shaders";
+    const string ShaderDirectory = "OpenStack.OpenGL.GfxModel.Shaders";
 
     // Map shader names to shader files
     protected override string GetShaderFileByName(string name) {
@@ -245,7 +229,7 @@ public class ShaderDebugLoader : ShaderLoader {
             case "multiblend.vfx": return "multiblend";
             default:
                 if (name.StartsWith("vr_")) return "vr_standard";
-                // Console.WriteLine($"Unknown shader {name}, defaulting to simple.");
+                Log.Warn($"Unknown shader {name}, defaulting to simple.");
                 return "simple";
         }
     }
@@ -269,45 +253,6 @@ public class ShaderDebugLoader : ShaderLoader {
 
 #region CellManager
 
-// OpenGLCellManager
-public class OpenGLCellManager(IQuery query, CoroutineQueue queue, Func<ICell, ILand, object, object, IEnumerator> taskFunc) : CellManager(query, queue, taskFunc) {
-    public override (object, object) GfxCreateContainers(string name) {
-        return (null, null);
-        //var cellObj = new GameObject(name) { tag = "Cell" };
-        //var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
-        //return (contObj, cellObj);
-    }
-
-    public override void GfxSetVisible(object source, bool visible) {
-        //var c = (GameObject)source;
-        //if (visible) { if (!c.activeSelf) c.SetActive(true); }
-        //else { if (c.activeSelf) c.SetActive(false); }
-    }
-}
-
-public class OpenGLCellBuilder(IQuery query, OpenGLGfxModel gfxModel) : CellBuilder<object, GLRenderMaterial, int, Shader>(query, gfxModel) {
-    const bool RenderLightShadows = false;
-    const bool RenderExteriorCellLights = false;
-
-    protected override object GfxCreateLight(ILigh light, bool indoors) {
-        return null;
-        //var s = new GameObject("GfxCreateLight") { isStatic = true };
-        //var c = s.AddComponent<Light>();
-        //c.range = 3 * light.Radius;
-        //c.color = light.LightColor.ToUnity();
-        //c.intensity = 1.5f;
-        //c.bounceIntensity = 0f;
-        //c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
-        //if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
-        //return s;
-    }
-
-    protected override object GfxCreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, System.Numerics.Vector3 position, GLRenderMaterial material, object parent)
-        => null;
-
-    protected override void GfxPostCellObject(object gameObject, ICellXref r, object parent) {
-    }
-
-}
+public class OpenGLCellBuilder(IQuery query, IOpenGfx[] gfx) : CellBuilder<object, GLRenderMaterial, int, Shader>(query, gfx) { }
 
 #endregion

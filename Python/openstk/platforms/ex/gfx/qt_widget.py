@@ -14,11 +14,7 @@ class IOpenSfx: pass
 #region ExWidget
 
 class ExWidget(QWidget):
-    renderer: Renderer = None
-    id: int = 0
-
     # Binding
-
     def __init__(self, parent: object, tab: object):
         loadPrcFileData('', """
         allow-parent 1
@@ -32,6 +28,8 @@ class ExWidget(QWidget):
         self.path: object = parent.path
         self.value: object = tab.value
         self.type: str = tab.type
+        self.renderer: Renderer = None
+        self.id: int = 0
         # print('win: %s' % base.win.getProperties())
 
         # self.disableMouse()

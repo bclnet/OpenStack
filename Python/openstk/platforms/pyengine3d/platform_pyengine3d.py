@@ -120,7 +120,7 @@ class PyEngine3dGfxModel(IOpenGfxModel):
 class PyEngine3dPlatform(Platform):
     def __init__(self):
         super().__init__('P3', 'PyEngine3D')
-        self.gfxFactory = staticmethod(lambda source: [None, None, PyEngine3dGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [PyEngine3dGfxApi(source), None, None, PyEngine3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 PyEngine3dPlatform.This = PyEngine3dPlatform()
 

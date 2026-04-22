@@ -399,8 +399,8 @@ public unsafe class MgClientHost : Game, IClientHost {
 // MgGfxSprite2D
 public class MgGfxSprite2D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
-    readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
+    readonly SpriteManager<object> _spriteManager;
 
     public MgGfxSprite2D(ISource source) {
         _source = source;
@@ -409,14 +409,13 @@ public class MgGfxSprite2D : IOpenGfxSprite<object, object> {
     }
 
     public ISource Source => _source;
-    public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
+    public SpriteManager<object> SpriteManager => _spriteManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 // MgSfx
@@ -426,7 +425,7 @@ public class MgSfx(ISource source) : SystemSfx(source) { }
 public class MgPlatform : Platform {
     public static readonly Platform This = new MgPlatform();
     MgPlatform() : base("MG", "MonoGame") {
-        GfxFactory = source => [new MgGfxSprite2D(source), null, null];
+        GfxFactory = source => [null, new MgGfxSprite2D(source), null, null, null];
         SfxFactory = source => [new MgSfx(source)];
         LogFunc = Console.WriteLine;
     }

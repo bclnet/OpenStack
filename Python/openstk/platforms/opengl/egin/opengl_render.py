@@ -8,7 +8,7 @@ from openstk.gfx.egin import Scene, Camera, DrawCall, MeshBatchRequest, RenderMa
 CAMERASPEED = 300 # Per second
 
 # typedefs
-class IOpenGLGfx: pass
+class IOpenGfx: pass
 class IVBIB: pass
 class IMaterial: pass
 class IMesh: pass

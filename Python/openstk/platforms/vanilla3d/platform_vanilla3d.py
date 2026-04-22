@@ -50,19 +50,29 @@ class Vanilla3dTextureBuilder(TextureBuilderBase):
 
 # Vanilla3dMaterialBuilder
 class Vanilla3dMaterialBuilder(MaterialBuilderBase):
-    _defaultMaterial: GLRenderMaterial
+    _defaultMaterial: GLRenderMaterial = None, _terrainMaterial: GLRenderMaterial = None
     @property
     def defaultMaterial(self) -> int:
         if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial(-1)
+        self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
+    @property
+    def terrainMaterial(self) -> int:
+        if self._terrainMaterial: return self._terrainMaterial
+        self._terrainMaterial = self._createTerrainMaterial()
+        return self._terrainMaterial
 
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    def _createDefaultMaterial(type: int) -> GLRenderMaterial:
+    def _createDefaultMaterial(self) -> GLRenderMaterial:
         m = GLRenderMaterial(None)
         m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.material.shaderName = 'vrf.error'
+        return m
+
+    def _createTerrainMaterial(self) -> GLRenderMaterial:
+        m = GLRenderMaterial(None)
         m.material.shaderName = 'vrf.error'
         return m
 
@@ -95,18 +105,12 @@ class Vanilla3dMaterialBuilder(MaterialBuilderBase):
 
 # Vanilla3dGfx
 class Vanilla3dGfxModel(IOpenGfxModel):
-    source: ISource
-    textureManager: TextureManager
-    materialManager: MaterialManager
-    objectManager: ObjectModelManager
-    shaderManager: ShaderManager
-
     def __init__(self, source: ISource):
-        self.source = source
-        self.textureManager = TextureManager(source, Vanilla3dTextureBuilder())
-        self.materialManager = MaterialManager(source, self.textureManager, Vanilla3dMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectModelManager(source, self.materialManager, Vanilla3dObjectModelBuilder())
-        self.shaderManager = ShaderManager(source, Vanilla3dShaderBuilder())
+        self.source: ISource = source
+        self.textureManager: TextureManager = TextureManager(source, Vanilla3dTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, Vanilla3dMaterialBuilder(self.textureManager))
+        self.objectManagerr: ObjectModelManager = ObjectModelManager(source, self.materialManager, Vanilla3dObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(source, Vanilla3dShaderBuilder())
 
     def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
@@ -120,7 +124,7 @@ class Vanilla3dGfxModel(IOpenGfxModel):
 class Vanilla3dPlatform(Platform):
     def __init__(self):
         super().__init__('V3', 'Vanilla3D')
-        self.gfxFactory = staticmethod(lambda source: [None, None, Vanilla3dGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [Vanilla3dGfxApi(source), None, None, Vanilla3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Vanilla3dPlatform.This = Vanilla3dPlatform()
 

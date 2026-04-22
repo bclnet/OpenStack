@@ -9,10 +9,10 @@ namespace OpenStack.Gfx.Godot;
 /// TestTriRenderer
 /// </summary>
 public class TestTriRenderer : Renderer {
-    readonly GodotGfxModel Gfx;
+    readonly GodotGfxModel GfxModel;
 
-    public TestTriRenderer(Node parent, GodotGfxModel gfx, object obj) {
-        Gfx = gfx;
+    public TestTriRenderer(Node parent, IOpenGfx[] gfx, object obj) {
+        GfxModel = (GodotGfxModel)gfx[GfX.XModel];
     }
 }
 
@@ -25,19 +25,19 @@ public class TestTriRenderer : Renderer {
 /// </summary>
 public class TextureRenderer : Renderer {
     readonly Node Parent;
-    readonly GodotGfxModel Gfx;
+    readonly GodotGfxModel GfxModel;
     readonly object Obj;
     readonly System.Range Level;
     readonly XTexture Texture;
     int FrameDelay;
 
-    public TextureRenderer(Node parent, GodotGfxModel gfx, object obj, System.Range level) {
+    public TextureRenderer(Node parent, IOpenGfx[] gfx, object obj, System.Range level) {
         Parent = parent;
-        Gfx = gfx;
+        GfxModel = (GodotGfxModel)gfx[GfX.XModel];
         Obj = obj;
         Level = level;
-        Gfx.TextureManager.DeleteTexture(obj);
-        Texture = Gfx.TextureManager.CreateTexture(obj, level).tex;
+        GfxModel.TextureManager.DeleteTexture(obj);
+        Texture = GfxModel.TextureManager.CreateTexture(obj, level).tex;
     }
 
     public override void Start() {
@@ -100,11 +100,11 @@ public class TextureRenderer : Renderer {
     }
 
     public override void Update(float deltaTime) {
-        if (Obj is not ITextureFrames obj || Gfx == null || !obj.HasFrames) return;
+        if (Obj is not ITextureFrames obj || GfxModel == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        Gfx.TextureManager.ReloadTexture(obj, Level);
+        GfxModel.TextureManager.ReloadTexture(obj, Level);
     }
 }
 

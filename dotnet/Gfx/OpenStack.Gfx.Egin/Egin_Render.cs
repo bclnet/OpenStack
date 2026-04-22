@@ -216,7 +216,6 @@ public abstract class RenderMaterial {
     public RenderMaterial(MaterialShaderProp material) {
         Material = material;
         switch (material) {
-            //case MaterialPropShader p: break;
             case MaterialShaderVProp p:
                 if (p.IntParams.ContainsKey("F_ALPHA_TEST") && p.IntParams["F_ALPHA_TEST"] == 1 && p.FloatParams.ContainsKey("g_flAlphaTestReference")) AlphaTestReference = p.FloatParams["g_flAlphaTestReference"];
                 IsToolsMaterial = p.IntAttributes.ContainsKey("tools.toolsmaterial");
@@ -224,6 +223,7 @@ public abstract class RenderMaterial {
                 IsAdditiveBlend = p.IntParams.ContainsKey("F_ADDITIVE_BLEND") && p.IntParams["F_ADDITIVE_BLEND"] == 1;
                 IsRenderBackfaces = p.IntParams.ContainsKey("F_RENDER_BACKFACES") && p.IntParams["F_RENDER_BACKFACES"] == 1;
                 break;
+            case MaterialShaderProp s: break;
             default: throw new ArgumentOutOfRangeException(nameof(material), $"{material}");
         }
     }

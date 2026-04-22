@@ -2,6 +2,8 @@
 using OpenStack.Gfx;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
@@ -20,6 +22,25 @@ public class UnrealClientHost : IClientHost {
 #endregion
 
 #region Platform
+
+// UnrealGfxApi
+public class UnrealGfxApi(ISource source) : IOpenGfxApi<object, object> {
+    public ISource Source => source;
+    public Task<T> GetAsset<T>(object path) => throw new NotImplementedException();
+    public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
+    public void AddMeshRenderer(object src, object mesh, object material, bool enabled, bool isStatic) => throw new NotImplementedException();
+    public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
+    public void Attach(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public object CreateMesh(object mesh) => throw new NotImplementedException();
+    public object CreateObject(string name, string tag = null, object parent = null) => throw new NotImplementedException();
+    public void SetLayerRecursively(object src, int layer) => throw new NotImplementedException();
+    public void Parent(object src, object parent) => throw new NotImplementedException();
+    public void Transform(object src, Vector3 position, Quaternion rotation, Vector3 localScale) => throw new NotImplementedException();
+    public void Transform(object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale) => throw new NotImplementedException();
+    public void SetVisible(object src, bool visible) => throw new NotImplementedException();
+    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+}
 
 // UnrealGfxSprite3D
 public class UnrealGfxSprite3D : IOpenGfxSprite<object, object> {
@@ -41,7 +62,7 @@ public class UnrealGfxSprite3D : IOpenGfxSprite<object, object> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // UnrealGfxModel
@@ -72,7 +93,7 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
 }
 
 // UnrealSfx
@@ -82,7 +103,7 @@ public class UnrealSfx(ISource source) : SystemSfx(source) { }
 public class UnrealPlatform : Platform {
     public static readonly Platform This = new UnrealPlatform();
     UnrealPlatform() : base("UR", "Unreal") {
-        GfxFactory = source => [null, new UnrealGfxSprite3D(source), new UnrealGfxModel(source)];
+        GfxFactory = source => [new UnrealGfxApi(source), null, new UnrealGfxSprite3D(source), new UnrealGfxModel(source), null];
         SfxFactory = source => [new UnrealSfx(source)];
     }
 }

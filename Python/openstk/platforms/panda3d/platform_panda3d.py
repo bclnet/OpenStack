@@ -53,17 +53,17 @@ class Panda3dTextureBuilder(TextureBuilderBase):
 # Panda3dMaterialBuilder
 # https://docs.panda3d.org/1.10/python/programming/render-attributes/materials
 class Panda3dMaterialBuilder(MaterialBuilderBase):
+    def __init__(self, textureManager: TextureManager):
+        super().__init__(textureManager)
+
     _defaultMaterial: GLRenderMaterial
     @property
     def defaultMaterial(self) -> int:
         if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial(-1)
+        self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
 
-    def __init__(self, textureManager: TextureManager):
-        super().__init__(textureManager)
-
-    def _createDefaultMaterial(type: int) -> GLRenderMaterial:
+    def _createDefaultMaterial() -> GLRenderMaterial:
         m = GLRenderMaterial(None)
         m.textures['g_tColor'] = self.textureManager.defaultTexture
         m.material.shaderName = 'vrf.error'
@@ -123,7 +123,7 @@ class Panda3dGfxModel(IOpenGfxModel):
 class Panda3dPlatform(Platform):
     def __init__(self):
         super().__init__('PD', 'Panda3D')
-        self.gfxFactory = staticmethod(lambda source: [None, None, Panda3dGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [Panda3dGfxApi(source), None, None, Panda3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Panda3dPlatform.This = Panda3dPlatform()
 

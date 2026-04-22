@@ -1,17 +1,18 @@
 from __future__ import annotations
 import os, numpy as np
-from openstk.gfx import Renderer
+from openstk.gfx import GfX, Renderer
 
 # typedefs
 class ExGfxModel: pass
 class Shader: pass
 class Camera: pass
+class IOpenGfx: pass
 
 #region TestTriRenderer
 
 # TestTriRenderer
 class TestTriRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
     def start(self):
         scene = self.scene = base.loader.loadModel('models/environment')
@@ -27,16 +28,12 @@ class TestTriRenderer(Renderer):
 
 # TextureRenderer
 class TextureRenderer(Renderer):
-    gfx: ExGfxModel
-    obj: object
-    tex: int
-    frameDelay: int = 0
-
-    def __init__(self, gfx: ExGfxModel, obj: object):
-        self.gfx = gfx
+    def __init__(self, gfx: list[IOpenGfx], obj: object):
+        self.gfxModel: ExGfxModel = gfx[GfX.XModel]
         self.obj = obj
-        # gfx.textureManager.deleteTexture(obj)
-        # self.tex = gfx.textureManager.createTexture(obj, self.level)[0]
+        # gfxModel.textureManager.deleteTexture(obj)
+        # self.tex: int = gfxModel.textureManager.createTexture(obj, self.level)[0]
+        self.frameDelay: int = 0
 
     def start(self):
         card = base.render.attachNewNode(CardMaker('card').generate())
@@ -59,7 +56,7 @@ class TextureRenderer(Renderer):
 
 # ObjectRenderer
 class ObjectRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -67,7 +64,7 @@ class ObjectRenderer(Renderer):
 
 # MaterialRenderer
 class MaterialRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -75,7 +72,7 @@ class MaterialRenderer(Renderer):
 
 # GridRenderer
 class GridRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -83,7 +80,7 @@ class GridRenderer(Renderer):
 
 # ParticleRenderer
 class ParticleRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -91,7 +88,7 @@ class ParticleRenderer(Renderer):
 
 # CellRenderer
 class CellRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -99,7 +96,7 @@ class CellRenderer(Renderer):
 
 # EngineRenderer
 class EngineRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -107,6 +104,6 @@ class EngineRenderer(Renderer):
 
 # WorldRenderer
 class WorldRenderer(Renderer):
-    def __init__(self, gfx: ExGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion

@@ -6,7 +6,10 @@ from openstk.core.platform import Platform
 
 # UnknownPlatform
 class UnknownPlatform(Platform):
-    def __init__(self): super().__init__('UK', 'Unknown')
+    def __init__(self):
+        super().__init__('UK', 'Unknown')
+        self.gfxFactory = staticmethod(lambda source: [UnknownGfxApi(source), UnknownGfxSprite(source), UnknownGfxSprite(source), UnknownGfxModel(source), UnknownGfxTerrain(source)])
+        self.sfxFactory = staticmethod(lambda source: [UnknownSfx(source)])
 UnknownPlatform.This = UnknownPlatform()
 
 #endregion

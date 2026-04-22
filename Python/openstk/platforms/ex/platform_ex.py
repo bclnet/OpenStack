@@ -42,28 +42,30 @@ class ExClientHost(Game, IClientHost):
 # ExObjectBuilder
 # MISSING
 
+# ExGfxApi
+class ExGfxApi(IOpenGfxApi):
+    def __init__(self, source: ISource):
+        self.source: ISource = source
+    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
+
 # ExGfxSprite2D
 class ExGfxSprite2D(IOpenGfxSprite):
-    source: ISource
-    spriteManager: SpriteManager
-    objectManager: ObjectSpriteManager
     def __init__(self, source: ISource):
-        self.source = source
-        # self.spriteManager = SpriteManager(source, OpenGLTextureBuilder())
-        # self.objectManager = ObjectManager(source, OpenGLObjectModelBuilder())
+        self.source: ISource = source
+        # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
+        # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
 
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
     def createObject(self, path: object, parent: object) -> (object, dict[str, object]): raise NotImplementedError()
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
-    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
 # ExPlatform
 class ExPlatform(Platform):
     def __init__(self):
         super().__init__('EX', 'EnginX')
-        self.gfxFactory = staticmethod(lambda source: [ExGfxSprite2D(source), None, None])
+        self.gfxFactory = staticmethod(lambda source: [ExGfxApi(source), ExGfxSprite2D(source), None, None, None])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 ExPlatform.This = ExPlatform()
 

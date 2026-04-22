@@ -59,27 +59,18 @@ class GodotTextureBuilder : TextureBuilderBase<Texture> {
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override Texture CreateTexture(Texture reuse, ITexture source, System.Range? level = null) {
-        throw new NotImplementedException();
-    }
-
-    public override Texture CreateSolidTexture(int width, int height, float[] pixels) {
-        return null;
-    }
-
-    public override Texture CreateNormalMap(Texture texture, float strength) {
-        throw new NotImplementedException();
-    }
-
+    public override Texture CreateTexture(Texture reuse, ITexture source, System.Range? level = null) => throw new NotImplementedException();
+    public override Texture CreateSolidTexture(int width, int height, float[] pixels) => null;
+    public override Texture CreateNormalMap(Texture texture, float strength) => throw new NotImplementedException();
     public override void DeleteTexture(Texture texture) { }
 }
 
 // GodotMaterialBuilder : MISSING
 
 // GodotModelApi
-public class GodotModelApi : IModelApi<Node3D, Material> {
+public class GodotModelApi : IOpenGfxApi<Node3D, Material> {
     public Node3D CreateObject(string name) => default;
-    public void SetParent(Node3D source, Node3D parent) => parent.AddChild(source);
+    public void Parent(Node3D source, Node3D parent) => parent.AddChild(source);
     public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale) {
         var transform = new Transform3D { Origin = position.ToGodot() };
         source.Transform = transform;
@@ -90,11 +81,7 @@ public class GodotModelApi : IModelApi<Node3D, Material> {
     }
     public void AddMissingMeshCollidersRecursively(Node3D source, bool isStatic) => source.AddMissingMeshCollidersRecursively(isStatic);
     public void SetLayerRecursively(Node3D source, int layer) { }
-
-    public object CreateMesh(object mesh) {
-        throw new NotImplementedException();
-    }
-
+    public object CreateMesh(object mesh) => throw new NotImplementedException();
     public void AddMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic) {
         //source.AddComponent<MeshFilter>().mesh = (Mesh)mesh;
         //var meshRenderer = source.AddComponent<MeshRenderer>();
@@ -102,7 +89,6 @@ public class GodotModelApi : IModelApi<Node3D, Material> {
         //meshRenderer.enabled = enabled;
         //source.isStatic = isStatic;
     }
-
     public void AddSkinnedMeshRenderer(Node3D source, object mesh, Material material, bool enabled, bool isStatic) {
         //var skin = source.AddComponent<SkinnedMeshRenderer>();
         //skin.sharedMesh = (Mesh)mesh;
@@ -112,7 +98,6 @@ public class GodotModelApi : IModelApi<Node3D, Material> {
         //skin.enabled = enabled;
         //source.isStatic = isStatic;
     }
-
     public void AddMeshCollider(Node3D source, object mesh, bool isKinematic, bool isStatic) {
         //if (!isStatic)
         //{
@@ -121,6 +106,12 @@ public class GodotModelApi : IModelApi<Node3D, Material> {
         //}
         //else source.AddComponent<MeshCollider>().sharedMesh = (Mesh)mesh;
     }
+    public Task<T> GetAsset<T>(object path) => throw new NotImplementedException();
+    public Node3D CreateObject(string name, string tag = null, Node3D parent = null) => throw new NotImplementedException();
+    public void Attach(GfxAttach method, Node3D source, params object[] args) => throw new NotImplementedException();
+    public void SetVisible(Node3D src, bool visible) => throw new NotImplementedException();
+    public Node3D CreateLight(float radius, System.Drawing.Color color, bool indoors) => throw new NotImplementedException();
+    public void PostObject(Node3D src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node3D parent) => throw new NotImplementedException();
 }
 
 //public interface IGodotGfx2dSprite : IOpenGfx2dSpriteAny<Node, Sprite2D> { }
@@ -146,14 +137,14 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, Node source, params object[] args) => throw new NotImplementedException();
+    public void AttachObject(GfxAttach method, Node source, params object[] args) => throw new NotImplementedException();
 }
 
 // GodotGfxSprite3D
 public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     readonly ISource _source;
-    readonly SpriteManager<Sprite3D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite3D> _objectManager;
+    readonly SpriteManager<Sprite3D> _spriteManager;
 
     public GodotGfxSprite3D(ISource source) {
         _source = source;
@@ -165,21 +156,19 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
     public ObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public Sprite3D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, Node source, params object[] args) => throw new NotImplementedException();
+    public Sprite3D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 // GodotGfxModel
 public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     readonly ISource _source;
-    readonly SpriteManager<Sprite3D> _spriteManager;
-    readonly TextureManager<Texture> _textureManager;
     readonly MaterialManager<Material, Texture> _materialManager;
     readonly ObjectModelManager<Node, Material, Texture> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
+    readonly TextureManager<Texture> _textureManager;
 
     public GodotGfxModel(ISource source) {
         _source = source;
@@ -191,18 +180,17 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     }
 
     public ISource Source => _source;
-    public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
-    public TextureManager<Texture> TextureManager => _textureManager;
+    //public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
     public MaterialManager<Material, Texture> MaterialManager => _materialManager;
     public ObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
+    public TextureManager<Texture> TextureManager => _textureManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, Node source, params object[] args) => throw new NotImplementedException();
+    public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
 }
 
 // GodotSfx
@@ -212,7 +200,7 @@ public class GodotSfx(ISource source) : SystemSfx(source) { }
 public class GodotPlatform : Platform {
     public static readonly Platform This = new GodotPlatform();
     GodotPlatform() : base("GD", "Godot") {
-        GfxFactory = source => [new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source)];
+        GfxFactory = source => [null, new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source), null];
         SfxFactory = source => [new GodotSfx(source)];
         LogFunc = a => GD.Print(a?.Replace("\r", ""));
     }

@@ -4,6 +4,7 @@ using OpenStack.Gfx;
 using OpenStack.Gfx.Unity;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Collections.LowLevel.Unsafe;
@@ -165,13 +166,14 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
     static readonly XShader _litShader = XShader.Find("Universal Render Pipeline/Lit"), _terrainShader = XShader.Find("Nature/Terrain/Diffuse");
 
     Material _defaultMaterial;
-    public override Material DefaultMaterial => _defaultMaterial ??= new(_litShader);
+    public override Material DefaultMaterial => _defaultMaterial ??= new(_litShader ?? throw new Exception("Missing: _litShader"));
+
+    Material _terrainMaterial;
+    public override Material TerrainMaterial => _terrainMaterial ??= new(_terrainShader ?? throw new Exception("Missing: _terrainShader"));
 
     public override Material CreateMaterial(object path) {
         switch (path) {
             case MaterialStdProp p: {
-                    if (_litShader == null) Log.Error("Missing: _litShader");
-                    if (_terrainShader == null) Log.Error("Missing: _terrainShader");
                     var m = new Material(_litShader);
                     if (p.AlphaBlended) m.SetFloat(Cutoff, 0.5f);
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
@@ -263,10 +265,19 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
 #endif
 }
 
-// UnityModelApi
-public class UnityModelApi : IModelApi<GameObject, Material> {
-    public GameObject CreateObject(string name) => new(name);
-    public void SetParent(GameObject source, GameObject parent) => source?.transform.SetParent(parent.transform, false);
+// UnityGfxApi
+public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
+    const bool RenderLightShadows = false;
+    const bool RenderExteriorCellLights = false;
+    public ISource Source => source;
+    public Task<T> GetAsset<T>(object path) => Source.GetAsset<T>(path);
+    public GameObject CreateObject(string name, string tag, GameObject parent = default) {
+        var s = new GameObject(name);
+        if (tag != null) s.tag = tag;
+        if (parent != null) s.transform.parent = parent.transform;
+        return s;
+    }
+    public void Parent(GameObject source, GameObject parent) => source?.transform.SetParent(parent.transform, false);
     public void Transform(GameObject source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale) {
         source.transform.position = position.ToUnity();
         source.transform.rotation = rotation.ToUnity();
@@ -279,11 +290,7 @@ public class UnityModelApi : IModelApi<GameObject, Material> {
     }
     public void AddMissingMeshCollidersRecursively(GameObject source, bool isStatic) { if (isStatic && source.GetComponentInChildren<UnityEngine.Collider>() == null) source.AddMissingMeshCollidersRecursively(); }
     public void SetLayerRecursively(GameObject source, int layer) => source.SetLayerRecursively(layer);
-
-    public object CreateMesh(object mesh) {
-        throw new NotImplementedException();
-    }
-
+    public object CreateMesh(object mesh) => throw new NotImplementedException();
     public void AddMeshRenderer(GameObject source, object mesh, Material material, bool enabled, bool isStatic) {
         source.AddComponent<MeshFilter>().mesh = (Mesh)mesh;
         var meshRenderer = source.AddComponent<MeshRenderer>();
@@ -291,7 +298,6 @@ public class UnityModelApi : IModelApi<GameObject, Material> {
         meshRenderer.enabled = enabled;
         source.isStatic = isStatic;
     }
-
     public void AddSkinnedMeshRenderer(GameObject source, object mesh, Material material, bool enabled, bool isStatic) {
         var skin = source.AddComponent<SkinnedMeshRenderer>();
         skin.sharedMesh = (Mesh)mesh;
@@ -301,7 +307,6 @@ public class UnityModelApi : IModelApi<GameObject, Material> {
         skin.enabled = enabled;
         source.isStatic = isStatic;
     }
-
     public void AddMeshCollider(GameObject source, object mesh, bool isKinematic, bool isStatic) {
         if (!isStatic) {
             source.AddComponent<BoxCollider>();
@@ -309,6 +314,81 @@ public class UnityModelApi : IModelApi<GameObject, Material> {
         }
         else source.AddComponent<MeshCollider>().sharedMesh = (Mesh)mesh;
     }
+    public void Attach(GfxAttach method, GameObject source, params object[] args) {
+        GameObject v;
+        switch (method) {
+            case GfxAttach.Find:
+                v = (GameObject)args[0];
+                v = v.FindChildRecursively((string)args[1]) ?? v;
+                source.transform.position = v.transform.position;
+                source.transform.rotation = v.transform.rotation;
+                source.transform.parent = v.transform;
+                break;
+            case GfxAttach.Transform:
+                v = (GameObject)args[0];
+                source.transform.parent = v.transform;
+                break;
+            case GfxAttach.All:
+                v = (GameObject)args[0];
+                source.transform.position = v.transform.position;
+                source.transform.rotation = v.transform.rotation;
+                source.transform.parent = v.transform;
+                break;
+            case GfxAttach.AllCenter:
+                v = (GameObject)args[0];
+                source.transform.position = v.CalcVisualBoundsRecursive().center;
+                source.transform.rotation = v.transform.rotation;
+                source.transform.parent = v.transform;
+                break;
+        }
+    }
+    public void SetVisible(GameObject src, bool visible) {
+        if (visible) { if (!src.activeSelf) src.SetActive(true); }
+        else { if (src.activeSelf) src.SetActive(false); }
+    }
+    public GameObject CreateLight(float radius, System.Drawing.Color color, bool indoors) {
+        var s = new GameObject("GfxCreateLight") { isStatic = true };
+        var c = s.AddComponent<Light>();
+        c.range = 3 * radius;
+        c.color = color.ToUnity();
+        c.intensity = 1.5f;
+        c.bounceIntensity = 0f;
+        c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
+        if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
+        return s;
+    }
+    public void PostObject(GameObject src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, GameObject parent) {
+        if (scale != null) src.transform.localScale = Vector3.one * scale.Value;
+        src.transform.position += position.ToUnity();
+        src.transform.rotation *= eulerAngles.ToUnityQuaternionAsEulerAnglesX();
+        var tagTarget = src;
+        var coll = src.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
+        if (coll != null) tagTarget = coll.gameObject;
+        //ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
+        //ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
+        //ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
+        //ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
+        //ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
+        //ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
+        //ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
+        //ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
+        //ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
+        //ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
+        //ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
+        //ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
+        //ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
+        //ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
+        //ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
+        //ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
+        //ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
+        if (parent != null) src.transform.parent = parent.transform;
+    }
+
+    //public override (object, object) GfxCreateContainers(string name) {
+    //    var cellObj = new GameObject(name) { tag = "Cell" };
+    //    var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
+    //    return (contObj, cellObj);
+    //}
 }
 
 // UnityGfx2dSprite
@@ -331,7 +411,6 @@ public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, GameObject source, params object[] args) => source.AttachObject(method, args);
 }
 
 // UnityGfxSprite3D
@@ -354,16 +433,15 @@ public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, GameObject source, params object[] args) => source.AttachObject(method, args);
 }
 
 // UnityGfxModel
 public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XShader> {
     readonly ISource _source;
-    readonly TextureManager<Texture2D> _textureManager;
     readonly MaterialManager<Material, Texture2D> _materialManager;
     readonly ObjectModelManager<GameObject, Material, Texture2D> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
+    readonly TextureManager<Texture2D> _textureManager;
 
     public UnityGfxModel(ISource source) {
         _source = source;
@@ -374,17 +452,26 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     }
 
     public ISource Source => _source;
-    public TextureManager<Texture2D> TextureManager => _textureManager;
     public MaterialManager<Material, Texture2D> MaterialManager => _materialManager;
     public ObjectModelManager<GameObject, Material, Texture2D> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
+    public TextureManager<Texture2D> TextureManager => _textureManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
     public GameObject CreateObject(object path, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
-    public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-    public void AttachObject(AttachObjectMethod method, GameObject source, params object[] args) => source.AttachObject(method, args);
+    public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+}
+
+// UnityGfxTerrain
+public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Material, Texture2D> {
+    readonly ISource _source = source;
+    readonly MaterialManager<Material, Texture2D> _materialManager = new(source, null, new UnityMaterialBuilder(null));
+    public ISource Source => _source;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture2D>[] layers, float[,,] alphaMap) => GameObjectX.CreateTerrainData(offset, heights, heightRange, sampleDistance, [.. layers.Select(s => new TerrainLayer { diffuseTexture = s.Texture, tileSize = s.TileSize.ToUnity(), smoothness = 0, metallic = 0 })], alphaMap);
+    public GameObject CreateTerrain(object data, System.Numerics.Vector3 position, GameObject parent = default) => GameObjectX.CreateTerrain((TerrainData)data, position.ToUnity(), _materialManager.TerrainMaterial, parent);
 }
 
 // UnitySfx
@@ -397,23 +484,15 @@ public class UnityPlatform : Platform {
         var task = Task.Run(Application.platform.ToString);
         try {
             Tag = task.Result;
-            GfxFactory = source => [new UnityGfxSprite2D(source), new UnityGfxSprite3D(source), new UnityGfxModel(source)];
+            GfxFactory = source => [new UnityGfxApi(source), new UnityGfxSprite2D(source), new UnityGfxSprite3D(source), new UnityGfxModel(source), new UnityGfxTerrain(source)];
             SfxFactory = source => [new UnitySfx(source)];
             AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;
         }
         catch { Debug.Log($"UnityPlatform: Error"); Enabled = false; }
     }
-
-    public override unsafe void Activate() {
-        base.Activate();
-        UnsafeX.Memcpy = (dest, src, count) => UnsafeUtility.MemCpy(dest, src, count);
-    }
-
-    public override void Deactivate() {
-        base.Deactivate();
-        UnsafeX.Memcpy = null;
-    }
+    public override unsafe void Activate() { base.Activate(); UnsafeX.Memcpy = (dest, src, count) => UnsafeUtility.MemCpy(dest, src, count); }
+    public override void Deactivate() { base.Deactivate(); UnsafeX.Memcpy = null; }
 }
 
 // UnityShellPlatform

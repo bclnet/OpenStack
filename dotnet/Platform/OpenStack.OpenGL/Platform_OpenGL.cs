@@ -1,9 +1,11 @@
-﻿using OpenStack.Client;
+﻿using MathNet.Numerics;
+using OpenStack.Client;
 using OpenStack.Gfx;
 using OpenStack.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -47,7 +49,7 @@ class OpenGLShaderBuilder : ShaderBuilderBase<Shader> {
 /// OpenGLTextureBuilder
 /// </summary>
 unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
-    int _defaultTexture = -1;
+    static int _defaultTexture = -1;
     public override int DefaultTexture => _defaultTexture > -1 ? _defaultTexture : _defaultTexture = CreateDefaultTexture();
 
     public void Release() {
@@ -199,12 +201,19 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
 /// OpenGLMaterialBuilder
 /// </summary>
 class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilderBase<GLRenderMaterial, int>(textureManager) {
-    GLRenderMaterial _defaultMaterial;
-    public override GLRenderMaterial DefaultMaterial => _defaultMaterial ??= CreateDefaultMaterial(-1);
+    static GLRenderMaterial _defaultMaterial, _terrainMaterial;
+    public override GLRenderMaterial DefaultMaterial => _defaultMaterial ??= CreateDefaultMaterial();
+    public override GLRenderMaterial TerrainMaterial => _terrainMaterial ??= CreateTerrainMaterial();
 
-    GLRenderMaterial CreateDefaultMaterial(int type) {
-        var m = new GLRenderMaterial(null);
+    GLRenderMaterial CreateDefaultMaterial() {
+        var m = new GLRenderMaterial(new MaterialShaderProp());
         m.Textures["g_tColor"] = TextureManager.DefaultTexture;
+        m.Material.ShaderName = "vrf.error";
+        return m;
+    }
+
+    GLRenderMaterial CreateTerrainMaterial() {
+        var m = new GLRenderMaterial(new MaterialShaderProp());
         m.Material.ShaderName = "vrf.error";
         return m;
     }
@@ -233,32 +242,52 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
                 if (!p.VectorParams.ContainsKey("g_vTexCoordOffset")) p.VectorParams["g_vTexCoordOffset"] = Vector4.Zero;
                 if (!p.VectorParams.ContainsKey("g_vColorTint")) p.VectorParams["g_vColorTint"] = Vector4.One;
                 return m;
+            case MaterialShaderProp s: return m;
             default: throw new ArgumentOutOfRangeException(nameof(path));
         }
     }
 }
 
+// OpenGLGfxApi
+public class OpenGLGfxApi(ISource source) : IOpenGfxApi<object, GLRenderMaterial> {
+    public ISource Source => source;
+    public Task<T> GetAsset<T>(object path) => throw new NotImplementedException();
+    public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
+    public void AddMeshRenderer(object src, object mesh, GLRenderMaterial material, bool enabled, bool isStatic) => throw new NotImplementedException();
+    public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
+    public void Attach(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public object CreateMesh(object mesh) => throw new NotImplementedException();
+    public object CreateObject(string name) => throw new NotImplementedException();
+    public void SetLayerRecursively(object src, int layer) => throw new NotImplementedException();
+    public void Parent(object src, object parent) => throw new NotImplementedException();
+    public void Transform(object src, Vector3 position, Quaternion rotation, Vector3 localScale) => throw new NotImplementedException();
+    public void Transform(object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale) => throw new NotImplementedException();
+    public object CreateObject(string name, string tag = null, object parent = null) => new();
+    public void SetVisible(object src, bool visible) => throw new NotImplementedException();
+    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+}
+
 // OpenGLGfxSprite3D
 public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     readonly ISource _source;
-    readonly SpriteManager<int> _spriteManager;
     readonly ObjectSpriteManager<object, int> _objectManager;
+    readonly SpriteManager<int> _spriteManager;
 
     public OpenGLGfxSprite3D(ISource source) {
         _source = source;
-        //_spriteManager = new SpriteManager<int>(source, new OpenGLSpriteBuilder());
         //_objectManager = new ObjectSpriteManager<object, int>(source, new OpenGLObjectBuilder());
+        //_spriteManager = new SpriteManager<int>(source, new OpenGLSpriteBuilder());
     }
 
     public ISource Source => _source;
-    public SpriteManager<int> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
+    public SpriteManager<int> SpriteManager => _spriteManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 /// <summary>
@@ -266,10 +295,10 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
 /// </summary>
 public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shader> {
     readonly ISource _source;
-    readonly TextureManager<int> _textureManager;
     readonly MaterialManager<GLRenderMaterial, int> _materialManager;
     readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
     readonly ShaderManager<Shader> _shaderManager;
+    readonly TextureManager<int> _textureManager;
 
     public OpenGLGfxModel(ISource source) {
         _source = source;
@@ -281,17 +310,16 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     }
 
     public ISource Source => _source;
-    public TextureManager<int> TextureManager => _textureManager;
     public MaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
     public ObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
     public ShaderManager<Shader> ShaderManager => _shaderManager;
+    public TextureManager<int> TextureManager => _textureManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
     public object CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
-    public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-    public void AttachObject(AttachObjectMethod method, object source, params object[] args) => throw new NotImplementedException();
+    public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
 
     // cache
     QuadIndexBuffer _quadIndices;
@@ -305,7 +333,7 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
 public class OpenGLPlatform : Platform {
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
-        GfxFactory = source => [null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source)];
+        GfxFactory = source => [new OpenGLGfxApi(source), null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source), null];
         SfxFactory = source => [new SystemSfx(source)];
     }
 }

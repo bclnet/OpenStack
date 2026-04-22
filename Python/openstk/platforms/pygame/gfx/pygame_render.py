@@ -2,16 +2,17 @@ from __future__ import annotations
 import os, numpy as np
 import pygame
 # from pygame.locals import *
-from openstk.gfx import Renderer
+from openstk.gfx import GfX, Renderer
 
 # typedefs
 class PygameGfxModel: pass
+class IOpenGfx: pass
 
 #region TestTriRenderer
 
 # TestTriRenderer
 class TestTriRenderer(Renderer):
-    def __init__(self, gfx: PygameGfxModel, obj: object, surf: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object, surf: object): pass
 
 #endregion
 
@@ -19,7 +20,7 @@ class TestTriRenderer(Renderer):
 
 # TextureRenderer
 class TestAnimRenderer(Renderer):
-    def __init__(self, gfx: PygameGfxModel, obj: object, surf: object):
+    def __init__(self, gfx: list[IOpenGfx], obj: object, surf: object):
         self.surf = surf
 
     def start(self) -> None:

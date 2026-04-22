@@ -9,16 +9,16 @@ namespace OpenStack.Gfx.Unity;
 /// <summary>
 /// TestTriRenderer
 /// </summary>
-public class TestTriRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    readonly UnityGfxModel Gfx = gfx;
+public class TestTriRenderer(IOpenGfx[] gfx, object obj) : Renderer {
+    readonly UnityGfxModel GfxModel = (UnityGfxModel)gfx[GfX.XModel];
 }
 
 #endregion
 
 #region ObjectRenderer
 
-public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    readonly UnityGfxModel Gfx = gfx;
+public class ObjectRenderer(IOpenGfx[] gfx, object obj) : Renderer {
+    readonly UnityGfxModel GfxModel = (UnityGfxModel)gfx[GfX.XModel];
     readonly object Obj = obj;
 
     public override void Start() {
@@ -26,7 +26,7 @@ public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
         if (!string.IsNullOrEmpty(path)) MakeObject(path, null);
     }
 
-    void MakeObject(object path, GameObject parent) => Gfx.ObjectManager.CreateObject(path, parent);
+    void MakeObject(object path, GameObject parent) => GfxModel.ObjectManager.CreateObject(path, parent);
 }
 
 #endregion
@@ -41,8 +41,8 @@ public class ObjectRenderer(UnityGfxModel gfx, object obj) : Renderer {
 /// <summary>
 /// TextureRenderer
 /// </summary>
-public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    readonly UnityGfxModel Gfx = gfx;
+public class TextureRenderer(IOpenGfx[] gfx, object obj) : Renderer {
+    readonly UnityGfxModel GfxModel = (UnityGfxModel)gfx[GfX.XModel];
     readonly object Obj = obj;
 
     public override void Start() {
@@ -55,7 +55,7 @@ public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane);
         obj.transform.rotation = Quaternion.Euler(-90f, 180f, -180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();
-        (meshRenderer.material, _) = Gfx.MaterialManager.CreateMaterial(new MaterialStdProp { Textures = new Dictionary<string, string> { { "Main", path } } });
+        (meshRenderer.material, _) = GfxModel.MaterialManager.CreateMaterial(new MaterialStdProp { Textures = new Dictionary<string, string> { { "Main", path } } });
         return obj;
     }
 
@@ -64,9 +64,8 @@ public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer {
 
 #endregion
 
-#region CellRenderer
+#region EngineRenderer
 
-//static Estate Estate = EstateManager.GetEstate("Tes");
 //static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Morrowind.bsa#Morrowind")));
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Bloodmoon.bsa#Morrowind")));
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Tribunal.bsa#Morrowind")));
@@ -75,18 +74,32 @@ public class TextureRenderer(UnityGfxModel gfx, object obj) : Renderer {
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("game:/Fallout4.esm#Fallout4")));
 ////static TesUnityPakFile PakFile = new TesUnityPakFile(Estate.OpenPakFile(new Uri("Fallout4.esm#Fallout4VR")));
 
-public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    readonly UnityGfxModel Gfx = gfx;
-    readonly object Obj = obj;
+public class EngineRenderer(IOpenGfx[] gfx, object obj) : Renderer {
+    IOpenGfx[] Gfx = gfx;
+    readonly ICellDatabase Obj = obj as ICellDatabase;
+
+    UnityOpenEngine Engine;
+    GameObject PlayerPrefab = GameObject.Find("Player0");
+
+    public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
-        //TestLoadCell(new Vector3(((-2 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, ((-1 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3((-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3(0 * ConvertUtils.ExteriorCellSideLengthInMeters, 0, 0 * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3((1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestLoadCell(new Vector3((1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters));
-        //TestAllCells();
+        //Log.Info($"PlayerPrefab: {PlayerPrefab}");
+        var arc = (ISourceWithPlatform)Obj.Archive;
+        Gfx = arc.Gfx;
+        var query = Obj.Query;
+        Engine = new UnityOpenEngine(queue => new CellManager(query, queue, new UnityCellBuilder(query, Gfx)), false);
+        Engine.SpawnPlayer(PlayerPrefab, Obj.Start);
     }
+
+    public override void Update(float deltaTime) => Engine?.Update();
+
+    //TestLoadCell(new Vector3(((-2 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, ((-1 << 5) + 1) * ConvertUtils.ExteriorCellSideLengthInMeters));
+    //TestLoadCell(new Vector3((-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (-1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
+    //TestLoadCell(new Vector3(0 * ConvertUtils.ExteriorCellSideLengthInMeters, 0, 0 * ConvertUtils.ExteriorCellSideLengthInMeters));
+    //TestLoadCell(new Vector3((1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 3) * ConvertUtils.ExteriorCellSideLengthInMeters));
+    //TestLoadCell(new Vector3((1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters, 0, (1 << 5) * ConvertUtils.ExteriorCellSideLengthInMeters));
+    //TestAllCells();
 
     //static void TestLoadCell(Vector3 position) {
     //    var cellid = GetCellId(position, 60);
@@ -102,32 +115,6 @@ public class CellRenderer(UnityGfxModel gfx, object obj) : Renderer {
     //    foreach (var record in cells.Cast<CELLRecord>())
     //        Log(record.EDID.Value);
     //}
-}
-
-#endregion
-
-#region EngineRenderer
-
-public class EngineRenderer(UnityGfxModel gfx, object obj) : Renderer {
-    UnityGfxModel Gfx = gfx;
-    readonly ICellDatabase Obj = obj as ICellDatabase;
-
-    UnityOpenEngine Engine;
-    GameObject PlayerPrefab = GameObject.Find("Player0");
-
-    public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
-
-    public override void Start() {
-        //Log.Info($"PlayerPrefab: {PlayerPrefab}");
-        var arc = (ISourceWithPlatform)Obj.Archive;
-        Gfx = (UnityGfxModel)arc.Gfx[2];
-        var query = Obj.Query;
-        var builder = new UnityCellBuilder(query, Gfx);
-        Engine = new UnityOpenEngine(queue => new UnityCellManager(query, queue, (cell, land, contObj, cellObj) => builder.CellCoroutine(cell, land, (GameObject)contObj, (GameObject)cellObj)), false);
-        Engine.SpawnPlayer(PlayerPrefab, Obj.Start);
-    }
-
-    public override void Update(float deltaTime) => Engine?.Update();
 }
 
 #endregion
