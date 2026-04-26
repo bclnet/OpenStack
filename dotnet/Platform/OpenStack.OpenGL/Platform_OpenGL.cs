@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using static OpenStack.Gfx.TextureFormat;
 #pragma warning disable CS0649, CS0169
@@ -255,17 +256,15 @@ public class OpenGLGfxApi(ISource source) : IOpenGfxApi<object, GLRenderMaterial
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, GLRenderMaterial material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
-    public void Attach(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public void Attach(GfxAttach method, object src, params object[] args) { }
     public object CreateMesh(object mesh) => throw new NotImplementedException();
-    public object CreateObject(string name) => throw new NotImplementedException();
+    public object CreateObject(string name, string tag = null, object parent = null) => new();
     public void SetLayerRecursively(object src, int layer) => throw new NotImplementedException();
     public void Parent(object src, object parent) => throw new NotImplementedException();
     public void Transform(object src, Vector3 position, Quaternion rotation, Vector3 localScale) => throw new NotImplementedException();
     public void Transform(object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale) => throw new NotImplementedException();
-    public object CreateObject(string name, string tag = null, object parent = null) => new();
-    public void SetVisible(object src, bool visible) => throw new NotImplementedException();
-    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+    public void SetVisible(object src, bool visible) { }
+    public void Destroy(object src) { }
 }
 
 // OpenGLGfxSprite3D
@@ -320,6 +319,7 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public object CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 
     // cache
     QuadIndexBuffer _quadIndices;
@@ -328,12 +328,30 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
 }
 
 /// <summary>
+/// OpenGLGfxTerrain
+/// </summary>
+public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
+    readonly ISource _source;
+    readonly MaterialManager<GLRenderMaterial, int> _materialManager;
+    readonly TextureManager<int> _textureManager;
+    public OpenGLGfxTerrain(ISource source) {
+        _source = source;
+        _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
+        _materialManager = new MaterialManager<GLRenderMaterial, int>(source, _textureManager, new OpenGLMaterialBuilder(_textureManager));
+    }
+
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public object CreateTerrain(object data, Vector3 position, object parent = null) => null;
+    public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<int>[] layers, float[,,] alphaMap) => new();
+}
+
+/// <summary>
 /// OpenGLPlatform
 /// </summary>
 public class OpenGLPlatform : Platform {
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
-        GfxFactory = source => [new OpenGLGfxApi(source), null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source), null];
+        GfxFactory = source => [new OpenGLGfxApi(source), null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source), null, null, new OpenGLGfxTerrain(source)];
         SfxFactory = source => [new SystemSfx(source)];
     }
 }

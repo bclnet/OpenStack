@@ -2,7 +2,7 @@ from __future__ import annotations
 import os, io, numpy as np
 from openstk.core import Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platforms.system import SystemSfx
 
 #region Client
@@ -56,16 +56,26 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    _defaultMaterial: GLRenderMaterial
+    _defaultMaterial: GLRenderMaterial; _terrainMaterial: GLRenderMaterial
     @property
     def defaultMaterial(self) -> int:
         if self._defaultMaterial: return self._defaultMaterial
         self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
+    @property
+    def terrainMaterial(self) -> int:
+        if self._terrainMaterial: return self._terrainMaterial
+        self._terrainMaterial = self._createDefaultMaterial()
+        return self._terrainMaterial
 
     def _createDefaultMaterial() -> GLRenderMaterial:
         m = GLRenderMaterial(None)
         m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.material.shaderName = 'vrf.error'
+        return m
+
+    def _createTerrainMaterial() -> GLRenderMaterial:
+        m = GLRenderMaterial(None)
         m.material.shaderName = 'vrf.error'
         return m
 
@@ -96,34 +106,33 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')
 
+# Panda3dGfxApi
+class Panda3dGfxApi(IOpenGfxApi):
+    def __init__(self, source: ISource):
+        self.source: ISource = source
+    def attach(self, method: GfxAttach, src: object, args: list[object]) -> object: raise NotImplementedError()
+
 # Panda3dGfx
 class Panda3dGfxModel(IOpenGfxModel):
-    source: ISource
-    textureManager: TextureManager
-    materialManager: MaterialManager
-    objectManager: ObjectModelManager
-    shaderManager: ShaderManager
-
     def __init__(self, source: ISource):
-        self.source = source
-        self.textureManager = TextureManager(source, Panda3dTextureBuilder())
-        self.materialManager = MaterialManager(source, self.textureManager, Panda3dMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
-        self.shaderManager = ShaderManager(source, Panda3dShaderBuilder())
+        self.source: ISource = source
+        self.textureManager: TextureManager = TextureManager(source, Panda3dTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, Panda3dMaterialBuilder(self.textureManager))
+        self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(source, Panda3dShaderBuilder())
 
     def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
-    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
-    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
+    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
+    def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
+    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
 
 # Panda3dPlatform
 class Panda3dPlatform(Platform):
     def __init__(self):
         super().__init__('PD', 'Panda3D')
-        self.gfxFactory = staticmethod(lambda source: [Panda3dGfxApi(source), None, None, Panda3dGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [Panda3dGfxApi(source), None, None, Panda3dGfxModel(source), None, None])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 Panda3dPlatform.This = Panda3dPlatform()
 

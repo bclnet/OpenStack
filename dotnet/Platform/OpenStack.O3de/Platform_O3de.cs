@@ -2,6 +2,7 @@
 using OpenStack.Gfx;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
@@ -37,12 +38,11 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 // O3deGfxModel
@@ -73,6 +73,7 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 
 // O3deSfx
@@ -82,7 +83,7 @@ public class O3deSfx(ISource source) : SystemSfx(source) { }
 public class O3dePlatform : Platform {
     public static readonly Platform This = new O3dePlatform();
     O3dePlatform() : base("O3", "O3de") {
-        GfxFactory = source => [null, null, new O3deGfxSprite3D(source), new O3deGfxModel(source), null];
+        GfxFactory = source => [null, null, new O3deGfxSprite3D(source), new O3deGfxModel(source), null, null];
         SfxFactory = source => [new O3deSfx(source)];
     }
 }

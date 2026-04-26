@@ -20,7 +20,8 @@ public static class GfX {
     public const int XSprite2D = 1;
     public const int XSprite3D = 2;
     public const int XModel = 3;
-    public const int XTerrain = 4;
+    public const int XLight = 4;
+    public const int XTerrain = 5;
     public static int MaxTextureMaxAnisotropy;
 }
 
@@ -561,15 +562,14 @@ public interface IOpenGfxApi<Object, Material> : IOpenGfxApi {
     object CreateMesh(object mesh);
     void AddMeshRenderer(Object src, object mesh, Material material, bool enabled, bool isStatic);
     void AddMeshCollider(Object src, object mesh, bool isKinematic, bool isStatic);
-    void Attach(GfxAttach method, Object source, params object[] args);
+    void Attach(GfxAttach method, Object src, params object[] args);
     void Parent(Object src, Object parent);
     void Transform(Object src, Vector3 position, Quaternion rotation, Vector3 localScale);
     void Transform(Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
     void AddMissingMeshCollidersRecursively(Object src, bool isStatic);
     void SetLayerRecursively(Object src, int layer);
     void SetVisible(Object src, bool visible);
-    Object CreateLight(float radius, Color color, bool indoors);
-    void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent);
+    void Destroy(Object src);
 }
 
 /// <summary>
@@ -607,8 +607,24 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     Object CreateObject(object path, Object parent = default);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
     Texture CreateTexture(object path, Range? level = null);
+    void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent);
 }
 
+/// <summary>
+/// IOpenGfxLight
+/// </summary>
+public interface IOpenGfxLight : IOpenGfx { }
+
+/// <summary>
+/// IOpenGfxLight
+/// </summary>
+public interface IOpenGfxLight<Object> : IOpenGfxLight {
+    Object CreateLight(float radius, Color color, bool indoors);
+}
+
+/// <summary>
+/// GfxTerrainLayer
+/// </summary>
 public class GfxTerrainLayer<T> {
     public T Texture;
     public Vector2 TileSize;

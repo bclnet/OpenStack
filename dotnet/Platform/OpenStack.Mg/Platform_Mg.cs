@@ -425,7 +425,7 @@ public class MgSfx(ISource source) : SystemSfx(source) { }
 public class MgPlatform : Platform {
     public static readonly Platform This = new MgPlatform();
     MgPlatform() : base("MG", "MonoGame") {
-        GfxFactory = source => [null, new MgGfxSprite2D(source), null, null, null];
+        GfxFactory = source => [null, new MgGfxSprite2D(source), null, null, null, null];
         SfxFactory = source => [new MgSfx(source)];
         LogFunc = Console.WriteLine;
     }

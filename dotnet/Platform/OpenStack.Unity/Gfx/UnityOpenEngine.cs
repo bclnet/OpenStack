@@ -59,14 +59,14 @@ public class UnityOpenEngine : IDisposable {
     public virtual void Update() {
         if (PlayerCamera == null) return;
         // The current cell can be null if the player is outside of the defined game world.
-        if (CurrentCell == null || !CurrentCell.IsInterior) CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), CurrentWorld);
+        if (Cell == null || !Cell.IsInterior) CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity());
         Queue.Run(DesiredWorkTimePerFrame);
     }
 
     #region Player Spawn
 
-    protected int CurrentWorld;
-    protected ICell CurrentCell;
+    protected int World;
+    protected ICell Cell;
     protected Transform PlayerTransform;
     protected PlayerComponent PlayerComponent;
     protected GameObject PlayerCamera;
@@ -93,43 +93,43 @@ public class UnityOpenEngine : IDisposable {
     /// <param name="playerPrefab">The player prefab.</param>
     /// <param name="position">The target position of the player.</param>
     public void SpawnPlayer(GameObject playerPrefab, System.Numerics.Vector3 position, bool update = false) {
-        var cellId = Query.GetCellId(position, CurrentWorld);
-        CurrentCell = Query.FindCell(cellId);
-        Debug.Assert(CurrentCell != null);
+        var cellId = Query.GetCellId(position);
+        Cell = Query.FindCell(cellId);
+        Debug.Assert(Cell != null);
         GfxCreatePlayer(playerPrefab, position.ToUnity(), out PlayerCamera);
         if (update) {
-            CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), CurrentWorld, true, CellRadiusOnLoad);
-            OnExteriorCell(CurrentCell);
+            CellManager.UpdateCells(PlayerCamera.transform.position.FromUnity(), true, CellRadiusOnLoad);
+            OnCell(Cell);
         }
         else {
             var cell = CellManager.BeginCell(cellId);
             Queue.WaitFor(cell.Task);
-            if (cellId.Z != -1) OnExteriorCell(CurrentCell);
-            else OnInteriorCell(CurrentCell);
+            OnCell(Cell);
         }
     }
 
-    protected virtual void OnExteriorCell(ICell cell) {
-        RenderSettings.ambientLight = DefaultAmbientColor;
-        SunObj.SetActive(true);
-        //Water.transform.position = Vector3.zero;
-        //Water.SetActive(true);
-        //UnderwaterEffect.enabled = true;
-        //UnderwaterEffect.Level = 0.0f;
-    }
-
-    protected virtual void OnInteriorCell(ICell cell) {
-        if (cell.AmbientLight != null) RenderSettings.ambientLight = cell.AmbientLight.Value.ToUnity();
-        SunObj.SetActive(false);
-        //UnderwaterEffect.enabled = cell.WHGT != null;
-        //if (cell.WHGT != null)
-        //{
-        //    var offset = 1.6f; // Interiors cells needs this offset to render at the correct location.
-        //    Water.transform.position = new Vector3(0, (cell.WHGT.value / Convert.meterInMWUnits) - offset, 0);
-        //    Water.SetActive(true);
-        //    UnderwaterEffect.Level = Water.transform.position.y;
-        //}
-        //else Water.SetActive(false);
+    protected virtual void OnCell(ICell cell) {
+        if (cell.IsInterior) {
+            if (cell.AmbientLight != null) RenderSettings.ambientLight = cell.AmbientLight.Value.ToUnity();
+            SunObj.SetActive(false);
+            //UnderwaterEffect.enabled = cell.WHGT != null;
+            //if (cell.WHGT != null)
+            //{
+            //    var offset = 1.6f; // Interiors cells needs this offset to render at the correct location.
+            //    Water.transform.position = new Vector3(0, (cell.WHGT.value / Convert.meterInMWUnits) - offset, 0);
+            //    Water.SetActive(true);
+            //    UnderwaterEffect.Level = Water.transform.position.y;
+            //}
+            //else Water.SetActive(false);
+        }
+        else {
+            RenderSettings.ambientLight = DefaultAmbientColor;
+            SunObj.SetActive(true);
+            //Water.transform.position = Vector3.zero;
+            //Water.SetActive(true);
+            //UnderwaterEffect.enabled = true;
+            //UnderwaterEffect.Level = 0.0f;
+        }
     }
 
     #endregion

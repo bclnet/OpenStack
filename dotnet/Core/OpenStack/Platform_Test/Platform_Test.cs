@@ -26,17 +26,15 @@ public class TestGfxApi(ISource source) : IOpenGfxApi<object, object> {
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, object material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
-    public void Attach(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public void Attach(GfxAttach method, object src, params object[] args) => throw new NotImplementedException();
     public object CreateMesh(object mesh) => throw new NotImplementedException();
-    public object CreateObject(string name) => throw new NotImplementedException();
+    public object CreateObject(string name, string tag = null, object parent = null) => throw new NotImplementedException();
     public void SetLayerRecursively(object src, int layer) => throw new NotImplementedException();
     public void Parent(object src, object parent) => throw new NotImplementedException();
     public void Transform(object src, Vector3 position, Quaternion rotation, Vector3 localScale) => throw new NotImplementedException();
     public void Transform(object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale) => throw new NotImplementedException();
-    public object CreateObject(string name, string tag = null, object parent = null) => throw new NotImplementedException();
     public void SetVisible(object src, bool visible) => throw new NotImplementedException();
-    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+    public void Destroy(object src) => throw new NotImplementedException();
 }
 
 public class TestGfxSprite(ISource source) : IOpenGfxSprite<object, object> {
@@ -60,6 +58,13 @@ public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, Range? level = null) => throw new NotImplementedException();
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+}
+
+public class TestGfxLight(ISource source) : IOpenGfxLight<object> {
+    public ISource Source => source;
+    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
+    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
 }
 
 public class TestGfxTerrain(ISource source) : IOpenGfxTerrain<object, object, object> {

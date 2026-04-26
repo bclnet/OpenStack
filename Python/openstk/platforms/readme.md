@@ -1,4 +1,6 @@
-# Platform : Tiny 3D
+# Removed
+
+## Platform : Tiny 3D
 
 https://pypi.org/project/tiny-3d-engine/
 

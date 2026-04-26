@@ -3,11 +3,11 @@ import ctypes
 from numpy import array, ones, float32, identity
 from enum import Enum
 from OpenGL.GL import *
-from openstk.core import log
+from openstk.core import log, CellManager
 from openstk.gfx import GfX, Renderer, ITextureFrames
 from openstk.gfx.egin import AABB, EginRenderer
 from openstk.platforms.opengl.egin import GLRenderMaterial
-from openstk.platforms.opengl.gfx.opengl import OpenGLCellManager, OpenGLCellBuilder
+from openstk.platforms.opengl.gfx.opengl import OpenGLCellBuilder
 from openstk.platforms.opengl.gfx.openglopenengine import OpenGLOpenEngine
 
 sizeof_float = ctypes.sizeof(GLfloat)
@@ -311,12 +311,10 @@ class EngineRenderer(EginRenderer):
 
     def start(self) -> None:
         # log.info(f'Obj: {self.obj}')
-        # log.info(f'PlayerPrefab: {self.playerPrefab}')
         arc = self.obj.archive
-        self.gfx = arc.gfx[2]
+        self.gfx = arc.gfx
         query = self.obj.query
-        builder = OpenGLCellBuilder(query, self.gfx)
-        self.engine = OpenGLOpenEngine(lambda queue: OpenGLCellManager(query, queue, lambda cell, land, contObj, cellObj: builder.cellCoroutine(cell, land, contObj, cellObj)), False)
+        self.engine = OpenGLOpenEngine(lambda queue: CellManager(query, queue, OpenGLCellBuilder(query, self.gfx)), False)
         self.engine.spawnPlayer(self.playerPrefab, self.obj.start)
 
     def update(self, deltaTime: float) -> None:

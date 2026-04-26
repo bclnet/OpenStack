@@ -267,8 +267,6 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
 
 // UnityGfxApi
 public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
-    const bool RenderLightShadows = false;
-    const bool RenderExteriorCellLights = false;
     public ISource Source => source;
     public Task<T> GetAsset<T>(object path) => Source.GetAsset<T>(path);
     public GameObject CreateObject(string name, string tag, GameObject parent = default) {
@@ -314,31 +312,31 @@ public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
         }
         else source.AddComponent<MeshCollider>().sharedMesh = (Mesh)mesh;
     }
-    public void Attach(GfxAttach method, GameObject source, params object[] args) {
+    public void Attach(GfxAttach method, GameObject src, params object[] args) {
         GameObject v;
         switch (method) {
             case GfxAttach.Find:
                 v = (GameObject)args[0];
                 v = v.FindChildRecursively((string)args[1]) ?? v;
-                source.transform.position = v.transform.position;
-                source.transform.rotation = v.transform.rotation;
-                source.transform.parent = v.transform;
+                src.transform.position = v.transform.position;
+                src.transform.rotation = v.transform.rotation;
+                src.transform.parent = v.transform;
                 break;
             case GfxAttach.Transform:
                 v = (GameObject)args[0];
-                source.transform.parent = v.transform;
+                src.transform.parent = v.transform;
                 break;
             case GfxAttach.All:
                 v = (GameObject)args[0];
-                source.transform.position = v.transform.position;
-                source.transform.rotation = v.transform.rotation;
-                source.transform.parent = v.transform;
+                src.transform.position = v.transform.position;
+                src.transform.rotation = v.transform.rotation;
+                src.transform.parent = v.transform;
                 break;
             case GfxAttach.AllCenter:
                 v = (GameObject)args[0];
-                source.transform.position = v.CalcVisualBoundsRecursive().center;
-                source.transform.rotation = v.transform.rotation;
-                source.transform.parent = v.transform;
+                src.transform.position = v.CalcVisualBoundsRecursive().center;
+                src.transform.rotation = v.transform.rotation;
+                src.transform.parent = v.transform;
                 break;
         }
     }
@@ -346,71 +344,29 @@ public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
         if (visible) { if (!src.activeSelf) src.SetActive(true); }
         else { if (src.activeSelf) src.SetActive(false); }
     }
-    public GameObject CreateLight(float radius, System.Drawing.Color color, bool indoors) {
-        var s = new GameObject("GfxCreateLight") { isStatic = true };
-        var c = s.AddComponent<Light>();
-        c.range = 3 * radius;
-        c.color = color.ToUnity();
-        c.intensity = 1.5f;
-        c.bounceIntensity = 0f;
-        c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
-        if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
-        return s;
-    }
-    public void PostObject(GameObject src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, GameObject parent) {
-        if (scale != null) src.transform.localScale = Vector3.one * scale.Value;
-        src.transform.position += position.ToUnity();
-        src.transform.rotation *= eulerAngles.ToUnityQuaternionAsEulerAnglesX();
-        var tagTarget = src;
-        var coll = src.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
-        if (coll != null) tagTarget = coll.gameObject;
-        //ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
-        //ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
-        //ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
-        //ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
-        //ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
-        //ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
-        //ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
-        //ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
-        //ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
-        //ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
-        //ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
-        //ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
-        //ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
-        //ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
-        //ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
-        //ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
-        //ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
-        if (parent != null) src.transform.parent = parent.transform;
-    }
-
-    //public override (object, object) GfxCreateContainers(string name) {
-    //    var cellObj = new GameObject(name) { tag = "Cell" };
-    //    var contObj = new GameObject("objects"); contObj.transform.parent = cellObj.transform;
-    //    return (contObj, cellObj);
-    //}
+    public void Destroy(GameObject src) => UnityEngine.Object.Destroy(src);
 }
 
 // UnityGfx2dSprite
 public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
     readonly ISource _source;
-    readonly SpriteManager<Sprite> _spriteManager;
     readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
+    readonly SpriteManager<Sprite> _spriteManager;
 
     public UnityGfxSprite2D(ISource source) {
         _source = source;
-        //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
         //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
+        //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
     }
 
     public ISource Source => _source;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
     public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
+    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 // UnityGfxSprite3D
@@ -421,18 +377,18 @@ public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
 
     public UnityGfxSprite3D(ISource source) {
         _source = source;
-        //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
         //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
+        //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
     }
 
     public ISource Source => _source;
-    public SpriteManager<Sprite> SpriteManager => _spriteManager;
     public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
+    public SpriteManager<Sprite> SpriteManager => _spriteManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
+    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 // UnityGfxModel
@@ -462,7 +418,54 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public GameObject CreateObject(object path, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PostObject(GameObject src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, GameObject parent) {
+        if (scale != null) src.transform.localScale = Vector3.one * scale.Value;
+        src.transform.position += position.ToUnity();
+        src.transform.rotation *= eulerAngles.ToUnityQuaternionAsEulerAnglesX();
+        var tagTarget = src;
+        var coll = src.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
+        if (coll != null) tagTarget = coll.gameObject;
+        //ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
+        //ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
+        //ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
+        //ProcessObjectType<LIGHRecord>(tagTarget, refCellObjInfo, "Light");
+        //ProcessObjectType<LOCKRecord>(tagTarget, refCellObjInfo, "Lock");
+        //ProcessObjectType<PROBRecord>(tagTarget, refCellObjInfo, "Probe");
+        //ProcessObjectType<REPARecord>(tagTarget, refCellObjInfo, "RepairTool");
+        //ProcessObjectType<WEAPRecord>(tagTarget, refCellObjInfo, "Weapon");
+        //ProcessObjectType<CLOTRecord>(tagTarget, refCellObjInfo, "Clothing");
+        //ProcessObjectType<ARMORecord>(tagTarget, refCellObjInfo, "Armor");
+        //ProcessObjectType<INGRRecord>(tagTarget, refCellObjInfo, "Ingredient");
+        //ProcessObjectType<ALCHRecord>(tagTarget, refCellObjInfo, "Alchemical");
+        //ProcessObjectType<APPARecord>(tagTarget, refCellObjInfo, "Apparatus");
+        //ProcessObjectType<BOOKRecord>(tagTarget, refCellObjInfo, "Book");
+        //ProcessObjectType<MISCRecord>(tagTarget, refCellObjInfo, "MiscObj");
+        //ProcessObjectType<CREARecord>(tagTarget, refCellObjInfo, "Creature");
+        //ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
+        if (parent != null) src.transform.parent = parent.transform;
+    }
 }
+
+// UnityGfxTerrain
+public class UnityGfxLight(ISource source) : IOpenGfxLight<GameObject> {
+    const bool RenderLightShadows = false;
+    const bool RenderExteriorCellLights = false;
+    readonly ISource _source = source;
+    public ISource Source => _source;
+    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public GameObject CreateLight(float radius, System.Drawing.Color color, bool indoors) {
+        var s = new GameObject("GfxCreateLight") { isStatic = true };
+        var c = s.AddComponent<Light>();
+        c.range = 3 * radius;
+        c.color = color.ToUnity();
+        c.intensity = 1.5f;
+        c.bounceIntensity = 0f;
+        c.shadows = RenderLightShadows ? LightShadows.Soft : LightShadows.None;
+        if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
+        return s;
+    }
+}
+
 
 // UnityGfxTerrain
 public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Material, Texture2D> {
@@ -484,7 +487,7 @@ public class UnityPlatform : Platform {
         var task = Task.Run(Application.platform.ToString);
         try {
             Tag = task.Result;
-            GfxFactory = source => [new UnityGfxApi(source), new UnityGfxSprite2D(source), new UnityGfxSprite3D(source), new UnityGfxModel(source), new UnityGfxTerrain(source)];
+            GfxFactory = source => [new UnityGfxApi(source), new UnityGfxSprite2D(source), new UnityGfxSprite3D(source), new UnityGfxModel(source), new UnityGfxLight(source), new UnityGfxTerrain(source)];
             SfxFactory = source => [new UnitySfx(source)];
             AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;

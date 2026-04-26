@@ -6,17 +6,19 @@ from OpenGL.GL import *
 from openstk.core import _throw, CoroutineQueue, CellManager, CellBuilder
 from openstk.gfx import Shader
 
-#RenderSunShadows: bool = True
-#AmbientIntensity: float = 1.5
-DesiredWorkTimePerFrame: float = 1.0 / 200
-#CellRadiusOnLoad: int = 2
 
 class OpenGLOpenEngine:
+    desiredWorkTimePerFrame: float = 1.0 / 200
     def __init__(self, manager: callable, sunCycle: bool = False):
         if not manager: raise Exception('manager')
         self.queue: CoroutineQueue = CoroutineQueue()
         self.cellManager: CellManager = manager(self.queue) or _throw('manager')
         self.query = self.cellManager.query
+        self.world: int = 0
+        self.cell: ICell = None
+        #self.playerTransform: Transform
+        #self.playerComponent: PlayerComponent
+        self.playerCamera: object = None
 
     def dispose(self) -> None: pass
 
@@ -24,17 +26,11 @@ class OpenGLOpenEngine:
         if not self.playerCamera: return
         # The current cell can be null if the player is outside of the defined game world.
         #if not self.currentCell or not self.currentCell.isInterior: self.cellManager.updateCells(self.playerCamera.transform.position.fromUnity(), self.currentWorld)
-        self.queue.run(DesiredWorkTimePerFrame)
+        self.queue.run(OpenGLOpenEngine.desiredWorkTimePerFrame)
 
     #region Player Spawn
 
-    currentWorld: int = 0
-    currentCell: ICell = None
-    #playerTransform: Transform
-    #playerComponent: PlayerComponent
-    playerCamera: object = None
-
-    def createPlayer(self, playerPrefab: object, position: Vector3) -> (object, object):
+    def createPlayer(self, playerPrefab: object, position: Vector3) -> tuple[object, object]:
         return (1, None)
         #if not playerPrefab: throw new InvalidOperationException("playerPrefab missing")
         #player = GameObject.FindWithTag("Player")
@@ -48,22 +44,19 @@ class OpenGLOpenEngine:
 
     # Spawns the player inside using the cell's grid coordinates.
     def spawnPlayer(self, playerPrefab: object, position: Vector3, update: bool = False):
-        cellId = self.query.getCellId(position, self.currentWorld)
-        self.currentCell = self.query.findCell(cellId)
-        assert(self.currentCell)
+        cellId = self.query.getCellId(position, self.world)
+        self.cell = self.query.findCell(cellId)
+        assert(self.cell)
         player, self.playerCamera = self.createPlayer(playerPrefab, position)
         if update:
             #self.cellManager.updateCells(self.playerCamera.transform.position.fromUnity(), self.currentWorld, True, CellRadiusOnLoad)
-            self.onExteriorCell(self.currentCell)
+            self.onCell(self.cell)
         else:
             cell = self.cellManager.beginCell(cellId)
             if not cell: return
             self.queue.waitFor(cell.task)
-            if cellId.z != -1: self.onExteriorCell(self.currentCell)
-            else: self.onInteriorCell(self.currentCell)
+            self.onCell(self.cell)
 
-    def onExteriorCell(self, cell: ICell): pass
-
-    def onInteriorCell(self, cell: ICell): pass
+    def onCell(self, cell: ICell): pass
 
     #endregion

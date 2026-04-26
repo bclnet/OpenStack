@@ -7,27 +7,27 @@ from openstk.platforms.system import SystemSfx
 
 #region Client
 
-# Tiny3dClientHost
-class Tiny3dClientHost(IClientHost):
+# Vanilla3dClientHost
+class Vanilla3dClientHost(IClientHost):
     def __init__(self, client: callable): pass
 
 #endregion
 
 #region Platform
 
-# Tiny3dObjectModelBuilder
-class Tiny3dObjectModelBuilder(ObjectModelBuilderBase):
+# Vanilla3dObjectModelBuilder
+class Vanilla3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
-# Tiny3dShaderBuilder
-class Tiny3dShaderBuilder(ShaderBuilderBase):
+# Vanilla3dShaderBuilder
+class Vanilla3dShaderBuilder(ShaderBuilderBase):
     _loader: ShaderLoader = None
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
-# Tiny3dTextureBuilder
-class Tiny3dTextureBuilder(TextureBuilderBase):
+# Vanilla3dTextureBuilder
+class Vanilla3dTextureBuilder(TextureBuilderBase):
     _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> int:
@@ -48,21 +48,31 @@ class Tiny3dTextureBuilder(TextureBuilderBase):
 
     def deleteTexture(self, texture: int) -> None: texture.release()
 
-# Tiny3dMaterialBuilder
-class Tiny3dMaterialBuilder(MaterialBuilderBase):
-    _defaultMaterial: GLRenderMaterial
+# Vanilla3dMaterialBuilder
+class Vanilla3dMaterialBuilder(MaterialBuilderBase):
+    _defaultMaterial: GLRenderMaterial = None; _terrainMaterial: GLRenderMaterial = None
     @property
     def defaultMaterial(self) -> int:
         if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial(-1)
+        self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
+    @property
+    def terrainMaterial(self) -> int:
+        if self._terrainMaterial: return self._terrainMaterial
+        self._terrainMaterial = self._createTerrainMaterial()
+        return self._terrainMaterial
 
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    def _createDefaultMaterial(type: int) -> GLRenderMaterial:
+    def _createDefaultMaterial(self) -> GLRenderMaterial:
         m = GLRenderMaterial(None)
         m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.material.shaderName = 'vrf.error'
+        return m
+
+    def _createTerrainMaterial(self) -> GLRenderMaterial:
+        m = GLRenderMaterial(None)
         m.material.shaderName = 'vrf.error'
         return m
 
@@ -93,20 +103,14 @@ class Tiny3dMaterialBuilder(MaterialBuilderBase):
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')
 
-# Tiny3dGfx
-class Tiny3dGfxModel(IOpenGfxModel):
-    source: ISource
-    textureManager: TextureManager
-    materialManager: MaterialManager
-    objectManager: ObjectModelManager
-    shaderManager: ShaderManager
-
+# Vanilla3dGfx
+class Vanilla3dGfxModel(IOpenGfxModel):
     def __init__(self, source: ISource):
-        self.source = source
-        self.textureManager = TextureManager(source, Tiny3dTextureBuilder())
-        self.materialManager = MaterialManager(source, self.textureManager, Tiny3dMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectModelManager(source, self.materialManager, Tiny3dObjectModelBuilder())
-        self.shaderManager = ShaderManager(source, Tiny3dShaderBuilder())
+        self.source: ISource = source
+        self.textureManager: TextureManager = TextureManager(source, Vanilla3dTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, Vanilla3dMaterialBuilder(self.textureManager))
+        self.objectManagerr: ObjectModelManager = ObjectModelManager(source, self.materialManager, Vanilla3dObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(source, Vanilla3dShaderBuilder())
 
     def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
@@ -116,12 +120,12 @@ class Tiny3dGfxModel(IOpenGfxModel):
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
     def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
 
-# Tiny3dPlatform
-class Tiny3dPlatform(Platform):
+# Vanilla3dPlatform
+class Vanilla3dPlatform(Platform):
     def __init__(self):
-        super().__init__('T3', 'Tiny3d')
-        self.gfxFactory = staticmethod(lambda source: [Tiny3dGfxApi(source), None, None, Tiny3dGfxModel(source)])
+        super().__init__('V3', 'Vanilla3D')
+        self.gfxFactory = staticmethod(lambda source: [Vanilla3dGfxApi(source), None, None, Vanilla3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-Tiny3dPlatform.This = Tiny3dPlatform()
+Vanilla3dPlatform.This = Vanilla3dPlatform()
 
 #endregion

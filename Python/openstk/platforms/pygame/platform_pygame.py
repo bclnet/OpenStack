@@ -74,19 +74,29 @@ class PygameTextureBuilder(TextureBuilderBase):
 
 # PygameMaterialBuilder
 class PygameMaterialBuilder(MaterialBuilderBase):
-    _defaultMaterial: GLRenderMaterial
+    _defaultMaterial: GLRenderMaterial; _terrainMaterial: GLRenderMaterial
     @property
     def defaultMaterial(self) -> int:
         if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial(-1)
+        self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
+    @property
+    def terrainMaterial(self) -> int:
+        if self._terrainMaterial: return self._terrainMaterial
+        self._terrainMaterial = self._createTerrainMaterial()
+        return self._terrainMaterial
 
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    def _createDefaultMaterial(type: int) -> GLRenderMaterial:
+    def _createDefaultMaterial() -> GLRenderMaterial:
         m = GLRenderMaterial(None)
         m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.material.shaderName = 'vrf.error'
+        return m
+
+    def _createTerrainMaterial() -> GLRenderMaterial:
+        m = GLRenderMaterial(None)
         m.material.shaderName = 'vrf.error'
         return m
 
@@ -119,32 +129,24 @@ class PygameMaterialBuilder(MaterialBuilderBase):
 
 # PygameGfxModel
 class PygameGfxModel(IOpenGfxModel):
-    source: ISource
-    textureManager: TextureManager
-    materialManager: MaterialManager
-    objectManager: ObjectModelManager
-    shaderManager: ShaderManager
-
-    def __init__(self, source: PakFile):
-        self.source = source
-        self.textureManager = TextureManager(source, PygameTextureBuilder())
-        self.materialManager = MaterialManager(source, self.textureManager, PygameMaterialBuilder(self.textureManager))
-        self.objectManager = ObjectModelManager(source, self.materialManager, PygameObjectModelBuilder())
-        self.shaderManager = ShaderManager(source, PygameShaderBuilder())
-
+    def __init__(self, source: ISource):
+        self.source: ISource = source
+        self.textureManager: TextureManager = TextureManager(source, PygameTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, PygameMaterialBuilder(self.textureManager))
+        self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, PygameObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(source, PygameShaderBuilder())
     def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
-    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
-    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
+    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
+    def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
+    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
 
 # PygamePlatform
 class PygamePlatform(Platform):
     def __init__(self):
         super().__init__('PG', 'Pygame')
-        self.gfxFactory = staticmethod(lambda source: [PygameGfxApi(source), None, None, PygameGfxModel(source)])
+        self.gfxFactory = staticmethod(lambda source: [None, None, None, PygameGfxModel(source), None, None])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 PygamePlatform.This = PygamePlatform()
 

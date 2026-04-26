@@ -3,7 +3,7 @@ import numpy as np
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
 from openstk.core import Platform
-from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platforms.opengl.gfx import ShaderDebugLoader
 from openstk.platforms.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
 from openstk.platforms.system import SystemSfx
@@ -229,19 +229,35 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
                 return m
             case _: raise Exception(f'Unknown: {path}')
 
+# OpenGLGfxApi
+class OpenGLGfxApi(IOpenGfxSprite):
+    def __init__(self, source: ISource):
+        self.source: ISource = source
+    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    def addMeshCollider(self, src: object, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
+    def addMeshRenderer(self, src: object, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
+    def addMissingMeshCollidersRecursively(self, src: object, isStatic: bool) -> None: raise NotImplementedError();
+    def attach(self, method: GfxAttach, src: object, args: list[object]) -> None: pass
+    def createMesh(self, mesh: object) -> object: raise NotImplementedError();
+    def createObject(self, name: str, tag: str = None, parent: object = None) -> object: raise NotImplementedError()
+    def setLayerRecursively(self, src: object, layer: int) -> None: raise NotImplementedError();
+    def parent(self, src: object, parent: object) -> None: raise NotImplementedError();
+    def transform(self, src: object, position: Vector3,  rotation: Quaternion, localScale: Vector3) -> None: raise NotImplementedError();
+    def transform(self, src: object, position: Vector3,  rotation: Matrix4x4,  localScale: Vector3) -> None: raise NotImplementedError();
+    def setVisible(self, src: object, visible: bool) -> None: pass
+    def destroy(self, src: object) -> None: pass
+
 # OpenGLGfxSprite3D
 class OpenGLGfxSprite3D(IOpenGfxSprite):
     def __init__(self, source: ISource):
         self.source: ISource = source
         # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
         # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
-
-    def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
-    def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): raise NotImplementedError()
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
-    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
+    def preloadObject(self, path: object) -> None: raise NotImplementedError()
+    def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
+    def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
+    def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
 
 # OpenGLGfxModel
 class OpenGLGfxModel(IOpenGfxModel):
@@ -254,23 +270,35 @@ class OpenGLGfxModel(IOpenGfxModel):
         self.meshBufferCache: GLMeshBufferCache = GLMeshBufferCache()
 
     def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
-    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
-    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
+    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
+    def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
+    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
 
     # cache
     _quadIndices: QuadIndexBuffer
     @property
     def quadIndices(self) -> QuadIndexBuffer: return self._quadIndices if self._quadIndices else (_quadIndices := QuadIndexBuffer(65532))
 
+# OpenGLGfxLight
+class OpenGLGfxLight(IOpenGfxLight):
+    def __init__(self, source: ISource):
+        self.source: ISource = source
+    def createLight(self, radius: float, color: Color, indoors: bool) -> object: raise NotImplementedError()
+
+# OpenGLGfxTerrain
+class OpenGLGfxTerrain(IOpenGfxTerrain):
+    def __init__(self, source: ISource):
+        self.source: ISource = source
+    def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: raise NotImplementedError()
+    def createTerrain(self, data: object, position: Vector3, parent: object) -> object: raise NotImplementedError()
+
 # OpenGLPlatform
 class OpenGLPlatform(Platform):
     def __init__(self):
         super().__init__('GL', 'OpenGL')
-        self.gfxFactory = staticmethod(lambda source: [OpenGLGfxApi(source), None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source), None])
+        self.gfxFactory = staticmethod(lambda source: [OpenGLGfxApi(source), None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source), None, OpenGLGfxTerrain(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 OpenGLPlatform.This = OpenGLPlatform()
 

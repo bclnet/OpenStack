@@ -161,31 +161,8 @@ class ShaderDebugLoader(ShaderLoader):
 
 #region CellManager
 
-# OpenGLCellManager
-class OpenGLCellManager(CellManager):
-    def __init__(self, query: IQuery, queue: CoroutineQueue, taskFunc: callable): super().__init__(query, queue, taskFunc)
-
-    def gfxCreateContainers(self, name: str) -> (object, object):
-        return (None, None)
-        #cellObj = GameObject(name) { tag = 'Cell' }
-        #contObj = GameObject('objects'); contObj.transform.parent = cellObj.transform
-        #return (contObj, cellObj)
-
-    def gfxSetVisible(self, source: object, visible: bool) -> None:
-        pass
-        #c = (GameObject)source
-        #if visible: if not c.activeSelf: c.setActive(True)
-        #else if c.activeSelf: c.setActive(False)
-
-# RenderLightShadows: False
-# RenderExteriorCellLights: False
+# OpenGLCellBuilder
 class OpenGLCellBuilder(CellBuilder):
-    def __init__(self, query: CellManager.IQuery, gfxModel: OpenGLGfxModel): super().__init__(query, gfxModel)
-
-    def gfxCreateLight(self, light: CellManager.ILigh, indoors: bool) -> object:
-        return None
-
-    def gfxCreateTerrain(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[TerrainLayer], alphaMap: ndarray, position: Vector3, material: object, parent: object) -> object:
-        return None
+    def __init__(self, query: CellManager.IQuery, gfx: list[IOpenGfx]): super().__init__(query, gfx)
 
 #endregion

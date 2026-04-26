@@ -13,9 +13,12 @@ class Texture: pass
 
 # GfX:
 class GfX:
-    XSprite2D = 0
-    XSprite3D = 1
-    XModel = 2
+    XApi = 0
+    XSprite2D = 1
+    XSprite3D = 2
+    XModel = 3
+    XLight = 4
+    XTerrain = 5
     maxTextureMaxAnisotropy: int = 0
 
 # GfxAlphaMode
@@ -433,11 +436,10 @@ class IOpenGfxApiX(IOpenGfx): pass
 
 # IOpenGfxApi
 class IOpenGfxApi(IOpenGfxApiX):
-    def createObject(self, name: str) -> Object: pass
+    def createObject(self, name: str, tag: str = None, parent: object = None) -> Object: pass
     def createMesh(self, mesh: object) -> object: pass
     def addMeshRenderer(self, src: Object, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: pass
     def addMeshCollider(self, src: Object, mesh: object, isKinematic: bool, isStatic: bool) -> None: pass
-    #
     def setParent(self, src: Object, parent: Object) -> None: pass
     def transform(self, src: Object, position: np.ndarray, rotation: np.ndarray, localScale: np.ndarray) -> None: pass
     def addMissingMeshCollidersRecursively(self, src: Object, isStatic: bool) -> None: pass
@@ -449,8 +451,8 @@ class IOpenGfxSpriteX(IOpenGfx):
 
 # IOpenGfxSprite
 class IOpenGfxSprite(IOpenGfxSpriteX):
-    spriteManager: SpriteManager
     objectManager: ObjectSpriteManager
+    spriteManager: SpriteManager
     def createObject(self, path: object) -> Object: pass
 
 # IOpenGfxModelX:
@@ -459,19 +461,34 @@ class IOpenGfxModelX:
 
 # IOpenGfxModel
 class IOpenGfxModel(IOpenGfxModelX):
-    textureManager: TextureManager
     materialManager: MaterialManager
     objectManager: ObjectModelManager
     shaderManager: ShaderManager
-    def createTexture(self, path: object, level: range = None) -> Texture: pass
+    textureManager: TextureManager
     def createObject(self, path: object) -> Object: pass
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: pass
+    def createTexture(self, path: object, level: range = None) -> Texture: pass
+    def postObject(self, src: Object, position: Vector3, eulerAngles: Vector3, scale: float, parent: Object) -> None: pass
+
+# IOpenGfxLightX:
+class IOpenGfxLightX: pass
+
+# IOpenGfxLight
+class IOpenGfxLight(IOpenGfxLightX):
+    def CreateLight(self, radius: float, color: Color, indoors: bool) -> Object: pass
+
+# GfxTerrainLayer:
+class GfxTerrainLayer:
+    def __init__(self, texture: texture, tileSize: tileSize):
+        self.texture = texture
+        self.tileSize = tileSize
 
 # IOpenGfxTerrainX:
 class IOpenGfxTerrainX: pass
 
 # IOpenGfxTerrain
 class IOpenGfxTerrain(IOpenGfxTerrainX):
+    def createTerrain(self) -> Object: pass
     def createTerrain(self) -> Object: pass
 
 #endregion

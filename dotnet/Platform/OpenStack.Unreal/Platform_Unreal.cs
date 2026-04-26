@@ -30,7 +30,7 @@ public class UnrealGfxApi(ISource source) : IOpenGfxApi<object, object> {
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, object material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
-    public void Attach(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public void Attach(GfxAttach method, object src, params object[] args) => throw new NotImplementedException();
     public object CreateMesh(object mesh) => throw new NotImplementedException();
     public object CreateObject(string name, string tag = null, object parent = null) => throw new NotImplementedException();
     public void SetLayerRecursively(object src, int layer) => throw new NotImplementedException();
@@ -38,8 +38,7 @@ public class UnrealGfxApi(ISource source) : IOpenGfxApi<object, object> {
     public void Transform(object src, Vector3 position, Quaternion rotation, Vector3 localScale) => throw new NotImplementedException();
     public void Transform(object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale) => throw new NotImplementedException();
     public void SetVisible(object src, bool visible) => throw new NotImplementedException();
-    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+    public void Destroy(object src) => throw new NotImplementedException();
 }
 
 // UnrealGfxSprite3D
@@ -58,11 +57,10 @@ public class UnrealGfxSprite3D : IOpenGfxSprite<object, object> {
     public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
 // UnrealGfxModel
@@ -93,7 +91,7 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public void AttachObject(GfxAttach method, object source, params object[] args) => throw new NotImplementedException();
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 
 // UnrealSfx
@@ -103,7 +101,7 @@ public class UnrealSfx(ISource source) : SystemSfx(source) { }
 public class UnrealPlatform : Platform {
     public static readonly Platform This = new UnrealPlatform();
     UnrealPlatform() : base("UR", "Unreal") {
-        GfxFactory = source => [new UnrealGfxApi(source), null, new UnrealGfxSprite3D(source), new UnrealGfxModel(source), null];
+        GfxFactory = source => [new UnrealGfxApi(source), null, new UnrealGfxSprite3D(source), new UnrealGfxModel(source), null, null];
         SfxFactory = source => [new UnrealSfx(source)];
     }
 }

@@ -5,6 +5,7 @@ from openstk.core.poly.pool import CoroutineQueue
 from openstk.core.poly.poly import Int3, Float3
 from openstk.core.poly.system import getExtrema, changeRange
 import openstk.core.poly.log as log
+from openstk.gfx.gfx import GfX
 
 # types
 type Vector2 = ndarray
@@ -17,8 +18,8 @@ class Material: pass
 
 # IDatabase
 class IDatabase:
-    def convert(self, source: object) -> object: pass
-    def query(self, source: object) -> list[object]: pass
+    def convert(self, src: object) -> object: pass
+    def query(self, src: object) -> list[object]: pass
 
 # ICellDatabase
 class ICellDatabase:
@@ -28,13 +29,10 @@ class ICellDatabase:
 
 # CellManager
 class CellManager:
-    cellRadius: int = 1 #4
-    detailRadius: int = 1 #3
-
     class Cell:
-        def __init__(self, cellObj: object, contObj: object, record: object, task: Enumerator):
-            self.cellObj = cellObj
-            self.contObj = contObj
+        def __init__(self, obj: object, objectsObj: object, record: object, task: Enumerator):
+            self.obj = obj
+            self.objectsObj = objectsObj
             self.record = record
             self.task = task
    
@@ -49,6 +47,9 @@ class CellManager:
         scale: float
         position: Float3
         eulerAngles: Float3
+
+    class ICellXrefModel:
+        modelPath: str
 
     class ICell:
         id: int
@@ -78,92 +79,105 @@ class CellManager:
     class IQuery:
         meterInUnits: float
         cellLengthInMeters: float
-        def getCellId(self, point: Vector3, world: int) -> Int3: pass
-        def findByName(self, name: str) -> object: pass
+        radius: list[int]
+        def setWorld(self, world: int) -> None: pass
+        def getCellId(self, point: Vector3) -> Int3: pass
+        def findAnyByName(self, name: str) -> object: pass
         def findCell(self, cell: Int3) -> ICell: pass
-        def findCellByName(self, name: str, id: int, world: int) -> ICell: pass
+        def findCellByName(self, name: str) -> ICell: pass
         def findLand(self, cell: Int3) -> ILand: pass
         def findLtex(self, index: int) -> ILtex: pass
 
-    def __init__(self, query: IQuery, queue: CoroutineQueue, taskFunc: callable):
-        self.query = query
-        self.queue = queue
-        self.taskFunc = taskFunc
+    def __init__(self, query: IQuery, queue: CoroutineQueue, builder: CellBuilderX):
+        self.query: IQuery = query
+        self.queue: CoroutineQueue = queue
+        self.builder: CellBuilderX = builder
         self.cells: dict[Int3, Cell] = {}
-
-    def gfxCreateContainers(self, name: str) -> name: pass
-    def gfxSetVisible(self, cont: str) -> name: pass
+        self.radius: int = query.radius[0]
+        self.radius2: int = query.radius[1]
 
     def beginCell(self, point: Int3) -> Cell:
         record = self.query.findCell(point)
         if not record: return None
-        cell = self.buildCell(record); self.cells[point if point.z != -1 else Int3.zero] = cell
+        cell = self.buildCell(record); self.cells[point] = cell
         return cell
 
-    def beginCellByName(self, name: str, id: int, world: int = -1) -> Cell:
-        record = self.query.findCellByName(name, id, world)
+    def beginCellByName(self, name: str) -> Cell:
+        record = self.query.findCellByName(name)
         if not record: return None
         cell = self.buildCell(record); self.cells[Int3.zero] = cell
         return cell
     
-    def updateCells(self, position: Vector3, world: int = -1, immediate: bool = False, radius: int = -1) -> None:
-        point = self.query.getCellId(position, world)
-        if radius < 0: radius = CellManager.defaultRadius
+    def updateCells(self, position: Vector3, immediate: bool = False, radius: int = -1) -> None:
+        if radius < 0: radius = self.radius
+        point = self.query.getCellId(position)
         minX = point.x - radius; maxX = point.x + radius; minY = point.y - radius; maxY = point.y + radius
 
         # destroy out of range cells
-        outOfRange = []
+        outOfRange: list[Int3] = []
         for s in self.cells.keys():
             if s.x < minX or s.x > maxX or s.y < minY or s.y > maxY: outOfRange.append(s)
         for s in outOfRange: self.destroyCell(s)
 
         # create new cells
+        world = self.query.world
         for r in range(radius + 1):
             for x in range(minX, maxX + 1):
                 for y in range(minY, maxY + 1):
                     p = Int3(x, y, world); d = max(abs(point.x - p.x), abs(point.y - p.y))
                     if d == r and p not in self.cells:
-                        cell = beginCell(p)
+                        cell = self.beginCell(p)
                         if cell and immediate: self.queue.waitFor(cell.task)
 
         # update LODs
-        for p, cell in self.cells: d = max(abs(point.x - p.x), abs(point.y - p.y)); gfxSetVisible(cell, d <= self.detailRadius)
+        for p, cell in self.cells: d = max(abs(point.x - p.x), abs(point.y - p.y)); self.builder.setVisible(cell, d <= self.radius2)
 
     def buildCell(self, cell: ICell) -> CellManager.Cell:
         cellName: str
         land: ILand = None
         if not cell.isInterior: cellName = f'cell {cell.gridId}'; land = self.query.findLand(cell.gridId)
         else: cellName = cell.name
-        (contObj, cellObj) = self.gfxCreateContainers(cellName)
-        task = self.taskFunc(cell, land, contObj, cellObj); self.queue.add(task)
-        return CellManager.Cell(contObj, cellObj, cell, task)
+        (objectsObj, obj) = self.builder.createContainers(cellName)
+        task = self.builder.cellCoroutine(cell, land, objectsObj, obj); self.queue.add(task)
+        return CellManager.Cell(objectsObj, obj, cell, task)
 
     def destroyCell(self, point: Int3) -> None:
-        if point in self.cells: s = self.cells[point]; self.queue.cancel(s.task); self.cells.remove(point); # Object.Destroy(s.Obj)
+        if point in self.cells: s = self.cells[point]; self.queue.cancel(s.task); self.builder.destroy(s.obj); self.cells.remove(point)
         else: log.error('Tried to destroy a cell that isn\'t created.')
 
     def destroyAllCells(self) -> None:
-        for s in self.cells.values(): self.queue.cancel(s.task) # Object.Destroy(s.Obj)
+        for s in self.cells.values(): self.queue.cancel(s.task); self.builder.destroy(s.obj)
         self.cells.clear()
 
 # CellBuilder
-class CellBuilder:
+class CellBuilderX:
+    def createContainers(self, name: str) -> tuple[object, object]: pass
+    def setVisible(self, src: object, visible: bool) -> None: pass
+    def cellCoroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> Enumerator: pass
+
+# CellBuilder
+class CellBuilder(CellBuilderX):
     defaultLandTexturePath: str = 'textures/_land_default.dds'
 
-    class TerrainLayer:
-        def __init__(self, texture: texture, tileSize: tileSize):
-            self.texture: texture
-            self.tileSize: tileSize
-
-    def __init__(self, query: IQuery, gfxModel: IOpenGfxModel):
+    def __init__(self, query: IQuery, gfx: list[IOpenGfx]):
         self.query = query
-        self.gfxModel = gfxModel
+        self.gfxApi = gfx[GfX.XApi]
+        self.gfxModel = gfx[GfX.XModel]
+        self.gfxLight = gfx[GfX.XLight]
+        self.gfxTerrain = gfx[GfX.XTerrain]
+        self.meterInUnits = query.meterInUnits
+        self.cellLengthInMeters = query.cellLengthInMeters
 
-    def gfxCreateLight(self, light: ILigh, indoors: bool) -> Object: pass
-    def gfxCreateTerrain(self, offset: int, heights: any, heightRange: float, sampleDistance: float, layers: list[TerrainLayer], alphaMap: any, position: Vector3, materialTemplate: Material, parent: Object) -> Object: pass
+    def createContainers(self, name: str) -> tuple[object, object]:
+        obj = self.gfxApi.createObject(name, 'Cell')
+        objectsObj = self.gfxApi.createObject('objects', parent=obj)
+        return (obj, objectsObj)
+
+    def setVisible(self, src: object, visible: bool) -> None: self.gfxApi.setVisible(src, visible)
+    def destroy(self, src: object) -> None: self.gfxApi.destroy(src)
 
     # A coroutine that instantiates the terrain for, and all objects in, a cell.
-    def cellCoroutine(self, cell: ICell, land: ILand, contObj: object, cellObj: object) -> IEnumerator:
+    def cellCoroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> IEnumerator:
         # Start pre-loading all required textures for the terrain.
         if land:
             landTextures = self.getLandTextures(land)
@@ -179,35 +193,40 @@ class CellBuilder:
             if s.modelPath: self.gfxModel.preloadObject(s.modelPath)
         yield None
 
+        # Extract information about referenced objects.
+        cellRefs = self.getCellRefs(cell); yield None
+
+        # Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
+        for s in cellRefs:
+            if s.modelPath: self.gfxModel.preloadObject(s.modelPath)
+        yield None
+
         # Instantiate terrain.
         if land:
-            task = self.landCoroutine(land, cellObj)
+            task = self.landCoroutine(land, obj)
             while task.moveNext(): yield None
             yield None
 
         # Instantiate objects.
-        for s in cellRefs: self.cellObject(cell, contObj, s); yield None
+        for s in cellRefs: self.cellObject(cell, objectsObj, s); yield None
 
     def getCellRefs(self, cell: ICell) -> list[CellRef]:
         @staticmethod
         def _(s):
             record = self.query.findByName(s.name)
-            return CellRef(obj=s, record=record, modelPath=f'meshes\\{record.modelPath}' if record and isinstance(record, ICellXrefModel) and record.modelPath else None)
+            return CellRef(obj=s, record=record, modelPath=record.modelPath if record and isinstance(record, ICellXrefModel) and record.modelPath else None)
         return [_(s) for s in cell.Xrefs]
 
     # Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     def cellObject(self, cell: ICell, parent: object, r: CellRef) -> None:
         if not r.record: log.Info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None
-        if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.postCellObject(modelObj, r.Obj, parent)
+        if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postCellObject(modelObj, r.obj, parent)
         if isinstance(r.record, ILigh):
             ligh = r.record
-            s = self.gfxCreateLight(ligh, cell.isInterior)
-            if modelObj: self.gfxModel.attachObject(AttachObjectMethod.Find, s, modelObj, 'AttachLight')
-            else: self.postCellObject(s, r.Obj, parent)
-
-    def postCellObject(self, gameObject: object, r: CellRef) -> None:
-        pass
+            s = self.gfxLight.createLight(ligh.radius, ligh.lightColor, cell.isInterior)
+            if modelObj: self.gfxApi.attach(GfxAttach.Find, s, modelObj, 'AttachLight')
+            else: self.gfxModel.postCellObject(s, r.obj, parent)
 
     def getLandTextures(self, land: ILand) -> list[str]:
         if not land.vtex: return None
@@ -271,7 +290,8 @@ class CellBuilder:
 
         # Create the terrain.
         yield None # Yield before creating the terrain GameObject because it takes a while.
-        heightRange = (maxHeight - minHeight) / MeterInUnits
-        position = array([land.gridId.y * CellLengthInMeters, land.gridId.y * CellLengthInMeters, minHeight / MeterInUnits])
-        sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1)
-        self.gfxCreateTerrain(-1, newHeights, heightRange, sampleDistance, layers, alphaMap, position, default, parent)
+        heightRange = (maxHeight - minHeight) / self.meterInUnits
+        position = array([land.gridId.y * self.cellLengthInMeters, land.gridId.y * self.cellLengthInMeters, minHeight / self.meterInUnits])
+        sampleDistance = self.cellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1)
+        data = self.gfxTerrain.gfxCreateTerrainData(-1, newHeights, heightRange, sampleDistance, layers, alphaMap)
+        self.gfxTerrain.gfxCreateTerrain(data, position, parent)

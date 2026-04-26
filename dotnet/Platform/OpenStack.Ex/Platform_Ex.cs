@@ -73,7 +73,7 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
 public class ExPlatform : Platform {
     public static readonly Platform This = new ExPlatform();
     ExPlatform() : base("EX", "EnginX") {
-        GfxFactory = source => [null, new ExGfxSprite2D(source), null, null, null];
+        GfxFactory = source => [null, new ExGfxSprite2D(source), null, null, null, null];
         SfxFactory = source => [new SystemSfx(source)];
     }
 }

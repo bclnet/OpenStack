@@ -2,6 +2,7 @@
 using OpenStack.Gfx;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
@@ -72,6 +73,7 @@ public class OgreGfxModel : IOpenGfxModel<object, object, object, object> {
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 
 // OgreSfx
@@ -81,7 +83,7 @@ public class OgreSfx(ISource source) : SystemSfx(source) { }
 public class OgrePlatform : Platform {
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre") {
-        GfxFactory = source => [null, null, new OgreGfxSprite3D(source), new OgreGfxModel(source), null];
+        GfxFactory = source => [null, null, new OgreGfxSprite3D(source), new OgreGfxModel(source), null, null];
         SfxFactory = source => [new OgreSfx(source)];
     }
 }

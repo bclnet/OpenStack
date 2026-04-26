@@ -1,8 +1,8 @@
 ﻿using OpenStack.Gfx;
-using SevenZip;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -13,8 +13,8 @@ namespace OpenStack;
 #region Database
 
 public interface IDatabase {
-    object Convert(object s);
-    object Query(object s);
+    object Convert(object src);
+    object Query(object src);
 }
 
 public interface ICellDatabase {
@@ -28,12 +28,9 @@ public interface ICellDatabase {
 #region CellManager
 
 public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder) {
-    const int DefaultRadius = 4;
-    const int DetailRadius = 3;
-
-    public class Cell(object cellObj, object contObj, ICell record, IEnumerator task) {
-        public object CellObj = cellObj;
-        public object ContObj = contObj;
+    public class Cell(object cellObj, object objectsObj, ICell record, IEnumerator task) {
+        public object Obj = cellObj;
+        public object ObjectsObj = objectsObj;
         public ICell Record = record;
         public IEnumerator Task = task;
     }
@@ -84,41 +81,45 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
     public interface IQueryFunc {
         IQuery GetQuery();
     }
+
     public interface IQuery {
         float MeterInUnits { get; }
         float CellLengthInMeters { get; }
-        Int3 GetCellId(Vector3 point, int world);
-        object FindByName(string name);
+        int[] Radius { get; }
+        int World { get; }
+        void SetWorld(int world);
+        Int3 GetCellId(Vector3 point);
+        object FindAnyByName(string name);
         ICell FindCell(Int3 cell);
-        ICell FindCellByName(string name, int id, int world);
+        ICell FindCellByName(string name);
         ILand FindLand(Int3 cell);
         ILtex FindLtex(int index);
     }
 
-    public IQuery Query = query;
-    public CoroutineQueue Queue = queue;
-    public CellBuilder Builder = builder;
-    //public Func<ICell, ILand, object, object, IEnumerator> TaskFunc = taskFunc;
-    public Dictionary<Int3, Cell> Cells = [];
+    public readonly IQuery Query = query;
+    protected readonly CoroutineQueue Queue = queue;
+    protected readonly CellBuilder Builder = builder;
+    readonly Dictionary<Int3, Cell> Cells = [];
+    readonly int Radius = query.Radius[0];
+    readonly int Radius2 = query.Radius[1];
 
     public Cell BeginCell(Int3 point) {
         var record = Query.FindCell(point);
         if (record == null) return null;
-        var cell = BuildCell(record); Cells[point.Z != -1 ? point : Int3.Zero] = cell;
+        var cell = BuildCell(record); Cells[point] = cell;
         return cell;
     }
 
-    public Cell BeginCellByName(string name, int id, int world = -1) {
-        if (world != -1) throw new ArgumentOutOfRangeException("world");
-        var record = Query.FindCellByName(name, id, world);
+    public Cell BeginCellByName(string name) {
+        var record = Query.FindCellByName(name);
         if (record == null) return null;
         var cell = BuildCell(record); Cells[Int3.Zero] = cell;
         return cell;
     }
 
-    public void UpdateCells(Vector3 position, int world = -1, bool immediate = false, int radius = -1) {
-        var point = Query.GetCellId(position, world);
-        if (radius < 0) radius = DefaultRadius;
+    public void UpdateCells(Vector3 position, bool immediate = false, int radius = -1) {
+        if (radius < 0) radius = Radius;
+        var point = Query.GetCellId(position);
         int minX = point.X - radius, maxX = point.X + radius, minY = point.Y - radius, maxY = point.Y + radius;
 
         // destroy out of range cells
@@ -128,6 +129,7 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
         foreach (var s in outOfRange) DestroyCell(s);
 
         // create new cells
+        var world = Query.World;
         for (var r = 0; r <= radius; r++)
             for (var x = minX; x <= maxX; x++)
                 for (var y = minY; y <= maxY; y++) {
@@ -139,35 +141,36 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
                 }
 
         // update LODs
-        foreach (var (p, cell) in Cells) { var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y)); Builder.SetVisible(cell.ContObj, d <= DetailRadius); }
+        foreach (var (p, cell) in Cells) { var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y)); Builder.SetVisible(cell.ObjectsObj, d <= Radius2); }
     }
 
     Cell BuildCell(ICell cell) {
-        //Debug.Assert(cell != null);
+        Debug.Assert(cell != null);
         string cellName;
-        ILand land = null;
+        ILand land;
         if (!cell.IsInterior) { cellName = $"cell {cell.GridId}"; land = Query.FindLand(cell.GridId); }
-        else cellName = cell.Name;
-        var (contObj, cellObj) = Builder.CreateContainers(cellName);
-        var task = Builder.CellCoroutine(cell, land, contObj, cellObj); Queue.Add(task);
-        return new Cell(contObj, cellObj, cell, task);
+        else { cellName = $"cell {cell.Name}"; land = null; }
+        var (obj, objectsObj) = Builder.CreateContainers(cellName);
+        var task = Builder.CellCoroutine(cell, land, obj, objectsObj); Queue.Add(task);
+        return new Cell(obj, objectsObj, cell, task);
     }
 
     void DestroyCell(Int3 point) {
-        if (Cells.TryGetValue(point, out var s)) { Queue.Cancel(s.Task); Cells.Remove(point); /*Object.Destroy(s.Obj);*/ }
+        if (Cells.TryGetValue(point, out var s)) { Queue.Cancel(s.Task); Builder.Destroy(s.Obj); Cells.Remove(point); }
         else Log.Error("Tried to destroy a cell that isn't created.");
     }
 
     public void DestroyAllCells() {
-        foreach (var s in Cells.Values) { Queue.Cancel(s.Task); /*Object.Destroy(s.Obj);*/ }
+        foreach (var s in Cells.Values) { Queue.Cancel(s.Task); Builder.Destroy(s.Obj); }
         Cells.Clear();
     }
 }
 
 public abstract class CellBuilder {
     public abstract (object, object) CreateContainers(string name);
-    public abstract void SetVisible(object source, bool visible);
-    public abstract IEnumerator CellCoroutine(ICell cell, ILand land, object contObj, object cellObj);
+    public abstract void SetVisible(object src, bool visible);
+    public abstract IEnumerator CellCoroutine(ICell cell, ILand land, object obj, object objectsObj);
+    public abstract void Destroy(object src);
 }
 
 public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenGfx[] gfx) : CellBuilder {
@@ -175,23 +178,24 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     protected IQuery Query = query;
     protected IOpenGfxApi<Object, Material> GfxApi = (IOpenGfxApi<Object, Material>)gfx[GfX.XApi];
     protected IOpenGfxModel<Object, Material, Texture, Shader> GfxModel = (IOpenGfxModel<Object, Material, Texture, Shader>)gfx[GfX.XModel];
+    protected IOpenGfxLight<Object> GfxLight = (IOpenGfxLight<Object>)gfx[GfX.XLight];
     protected IOpenGfxTerrain<Object, Material, Texture> GfxTerrain = (IOpenGfxTerrain<Object, Material, Texture>)gfx[GfX.XTerrain];
     protected float MeterInUnits = query.MeterInUnits;
     protected float CellLengthInMeters = query.CellLengthInMeters;
 
     public override (object, object) CreateContainers(string name) {
-        var cellObj = GfxApi.CreateObject(name, "Cell");
-        var contObj = GfxApi.CreateObject("objects", parent: cellObj);
-        return (contObj, cellObj);
+        var obj = GfxApi.CreateObject(name, "Cell");
+        var objectsObj = GfxApi.CreateObject("objects", parent: obj);
+        return (obj, objectsObj);
     }
 
     public override void SetVisible(object src, bool visible) => GfxApi.SetVisible((Object)src, visible);
+    public override void Destroy(object src) => GfxApi.Destroy((Object)src);
 
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
     /// </summary>
-    public override IEnumerator CellCoroutine(ICell cell, ILand land, object contObj, object cellObj) {
-        Object contObj2 = (Object)contObj, cellObj2 = (Object)cellObj;
+    public override IEnumerator CellCoroutine(ICell cell, ILand land, object obj, object objectsObj) {
         // Start pre-loading all required textures for the terrain.
         if (land != null) {
             var landTextures = GetLandTextures(land);
@@ -210,17 +214,17 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
 
         // Instantiate terrain.
         if (land != null) {
-            var task = LandCoroutine(land, cellObj2);
+            var task = LandCoroutine(land, (Object)obj);
             while (task.MoveNext()) yield return null;
             yield return null;
         }
 
         // Instantiate objects.
-        foreach (var s in cellRefs) { CellObject(cell, contObj2, s); yield return null; }
+        foreach (var s in cellRefs) { CellObject(cell, (Object)objectsObj, s); yield return null; }
     }
 
     CellRef[] GetCellRefs(ICell cell) => false ? [] : [.. cell.Xrefs.Select(s => {
-        var record = Query.FindByName(s.Name);
+        var record = Query.FindAnyByName(s.Name);
         return new CellRef { Obj = s, Record = record, ModelPath = record != null && record is ICellXrefModel modl ? modl.ModelPath : null };
     })];
 
@@ -231,11 +235,11 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
         if (r.Record == null) { Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default;
         var obj = r.Obj;
-        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxApi.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
+        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh) {
-            var s = GfxApi.CreateLight(ligh.Radius, ligh.LightColor, cell.IsInterior);
+            var s = GfxLight.CreateLight(ligh.Radius, ligh.LightColor, cell.IsInterior);
             if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
-            else GfxApi.PostObject(s, obj.Position, obj.EulerAngles, obj.Scale, parent);
+            else GfxModel.PostObject(s, obj.Position, obj.EulerAngles, obj.Scale, parent);
         }
     }
 
@@ -273,7 +277,6 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
         const int VTEX_ROWS = 16;
         const int VTEX_COLUMNS = VTEX_ROWS;
 
-        var defaultMaterial = GfxModel.MaterialManager.DefaultMaterial;
         var heights = land.Heights;
         if (heights == null) yield break;
         yield return null; // Return before doing any work to provide an IEnumerator handle to the coroutine.
