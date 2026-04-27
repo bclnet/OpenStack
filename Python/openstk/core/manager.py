@@ -25,7 +25,10 @@ class IDatabase:
 class ICellDatabase:
     archive: ISource
     query: IQuery
-    start: Vector3
+    cellId: Int3
+    cellInterior: bool
+    playerPostion: Vector3
+    playerRotation: Quaternion
 
 # CellManager
 class CellManager:
@@ -130,7 +133,7 @@ class CellManager:
                         if cell and immediate: self.queue.waitFor(cell.task)
 
         # update LODs
-        for p, cell in self.cells: d = max(abs(point.x - p.x), abs(point.y - p.y)); self.builder.setVisible(cell, d <= self.radius2)
+        for p, cell in self.cells.items(): d = max(abs(point.x - p.x), abs(point.y - p.y)); self.builder.setVisible(cell, d <= self.radius2)
 
     def buildCell(self, cell: ICell) -> CellManager.Cell:
         cellName: str
@@ -222,7 +225,7 @@ class CellBuilder(CellBuilderX):
         if not r.record: log.Info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None
         if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postCellObject(modelObj, r.obj, parent)
-        if isinstance(r.record, ILigh):
+        if self.gfxLight and isinstance(r.record, CellManager.ILigh):
             ligh = r.record
             s = self.gfxLight.createLight(ligh.radius, ligh.lightColor, cell.isInterior)
             if modelObj: self.gfxApi.attach(GfxAttach.Find, s, modelObj, 'AttachLight')
@@ -289,9 +292,10 @@ class CellBuilder(CellBuilderX):
                 alphaMap[y, x, layerIndexs[texIndex] if texIndex >= 0 else 0] = 1
 
         # Create the terrain.
-        yield None # Yield before creating the terrain GameObject because it takes a while.
-        heightRange = (maxHeight - minHeight) / self.meterInUnits
-        position = array([land.gridId.y * self.cellLengthInMeters, land.gridId.y * self.cellLengthInMeters, minHeight / self.meterInUnits])
-        sampleDistance = self.cellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1)
-        data = self.gfxTerrain.gfxCreateTerrainData(-1, newHeights, heightRange, sampleDistance, layers, alphaMap)
-        self.gfxTerrain.gfxCreateTerrain(data, position, parent)
+        if self.gfxTerrain:
+            yield None # Yield before creating the terrain GameObject because it takes a while.
+            heightRange = (maxHeight - minHeight) / self.meterInUnits
+            position = array([land.gridId.y * self.cellLengthInMeters, land.gridId.y * self.cellLengthInMeters, minHeight / self.meterInUnits])
+            sampleDistance = self.cellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1)
+            data = self.gfxTerrain.gfxCreateTerrainData(-1, newHeights, heightRange, sampleDistance, layers, alphaMap)
+            self.gfxTerrain.gfxCreateTerrain(data, position, parent)

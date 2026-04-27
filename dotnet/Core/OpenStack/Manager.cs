@@ -20,7 +20,10 @@ public interface IDatabase {
 public interface ICellDatabase {
     ISource Archive { get; }
     IQuery Query { get; }
-    Vector3 Start { get; }
+    Int3 CellId { get; }
+    bool CellInterior { get; }
+    Vector3 PlayerPosition { get; }
+    Quaternion PlayerRotation { get; }
 }
 
 #endregion
@@ -236,7 +239,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
         Object modelObj = default;
         var obj = r.Obj;
         if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
-        if (r.Record is ILigh ligh) {
+        if (GfxLight != null && r.Record is ILigh ligh) {
             var s = GfxLight.CreateLight(ligh.Radius, ligh.LightColor, cell.IsInterior);
             if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
             else GfxModel.PostObject(s, obj.Position, obj.EulerAngles, obj.Scale, parent);
@@ -326,15 +329,17 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
         }
 
         // Create the terrain.
-        yield return null; // Yield before creating the terrain GameObject because it takes a while.
-        var heightRange = (maxHeight - minHeight) / MeterInUnits;
-        var position = new Vector3(land.GridId.X * CellLengthInMeters, land.GridId.Y * CellLengthInMeters, minHeight / MeterInUnits);
-        var sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
-        var terrainData = GfxTerrain.CreateTerrainData(0, newHeights, heightRange, sampleDistance, [.. layers], alphaMap);
-        GfxTerrain.CreateTerrain(terrainData, position, parent);
+        if (GfxTerrain != null) {
+            yield return null; // Yield before creating the terrain GameObject because it takes a while.
+            var heightRange = (maxHeight - minHeight) / MeterInUnits;
+            var position = new Vector3(land.GridId.X * CellLengthInMeters, land.GridId.Y * CellLengthInMeters, minHeight / MeterInUnits);
+            var sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
+            var terrainData = GfxTerrain.CreateTerrainData(0, newHeights, heightRange, sampleDistance, [.. layers], alphaMap);
+            GfxTerrain.CreateTerrain(terrainData, position, parent);
+        }
     }
 }
 
 #endregion
 
-//public class PlayerManager() {}
+//public class PlayerManager() {}x

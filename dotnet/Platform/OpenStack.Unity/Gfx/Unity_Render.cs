@@ -76,20 +76,19 @@ public class TextureRenderer(IOpenGfx[] gfx, object obj) : Renderer {
 
 public class EngineRenderer(IOpenGfx[] gfx, object obj) : Renderer {
     IOpenGfx[] Gfx = gfx;
-    readonly ICellDatabase Obj = obj as ICellDatabase;
-
+    readonly ICellDatabase Db = obj as ICellDatabase;
     UnityOpenEngine Engine;
-    GameObject PlayerPrefab = GameObject.Find("Player0");
+    //GameObject PlayerPrefab = GameObject.Find("Player0");
 
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
         //Log.Info($"PlayerPrefab: {PlayerPrefab}");
-        var arc = (ISourceWithPlatform)Obj.Archive;
+        var arc = (ISourceWithPlatform)Db.Archive;
         Gfx = arc.Gfx;
-        var query = Obj.Query;
+        var query = Db.Query;
         Engine = new UnityOpenEngine(queue => new CellManager(query, queue, new UnityCellBuilder(query, Gfx)), false);
-        Engine.SpawnPlayer(PlayerPrefab, Obj.Start);
+        Engine.SpawnPlayer(Db);
     }
 
     public override void Update(float deltaTime) => Engine?.Update();

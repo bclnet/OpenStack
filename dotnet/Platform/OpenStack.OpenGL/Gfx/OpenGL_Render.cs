@@ -968,23 +968,28 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 /// </summary>
 public class EngineRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
     IOpenGfx[] Gfx = gfx;
-    readonly ICellDatabase Obj = obj as ICellDatabase;
+    readonly ICellDatabase Db = obj as ICellDatabase;
 
     OpenGLOpenEngine Engine;
-    object PlayerPrefab = null;
+    object PlayerPrefab;
 
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
         //Log.Info($"PlayerPrefab: {PlayerPrefab}");
-        var arc = (ISourceWithPlatform)Obj.Archive;
+        var arc = (ISourceWithPlatform)Db.Archive;
         Gfx = arc.Gfx;
-        var query = Obj.Query;
+        var query = Db.Query;
         Engine = new OpenGLOpenEngine(queue => new CellManager(query, queue, new OpenGLCellBuilder(query, Gfx)), false);
-        Engine.SpawnPlayer(PlayerPrefab, Obj.Start);
+        Engine.SpawnPlayer(Db);
     }
 
     public override void Update(float deltaTime) => Engine?.Update();
+
+    public override void Render(Camera camera, Pass pass) {
+        Engine.Camera = camera;
+        base.Render(camera, pass);
+    }
 }
 
 #endregion

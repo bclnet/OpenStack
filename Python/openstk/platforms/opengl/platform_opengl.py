@@ -239,7 +239,7 @@ class OpenGLGfxApi(IOpenGfxSprite):
     def addMissingMeshCollidersRecursively(self, src: object, isStatic: bool) -> None: raise NotImplementedError();
     def attach(self, method: GfxAttach, src: object, args: list[object]) -> None: pass
     def createMesh(self, mesh: object) -> object: raise NotImplementedError();
-    def createObject(self, name: str, tag: str = None, parent: object = None) -> object: raise NotImplementedError()
+    def createObject(self, name: str, tag: str = None, parent: object = None) -> object: print(f'new: {name}'); return name
     def setLayerRecursively(self, src: object, layer: int) -> None: raise NotImplementedError();
     def parent(self, src: object, parent: object) -> None: raise NotImplementedError();
     def transform(self, src: object, position: Vector3,  rotation: Quaternion, localScale: Vector3) -> None: raise NotImplementedError();
@@ -285,14 +285,14 @@ class OpenGLGfxModel(IOpenGfxModel):
 class OpenGLGfxLight(IOpenGfxLight):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    def createLight(self, radius: float, color: Color, indoors: bool) -> object: raise NotImplementedError()
+    def createLight(self, radius: float, color: Color, indoors: bool) -> object: print(f'light: {radius}'); return 'light'
 
 # OpenGLGfxTerrain
 class OpenGLGfxTerrain(IOpenGfxTerrain):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: raise NotImplementedError()
-    def createTerrain(self, data: object, position: Vector3, parent: object) -> object: raise NotImplementedError()
+    def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: return f't{offset}'
+    def createTerrain(self, data: object, position: Vector3, parent: object) -> object: print(f'terrain: {data}'); return 'terrain'
 
 # OpenGLPlatform
 class OpenGLPlatform(Platform):

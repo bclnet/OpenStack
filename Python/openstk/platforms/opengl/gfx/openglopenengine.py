@@ -1,11 +1,11 @@
 from __future__ import annotations
 import os, re
 from numpy import ndarray
+from quaternion import quaternion
 from importlib import resources
 from OpenGL.GL import *
 from openstk.core import _throw, CoroutineQueue, CellManager, CellBuilder
 from openstk.gfx import Shader
-
 
 class OpenGLOpenEngine:
     desiredWorkTimePerFrame: float = 1.0 / 200
@@ -15,48 +15,37 @@ class OpenGLOpenEngine:
         self.cellManager: CellManager = manager(self.queue) or _throw('manager')
         self.query = self.cellManager.query
         self.world: int = 0
-        self.cell: ICell = None
+        self._cell: ICell = None
         #self.playerTransform: Transform
-        #self.playerComponent: PlayerComponent
-        self.playerCamera: object = None
+        self.camera: object = None
 
     def dispose(self) -> None: pass
 
+    @property
+    def cell(self) -> ICell: return self._cell
+    @cell.setter
+    def cell(self, value: ICell) -> None:
+        if self._cell == value: return
+        self._cell = value
+        if self.cellChanged: self.cellChanged(self._cell)
+
+    cellChanged: callable = None
+
     def update(self) -> None:
-        if not self.playerCamera: return
+        # if not self.playerCamera: return
         # The current cell can be null if the player is outside of the defined game world.
-        #if not self.currentCell or not self.currentCell.isInterior: self.cellManager.updateCells(self.playerCamera.transform.position.fromUnity(), self.currentWorld)
+        if not self._cell or not self._cell.isInterior: self.cellManager.updateCells(self.camera)
         self.queue.run(OpenGLOpenEngine.desiredWorkTimePerFrame)
 
-    #region Player Spawn
-
-    def createPlayer(self, playerPrefab: object, position: Vector3) -> tuple[object, object]:
-        return (1, None)
-        #if not playerPrefab: throw new InvalidOperationException("playerPrefab missing")
-        #player = GameObject.FindWithTag("Player")
-        #if not player: { player = GameObject.Instantiate(playerPrefab); player.name = "Player"; }
-        #player.transform.position = position
-        #PlayerTransform = player.GetComponent<Transform>()
-        #cameraInPlayer = player.GetComponentInChildren<Camera>() ?? throw new InvalidOperationException("Player:Camera missing")
-        #playerCamera = cameraInPlayer.gameObject
-        #PlayerComponent = player.GetComponent<PlayerComponent>()
-        #return player
+    def _createPlayer(self, position: Vector3, rotation: quaternion) -> None:
+        self.camera = position
 
     # Spawns the player inside using the cell's grid coordinates.
-    def spawnPlayer(self, playerPrefab: object, position: Vector3, update: bool = False):
-        cellId = self.query.getCellId(position, self.world)
-        self.cell = self.query.findCell(cellId)
-        assert(self.cell)
-        player, self.playerCamera = self.createPlayer(playerPrefab, position)
-        if update:
-            #self.cellManager.updateCells(self.playerCamera.transform.position.fromUnity(), self.currentWorld, True, CellRadiusOnLoad)
-            self.onCell(self.cell)
-        else:
-            cell = self.cellManager.beginCell(cellId)
-            if not cell: return
-            self.queue.waitFor(cell.task)
-            self.onCell(self.cell)
+    def spawnPlayer(self, db: ICellDatabase):
+        self.cell = self.query.findCell(db.cellId)
+        assert(self._cell)
+        self._createPlayer(db.playerPosition, db.playerRotation)
+        cell = self.cellManager.beginCell(db.cellId)
+        self.queue.waitFor(cell.task)
 
-    def onCell(self, cell: ICell): pass
-
-    #endregion
+        #self.cellManager.updateCells(self.playerCamera.transform.position.fromUnity(), self.world, True, CellRadiusOnLoad)

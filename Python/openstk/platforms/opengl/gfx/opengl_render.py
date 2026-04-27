@@ -302,7 +302,7 @@ class CellRenderer(EginRenderer):
 class EngineRenderer(EginRenderer):
     def __init__(self, gfx: OpenGLGfxModel, obj: object):
         self.gfx: OpenGLGfxModel = gfx
-        self.obj: ICellDatabase = obj
+        self.db: ICellDatabase = obj
         self.engine: OpenGLOpenEngine
         self.playerPrefab: object = None
 
@@ -310,12 +310,12 @@ class EngineRenderer(EginRenderer):
         if self.engine: self.engine.dispose()
 
     def start(self) -> None:
-        # log.info(f'Obj: {self.obj}')
-        arc = self.obj.archive
+        # log.info(f'db: {self.db}')
+        arc = self.db.archive
         self.gfx = arc.gfx
-        query = self.obj.query
+        query = self.db.query
         self.engine = OpenGLOpenEngine(lambda queue: CellManager(query, queue, OpenGLCellBuilder(query, self.gfx)), False)
-        self.engine.spawnPlayer(self.playerPrefab, self.obj.start)
+        self.engine.spawnPlayer(self.db)
 
     def update(self, deltaTime: float) -> None:
         if self.engine: self.engine.update()
