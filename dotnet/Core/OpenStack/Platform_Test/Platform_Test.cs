@@ -58,20 +58,21 @@ public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, Range? level = null) => throw new NotImplementedException();
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent = default) => throw new NotImplementedException();
 }
 
 public class TestGfxLight(ISource source) : IOpenGfxLight<object> {
     public ISource Source => source;
     public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
-    public object CreateLight(float radius, Color color, bool indoors) => throw new NotImplementedException();
+    public object CreateLight(string name, Vector3? position, float radius, Color color, bool indoors, object parent = default) => throw new NotImplementedException();
+    public object CreateReflectionProbe(string name, Vector3? position, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestGfxTerrain(ISource source) : IOpenGfxTerrain<object, object, object> {
     public ISource Source => source;
     public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<object>[] layers, float[,,] alphaMap) => throw new NotImplementedException();
-    public object CreateTerrain(object data, Vector3 position, object parent = null) => throw new NotImplementedException();
+    public object CreateTerrain(string name, Vector3? position, object data, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestSfx(ISource source) : IOpenSfx {

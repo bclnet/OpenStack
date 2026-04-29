@@ -18,7 +18,7 @@ class PyEngine3dClientHost(IClientHost):
 # PyEngine3dObjectModelBuilder
 class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
+    def instanceObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # PyEngine3dShaderBuilder

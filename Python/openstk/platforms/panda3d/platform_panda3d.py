@@ -18,7 +18,7 @@ class Panda3dClientHost(IClientHost):
 # Panda3dObjectModelBuilder
 class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
+    def instanceObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # Panda3dShaderBuilder

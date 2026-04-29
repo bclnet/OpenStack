@@ -572,8 +572,8 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
         // bind and validate shader
         GL.UseProgram(drawCall.Shader.Program);
         // tint and normal
-        if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", Gfx.TextureManager.CreateSolidTexture(1, 1, 1f, 1f, 1f, 1f));
-        if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", Gfx.TextureManager.CreateSolidTexture(1, 1, 0.5f, 1f, 0.5f, 1f));
+        if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", Gfx.TextureManager.CreateSolidTexture(1, 1, [1f, 1f, 1f, 1f]));
+        if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", Gfx.TextureManager.CreateSolidTexture(1, 1, [0.5f, 1f, 0.5f, 1f]));
     }
 }
 

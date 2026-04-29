@@ -44,23 +44,22 @@ public class UnityClientHost : MonoBehaviour, IClientHost {
 class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {
     GameObject _prefabObj;
 
-    public override GameObject CreateNewObject(GameObject prefab, GameObject parent) {
-        var obj = GameObject.Instantiate(prefab);
-        if (parent != null) obj.transform.parent = parent.transform;
-        return obj;
+    public override GameObject InstanceObject(GameObject src, GameObject parent) {
+        var s = GameObject.Instantiate(src);
+        if (parent != null) s.transform.parent = parent.transform;
+        return s;
     }
 
-    public override GameObject CreateObject(object source, MaterialManager<Material, Texture2D> materialManager) {
-        var file = (Binary_Nif)source;
-        // Start pre-loading all the NIF's textures.
+    public override GameObject CreateObject(object src, MaterialManager<Material, Texture2D> materialManager) {
+        var file = (Binary_Nif)src;
         foreach (var texturePath in file.GetTexturePaths()) materialManager.TextureManager.PreloadTexture(texturePath);
-        var objBuilder = new UnityNifObjectBuilder(file, materialManager, false);
-        var prefab = objBuilder.BuildObject();
-        prefab.transform.parent = _prefabObj.transform;
+        var builder = new UnityNifObjectBuilder(file, materialManager, false);
+        var s = builder.BuildObject();
+        s.transform.parent = _prefabObj.transform;
         // Add LOD support to the prefab.
-        var LODComponent = prefab.AddComponent<LODGroup>();
-        LODComponent.SetLODs([new(0.015f, prefab.GetComponentsInChildren<UnityEngine.Renderer>())]);
-        return prefab;
+        var lod = s.AddComponent<LODGroup>();
+        lod.SetLODs([new(0.015f, s.GetComponentsInChildren<UnityEngine.Renderer>())]);
+        return s;
     }
 
     public override void EnsurePrefab() {
@@ -86,7 +85,41 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
 
     Texture2D CreateDefaultTexture() => new(4, 4);
 
-    public override Texture2D CreateTexture(Texture2D reuse, ITexture source, Range? range = null) => source.Create("UN", x => {
+    /// <summary>
+    /// Create a solid texture used by HDRP material.
+    /// </summary>
+    /// <param name="r">Metallic</param>
+    /// <param name="g">Occlusion</param>
+    /// <param name="b">Detail Mask</param>
+    /// <param name="a">Smoothness</param>
+    /// <returns>A mask texture.</returns>
+    public override Texture2D CreateSolidTexture(int width, int height, float[] rgbas) {
+        var s = new Texture2D(width, height);
+        s.SetPixels([new Color(rgbas[0], rgbas[1], rgbas[2], rgbas[3])]);
+        s.Apply();
+        return s;
+    }
+
+    // https://gamedev.stackexchange.com/questions/106703/create-a-normal-map-using-a-script-unity
+    public override Texture2D CreateNormalMapTexture(Texture2D src, float strength) {
+        strength = Mathf.Clamp(strength, 0f, 100f);
+        float xLeft, xRight, yUp, yDown, yDelta, xDelta;
+        var s = new Texture2D(src.width, src.height, TextureFormat.RGB24, true);
+        for (var y = 0; y < s.height; y++)
+            for (var x = 0; x < s.width; x++) {
+                xLeft = src.GetPixel(x - 1, y).grayscale * strength;
+                xRight = src.GetPixel(x + 1, y).grayscale * strength;
+                yUp = src.GetPixel(x, y - 1).grayscale * strength;
+                yDown = src.GetPixel(x, y + 1).grayscale * strength;
+                xDelta = (xLeft - xRight + 1) * 0.5f;
+                yDelta = (yUp - yDown + 1) * 0.5f;
+                s.SetPixel(x, y, new Color(xDelta, yDelta, 1.0f, yDelta));
+            }
+        s.Apply();
+        return s;
+    }
+
+    public override Texture2D CreateTexture(Texture2D reuse, ITexture src, Range? range = null) => src.Create("UN", x => {
         switch (x) {
             case Texture_Bytes t:
                 if (t.Bytes == null) return DefaultTexture;
@@ -120,9 +153,9 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
                     };
                     if (format == DXT3) {
                         textureFormat = TextureFormat.DXT5;
-                        TextureConvert.Dxt3ToDtx5(t.Bytes, source.Width, source.Height, source.MipMaps);
+                        TextureConvert.Dxt3ToDtx5(t.Bytes, src.Width, src.Height, src.MipMaps);
                     }
-                    var tex = new Texture2D(source.Width, source.Height, textureFormat, source.MipMaps, false);
+                    var tex = new Texture2D(src.Width, src.Height, textureFormat, src.MipMaps, false);
                     //var tex = new Texture2D(source.Width, source.Height, textureFormat, source.MipMaps > 0);
                     tex.LoadRawTextureData(t.Bytes);
                     tex.Apply();
@@ -134,27 +167,7 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
         }
     });
 
-    public override Texture2D CreateSolidTexture(int width, int height, float[] rgba) => new Texture2D(width, height);
-
-    public override Texture2D CreateNormalMap(Texture2D texture, float strength) {
-        strength = Mathf.Clamp(strength, 0.0F, 1.0F);
-        float xLeft, xRight, yUp, yDown, yDelta, xDelta;
-        var normalTexture = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, true);
-        for (var y = 0; y < normalTexture.height; y++)
-            for (var x = 0; x < normalTexture.width; x++) {
-                xLeft = texture.GetPixel(x - 1, y).grayscale * strength;
-                xRight = texture.GetPixel(x + 1, y).grayscale * strength;
-                yUp = texture.GetPixel(x, y - 1).grayscale * strength;
-                yDown = texture.GetPixel(x, y + 1).grayscale * strength;
-                xDelta = (xLeft - xRight + 1) * 0.5f;
-                yDelta = (yUp - yDown + 1) * 0.5f;
-                normalTexture.SetPixel(x, y, new Color(xDelta, yDelta, 1.0f, yDelta));
-            }
-        normalTexture.Apply();
-        return normalTexture;
-    }
-
-    public override void DeleteTexture(Texture2D texture) => UnityEngine.Object.Destroy(texture);
+    public override void DeleteTexture(Texture2D src) => UnityEngine.Object.Destroy(src);
 }
 
 // UnityMaterialBuilder
@@ -182,9 +195,9 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
                         var tex = TextureManager.CreateTexture(mainTexture).tex;
                         m.SetTexture(BaseMap, tex);
                         var bumpTexture = p.Textures.TryGetValue("Bump", out z) ? z : default;
-                        if (bumpTexture != null || NormalGeneratorIntensity != null) {
+                        if (bumpTexture != null) {
                             m.EnableKeyword("_NORMALMAP");
-                            m.SetTexture(BumpMap, bumpTexture != null ? TextureManager.CreateTexture(bumpTexture).tex : TextureManager.CreateNormalMap(tex, NormalGeneratorIntensity.Value));
+                            m.SetTexture(BumpMap, bumpTexture != null ? TextureManager.CreateTexture(bumpTexture).tex : TextureManager.CreateNormalMapTexture(tex));
                         }
                     }
                     return m;
@@ -418,7 +431,7 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public GameObject CreateObject(object path, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
-    public void PostObject(GameObject src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, GameObject parent) {
+    public void PostObject(GameObject src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, GameObject parent = default) {
         if (scale != null) src.transform.localScale = Vector3.one * scale.Value;
         src.transform.position += position.ToUnity();
         src.transform.rotation *= eulerAngles.ToUnityQuaternionAsEulerAnglesX();
@@ -453,8 +466,10 @@ public class UnityGfxLight(ISource source) : IOpenGfxLight<GameObject> {
     readonly ISource _source = source;
     public ISource Source => _source;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public GameObject CreateLight(float radius, System.Drawing.Color color, bool indoors) {
-        var s = new GameObject("GfxCreateLight") { isStatic = true };
+    public GameObject CreateLight(string name, System.Numerics.Vector3? position, float radius, System.Drawing.Color color, bool indoors, GameObject parent = default) {
+        var s = new GameObject(name) { isStatic = true };
+        if (parent != null) s.transform.parent = parent.transform;
+        if (position != null) s.transform.position = position.Value.ToUnity();
         var c = s.AddComponent<Light>();
         c.range = 3 * radius;
         c.color = color.ToUnity();
@@ -464,8 +479,18 @@ public class UnityGfxLight(ISource source) : IOpenGfxLight<GameObject> {
         if (!indoors && !RenderExteriorCellLights) c.enabled = false; // disabling exterior cell lights because there is no day/night cycle
         return s;
     }
+    public GameObject CreateReflectionProbe(string name, System.Numerics.Vector3? position, GameObject parent = default) {
+        var s = new GameObject(name);
+        if (parent != null) s.transform.parent = parent.transform;
+        if (position != null) s.transform.position = position.Value.ToUnity();
+        var rp = s.AddComponent<ReflectionProbe>();
+        rp.size = new Vector3(120, 120, 120);
+        rp.mode = UnityEngine.Rendering.ReflectionProbeMode.Realtime;
+        rp.refreshMode = UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
+        rp.RenderProbe();
+        return s;
+    }
 }
-
 
 // UnityGfxTerrain
 public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Material, Texture2D> {
@@ -473,8 +498,42 @@ public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Mater
     readonly MaterialManager<Material, Texture2D> _materialManager = new(source, null, new UnityMaterialBuilder(null));
     public ISource Source => _source;
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture2D>[] layers, float[,,] alphaMap) => GameObjectX.CreateTerrainData(offset, heights, heightRange, sampleDistance, [.. layers.Select(s => new TerrainLayer { diffuseTexture = s.Texture, tileSize = s.TileSize.ToUnity(), smoothness = 0, metallic = 0 })], alphaMap);
-    public GameObject CreateTerrain(object data, System.Numerics.Vector3 position, GameObject parent = default) => GameObjectX.CreateTerrain((TerrainData)data, position.ToUnity(), _materialManager.TerrainMaterial, parent);
+    public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture2D>[] layers, float[,,] alphaMap) {
+        Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
+        // Create the TerrainData.
+        var heightmapResolution = heights.GetLength(0);
+        var s = new TerrainData { heightmapResolution = heightmapResolution };
+        //Log($"{terrainData.heightmapResolution} == {heightmapResolution}");
+        var terrainWidth = (heightmapResolution + offset) * sampleDistance;
+        // If maxHeight is 0, leave all the heights in terrainData at 0 and make the vertical size of the terrain 1 to ensure valid AABBs.
+        if (!Mathf.Approximately(heightRange, 0)) { s.size = new Vector3(terrainWidth, heightRange, terrainWidth); s.SetHeights(0, 0, heights); }
+        else s.size = new Vector3(terrainWidth, 1, terrainWidth);
+        s.terrainLayers = [.. layers.Select(s => new TerrainLayer {
+            diffuseTexture = s.Texture,
+            smoothness = s.Smoothness,
+            metallic = s.Metallic,
+            maskMapTexture = s.MaskMapTexture,
+            normalMapTexture = s.NormalMapTexture,
+            tileSize = s.TileSize.ToUnity() })];
+        if (alphaMap != null) { Debug.Assert(alphaMap.GetLength(0) == alphaMap.GetLength(1)); s.alphamapResolution = alphaMap.GetLength(0); s.SetAlphamaps(0, 0, alphaMap); }
+        return s;
+    }
+    public GameObject CreateTerrain(string name, System.Numerics.Vector3? position, object data, GameObject parent = default) {
+        var data2 = (TerrainData)data;
+        var terrainMaterial = _materialManager.TerrainMaterial;
+        var terrainError = 1f;
+        var treeDistance = 1f;
+        var s = new GameObject(name) { isStatic = true };
+        if (parent != null) s.transform.parent = parent.transform;
+        if (position != null) s.transform.position = position.Value.ToUnity();
+        var terrain = s.AddComponent<Terrain>();
+        terrain.terrainData = data2;
+        terrain.materialTemplate = terrainMaterial;
+        terrain.heightmapPixelError = terrainError;
+        terrain.treeDistance = treeDistance;
+        s.AddComponent<TerrainCollider>().terrainData = data2;
+        return s;
+    }
 }
 
 // UnitySfx

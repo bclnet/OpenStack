@@ -4,6 +4,7 @@ using OpenStack.Gfx;
 using OpenStack.Gfx.Godot;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using XShader = Godot.Shader;
@@ -59,10 +60,10 @@ class GodotTextureBuilder : TextureBuilderBase<Texture> {
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override Texture CreateTexture(Texture reuse, ITexture source, System.Range? level = null) => throw new NotImplementedException();
+    public override Texture CreateNormalMapTexture(Texture src, float strength) => throw new NotImplementedException();
     public override Texture CreateSolidTexture(int width, int height, float[] pixels) => null;
-    public override Texture CreateNormalMap(Texture texture, float strength) => throw new NotImplementedException();
-    public override void DeleteTexture(Texture texture) { }
+    public override Texture CreateTexture(Texture reuse, ITexture src, System.Range? level = null) => throw new NotImplementedException();
+    public override void DeleteTexture(Texture src) { }
 }
 
 // GodotMaterialBuilder : MISSING

@@ -85,8 +85,8 @@ public abstract class ObjectSpriteBuilderBase<Object, Sprite> {
 public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBuilderBase<Object, Sprite> builder) {
     readonly ISource Source = source;
     readonly ObjectSpriteBuilderBase<Object, Sprite> Builder = builder;
-    readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
+    static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
     public (Object obj, object tag) CreateObject(object path) {
         Builder.EnsurePrefab();
@@ -122,7 +122,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
 /// <typeparam name="Texture"></typeparam>
 public abstract class ObjectModelBuilderBase<Object, Material, Texture> {
     public abstract void EnsurePrefab();
-    public abstract Object CreateNewObject(Object prefab, Object parent);
+    public abstract Object InstanceObject(Object src, Object parent);
     public abstract Object CreateObject(object src, MaterialManager<Material, Texture> materialManager);
 }
 
@@ -139,14 +139,14 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     readonly ISource Source = source;
     readonly MaterialManager<Material, Texture> MaterialManager = materialManager;
     readonly ObjectModelBuilderBase<Object, Material, Texture> Builder = builder;
-    readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
+    static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
     public (Object obj, object tag) CreateObject(object path, Object parent) {
         Builder.EnsurePrefab();
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path, parent).Result;
-        return (Builder.CreateNewObject(prefab.obj, parent), prefab.tag);
+        return (Builder.InstanceObject(prefab.obj, parent), prefab.tag);
     }
 
     public void PreloadObject(object path) {
@@ -173,11 +173,11 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
 public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation) {
     readonly Func<int, string, int> _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
     readonly Func<int, string, int> _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
-    Dictionary<string, int> _uniforms = [];
     public string Name;
     public int Program;
     public IDictionary<string, bool> Parameters;
     public List<string> RenderModes;
+    Dictionary<string, int> _uniforms = [];
 
     public int GetUniformLocation(string name) {
         if (_uniforms.TryGetValue(name, out var value)) return value;
@@ -207,8 +207,7 @@ public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> bui
     readonly ISource Source = source;
     readonly ShaderBuilderBase<Shader> Builder = builder;
 
-    public (Shader sha, object tag) CreateShader(object path, IDictionary<string, bool> args = null)
-        => (Builder.CreateShader(path, args ?? EmptyArgs), null);
+    public (Shader sha, object tag) CreateShader(object path, IDictionary<string, bool> args = null) => (Builder.CreateShader(path, args ?? EmptyArgs), null);
 }
 
 #endregion
@@ -243,8 +242,8 @@ public abstract class SpriteBuilderBase<Sprite> {
 public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> builder) {
     readonly ISource Source = source;
     readonly SpriteBuilderBase<Sprite> Builder = builder;
-    readonly Dictionary<object, (Sprite spr, object tag)> CachedSprites = [];
     readonly Dictionary<object, Task<ISprite>> PreloadTasks = [];
+    static readonly Dictionary<object, (Sprite spr, object tag)> CachedSprites = [];
 
     public Sprite DefaultSprite => Builder.DefaultSprite;
 
@@ -334,10 +333,10 @@ public interface ITextureFramesSelect : ITextureFrames {
 public abstract class TextureBuilderBase<Texture> {
     public static int MaxTextureMaxAnisotropy => GfX.MaxTextureMaxAnisotropy;
     public abstract Texture DefaultTexture { get; }
-    public abstract Texture CreateTexture(Texture reuse, ITexture tex, Range? level = null);
-    public abstract Texture CreateSolidTexture(int width, int height, float[] rgba);
-    public abstract Texture CreateNormalMap(Texture tex, float strength);
-    public abstract void DeleteTexture(Texture tex);
+    public abstract Texture CreateNormalMapTexture(Texture src, float strength);
+    public abstract Texture CreateSolidTexture(int width, int height, float[] rgbas);
+    public abstract Texture CreateTexture(Texture reuse, ITexture src, Range? level = null);
+    public abstract void DeleteTexture(Texture src);
 }
 
 /// <summary>
@@ -347,16 +346,35 @@ public abstract class TextureBuilderBase<Texture> {
 /// <param name="source"></param>
 /// <param name="builder"></param>
 public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture> builder) {
+    class Solid(int width, int height, float[] rgbas) {
+        public int Width = width;
+        public int Height = height;
+        public float[] Rgbas = rgbas;
+    }
+
     readonly ISource Source = source;
     readonly TextureBuilderBase<Texture> Builder = builder;
-    readonly Dictionary<object, (Texture tex, object tag)> CachedTextures = [];
     readonly Dictionary<object, Task<ITexture>> PreloadTasks = [];
-
-    public Texture CreateSolidTexture(int width, int height, params float[] rgba) => Builder.CreateSolidTexture(width, height, rgba);
-
-    public Texture CreateNormalMap(Texture tex, float strength) => Builder.CreateNormalMap(tex, strength);
-
+    static readonly Dictionary<Texture, Texture> CachedNormalMapTextures = [];
+    static readonly Dictionary<Solid, Texture> CachedSolidTextures = [];
+    static readonly Dictionary<object, (Texture tex, object tag)> CachedTextures = [];
     public Texture DefaultTexture => Builder.DefaultTexture;
+    const float NormalMapIntensity = 0.75f;
+
+    public Texture CreateNormalMapTexture(Texture src, float strength = -1) {
+        if (CachedNormalMapTextures.TryGetValue(src, out var s)) return s;
+        s = Builder.CreateNormalMapTexture(src, strength < 0 ? NormalMapIntensity : strength);
+        CachedNormalMapTextures[src] = s;
+        return s;
+    }
+
+    public Texture CreateSolidTexture(int width, int height, float[] rgbas) {
+        var src = new Solid(width, height, rgbas);
+        if (CachedSolidTextures.TryGetValue(src, out var s)) return s;
+        s = Builder.CreateSolidTexture(width, height, rgbas);
+        CachedSolidTextures[src] = s;
+        return s;
+    }
 
     public (Texture tex, object tag) CreateTexture(object path, Range? level = null) {
         path = Source.FindPath<ITexture>(path);
@@ -479,7 +497,6 @@ public class MaterialTerrainProp : MaterialProp { }
 /// <param name="textureManager"></param>
 public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Texture> textureManager) {
     protected TextureManager<Texture> TextureManager = textureManager;
-    public float? NormalGeneratorIntensity = 0.75f;
     public abstract Material DefaultMaterial { get; }
     public abstract Material TerrainMaterial { get; }
     public abstract Material CreateMaterial(object path);
@@ -491,10 +508,10 @@ public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Text
 public class MaterialManager<Material, Texture>(ISource source, TextureManager<Texture> textureManager, MaterialBuilderBase<Material, Texture> builder) {
     readonly ISource Source = source;
     readonly MaterialBuilderBase<Material, Texture> Builder = builder;
-    readonly Dictionary<object, (Material material, object tag)> CachedMaterials = [];
     readonly Dictionary<object, Task<MaterialProp>> PreloadTasks = [];
-    public TextureManager<Texture> TextureManager { get; } = textureManager;
+    static readonly Dictionary<object, (Material material, object tag)> CachedMaterials = [];
 
+    public TextureManager<Texture> TextureManager { get; } = textureManager;
     public Material DefaultMaterial => Builder.DefaultMaterial;
     public Material TerrainMaterial => Builder.TerrainMaterial;
 
@@ -607,7 +624,7 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     Object CreateObject(object path, Object parent = default);
     Shader CreateShader(object path, IDictionary<string, bool> args = null);
     Texture CreateTexture(object path, Range? level = null);
-    void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent);
+    void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent = default);
 }
 
 /// <summary>
@@ -619,14 +636,20 @@ public interface IOpenGfxLight : IOpenGfx { }
 /// IOpenGfxLight
 /// </summary>
 public interface IOpenGfxLight<Object> : IOpenGfxLight {
-    Object CreateLight(float radius, Color color, bool indoors);
+    Object CreateLight(string name, Vector3? position, float radius, Color color, bool indoors, Object parent = default);
+    Object CreateReflectionProbe(string name, Vector3? position, Object parent = default);
 }
 
 /// <summary>
 /// GfxTerrainLayer
 /// </summary>
-public class GfxTerrainLayer<T> {
-    public T Texture;
+public class GfxTerrainLayer<Texture_> {
+    public Texture_ Texture;
+    public float Smoothness;
+    public float Metallic;
+    public Color Specular;
+    public Texture_ MaskMapTexture;
+    public Texture_ NormalMapTexture;
     public Vector2 TileSize;
 }
 
@@ -640,7 +663,7 @@ public interface IOpenGfxTerrain : IOpenGfx { }
 /// </summary>
 public interface IOpenGfxTerrain<Object, Material, Texture> : IOpenGfxTerrain {
     object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture>[] layers, float[,,] alphaMap);
-    Object CreateTerrain(object data, Vector3 position, Object parent = default);
+    Object CreateTerrain(string name, Vector3? position, object data, Object parent = default);
 }
 
 #endregion

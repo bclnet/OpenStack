@@ -1,17 +1,18 @@
 from __future__ import annotations
 import os, math
-from numpy import ndarray, zeros
+from numpy import ndarray, array, zeros
 from openstk.core.poly.pool import CoroutineQueue
-from openstk.core.poly.poly import Int3, Float3
+from openstk.core.poly.poly import Int3, Float3, Float4
 from openstk.core.poly.system import getExtrema, changeRange
 import openstk.core.poly.log as log
-from openstk.gfx.gfx import GfX
+from openstk.gfx.gfx import GfX, GfxTerrainLayer
+from openstk.sys.drawing import Color
 
 # types
 type Vector2 = ndarray
 type Vector3 = ndarray
 
-# forwards
+# typedefs
 class Object: pass
 class Texture: pass
 class Material: pass
@@ -141,11 +142,11 @@ class CellManager:
         if not cell.isInterior: cellName = f'cell {cell.gridId}'; land = self.query.findLand(cell.gridId)
         else: cellName = cell.name
         (objectsObj, obj) = self.builder.createContainers(cellName)
-        task = self.builder.cellCoroutine(cell, land, objectsObj, obj); self.queue.add(task)
+        task = self.builder.coroutine(cell, land, objectsObj, obj); self.queue.add(task)
         return CellManager.Cell(objectsObj, obj, cell, task)
 
     def destroyCell(self, point: Int3) -> None:
-        if point in self.cells: s = self.cells[point]; self.queue.cancel(s.task); self.builder.destroy(s.obj); self.cells.remove(point)
+        if point in self.cells: s = self.cells[point]; self.queue.cancel(s.task); self.builder.destroy(s.obj); self.cells.pop(point)
         else: log.error('Tried to destroy a cell that isn\'t created.')
 
     def destroyAllCells(self) -> None:
@@ -156,11 +157,12 @@ class CellManager:
 class CellBuilderX:
     def createContainers(self, name: str) -> tuple[object, object]: pass
     def setVisible(self, src: object, visible: bool) -> None: pass
-    def cellCoroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> Enumerator: pass
+    def coroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> Enumerator: pass
 
 # CellBuilder
 class CellBuilder(CellBuilderX):
     defaultLandTexturePath: str = 'textures/_land_default.dds'
+    terrainLayers: dict[Texture, GfxTerrainLayer[Texture]] = {}
 
     def __init__(self, query: IQuery, gfx: list[IOpenGfx]):
         self.query = query
@@ -180,61 +182,37 @@ class CellBuilder(CellBuilderX):
     def destroy(self, src: object) -> None: self.gfxApi.destroy(src)
 
     # A coroutine that instantiates the terrain for, and all objects in, a cell.
-    def cellCoroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> IEnumerator:
-        # Start pre-loading all required textures for the terrain.
-        if land:
-            landTextures = self.getLandTextures(land)
-            if landTextures:
-                for landTexture in landTextures: self.gfxModel.preloadTexture(landTexture)
-            yield None
-
-        # Extract information about referenced objects.
-        cellRefs = self.getCellRefs(cell); yield None
-
-        # Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
-        for s in cellRefs:
-            if s.modelPath: self.gfxModel.preloadObject(s.modelPath)
-        yield None
-
-        # Extract information about referenced objects.
-        cellRefs = self.getCellRefs(cell); yield None
-
-        # Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
-        for s in cellRefs:
-            if s.modelPath: self.gfxModel.preloadObject(s.modelPath)
-        yield None
-
-        # Instantiate terrain.
-        if land:
-            task = self.landCoroutine(land, obj)
-            while task.moveNext(): yield None
-            yield None
-
-        # Instantiate objects.
-        for s in cellRefs: self.cellObject(cell, objectsObj, s); yield None
+    def coroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> IEnumerator:
+        if not cell and not land: return
+        cellRefs = self.getCellRefs(cell)
+        if land and self.gfxTerrain: yield None; self.createLand(land, obj); yield None
+        for s in cellRefs: self.createCell(cell, objectsObj, s); yield None
+        if self.gfxLight: self.createReflectionProbe(cell, obj);
 
     def getCellRefs(self, cell: ICell) -> list[CellRef]:
         @staticmethod
-        def _(s):
-            record = self.query.findByName(s.name)
-            return CellRef(obj=s, record=record, modelPath=record.modelPath if record and isinstance(record, ICellXrefModel) and record.modelPath else None)
+        def _(s): record = self.query.findAnyByName(s.name); return CellManager.CellRef(
+            obj=s,
+            record=record,
+            modelPath=record.modelPath if record and isinstance(record, CellManager.ICellXrefModel) and record.modelPath else None)
         return [_(s) for s in cell.Xrefs]
 
     # Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
-    def cellObject(self, cell: ICell, parent: object, r: CellRef) -> None:
-        if not r.record: log.Info(f'Unknown Object: {r.obj.name}'); return
+    def createCell(self, cell: ICell, parent: object, r: CellRef) -> None:
+        if not r.record: log.info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None
         if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postCellObject(modelObj, r.obj, parent)
         if self.gfxLight and isinstance(r.record, CellManager.ILigh):
             ligh = r.record
-            s = self.gfxLight.createLight(ligh.radius, ligh.lightColor, cell.isInterior)
+            s = self.gfxLight.createLight('Light', None, ligh.radius, ligh.lightColor, cell.isInterior)
             if modelObj: self.gfxApi.attach(GfxAttach.Find, s, modelObj, 'AttachLight')
             else: self.gfxModel.postCellObject(s, r.obj, parent)
 
     def getLandTextures(self, land: ILand) -> list[str]:
-        if not land.vtex: return None
+        vtex = land.vtex
+        if not land.heights or not vtex: return None
         paths = []
-        indexs = list(set(land.vtex))
+        indexs = list(set(vtex))
         for i in range(len(indexs)):
             index = indexs[i] - 1
             if index < 0: paths.append(CellBuilder.defaultLandTexturePath); continue
@@ -248,54 +226,105 @@ class CellBuilder(CellBuilderX):
     VTEX_ROWS: int = 16
     VTEX_COLUMNS: int = VTEX_ROWS
 
-    def landCoroutine(self, land: ILand, parent: object):
-        heights = land.height
+    def createLand(self, land: ILand, parent: object):
+        heights = land.heights
         if not heights: return
-        yield None # Return before doing any work to provide an IEnumerator handle to the coroutine.
 
         # Read in the heights in Morrowind units.
-        newHeights = zeros((LAND_SIDELENGTH_IN_SAMPLES, LAND_SIDELENGTH_IN_SAMPLES), dtype=float) 
+        newHeights = zeros((CellBuilder.LAND_SIDELENGTH_IN_SAMPLES, CellBuilder.LAND_SIDELENGTH_IN_SAMPLES), dtype=float) 
         rowOffset = land.heightOffset
-        for y in range(LAND_SIDELENGTH_IN_SAMPLES):
-            rowOffset += heights[y * LAND_SIDELENGTH_IN_SAMPLES]
-            newHeights[y, 0] = rowOffset * VHGTIncrementToUnits
+        for y in range(CellBuilder.LAND_SIDELENGTH_IN_SAMPLES):
+            rowOffset += heights[y * CellBuilder.LAND_SIDELENGTH_IN_SAMPLES]
+            newHeights[y, 0] = rowOffset * CellBuilder.VHGTIncrementToUnits
             colOffset = rowOffset
-            for x in range(1, LAND_SIDELENGTH_IN_SAMPLES):
-                colOffset += heights[(y * LAND_SIDELENGTH_IN_SAMPLES) + x]
-                newHeights[y, x] = colOffset * VHGTIncrementToUnits
+            for x in range(1, CellBuilder.LAND_SIDELENGTH_IN_SAMPLES):
+                colOffset += heights[(y * CellBuilder.LAND_SIDELENGTH_IN_SAMPLES) + x]
+                newHeights[y, x] = colOffset * CellBuilder.VHGTIncrementToUnits
 
         # Change the heights to percentages.
         minHeight, maxHeight = getExtrema(newHeights)
-        for y in range(LAND_SIDELENGTH_IN_SAMPLES):
-            for x in range(LAND_SIDELENGTH_IN_SAMPLES):
+        for y in range(CellBuilder.LAND_SIDELENGTH_IN_SAMPLES):
+            for x in range(CellBuilder.LAND_SIDELENGTH_IN_SAMPLES):
                 newHeights[y, x] = changeRange(newHeights[y, x], minHeight, maxHeight, 0, 1)
 
         # Texture the terrain.
-        indexs = land.vtex or [0]*LAND_TEXTUREINDICES; layers = []; layerIndexs = {}
+        textureManager = self.gfxModel.textureManager
+        indexs = land.vtex or [0]*CellBuilder.LAND_TEXTUREINDICES; layers = []; layerIndexs = {}
         for i in range(len(indexs)):
             index = indexs[i] - 1
             if index in layerIndexs: continue
             # Load terrain texture.
             path = self.query.findLtex(index).path if index >= 0 else CellBuilder.defaultLandTexturePath
-            texture = self.gfxModel.createTexture(path)
-            yield None # Yield after loading each texture to avoid doing too much work on one frame.
-            # Create the splat prototype.
-            layerIndex = len(layers); layers.append(TerrainLayer(texture=texture, tileSize=array([6, 6]))); layerIndexs[index] = layerIndex
+            tex = self.gfxModel.createTexture(path)
+            layer = CellBuilder.terrainLayers.get(tex)
+            if not layer:
+                layer = GfxTerrainLayer[Texture](
+                    texture=tex,
+                    smoothness=.3,
+                    metallic=.2,
+                    specular=Color.black,
+                    tileSize=array([6, 6]))
+                layer.maskMapTexture = textureManager.createSolidTexture(1, 1, [layer.metallic, .0, .0, layer.smoothness])
+                layer.normalMapTexture = textureManager.createNormalMapTexture(tex)
+                CellBuilder.terrainLayers[tex] = layer
+            layerIndex = len(layers); layers.append(layer); layerIndexs[index] = layerIndex
+        newlayers = layers
 
         # Create the alpha map.
-        alphaMap = float[VTEX_ROWS, VTEX_COLUMNS, layers.Count]
-        for y in range(VTEX_ROWS):
-            yMajor = y / 4; yMinor = y - (yMajor * 4)
-            for x in range(VTEX_COLUMNS):
-                xMajor = x / 4; xMinor = x - (xMajor * 4)
+        alphaMap = zeros((CellBuilder.VTEX_ROWS, CellBuilder.VTEX_COLUMNS, len(newlayers)))
+        for y in range(CellBuilder.VTEX_ROWS):
+            yMajor = y // 4; yMinor = y - (yMajor * 4)
+            for x in range(CellBuilder.VTEX_COLUMNS):
+                xMajor = x // 4; xMinor = x - (xMajor * 4)
                 texIndex = indexs[(yMajor * 64) + (xMajor * 16) + (yMinor * 4) + xMinor] - 1
                 alphaMap[y, x, layerIndexs[texIndex] if texIndex >= 0 else 0] = 1
-
+    
         # Create the terrain.
-        if self.gfxTerrain:
-            yield None # Yield before creating the terrain GameObject because it takes a while.
-            heightRange = (maxHeight - minHeight) / self.meterInUnits
-            position = array([land.gridId.y * self.cellLengthInMeters, land.gridId.y * self.cellLengthInMeters, minHeight / self.meterInUnits])
-            sampleDistance = self.cellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1)
-            data = self.gfxTerrain.gfxCreateTerrainData(-1, newHeights, heightRange, sampleDistance, layers, alphaMap)
-            self.gfxTerrain.gfxCreateTerrain(data, position, parent)
+        heightRange = (maxHeight - minHeight) / self.meterInUnits
+        position = array([land.gridId.y * self.cellLengthInMeters, land.gridId.y * self.cellLengthInMeters, minHeight / self.meterInUnits])
+        sampleDistance = self.cellLengthInMeters / (CellBuilder.LAND_SIDELENGTH_IN_SAMPLES - 1)
+        data = self.gfxTerrain.createTerrainData(-1, newHeights, heightRange, sampleDistance, newlayers, alphaMap)
+        self.gfxTerrain.createTerrain('terrain', position, data, parent)
+
+    def createReflectionProbe(self, cell: ICell, parent: Object) -> None:
+        if cell.isInterior: return
+        gridId = cell.gridId
+        position = array([gridId.x * self.cellLengthInMeters, .0, gridId.y * self.cellLengthInMeters])
+        self.gfxLight.createReflectionProbe('probe', position, parent)
+
+
+# A coroutine that instantiates the terrain for, and all objects in, a cell.
+# def coroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> IEnumerator:
+#     if not cell and not land: return
+
+#     # Extract information about referenced objects.
+#     cellRefs = self.getCellRefs(cell)
+
+#     # Start pre-loading all required textures for the terrain.
+#     if land:
+#         landTextures = self.getLandTextures(land)
+#         if landTextures:
+#             for landTexture in landTextures: self.gfxModel.preloadTexture(landTexture)
+#         yield None
+
+#     # Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
+#     for s in cellRefs:
+#         if s.modelPath: self.gfxModel.preloadObject(s.modelPath)
+#     yield None
+
+#     # Extract information about referenced objects.
+#     cellRefs = self.getCellRefs(cell); yield None
+
+#     # Start pre-loading all required files for referenced objects. The NIF manager will load the textures as well.
+#     for s in cellRefs:
+#         if s.modelPath: self.gfxModel.preloadObject(s.modelPath)
+#     yield None
+
+#     # Instantiate terrain.
+#     if land:
+#         task = self.landCoroutine(land, obj)
+#         while task.moveNext(): yield None
+#         yield None
+
+#     # Instantiate objects.
+#     for s in cellRefs: self.cellObject(cell, objectsObj, s); yield None

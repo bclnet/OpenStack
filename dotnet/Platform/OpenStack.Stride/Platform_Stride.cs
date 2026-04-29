@@ -6,6 +6,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -61,19 +62,10 @@ class StrideTextureBuilder : TextureBuilderBase<Texture> {
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override Texture CreateTexture(Texture reuse, ITexture source, Range? level = null) {
-        throw new NotImplementedException();
-    }
-
-    public override Texture CreateSolidTexture(int width, int height, float[] pixels) {
-        return null;
-    }
-
-    public override Texture CreateNormalMap(Texture texture, float strength) {
-        throw new NotImplementedException();
-    }
-
-    public override void DeleteTexture(Texture texture) { }
+    public override Texture CreateNormalMapTexture(Texture src, float strength) => throw new NotImplementedException();
+    public override Texture CreateSolidTexture(int width, int height, float[] pixels) => null;
+    public override Texture CreateTexture(Texture reuse, ITexture src, Range? level = null) => throw new NotImplementedException();
+    public override void DeleteTexture(Texture src) { }
 }
 
 // StrideMaterialBuilder : MISSING

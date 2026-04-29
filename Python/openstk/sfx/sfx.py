@@ -35,13 +35,13 @@ class AudioManager:
     def deleteAudio(self, path: object) -> None:
         if not path in self._cachedAudios: return
         self._builder.deleteAudio(self._cachedAudios[0])
-        self._cachedAudios.remove(path)
+        self._cachedAudios.pop(path)
 
     async def _loadAudio(self, path: object) -> object:
         assert(not path in self._cachedAudios)
         self.preloadAudio(s)
         obj = await self._preloadTasks[path]
-        self._preloadTasks.remove(path)
+        self._preloadTasks.pop(path)
         return obj
 
 # IOpenGfx:

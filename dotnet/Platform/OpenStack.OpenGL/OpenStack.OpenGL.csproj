@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\dotnet\Families\GameX.Gamebryo\GameX.Gamebryo.csproj" />
     <ProjectReference Include="..\..\Core\OpenStack\OpenStack.csproj" />
     <ProjectReference Include="..\..\Gfx\OpenStack.Gfx.Egin\OpenStack.Gfx.Egin.csproj" />
   </ItemGroup>

@@ -116,62 +116,6 @@ public static class GameObjectX {
     }
 
     /// <summary>
-    /// Creates a terrain from heights.
-    /// </summary>
-    /// <param name="offset">offset.</param>
-    /// <param name="heights">Terrain height percentages ranging from 0 to 1.</param>
-    /// <param name="maxHeight">The maximum height of the terrain, corresponding to a height percentage of 1.</param>
-    /// <param name="sampleDistance">The horizontal/vertical distance between height samples.</param>
-    /// <param name="layers">The textures used by the terrain.</param>
-    /// <param name="alphaMap">Texture blending information.</param>
-    /// <param name="position">The position of the terrain.</param>
-    /// <param name="template">The material template.</param>
-    /// <param name="parent">The parent.</param>
-    /// <returns>A terrain GameObject.</returns>
-    //public static GameObject CreateTerrain(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap, Vector3 position, Material template, GameObject parent = default) {
-    //    var data = CreateTerrainData(offset, heights, heightRange, sampleDistance, layers, alphaMap);
-    //    var s = CreateTerrain(data, position, template);
-    //    return s;
-    //}
-
-    /// <summary>
-    /// Creates terrain data from heights.
-    /// </summary>
-    /// <param name="heights">Terrain height percentages ranging from 0 to 1.</param>
-    /// <param name="heightRange">The maximum height of the terrain, corresponding to a height percentage of 1.</param>
-    /// <param name="sampleDistance">The horizontal/vertical distance between height samples.</param>
-    /// <param name="layers">The textures used by the terrain.</param>
-    /// <param name="alphaMap">Texture blending information.</param>
-    /// <returns>A TerrainData instance.</returns>
-    public static TerrainData CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, TerrainLayer[] layers, float[,,] alphaMap) {
-        Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
-        // Create the TerrainData.
-        var heightmapResolution = heights.GetLength(0);
-        var s = new TerrainData { heightmapResolution = heightmapResolution };
-        //Log($"{terrainData.heightmapResolution} == {heightmapResolution}");
-        var terrainWidth = (heightmapResolution + offset) * sampleDistance;
-        // If maxHeight is 0, leave all the heights in terrainData at 0 and make the vertical size of the terrain 1 to ensure valid AABBs.
-        if (!Mathf.Approximately(heightRange, 0)) { s.size = new Vector3(terrainWidth, heightRange, terrainWidth); s.SetHeights(0, 0, heights); }
-        else s.size = new Vector3(terrainWidth, 1, terrainWidth);
-        s.terrainLayers = layers;
-        if (alphaMap != null) { Debug.Assert(alphaMap.GetLength(0) == alphaMap.GetLength(1)); s.alphamapResolution = alphaMap.GetLength(0); s.SetAlphamaps(0, 0, alphaMap); }
-        return s;
-    }
-
-    public static GameObject CreateTerrain(TerrainData data, Vector3 position, Material template, GameObject parent = default) {
-        // Create the terrain game object.
-        var s = new GameObject("terrain") { isStatic = true };
-        var terrain = s.AddComponent<Terrain>();
-        if (template != null) terrain.materialTemplate = template;
-        terrain.terrainData = data;
-        s.AddComponent<TerrainCollider>().terrainData = data;
-        s.transform.position = position;
-        //s.GetComponent<Terrain>().materialType = Terrain.MaterialType.BuiltInLegacyDiffuse;
-        if (parent != null) s.transform.parent = parent.transform;
-        return s;
-    }
-
-    /// <summary>
     /// Calculate the AABB of an object and it's descendants.
     /// </summary>
     public static Bounds CalcVisualBoundsRecursive(this GameObject gameObject) {

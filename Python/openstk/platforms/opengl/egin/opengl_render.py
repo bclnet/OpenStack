@@ -20,27 +20,18 @@ class Shader: pass
 
 # GLCamera
 class GLCamera(Camera):
-    mouseOverRenderArea: bool = False
-    mouseState: MouseState = MouseState()
-    keyboardState: KeyboardState = KeyboardState()
-
-    class EventType(Enum):
-        MouseEnter = 1
-        MouseLeave = 2
-        MouseMove = 3
-        MouseDown = 4
-        MouseUp = 5
-        MouseWheel = 6
-        KeyPress = 7
-        KeyRelease = 8
+    class EventType(Enum): MouseEnter = 1; MouseLeave = 2; MouseMove = 3; MouseDown = 4; MouseUp = 5; MouseWheel = 6; KeyPress = 7; KeyRelease = 8
 
     def __init__(self):
         super().__init__()
+        self.mouseOverRenderArea: bool = False
+        self.mouseState: MouseState = MouseState()
+        self.keyboardState: KeyboardState = KeyboardState()
 
     def event(self, type: EventType, event: object, arg: object) -> None:
         match type:
-            case self.EventType.MouseEnter: mouseOverRenderArea = True
-            case self.EventType.MouseLeave: mouseOverRenderArea = False
+            case self.EventType.MouseEnter: self.mouseOverRenderArea = True
+            case self.EventType.MouseLeave: self.mouseOverRenderArea = False
             case self.EventType.MouseDown: (self.mouseState.leftButton, self.mouseState.rightButton) = arg
             case self.EventType.KeyPress: self.keyboardState.keys.add(arg)
             case self.EventType.KeyRelease: self.keyboardState.keys.remove(arg)

@@ -13,6 +13,7 @@ class Color:
             case 3: r, g, b = args; return Color(255, r, g, b)
             case 4: a, r, g, b = args; return Color(a, r, g, b)
             case _: raise NotImplementedError('Color')
+Color.black = Color(0, 0, 0, 0)
 
 class Plane:
     def __init__(self, normal: Vector3, d: float):

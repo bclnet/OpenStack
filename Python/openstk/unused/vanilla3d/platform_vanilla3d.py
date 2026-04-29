@@ -18,7 +18,7 @@ class Vanilla3dClientHost(IClientHost):
 # Vanilla3dObjectModelBuilder
 class Vanilla3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
+    def instanceObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # Vanilla3dShaderBuilder

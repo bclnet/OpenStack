@@ -21,7 +21,7 @@ class PygameClientHost(IClientHost):
 # PygameObjectModelBuilder
 class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def createNewObject(self, prefab: object) -> object: raise NotImplementedError()
+    def instanceObject(self, prefab: object) -> object: raise NotImplementedError()
     def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # PygameShaderBuilder

@@ -1,5 +1,5 @@
 from __future__ import annotations
-import numpy as np
+from numpy import array, float32, ones, zeros
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
 from openstk.core import Platform
@@ -26,8 +26,12 @@ class OpenGLClientHost(IClientHost):
 # OpenGLObjectModelBuilder
 class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def createNewObject(self, prefab: object, parent: object) -> object: raise NotImplementedError()
-    def createObject(self, path: object, materialManager: MaterialManager, parent: object) -> object: raise NotImplementedError()
+    def instanceObject(self, src: object, parent: object = None) -> object:
+        return 'clone'
+    def createObject(self, src: object, materialManager: MaterialManager, parent: object) -> object:
+        file = src #Binary_Nif
+        s = f'obj: {file.name}'
+        return s
 
 # OpenGLShaderBuilder
 class OpenGLShaderBuilder(ShaderBuilderBase):
@@ -46,7 +50,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
     def release(self) -> None:
         if self._defaultTexture > -1: glDeleteTexture(self._defaultTexture); self._defaultTexture = -1
 
-    def _createDefaultTexture(self) -> int: return self.createSolidTexture(4, 4, np.array([
+    def _createDefaultTexture(self) -> int: return self.createSolidTexture(4, 4, array([
         0.9, 0.2, 0.8, 1.0,
         0.0, 0.9, 0.0, 1.0,
         0.9, 0.2, 0.8, 1.0,
@@ -66,11 +70,26 @@ class OpenGLTextureBuilder(TextureBuilderBase):
         0.9, 0.2, 0.8, 1.0,
         0.0, 0.9, 0.0, 1.0,
         0.9, 0.2, 0.8, 1.0
-        ], dtype = np.float32))
+        ], dtype = float32))
 
-    def createTexture(self, reuse: int, tex: ITexture, level2: range = None) -> int:
+    def createNormalMapTexture(self, src: int, strength: float) -> int:
+        return 0
+
+    def createSolidTexture(self, width: int, height: int, pixels: object) -> int:
+        s = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, s)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, pixels)
+        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
+        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
+        return s
+
+    def createTexture(self, reuse: int, src: ITexture, level2: range = None) -> int:
         id = reuse if reuse != None else glGenTextures(1)
-        numMipMaps = max(1, tex.mipMaps)
+        numMipMaps = max(1, src.mipMaps)
         level = range(level2.start if level2 else 0, numMipMaps)
 
         # bind
@@ -127,7 +146,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                                 case TextureFormat.ETC2: internalFormat = GL_COMPRESSED_SRGB8_ETC2 if s else GL_COMPRESSED_RGB8_ETC2
                                 case TextureFormat.ETC2_EAC: internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC if s else GL_COMPRESSED_RGBA8_ETC2_EAC
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            if not internalFormat or not compressedTexImage2D(tex, level, internalFormat): return self.defaultTexture 
+                            if not internalFormat or not compressedTexImage2D(src, level, internalFormat): return self.defaultTexture 
                         else:
                             match formatx:
                                 case TextureFormat.I8: internalFormat, format, type = GL_INTENSITY8, GL_RED, GL_UNSIGNED_BYTE
@@ -142,7 +161,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                                 case TextureFormat.BGRA32: internalFormat, format, type = GL_RGBA, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8
                                 case TextureFormat.BGRA1555: internalFormat, format, type = GL_RGBA, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            if not internalFormat or not texImage2D(tex, level, internalFormat, format, type): return self.defaultTexture
+                            if not internalFormat or not texImage2D(src, level, internalFormat, format, type): return self.defaultTexture
                     else: raise Exception(f'Unknown format: {fmt}')
 
                     # texture
@@ -153,28 +172,14 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                     else:
                         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
                         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP if (tex.texFlags & TextureFlags.SUGGEST_CLAMPS.value) != 0 else GL_REPEAT)
-                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP if (tex.texFlags & TextureFlags.SUGGEST_CLAMPT.value) != 0 else GL_REPEAT)
+                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP if (src.texFlags & TextureFlags.SUGGEST_CLAMPS.value) != 0 else GL_REPEAT)
+                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP if (src.texFlags & TextureFlags.SUGGEST_CLAMPT.value) != 0 else GL_REPEAT)
                     glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
                     return id
                 case _: raise Exception(f'Unknown x: {x}')
-        return tex.create('GL', _lambdax)
+        return src.create('GL', _lambdax)
 
-    def createSolidTexture(self, width: int, height: int, pixels: np.array) -> int:
-        id = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, id)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, pixels)
-        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
-        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
-        return id
-
-    def createNormalMap(self, tex: int, strength: float) -> int: raise NotImplementedError()
-
-    def deleteTexture(self, tex: int) -> None: glDeleteTexture(texture)
+    def deleteTexture(self, src: int) -> None: glDeleteTexture(src)
 
 # OpenGLMaterialBuilder
 class OpenGLMaterialBuilder(MaterialBuilderBase):
@@ -221,9 +226,9 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
                             break
 
                 # Set default values for scale and positions
-                if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = np.ones(4)
-                if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = np.zeros(4)
-                if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = np.ones(4)
+                if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = ones(4)
+                if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = zeros(4)
+                if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = ones(4)
                 return m
             case s if isinstance(path, MaterialShaderProp):
                 return m
@@ -233,13 +238,13 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
 class OpenGLGfxApi(IOpenGfxSprite):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def addMeshCollider(self, src: object, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMeshRenderer(self, src: object, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMissingMeshCollidersRecursively(self, src: object, isStatic: bool) -> None: raise NotImplementedError();
     def attach(self, method: GfxAttach, src: object, args: list[object]) -> None: pass
     def createMesh(self, mesh: object) -> object: raise NotImplementedError();
-    def createObject(self, name: str, tag: str = None, parent: object = None) -> object: print(f'new: {name}'); return name
+    def createObject(self, name: str, tag: str = None, parent: object = None) -> object: return name
     def setLayerRecursively(self, src: object, layer: int) -> None: raise NotImplementedError();
     def parent(self, src: object, parent: object) -> None: raise NotImplementedError();
     def transform(self, src: object, position: Vector3,  rotation: Quaternion, localScale: Vector3) -> None: raise NotImplementedError();
@@ -253,7 +258,7 @@ class OpenGLGfxSprite3D(IOpenGfxSprite):
         self.source: ISource = source
         # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
         # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
     def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
@@ -269,7 +274,7 @@ class OpenGLGfxModel(IOpenGfxModel):
         self.shaderManager: ShaderManager = ShaderManager(source, OpenGLShaderBuilder())
         self.meshBufferCache: GLMeshBufferCache = GLMeshBufferCache()
 
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
@@ -279,26 +284,29 @@ class OpenGLGfxModel(IOpenGfxModel):
     # cache
     _quadIndices: QuadIndexBuffer
     @property
-    def quadIndices(self) -> QuadIndexBuffer: return self._quadIndices if self._quadIndices else (_quadIndices := QuadIndexBuffer(65532))
+    def quadIndices(self) -> QuadIndexBuffer: return self._quadIndices if self._quadIndices else (self._quadIndices := QuadIndexBuffer(65532))
 
 # OpenGLGfxLight
 class OpenGLGfxLight(IOpenGfxLight):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    def createLight(self, radius: float, color: Color, indoors: bool) -> object: print(f'light: {radius}'); return 'light'
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: object = None) -> object: print(f'light: {radius}'); return 'light'
+    def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
 
 # OpenGLGfxTerrain
 class OpenGLGfxTerrain(IOpenGfxTerrain):
     def __init__(self, source: ISource):
         self.source: ISource = source
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: return f't{offset}'
-    def createTerrain(self, data: object, position: Vector3, parent: object) -> object: print(f'terrain: {data}'); return 'terrain'
+    def createTerrain(self, name: str, position: Vector3, data: object, parent: object = None) -> object: return 'terrain'
 
 # OpenGLPlatform
 class OpenGLPlatform(Platform):
     def __init__(self):
         super().__init__('GL', 'OpenGL')
-        self.gfxFactory = staticmethod(lambda source: [OpenGLGfxApi(source), None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source), None, OpenGLGfxTerrain(source)])
+        self.gfxFactory = staticmethod(lambda source: [OpenGLGfxApi(source), None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source), OpenGLGfxLight(source), OpenGLGfxTerrain(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
 OpenGLPlatform.This = OpenGLPlatform()
 

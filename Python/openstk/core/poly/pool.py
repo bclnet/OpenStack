@@ -65,11 +65,10 @@ class CoroutineQueue:
     def cancel(self, task: Iterator) -> None: return self.tasks.remove(task)
     def clear(self) -> None: return self.tasks.clear()
     def run(self, desiredWorkTime: float) -> None:
-        if len(self.tasks) > 0: return
+        if len(self.tasks) == 0: return
         self.time = time.time()
         while len(self.tasks) > 0 and (time.time() - self.time) < desiredWorkTime:
-            # try to execute an iteration of a task. remove the task if it's execution has completed.
-            if not next(self.tasks[0]): self.pop()
+            if next(self.tasks[0], 0) == 0: self.tasks.pop()
     def waitFor(self, task: object) -> None:
         while next(task): self.tasks.remove(task)
     def waitForAll(self):

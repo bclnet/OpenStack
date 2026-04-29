@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics;
+﻿using GameX.Gamebryo.Formats;
+using MathNet.Numerics;
 using OpenStack.Client;
 using OpenStack.Gfx;
 using OpenStack.Gfx.OpenGL;
@@ -9,6 +10,7 @@ using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using static OpenStack.Gfx.TextureFormat;
 #pragma warning disable CS0649, CS0169
@@ -34,8 +36,17 @@ public class OpenGLClientHost : IClientHost {
 /// </summary>
 class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int> {
     public override void EnsurePrefab() { }
-    public override object CreateNewObject(object prefab, object parnet) => throw new NotImplementedException();
-    public override object CreateObject(object path, MaterialManager<GLRenderMaterial, int> materialManager) => throw new NotImplementedException();
+    public override object InstanceObject(object prefab, object parent) {
+        return "clone";
+    }
+    public override object CreateObject(object source, MaterialManager<GLRenderMaterial, int> materialManager) {
+        var file = (Binary_Nif)source;
+        foreach (var texturePath in file.GetTexturePaths()) materialManager.TextureManager.PreloadTexture(texturePath);
+        //var builder = new OpenGLNifObjectBuilder(file, materialManager, false);
+        //var s = builder.BuildObject();
+        var s = $"obj: {file.Name}";
+        return s;
+    }
 }
 
 /// <summary>
@@ -79,9 +90,24 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override int CreateTexture(int reuse, ITexture tex, Range? level2 = null) {
+    public override int CreateNormalMapTexture(int src, float strength) => 0;
+
+    public override int CreateSolidTexture(int width, int height, float[] pixels) {
+        var s = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, s);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, pixels);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        GL.BindTexture(TextureTarget.Texture2D, 0); // release texture
+        return s;
+    }
+
+    public override int CreateTexture(int reuse, ITexture src, Range? level2 = null) {
         var id = reuse != 0 ? reuse : GL.GenTexture();
-        var numMipMaps = Math.Max(1, tex.MipMaps);
+        var numMipMaps = Math.Max(1, src.MipMaps);
         (int start, int stop) level = (level2?.Start.Value ?? 0, numMipMaps);
 
         // bind
@@ -90,7 +116,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, level.stop - 1);
 
         // create
-        return tex.Create("GL", x => {
+        return src.Create("GL", x => {
             switch (x) {
                 case Texture_Bytes t:
                     var (bytes, fmt, spans) = (t.Bytes, t.Format, t.Spans);
@@ -139,7 +165,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
                                 ETC2_EAC => s ? InternalFormat.CompressedSrgb8Alpha8Etc2Eac : InternalFormat.CompressedRgba8Etc2Eac,
                                 _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{formatx}")
                             };
-                            if (internalFormat == 0 || !CompressedTexImage2D(tex, level, internalFormat)) return DefaultTexture;
+                            if (internalFormat == 0 || !CompressedTexImage2D(src, level, internalFormat)) return DefaultTexture;
                         }
                         else {
                             var (internalFormat, format, type) = formatx switch {
@@ -156,7 +182,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
                                 BGRA1555 => (PixelInternalFormat.Rgba, PixelFormat.Bgra, PixelType.UnsignedShort1555Reversed),
                                 _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{formatx}")
                             };
-                            if (internalFormat == 0 || !TexImage2D(tex, level, internalFormat, format, type)) return DefaultTexture;
+                            if (internalFormat == 0 || !TexImage2D(src, level, internalFormat, format, type)) return DefaultTexture;
                         }
                     }
                     else throw new ArgumentOutOfRangeException(nameof(fmt), $"{fmt}");
@@ -171,8 +197,8 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
                         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
                         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
                     }
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)(tex.TexFlags.HasFlag(TextureFlags.SUGGEST_CLAMPS) ? TextureWrapMode.Clamp : TextureWrapMode.Repeat));
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)(tex.TexFlags.HasFlag(TextureFlags.SUGGEST_CLAMPT) ? TextureWrapMode.Clamp : TextureWrapMode.Repeat));
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)(src.TexFlags.HasFlag(TextureFlags.SUGGEST_CLAMPS) ? TextureWrapMode.Clamp : TextureWrapMode.Repeat));
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)(src.TexFlags.HasFlag(TextureFlags.SUGGEST_CLAMPT) ? TextureWrapMode.Clamp : TextureWrapMode.Repeat));
                     GL.BindTexture(TextureTarget.Texture2D, 0); // release texture
                     return id;
                 default: throw new ArgumentOutOfRangeException(nameof(x), $"{x}");
@@ -180,22 +206,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
         });
     }
 
-    public override int CreateSolidTexture(int width, int height, float[] pixels) {
-        var id = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, id);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, pixels);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-        GL.BindTexture(TextureTarget.Texture2D, 0); // release texture
-        return id;
-    }
-
-    public override int CreateNormalMap(int tex, float strength) => throw new NotImplementedException();
-
-    public override void DeleteTexture(int tex) => GL.DeleteTexture(tex);
+    public override void DeleteTexture(int src) => GL.DeleteTexture(src);
 }
 
 /// <summary>
@@ -226,7 +237,7 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
                 foreach (var tex in p.TextureParams) m.Textures[tex.Key] = TextureManager.CreateTexture($"{tex.Value}_c").tex;
                 if (p.IntParams.ContainsKey("F_SOLID_COLOR") && p.IntParams["F_SOLID_COLOR"] == 1) {
                     var a = p.VectorParams["g_vColorTint"];
-                    m.Textures["g_tColor"] = TextureManager.CreateSolidTexture(1, 1, a.X, a.Y, a.Z, a.W);
+                    m.Textures["g_tColor"] = TextureManager.CreateSolidTexture(1, 1, [a.X, a.Y, a.Z, a.W]);
                 }
                 if (!m.Textures.ContainsKey("g_tColor")) m.Textures["g_tColor"] = TextureManager.DefaultTexture;
 
@@ -316,10 +327,10 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public object CreateObject(object path, object parent = null) => _objectManager.CreateObject(path, parent).obj;
+    public object CreateObject(object path, object parent = default) => _objectManager.CreateObject(path, parent).obj;
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
 
     // cache
     QuadIndexBuffer _quadIndices;
@@ -341,8 +352,8 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
     }
 
     public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
-    public object CreateTerrain(object data, Vector3 position, object parent = null) => null;
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<int>[] layers, float[,,] alphaMap) => new();
+    public object CreateTerrain(string name, Vector3? position, object data, object parent = default) => null;
 }
 
 /// <summary>

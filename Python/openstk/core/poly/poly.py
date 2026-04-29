@@ -53,3 +53,14 @@ class Float3:
     def __eq__(self, other): return isinstance(other, Float3) and self.x == other.x and self.y == other.y and self.z == other.z
     def __hash__(self): return hash((self.x, self.y, self.z))
 
+class Float4:
+    def __repr__(self): return f'{self.x},{self.y},{self.z},{self.w}'
+    def __init__(self, *args):
+        match len(args):
+            case 0: self.x, self.y, self.z = (0., 0., 0., 0.)
+            case 1: r = args[0]; self.x, self.y, self.z, self.w = r
+            case 4: self.x, self.y, self.z, self.w = args
+            case _: raise NotImplementedError('Float4')
+    def __eq__(self, other): return isinstance(other, Float4) and self.x == other.x and self.y == other.y and self.z == other.z and self.w == other.w
+    def __hash__(self): return hash((self.x, self.y, self.z, self.w))
+
