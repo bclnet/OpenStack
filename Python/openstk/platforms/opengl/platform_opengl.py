@@ -28,8 +28,10 @@ class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object, parent: object = None) -> object:
         return 'clone'
-    def createObject(self, src: object, materialManager: MaterialManager, parent: object) -> object:
+    def createObject(self, src: object, materialManager: MaterialManager) -> object:
         file = src #Binary_Nif
+        textureManager = materialManager._textureManager
+        for texturePath in file.getTexturePaths(): print(texturePath); textureManager.preloadTexture(texturePath)
         s = f'obj: {file.name}'
         return s
 
@@ -146,7 +148,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                                 case TextureFormat.ETC2: internalFormat = GL_COMPRESSED_SRGB8_ETC2 if s else GL_COMPRESSED_RGB8_ETC2
                                 case TextureFormat.ETC2_EAC: internalFormat = GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC if s else GL_COMPRESSED_RGBA8_ETC2_EAC
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            if not internalFormat or not compressedTexImage2D(src, level, internalFormat): return self.defaultTexture 
+                            if not internalFormat or not compressedTexImage2D(src, level, internalFormat): return self.defaultTexture
                         else:
                             match formatx:
                                 case TextureFormat.I8: internalFormat, format, type = GL_INTENSITY8, GL_RED, GL_UNSIGNED_BYTE
@@ -284,14 +286,16 @@ class OpenGLGfxModel(IOpenGfxModel):
     # cache
     _quadIndices: QuadIndexBuffer
     @property
-    def quadIndices(self) -> QuadIndexBuffer: return self._quadIndices if self._quadIndices else (self._quadIndices := QuadIndexBuffer(65532))
+    def quadIndices(self) -> QuadIndexBuffer:
+        if not self._quadIndices: self._quadIndices = QuadIndexBuffer(65532)
+        return self._quadIndices
 
 # OpenGLGfxLight
 class OpenGLGfxLight(IOpenGfxLight):
     def __init__(self, source: ISource):
         self.source: ISource = source
     async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
-    def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: object = None) -> object: print(f'light: {radius}'); return 'light'
+    def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: object = None) -> object: return 'light'
     def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
 
 # OpenGLGfxTerrain

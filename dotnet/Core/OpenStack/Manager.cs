@@ -210,10 +210,8 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
 
     CellRef[] GetCellRefs(ICell cell) => [.. cell.Xrefs.Select(s => {
         var record = Query.FindAnyByName(s.Name);
-        return new CellRef {
-            Obj = s,
-            Record = record,
-            ModelPath = record != null && record is ICellXrefModel modl ? modl.ModelPath : null };
+        var modelPath =record != null && record is ICellXrefModel modl ? modl.ModelPath : null;
+        return new CellRef { Obj = s, Record = record, ModelPath = modelPath };
     })];
 
     /// <summary>
@@ -221,8 +219,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     /// </summary>
     void CreateCell(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) { Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
-        Object modelObj = default;
-        var obj = r.Obj;
+        Object modelObj = default; var obj = r.Obj;
         if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh && GfxLight != null) {
             var s = GfxLight.CreateLight("Light", null, ligh.Radius, ligh.LightColor, cell.IsInterior);

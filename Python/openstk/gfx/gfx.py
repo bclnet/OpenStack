@@ -25,6 +25,8 @@ class GfX:
     XTerrain = 5
     maxTextureMaxAnisotropy: int = 0
 
+class GfxAttach(Enum): Find = 0; Transform = 1; All = 2; AllCenter = 3
+
 # GfxAlphaMode
 class GfxAlphaMode(Enum): Always = 0; Less = 1; LEqual = 2; Equal = 3; GEqual = 4; Greater = 5; NotEqual = 6; Never = 7
 
@@ -56,7 +58,7 @@ class ObjectSpriteManager:
         if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (asyncio.run(self._loadObject(path)), tag)
         else: prefab = self._cachedObjects[path]
         return (self._builder.instanceObject(prefab[0]), prefab[1])
- 
+
     def preloadObject(self, path: object) -> None:
         if path in self._cachedObjects: return
         # start loading the object asynchronously if we haven't already started.
@@ -95,10 +97,9 @@ class ObjectModelManager:
         if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (asyncio.run(self._loadObject(path)), tag)
         else: prefab = self._cachedObjects[path]
         return (self._builder.instanceObject(prefab[0]), prefab[1])
- 
+
     def preloadObject(self, path: object) -> None:
-        if path in self._cachedPrefabs: return
-        # start loading the object asynchronously if we haven't already started.
+        if path in self._cachedObjects: return
         if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     async def _loadObject(self, path: object) -> tuple[Object, object]:
@@ -106,7 +107,7 @@ class ObjectModelManager:
         self.preloadObject(path)
         obj = await self._preloadTasks[path]
         self._preloadTasks.pop(path)
-        return (self._builder.buildObject(obj, self._materialManager), obj)
+        return (self._builder.createObject(obj, self._materialManager), obj)
 
 #endregion
 
@@ -122,7 +123,7 @@ class Shader:
         self.parameters: dict[str, bool] = parameters
         self.renderModes: list[str] = renderModes
         self._uniforms: dict[str, int] = {}
-    
+
     def getUniformLocation(self, name: str) -> int:
         if name in self._uniforms: return self._uniforms[name]
         value = self._getUniformLocation(self.program, name); self._uniforms[name] = value;
@@ -140,7 +141,7 @@ class ShaderManager:
         self._source: ISource = source
         self._builder: ShaderBuilderBase = builder
         self.emptyArgs: dict[str, bool] = {}
-    
+
     def createShader(self, path: object, args: dict[str, bool] = None) -> tuple[Shader, object]: return (self._builder.createShader(path, args or self.emptyArgs), None)
 
 #endregion

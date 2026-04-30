@@ -118,7 +118,7 @@ class Vanilla3dGfxModel(IOpenGfxModel):
     def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def attachObject(self, method: AttachObjectMethod, source: object, args: list[object]) -> object: raise NotImplementedError()
+    def attachObject(self, method: GfxAttach, source: object, args: list[object]) -> object: raise NotImplementedError()
 
 # Vanilla3dPlatform
 class Vanilla3dPlatform(Platform):

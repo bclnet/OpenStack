@@ -5,7 +5,7 @@ from openstk.core.poly.pool import CoroutineQueue
 from openstk.core.poly.poly import Int3, Float3, Float4
 from openstk.core.poly.system import getExtrema, changeRange
 import openstk.core.poly.log as log
-from openstk.gfx.gfx import GfX, GfxTerrainLayer
+from openstk.gfx.gfx import GfX, GfxTerrainLayer, GfxAttach
 from openstk.sys.drawing import Color
 
 # types
@@ -29,7 +29,7 @@ class ICellDatabase:
     cellId: Int3
     cellInterior: bool
     playerPostion: Vector3
-    playerRotation: Quaternion
+    playerRotation: quaternion
 
 # CellManager
 class CellManager:
@@ -191,22 +191,22 @@ class CellBuilder(CellBuilderX):
 
     def getCellRefs(self, cell: ICell) -> list[CellRef]:
         @staticmethod
-        def _(s): record = self.query.findAnyByName(s.name); return CellManager.CellRef(
-            obj=s,
-            record=record,
-            modelPath=record.modelPath if record and isinstance(record, CellManager.ICellXrefModel) and record.modelPath else None)
+        def _(s):
+            record = self.query.findAnyByName(s.name)
+            modelPath = record.modelPath if record and isinstance(record, CellManager.ICellXrefModel) else None
+            return CellManager.CellRef(obj=s, record=record, modelPath=modelPath)
         return [_(s) for s in cell.Xrefs]
 
     # Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     def createCell(self, cell: ICell, parent: object, r: CellRef) -> None:
         if not r.record: log.info(f'Unknown Object: {r.obj.name}'); return
-        modelObj: object = None
-        if not r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postCellObject(modelObj, r.obj, parent)
+        modelObj: object = None; obj = r.obj
+        if r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
         if self.gfxLight and isinstance(r.record, CellManager.ILigh):
             ligh = r.record
             s = self.gfxLight.createLight('Light', None, ligh.radius, ligh.lightColor, cell.isInterior)
-            if modelObj: self.gfxApi.attach(GfxAttach.Find, s, modelObj, 'AttachLight')
-            else: self.gfxModel.postCellObject(s, r.obj, parent)
+            if modelObj: self.gfxApi.attach(GfxAttach.Find, s, [modelObj, 'AttachLight'])
+            else: self.gfxModel.postObject(s, obj.position, obj.eulerAngles, obj.scale, parent)
 
     def getLandTextures(self, land: ILand) -> list[str]:
         vtex = land.vtex
@@ -285,6 +285,8 @@ class CellBuilder(CellBuilderX):
         sampleDistance = self.cellLengthInMeters / (CellBuilder.LAND_SIDELENGTH_IN_SAMPLES - 1)
         data = self.gfxTerrain.createTerrainData(-1, newHeights, heightRange, sampleDistance, newlayers, alphaMap)
         self.gfxTerrain.createTerrain('terrain', position, data, parent)
+        # _terrainError: 5
+        # _treeDistance: 80
 
     def createReflectionProbe(self, cell: ICell, parent: Object) -> None:
         if cell.isInterior: return

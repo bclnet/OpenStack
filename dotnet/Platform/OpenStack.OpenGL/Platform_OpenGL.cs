@@ -41,7 +41,8 @@ class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int
     }
     public override object CreateObject(object source, MaterialManager<GLRenderMaterial, int> materialManager) {
         var file = (Binary_Nif)source;
-        foreach (var texturePath in file.GetTexturePaths()) materialManager.TextureManager.PreloadTexture(texturePath);
+        var textureManager = materialManager.TextureManager;
+        foreach (var texturePath in file.GetTexturePaths()) textureManager.PreloadTexture(texturePath);
         //var builder = new OpenGLNifObjectBuilder(file, materialManager, false);
         //var s = builder.BuildObject();
         var s = $"obj: {file.Name}";

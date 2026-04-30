@@ -52,7 +52,8 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
 
     public override GameObject CreateObject(object src, MaterialManager<Material, Texture2D> materialManager) {
         var file = (Binary_Nif)src;
-        foreach (var texturePath in file.GetTexturePaths()) materialManager.TextureManager.PreloadTexture(texturePath);
+        var textureManager = materialManager.TextureManager;
+        foreach (var texturePath in file.GetTexturePaths()) textureManager.PreloadTexture(texturePath);
         var builder = new UnityNifObjectBuilder(file, materialManager, false);
         var s = builder.BuildObject();
         s.transform.parent = _prefabObj.transform;

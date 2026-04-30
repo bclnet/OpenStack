@@ -25,6 +25,8 @@ public static class GfX {
     public static int MaxTextureMaxAnisotropy;
 }
 
+public enum GfxAttach { Find, Transform, All, AllCenter }
+
 /*
 test modes (glAlphaFunc):
 000 GL_ALWAYS
@@ -157,9 +159,11 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     async Task<(Object obj, object tag)> LoadObject(object path, Object parent) {
         Log.Assert(!CachedObjects.ContainsKey(path));
         PreloadObject(path);
-        var obj = await PreloadTasks[path];
+        object obj;
+        try { obj = await PreloadTasks[path]; }
+        catch (Exception e) { Log.Error($"{e.Message}\n{e.StackTrace}"); obj = null; }
         PreloadTasks.Remove(path);
-        return (Builder.CreateObject(obj, MaterialManager), obj);
+        return obj != null ? (Builder.CreateObject(obj, MaterialManager), obj) : (default, default);
     }
 }
 
@@ -554,8 +558,6 @@ public interface IModel {
 #endregion
 
 #region OpenGfx
-
-public enum GfxAttach { Find, Transform, All, AllCenter }
 
 /// <summary>
 /// IOpenGfx
