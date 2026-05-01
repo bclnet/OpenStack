@@ -68,10 +68,12 @@ class CoroutineQueue:
         if len(self.tasks) == 0: return
         self.time = time.time()
         while len(self.tasks) > 0 and (time.time() - self.time) < desiredWorkTime:
-            if next(self.tasks[0], 0) == 0: self.tasks.pop()
+            if next(self.tasks[0], self) == self: self.tasks.pop(0)
     def waitFor(self, task: object) -> None:
-        while next(task): self.tasks.remove(task)
+        assert(task in self.tasks)
+        while next(task, self) != self: pass
+        self.tasks.remove(task)
     def waitForAll(self):
         for task in self.tasks:
-            while next(task): pass
+            while next(task, self) != self: pass
         self.tasks.clear()

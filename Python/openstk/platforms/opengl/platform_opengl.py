@@ -31,7 +31,7 @@ class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def createObject(self, src: object, materialManager: MaterialManager) -> object:
         file = src #Binary_Nif
         textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): print(texturePath); textureManager.preloadTexture(texturePath)
+        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
         s = f'obj: {file.name}'
         return s
 
@@ -90,12 +90,12 @@ class OpenGLTextureBuilder(TextureBuilderBase):
         return s
 
     def createTexture(self, reuse: int, src: ITexture, level2: range = None) -> int:
-        id = reuse if reuse != None else glGenTextures(1)
+        tex = reuse if reuse != None else glGenTextures(1)
         numMipMaps = max(1, src.mipMaps)
         level = range(level2.start if level2 else 0, numMipMaps)
 
         # bind
-        glBindTexture(GL_TEXTURE_2D, id)
+        glBindTexture(GL_TEXTURE_2D, tex)
         if level.start > 0: glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, level.start)
         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level.stop - 1)
 
@@ -177,7 +177,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                     glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP if (src.texFlags & TextureFlags.SUGGEST_CLAMPS.value) != 0 else GL_REPEAT)
                     glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP if (src.texFlags & TextureFlags.SUGGEST_CLAMPT.value) != 0 else GL_REPEAT)
                     glBindTexture(GL_TEXTURE_2D, 0) # unbind texture
-                    return id
+                    return tex
                 case _: raise Exception(f'Unknown x: {x}')
         return src.create('GL', _lambdax)
 
@@ -249,8 +249,8 @@ class OpenGLGfxApi(IOpenGfxSprite):
     def createObject(self, name: str, tag: str = None, parent: object = None) -> object: return name
     def setLayerRecursively(self, src: object, layer: int) -> None: raise NotImplementedError();
     def parent(self, src: object, parent: object) -> None: raise NotImplementedError();
-    def transform(self, src: object, position: Vector3,  rotation: Quaternion, localScale: Vector3) -> None: raise NotImplementedError();
-    def transform(self, src: object, position: Vector3,  rotation: Matrix4x4,  localScale: Vector3) -> None: raise NotImplementedError();
+    def transform(self, src: object, position: Vector3, rotation: quaternion, localScale: Vector3) -> None: raise NotImplementedError();
+    def transform(self, src: object, position: Vector3, rotation: Matrix4x4, localScale: Vector3) -> None: raise NotImplementedError();
     def setVisible(self, src: object, visible: bool) -> None: pass
     def destroy(self, src: object) -> None: pass
 

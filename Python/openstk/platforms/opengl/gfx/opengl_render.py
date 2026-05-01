@@ -123,7 +123,7 @@ class TextureRenderer(EginRenderer):
 
     def update(self, deltaTime: float) -> None:
         obj = self.obj if isinstance(self.obj, ITextureFrames) else None
-        if not self.gfx or not obj or not obj.hasFrames(): return
+        if not obj or not obj.hasFrames(): return
         self.frameDelay += deltaTime
         if self.frameDelay <= obj.fps or not obj.decodeFrame(): return
         self.frameDelay = 0 # reset delay between frames
@@ -284,15 +284,7 @@ class GridRenderer(EginRenderer):
 
 # ParticleRenderer
 class ParticleRenderer(EginRenderer):
-    def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
-
-#endregion
-
-#region CellRenderer
-
-# CellRenderer
-class CellRenderer(EginRenderer):
-    def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion
 
@@ -300,8 +292,8 @@ class CellRenderer(EginRenderer):
 
 # EngineRenderer
 class EngineRenderer(EginRenderer):
-    def __init__(self, gfx: OpenGLGfxModel, obj: object):
-        self.gfx: OpenGLGfxModel = gfx
+    def __init__(self, gfx: list[IOpenGfx], obj: object):
+        self.gfx: list[IOpenGfx] = gfx
         self.db: ICellDatabase = obj
         self.engine: OpenGLOpenEngine
         self.playerPrefab: object = None
@@ -326,6 +318,6 @@ class EngineRenderer(EginRenderer):
 
 # WorldRenderer
 class WorldRenderer(EginRenderer):
-    def __init__(self, gfx: OpenGLGfxModel, obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion

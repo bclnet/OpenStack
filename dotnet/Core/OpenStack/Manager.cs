@@ -160,7 +160,7 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
 
     void DestroyCell(Int3 point) {
         if (Cells.TryGetValue(point, out var s)) { Queue.Cancel(s.Task); Builder.Destroy(s.Obj); Cells.Remove(point); }
-        else Log.Error("Tried to destroy a cell that isn't created.");
+        else Log.Error("Tried to destroy a cell that is not created.");
     }
 
     public void DestroyAllCells() {

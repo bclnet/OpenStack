@@ -25,19 +25,21 @@ class Panda3dWidget(QWidget, ShowBase):
 
     def __init__(self, parent: object, tab: object):
         loadPrcFileData('', """
+        gl-debug #t
         allow-parent 1
         window-title GameX
         show-frame-rate-meter #t
         """)
         super(QWidget, self).__init__(parent)
         super(ShowBase, self).__init__()
-        self.gfx: IOpenGfx = parent.gfx
-        self.sfx: IOpenSfx = parent.sfx
+        self.gfx: list[IOpenGfx] = parent.gfx
+        self.sfx: list[IOpenSfx] = parent.sfx
         self.source: object = tab
         self.path: object = parent.path
         self.value: object = tab.value
         self.type: str = tab.type
         # print('win: %s' % base.win.getProperties())
+        self.taskMgr.add(self.tick, 'tick')
 
         # self.disableMouse()
         # self.camera.setPos(0, -10, 0)
@@ -69,10 +71,10 @@ class Panda3dWidget(QWidget, ShowBase):
         self.openDefaultWindow(props=wp)
         self.run()
         
-    def tick(self):
-        print('tick')
-    #     self.engine.render_frame()
-        self.clock.tick()
+    def tick(self, task):
+        deltaTime = globalClock.getDt()
+        if self.renderer: self.renderer.update(deltaTime)
+        return task.cont # Repeat every frame
 
     def resizeEvent(self, event):
         wp = WindowProperties()

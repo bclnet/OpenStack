@@ -21,8 +21,14 @@ class PygameClientHost(IClientHost):
 # PygameObjectModelBuilder
 class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def instanceObject(self, prefab: object) -> object: raise NotImplementedError()
-    def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
+    def instanceObject(self, src: object) -> object:
+        return 'clone'
+    def createObject(self, src: object, materialManager: MaterialManager) -> object:
+        file = src #Binary_Nif
+        textureManager = materialManager._textureManager
+        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
+        s = f'obj: {file.name}'
+        return s
 
 # PygameShaderBuilder
 class PygameShaderBuilder(ShaderBuilderBase):
@@ -135,11 +141,11 @@ class PygameGfxModel(IOpenGfxModel):
         self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, PygameMaterialBuilder(self.textureManager))
         self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, PygameObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, PygameShaderBuilder())
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
-    def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
+    def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: raise NotImplementedError() #return self.shaderManager.createShader(path, args)[0]
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
 
 # PygamePlatform

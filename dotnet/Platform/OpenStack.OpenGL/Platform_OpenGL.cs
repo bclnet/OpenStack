@@ -94,8 +94,8 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
     public override int CreateNormalMapTexture(int src, float strength) => 0;
 
     public override int CreateSolidTexture(int width, int height, float[] pixels) {
-        var s = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, s);
+        var tex = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, tex);
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, pixels);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
@@ -103,16 +103,16 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
         GL.BindTexture(TextureTarget.Texture2D, 0); // release texture
-        return s;
+        return tex;
     }
 
     public override int CreateTexture(int reuse, ITexture src, Range? level2 = null) {
-        var id = reuse != 0 ? reuse : GL.GenTexture();
+        var tex = reuse != 0 ? reuse : GL.GenTexture();
         var numMipMaps = Math.Max(1, src.MipMaps);
         (int start, int stop) level = (level2?.Start.Value ?? 0, numMipMaps);
 
         // bind
-        GL.BindTexture(TextureTarget.Texture2D, id);
+        GL.BindTexture(TextureTarget.Texture2D, tex);
         if (level.start > 0) GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, level.start);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, level.stop - 1);
 
@@ -201,7 +201,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)(src.TexFlags.HasFlag(TextureFlags.SUGGEST_CLAMPS) ? TextureWrapMode.Clamp : TextureWrapMode.Repeat));
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)(src.TexFlags.HasFlag(TextureFlags.SUGGEST_CLAMPT) ? TextureWrapMode.Clamp : TextureWrapMode.Repeat));
                     GL.BindTexture(TextureTarget.Texture2D, 0); // release texture
-                    return id;
+                    return tex;
                 default: throw new ArgumentOutOfRangeException(nameof(x), $"{x}");
             }
         });

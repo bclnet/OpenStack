@@ -502,10 +502,10 @@ public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Mater
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture2D>[] layers, float[,,] alphaMap) {
         Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
         // Create the TerrainData.
-        var heightmapResolution = heights.GetLength(0);
-        var s = new TerrainData { heightmapResolution = heightmapResolution };
+        var resolution = heights.GetLength(0);
+        var s = new TerrainData { heightmapResolution = resolution };
         //Log($"{terrainData.heightmapResolution} == {heightmapResolution}");
-        var terrainWidth = (heightmapResolution + offset) * sampleDistance;
+        var terrainWidth = (resolution + offset) * sampleDistance;
         // If maxHeight is 0, leave all the heights in terrainData at 0 and make the vertical size of the terrain 1 to ensure valid AABBs.
         if (!Mathf.Approximately(heightRange, 0)) { s.size = new Vector3(terrainWidth, heightRange, terrainWidth); s.SetHeights(0, 0, heights); }
         else s.size = new Vector3(terrainWidth, 1, terrainWidth);

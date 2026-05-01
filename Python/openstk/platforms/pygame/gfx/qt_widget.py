@@ -29,8 +29,8 @@ class PygameWidget(QWidget):
 
     def __init__(self, parent: object, tab: object):
         super().__init__()
-        self.gfx: IOpenGfx = parent.gfx
-        self.sfx: IOpenSfx = parent.sfx
+        self.gfx: list[IOpenGfx] = parent.gfx
+        self.sfx: list[IOpenSfx] = parent.sfx
         self.source: object = tab
         self.path: object = parent.path
         self.value: object = tab.value
@@ -72,6 +72,7 @@ class PygameWidget(QWidget):
     def unload(self):
         self.timerDuration.stop()
         self.timer.stop()
+        pygame.quit()
 
     def createRenderer(self) -> Renderer: pass
     
@@ -88,9 +89,12 @@ class PygameWidget(QWidget):
         pass
 
     def tick(self):
+        for event in pygame.event.get():
+            print(event)
+            if event.type == pygame.QUIT: self.unload(); return
         deltaTime = self.timerDuration.nsecsElapsed(); self.timerDuration.restart()
-        self.surface.fill((220, 220, 220))
+        self.surface.fill((220, 220, 220)) #(255, 255, 255)
         if self.renderer: self.renderer.update(deltaTime)
-        pygame.display.update()
+        pygame.display.update() #pygame.display.flip()
 
 #endregion

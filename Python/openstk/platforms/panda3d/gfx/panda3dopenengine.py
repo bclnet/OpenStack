@@ -2,11 +2,10 @@ from __future__ import annotations
 import os, re
 from numpy import ndarray
 from quaternion import quaternion
-from OpenGL.GL import *
 from openstk.core import _throw, CoroutineQueue, CellManager, CellBuilder
 from openstk.gfx import Shader
 
-class OpenGLOpenEngine:
+class Panda3dOpenEngine:
     desiredWorkTimePerFrame: float = 1.0 / 200
     def __init__(self, manager: callable, sunCycle: bool = False):
         if not manager: raise Exception('manager')
@@ -34,7 +33,7 @@ class OpenGLOpenEngine:
         # if not self.playerCamera: return
         # The current cell can be null if the player is outside of the defined game world.
         if not self._cell or not self._cell.isInterior: self.cellManager.updateCells(self.camera)
-        self.queue.run(OpenGLOpenEngine.desiredWorkTimePerFrame)
+        self.queue.run(Panda3dOpenEngine.desiredWorkTimePerFrame)
 
     def _createPlayer(self, position: Vector3, rotation: quaternion) -> None:
         self.camera = position

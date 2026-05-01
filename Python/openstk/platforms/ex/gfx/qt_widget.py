@@ -22,8 +22,8 @@ class ExWidget(QWidget):
         show-frame-rate-meter #t
         """)
         super(QWidget, self).__init__(parent)
-        self.gfx: IOpenGfx = parent.gfx
-        self.sfx: IOpenSfx = parent.sfx
+        self.gfx: list[IOpenGfx] = parent.gfx
+        self.sfx: list[IOpenSfx] = parent.sfx
         self.source: object = tab
         self.path: object = parent.path
         self.value: object = tab.value

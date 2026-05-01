@@ -18,8 +18,14 @@ class PyEngine3dClientHost(IClientHost):
 # PyEngine3dObjectModelBuilder
 class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
-    def instanceObject(self, prefab: object) -> object: raise NotImplementedError()
-    def createObject(self, path: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
+    def instanceObject(self, src: object) -> object:
+        return 'clone'
+    def createObject(self, src: object, materialManager: MaterialManager) -> object:
+        file = src #Binary_Nif
+        textureManager = materialManager._textureManager
+        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
+        s = f'obj: {file.name}'
+        return s
 
 # PyEngine3dShaderBuilder
 class PyEngine3dShaderBuilder(ShaderBuilderBase):
@@ -111,7 +117,7 @@ class PyEngine3dGfxModel(IOpenGfxModel):
         self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, PyEngine3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, PyEngine3dShaderBuilder())
         self.textureManager: TextureManager = TextureManager(source, PyEngine3dTextureBuilder())
-    def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
+    async def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]

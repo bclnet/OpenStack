@@ -20,24 +20,14 @@ class PyEngine3dWidget(QWidget):
     # Binding
 
     def __init__(self, parent: object, tab: object):
-        loadPrcFileData('', """
-        allow-parent 1
-        window-title GameX
-        show-frame-rate-meter #t
-        """)
-        super(QWidget, self).__init__(parent)
-        super(ShowBase, self).__init__()
-        self.gfx: IOpenGfx = parent.gfx
-        self.sfx: IOpenSfx = parent.sfx
+        super().__init__()
+        self.gfx: list[IOpenGfx] = parent.gfx
+        self.sfx: list[IOpenSfx] = parent.sfx
         self.source: object = tab
         self.path: object = parent.path
         self.value: object = tab.value
         self.type: str = tab.type
-        # print('win: %s' % base.win.getProperties())
 
-        # self.disableMouse()
-        # self.camera.setPos(0, -10, 0)
-        # self.camera.lookAt(0, 0, 0)
         self.onSourceChanged()
 
     def createRenderer(self) -> Renderer: pass
@@ -48,33 +38,12 @@ class PyEngine3dWidget(QWidget):
         if self.renderer: self.renderer.start()
         if isinstance(self.value, ITextureSelect): self.value.select(self.id)
 
-    def closeEvent(self, event):
-        self.taskMgr.stop()
-        self.closeWindow()
-        self.destroy()
-
     # Render
 
-    def showEvent(self, event: QEvent) -> None:
-        super().showEvent(event)
-        wp = WindowProperties().getDefault()
-        # wp.setForeground(False)
-        # wp.setOrigin(0, 0)
-        wp.setSize(self.width(), self.height())
-        # wp.setParentWindow(int(self.winId()))
-        self.openDefaultWindow(props=wp)
-        self.run()
-        
+    def resizeEvent(self, event):
+        print('resizeEvent')
+
     def tick(self):
         print('tick')
-    #     self.engine.render_frame()
-        self.clock.tick()
-
-    def resizeEvent(self, event):
-        wp = WindowProperties()
-        wp.setParentWindow(int(self.winId()))
-        wp.setSize(self.width(), self.height())
-        # self.win.requestProperties(wp)
-        # self.openDefaultWindow(props=wp)
 
 #endregion

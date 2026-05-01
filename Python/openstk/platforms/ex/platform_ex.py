@@ -54,7 +54,7 @@ class ExGfxSprite2D(IOpenGfxSprite):
         self.source: ISource = source
         # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
         # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
-    def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
+    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
     def createObject(self, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()

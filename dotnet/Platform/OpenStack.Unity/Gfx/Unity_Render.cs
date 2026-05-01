@@ -53,6 +53,7 @@ public class TextureRenderer(IOpenGfx[] gfx, object obj) : Renderer {
 
     GameObject MakeTexture(string path) {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        obj.name = "Texture";
         obj.transform.rotation = Quaternion.Euler(-90f, 180f, -180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();
         (meshRenderer.material, _) = GfxModel.MaterialManager.CreateMaterial(new MaterialStdProp { Textures = new Dictionary<string, string> { { "Main", path } } });

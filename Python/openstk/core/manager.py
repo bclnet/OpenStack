@@ -134,9 +134,10 @@ class CellManager:
                         if cell and immediate: self.queue.waitFor(cell.task)
 
         # update LODs
-        for p, cell in self.cells.items(): d = max(abs(point.x - p.x), abs(point.y - p.y)); self.builder.setVisible(cell, d <= self.radius2)
+        for p, cell in self.cells.items(): d = max(abs(point.x - p.x), abs(point.y - p.y)); self.builder.setVisible(cell.objectsObj, d <= self.radius2)
 
     def buildCell(self, cell: ICell) -> CellManager.Cell:
+        assert(cell)
         cellName: str
         land: ILand = None
         if not cell.isInterior: cellName = f'cell {cell.gridId}'; land = self.query.findLand(cell.gridId)
@@ -147,7 +148,7 @@ class CellManager:
 
     def destroyCell(self, point: Int3) -> None:
         if point in self.cells: s = self.cells[point]; self.queue.cancel(s.task); self.builder.destroy(s.obj); self.cells.pop(point)
-        else: log.error('Tried to destroy a cell that isn\'t created.')
+        else: log.error('Tried to destroy a cell that is not created.')
 
     def destroyAllCells(self) -> None:
         for s in self.cells.values(): self.queue.cancel(s.task); self.builder.destroy(s.obj)
@@ -187,7 +188,7 @@ class CellBuilder(CellBuilderX):
         cellRefs = self.getCellRefs(cell)
         if land and self.gfxTerrain: yield None; self.createLand(land, obj); yield None
         for s in cellRefs: self.createCell(cell, objectsObj, s); yield None
-        if self.gfxLight: self.createReflectionProbe(cell, obj);
+        if self.gfxLight: self.createReflectionProbe(cell, obj)
 
     def getCellRefs(self, cell: ICell) -> list[CellRef]:
         @staticmethod
@@ -199,7 +200,7 @@ class CellBuilder(CellBuilderX):
 
     # Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     def createCell(self, cell: ICell, parent: object, r: CellRef) -> None:
-        if not r.record: log.info(f'Unknown Object: {r.obj.name}'); return
+        if not r.record: return #log.info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None; obj = r.obj
         if r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
         if self.gfxLight and isinstance(r.record, CellManager.ILigh):

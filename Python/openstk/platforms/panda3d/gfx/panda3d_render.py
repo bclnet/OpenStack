@@ -1,12 +1,17 @@
 from __future__ import annotations
 import os, numpy as np
 from panda3d.core import *
+from openstk.core import log, CellManager
 from openstk.gfx import GfX, Renderer
+from openstk.gfx.egin import AABB
+from openstk.platforms.panda3d.gfx.panda3d import Panda3dCellBuilder
+from openstk.platforms.panda3d.gfx.panda3dopenengine import Panda3dOpenEngine
 
 # typedefs
 class Panda3dGfxModel: pass
 class Shader: pass
 class Camera: pass
+class Texture: pass
 class IOpenGfx: pass
 
 #region TestTriRenderer
@@ -32,16 +37,17 @@ class TextureRenderer(Renderer):
     def __init__(self, gfx: list[IOpenGfx], obj: object):
         self.gfxModel: Panda3dGfxModel = gfx[GfX.XModel]
         self.obj: object = obj
-        # self.gfxModel.textureManager.deleteTexture(obj)
-        # self.tex: int = self.gfxModel.textureManager.createTexture(obj, self.level)[0]
+        self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
         self.frameDelay: int = 0
 
     def start(self):
-        card = base.render.attachNewNode(CardMaker('card').generate())
-        tex = loader.loadTexture('maps/noise.rgb')
-        card.setTexture(tex)
-        card.setScale(4.0, 4.0, 4.0)
-        card.setPos(-8, 42, 0)
+        # self.gfxModel.textureManager.deleteTexture(self.obj)
+        obj = base.render.attachNewNode(CardMaker('card').generate())
+        tex = self.gfxModel.textureManager.createTexture(self.obj, None)[0]
+        # tex = base.loader.loadModel('maps/noise.rgb')
+        obj.setTexture(tex)
+        obj.setScale(8.0, 8.0, 8.0)
+        obj.setPos(-8, 42, 0)
 
     # def update(self, deltaTime: float) -> None:
     #     obj: ITextureFrames = self.obj
@@ -97,7 +103,25 @@ class CellRenderer(Renderer):
 
 # EngineRenderer
 class EngineRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object):
+        self.gfx: list[IOpenGfx] = gfx
+        self.db: ICellDatabase = obj
+        self.engine: Panda3dOpenEngine
+        self.playerPrefab: object = None
+
+    def dispose(self) -> None:
+        if self.engine: self.engine.dispose()
+
+    def start(self) -> None:
+        # log.info(f'db: {self.db}')
+        arc = self.db.archive
+        self.gfx = arc.gfx
+        query = self.db.query
+        self.engine = Panda3dOpenEngine(lambda queue: CellManager(query, queue, Panda3dCellBuilder(query, self.gfx)), False)
+        self.engine.spawnPlayer(self.db)
+
+    def update(self, deltaTime: float) -> None:
+        if self.engine: self.engine.update()
 
 #endregion
 
