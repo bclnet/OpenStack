@@ -2,7 +2,6 @@
 using OpenStack.Gfx;
 using System;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -28,7 +27,6 @@ public class SdlGfxSprite2D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly ObjectSpriteManager<object, object> _objectManager;
     readonly SpriteManager<object> _spriteManager;
-
     public SdlGfxSprite2D(ISource source) {
         _source = source;
         //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -38,7 +36,6 @@ public class SdlGfxSprite2D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();

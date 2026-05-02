@@ -31,13 +31,12 @@ class OpenGLOpenEngine:
     cellChanged: callable = None
 
     def update(self) -> None:
-        # if not self.playerCamera: return
         # The current cell can be null if the player is outside of the defined game world.
-        if not self._cell or not self._cell.isInterior: self.cellManager.updateCells(self.camera)
+        if self.camera and (not self._cell or not self._cell.isInterior): self.cellManager.updateCells(self.camera.location)
         self.queue.run(OpenGLOpenEngine.desiredWorkTimePerFrame)
 
     def _createPlayer(self, position: Vector3, rotation: quaternion) -> None:
-        self.camera = position
+        pass
 
     # Spawns the player inside using the cell's grid coordinates.
     def spawnPlayer(self, db: ICellDatabase):

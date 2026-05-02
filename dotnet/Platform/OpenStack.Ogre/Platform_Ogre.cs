@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -28,7 +27,6 @@ public class OgreGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly ObjectSpriteManager<object, object> _objectManager;
     readonly SpriteManager<object> _spriteManager;
-
     public OgreGfxSprite3D(ISource source) {
         _source = source;
         //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -38,7 +36,6 @@ public class OgreGfxSprite3D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
@@ -52,7 +49,6 @@ public class OgreGfxModel : IOpenGfxModel<object, object, object, object> {
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
     readonly TextureManager<object> _textureManager;
-
     public OgreGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -67,7 +63,6 @@ public class OgreGfxModel : IOpenGfxModel<object, object, object, object> {
     public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public ShaderManager<object> ShaderManager => _shaderManager;
     public TextureManager<object> TextureManager => _textureManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();

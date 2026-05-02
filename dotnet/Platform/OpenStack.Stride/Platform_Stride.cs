@@ -6,10 +6,8 @@ using Stride.Graphics;
 using Stride.Rendering;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -75,7 +73,6 @@ public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly ObjectSpriteManager<object, object> _objectManager;
     readonly SpriteManager<object> _spriteManager;
-
     public StrideGfxSprite3D(ISource source) {
         _source = source;
         //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -85,7 +82,6 @@ public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
@@ -99,7 +95,6 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     readonly ObjectModelManager<Entity, Material, Texture> _objectManager = default;
     readonly ShaderManager<int> _shaderManager = default;
     readonly TextureManager<Texture> _textureManager;
-
     public StrideGfxModel(ISource source) {
         _source = source;
         //_materialManager = new MaterialManager<Material, int>(source, _textureManager, new StrideMaterialBuilder(_textureManager));
@@ -113,7 +108,6 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public ObjectModelManager<Entity, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<int> ShaderManager => _shaderManager;
     public TextureManager<Texture> TextureManager => _textureManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public Entity CreateObject(object path, Entity parent = default) => throw new NotImplementedException();

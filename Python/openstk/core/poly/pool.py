@@ -62,7 +62,7 @@ class CoroutineQueue:
         self.tasks: list[Iterator] = []
         self.time = None
     def add(self, task: Iterator) -> Iterator: self.tasks.append(task); return task
-    def cancel(self, task: Iterator) -> None: return self.tasks.remove(task)
+    def cancel(self, task: Iterator) -> None: return self.tasks.remove(task) if task in self.tasks else None
     def clear(self) -> None: return self.tasks.clear()
     def run(self, desiredWorkTime: float) -> None:
         if len(self.tasks) == 0: return
@@ -72,7 +72,7 @@ class CoroutineQueue:
     def waitFor(self, task: object) -> None:
         assert(task in self.tasks)
         while next(task, self) != self: pass
-        self.tasks.remove(task)
+        if task in self.tasks: self.tasks.remove(task)
     def waitForAll(self):
         for task in self.tasks:
             while next(task, self) != self: pass

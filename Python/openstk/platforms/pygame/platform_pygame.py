@@ -141,7 +141,6 @@ class PygameGfxModel(IOpenGfxModel):
         self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, PygameMaterialBuilder(self.textureManager))
         self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, PygameObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, PygameShaderBuilder())
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]

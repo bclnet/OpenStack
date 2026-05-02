@@ -5,7 +5,6 @@ using OpenStack.Gfx.Godot;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using XShader = Godot.Shader;
 #pragma warning disable CS0649, CS0169
 
@@ -68,8 +67,8 @@ class GodotTextureBuilder : TextureBuilderBase<Texture> {
 // GodotMaterialBuilder : MISSING
 
 // GodotModelApi
-public class GodotModelApi : IOpenGfxApi<Node3D, Material> {
-    public Task<T> GetAsset<T>(object path) => throw new NotImplementedException();
+public class GodotModelApi(ISource source) : IOpenGfxApi<Node3D, Material> {
+    public ISource Source => source;
     public void Parent(Node3D source, Node3D parent) => parent.AddChild(source);
     public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale) {
         var transform = new Transform3D { Origin = position.ToGodot() };
@@ -117,7 +116,6 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     readonly ISource _source;
     readonly SpriteManager<Sprite2D> _spriteManager;
     readonly ObjectSpriteManager<Node, Sprite2D> _objectManager;
-
     public GodotGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -127,7 +125,6 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     public ISource Source => _source;
     public SpriteManager<Sprite2D> SpriteManager => _spriteManager;
     public ObjectSpriteManager<Node, Sprite2D> ObjectManager => _objectManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
@@ -139,7 +136,6 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     readonly ISource _source;
     readonly ObjectSpriteManager<Node, Sprite3D> _objectManager;
     readonly SpriteManager<Sprite3D> _spriteManager;
-
     public GodotGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -149,7 +145,6 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     public ISource Source => _source;
     public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
     public ObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
@@ -163,7 +158,6 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     readonly ObjectModelManager<Node, Material, Texture> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
     readonly TextureManager<Texture> _textureManager;
-
     public GodotGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -179,7 +173,6 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     public ObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public TextureManager<Texture> TextureManager => _textureManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();

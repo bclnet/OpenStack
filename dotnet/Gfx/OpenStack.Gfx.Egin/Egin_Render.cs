@@ -631,7 +631,7 @@ public class Octree<T> where T : class {
 public class Scene(IOpenGfxModel gfx, Action<List<MeshBatchRequest>, Scene.RenderContext> meshBatchRenderer, float sizeHint = 32768) {
     public readonly Camera MainCamera;
     public readonly Vector3? LightPosition;
-    public readonly IOpenGfxModel Gfx = gfx ?? throw new ArgumentNullException(nameof(gfx));
+    public readonly IOpenGfxModel GfxModel = gfx ?? throw new ArgumentNullException(nameof(gfx));
     public readonly Octree<SceneNode> StaticOctree = new(sizeHint);
     public readonly Octree<SceneNode> DynamicOctree = new(sizeHint);
     public bool ShowDebug;

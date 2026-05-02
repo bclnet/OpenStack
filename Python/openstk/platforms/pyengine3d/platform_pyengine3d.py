@@ -117,7 +117,6 @@ class PyEngine3dGfxModel(IOpenGfxModel):
         self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, PyEngine3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, PyEngine3dShaderBuilder())
         self.textureManager: TextureManager = TextureManager(source, PyEngine3dTextureBuilder())
-    async def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]

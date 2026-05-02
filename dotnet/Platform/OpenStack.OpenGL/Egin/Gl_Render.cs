@@ -688,7 +688,7 @@ public class MeshSceneNode : SceneNode, IMeshCollection {
     GLRenderableMesh Mesh;
 
     public MeshSceneNode(Scene scene, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null) : base(scene) {
-        Mesh = new GLRenderableMesh(Scene.Gfx as OpenGLGfxModel, mesh, meshIndex, skinMaterials);
+        Mesh = new GLRenderableMesh(Scene.GfxModel as OpenGLGfxModel, mesh, meshIndex, skinMaterials);
         LocalBoundingBox = Mesh.BoundingBox;
     }
 

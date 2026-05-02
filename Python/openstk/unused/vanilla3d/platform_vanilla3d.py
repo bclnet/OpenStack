@@ -112,7 +112,6 @@ class Vanilla3dGfxModel(IOpenGfxModel):
         self.objectManagerr: ObjectModelManager = ObjectModelManager(source, self.materialManager, Vanilla3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, Vanilla3dShaderBuilder())
 
-    def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> (object, dict[str, object]): return self.objectManager.createObject(path)[0]

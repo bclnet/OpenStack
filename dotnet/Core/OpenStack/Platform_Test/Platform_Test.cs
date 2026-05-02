@@ -22,7 +22,6 @@ public class TestClientHost : IClientHost {
 
 public class TestGfxApi(ISource source) : IOpenGfxApi<object, object> {
     public ISource Source => source;
-    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, object material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
@@ -41,7 +40,6 @@ public class TestGfxSprite(ISource source) : IOpenGfxSprite<object, object> {
     public ISource Source => source;
     public SpriteManager<object> SpriteManager => throw new NotImplementedException();
     public ObjectSpriteManager<object, object> ObjectManager => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void PreloadSprite(object path) => throw new NotSupportedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
 }
@@ -52,7 +50,6 @@ public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object
     public ObjectModelManager<object, object, object> ObjectManager => throw new NotImplementedException();
     public ShaderManager<object> ShaderManager => throw new NotImplementedException();
     public TextureManager<object> TextureManager => throw new NotImplementedException();
-    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
     public void PreloadTexture(object path) => throw new NotSupportedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
@@ -63,14 +60,12 @@ public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object
 
 public class TestGfxLight(ISource source) : IOpenGfxLight<object> {
     public ISource Source => source;
-    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public object CreateLight(string name, Vector3? position, float radius, Color color, bool indoors, object parent = default) => throw new NotImplementedException();
     public object CreateReflectionProbe(string name, Vector3? position, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestGfxTerrain(ISource source) : IOpenGfxTerrain<object, object, object> {
     public ISource Source => source;
-    public Task<T> GetAsset<T>(object path) => throw new NotSupportedException();
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<object>[] layers, float[,,] alphaMap) => throw new NotImplementedException();
     public object CreateTerrain(string name, Vector3? position, object data, object parent = null) => throw new NotImplementedException();
 }

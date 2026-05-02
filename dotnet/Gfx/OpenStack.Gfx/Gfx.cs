@@ -145,7 +145,6 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
     public (Object obj, object tag) CreateObject(object path, Object parent) {
-        Builder.EnsurePrefab();
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path, parent).Result;
         return (Builder.InstanceObject(prefab.obj, parent), prefab.tag);
@@ -158,12 +157,13 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
 
     async Task<(Object obj, object tag)> LoadObject(object path, Object parent) {
         Log.Assert(!CachedObjects.ContainsKey(path));
+        Builder.EnsurePrefab();
         PreloadObject(path);
         object obj;
         try { obj = await PreloadTasks[path]; }
-        catch (Exception e) { Log.Error($"{e.Message}\n{e.StackTrace}"); obj = null; }
-        PreloadTasks.Remove(path);
-        return obj != null ? (Builder.CreateObject(obj, MaterialManager), obj) : (default, default);
+        catch (Exception e) { Log.Info($"{e.Message}\n{e.StackTrace}"); return (default, null); }
+        finally { PreloadTasks.Remove(path); }
+        return (Builder.CreateObject(obj, MaterialManager), obj);
     }
 }
 
@@ -381,7 +381,6 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
     }
 
     public (Texture tex, object tag) CreateTexture(object path, Range? level = null) {
-        path = Source.FindPath<ITexture>(path);
         if (CachedTextures.TryGetValue(path, out var c)) return c;
         // load & cache the texture.
         var tag = path is ITexture z ? z : LoadTexture(path).Result;
@@ -391,21 +390,18 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
     }
 
     public (Texture tex, object tag) ReloadTexture(object path, Range? level = null) {
-        path = Source.FindPath<ITexture>(path);
         if (!CachedTextures.TryGetValue(path, out var c)) return (default, default);
         Builder.CreateTexture(c.tex, (ITexture)c.tag, level);
         return c;
     }
 
     public void PreloadTexture(object path) {
-        path = Source.FindPath<ITexture>(path);
         if (CachedTextures.ContainsKey(path)) return;
         // start loading the texture file asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(path)) PreloadTasks[path] = Source.GetAsset<ITexture>(path);
     }
 
     public void DeleteTexture(object path) {
-        path = Source.FindPath<ITexture>(path);
         if (!CachedTextures.TryGetValue(path, out var c)) return;
         Builder.DeleteTexture(c.tex);
         CachedTextures.Remove(path);
@@ -563,7 +559,7 @@ public interface IModel {
 /// IOpenGfx
 /// </summary>
 public interface IOpenGfx {
-    Task<T> GetAsset<T>(object path);
+    ISource Source { get; }
 }
 
 /// <summary>

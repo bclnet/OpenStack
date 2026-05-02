@@ -185,7 +185,6 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
 class Panda3dGfxApi(IOpenGfxApi):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMeshRenderer(self, src: NodePath, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMissingMeshCollidersRecursively(self, src: NodePath, isStatic: bool) -> None: raise NotImplementedError();
@@ -218,7 +217,6 @@ class Panda3dGfxModel(IOpenGfxModel):
         self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, Panda3dShaderBuilder())
 
-    async def getAsset(self, type: t, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
@@ -229,7 +227,6 @@ class Panda3dGfxModel(IOpenGfxModel):
 class Panda3dGfxLight(IOpenGfxLight):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: NodePath = None) -> NodePath:
         n = PointLight(name)
         n.setColor((0.7, 0.7, 0.7, 1))
@@ -268,7 +265,6 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
         def setAlphamaps(self, x: int, y: int, alphamap: ndarray) -> None: self.alphamap = alphamap
     def __init__(self, source: ISource):
         self.source: ISource = source
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object:
         hShape = heights.shape; aShape = alphaMap.shape
         assert(hShape[0] == hShape[1] and heightRange >= 0 and sampleDistance >= 0)

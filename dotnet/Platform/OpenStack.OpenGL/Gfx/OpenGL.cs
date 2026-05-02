@@ -208,7 +208,7 @@ public abstract class ShaderLoader {
 /// ShaderDebugLoader
 /// </summary>
 public class ShaderDebugLoader : ShaderLoader {
-    const string ShaderDirectory = "OpenStack.OpenGL.GfxModel.Shaders";
+    const string ShaderDirectory = "OpenStack.OpenGL.Gfx.Shaders";
 
     // Map shader names to shader files
     protected override string GetShaderFileByName(string name) {

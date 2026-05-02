@@ -218,7 +218,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     /// Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     /// </summary>
     void CreateCell(ICell cell, Object parent, CellRef r) {
-        if (r.Record == null) { Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
+        if (r.Record == null) return; //{ Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default; var obj = r.Obj;
         if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh && GfxLight != null) {

@@ -53,7 +53,6 @@ class ObjectSpriteManager:
 
     def createObject(self, path: object) -> tuple[Object, object]:
         tag = None
-        self._builder.ensurePrefab()
         # load & cache the prefab.
         if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (asyncio.run(self._loadObject(path)), tag)
         else: prefab = self._cachedObjects[path]
@@ -61,11 +60,11 @@ class ObjectSpriteManager:
 
     def preloadObject(self, path: object) -> None:
         if path in self._cachedObjects: return
-        # start loading the object asynchronously if we haven't already started.
         if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
     async def _loadObject(self, path: object) -> tuple[Object, object]:
         assert(not path in self._cachedObjects)
+        self._builder.ensurePrefab()
         self.preloadObject(path)
         obj = await self._preloadTasks[path]
         self._preloadTasks.pop(path)
@@ -275,7 +274,6 @@ class TextureManager:
         return s
 
     def createTexture(self, path: object, level: range = None) -> tuple[Texture, object]:
-        path = self._source.findPath(type(ITexture), path)
         if path in self._cachedTextures: return self._cachedTextures[path]
         # load & cache the texture.
         tag = path if isinstance(path, ITexture) else asyncio.run(self._loadTexture(path))
@@ -284,26 +282,22 @@ class TextureManager:
         return (obj, tag)
 
     def reloadTexture(self, path: object, level: range = None) -> tuple[Texture, object]:
-        path = self._source.findPath(type(ITexture), path)
         if path not in self._cachedTextures: return (None, None)
         c = self._cachedTextures[path]
         self._builder.createTexture(c[0], c[1], level)
         return c
 
     def preloadTexture(self, path: object) -> None:
-        path = self._source.findPath(type(ITexture), path)
         if path in self._cachedTextures: return
         # start loading the texture file asynchronously if we haven't already started.
-        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
+        if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(type(ITexture), path)
 
     def deleteTexture(self, path: object) -> None:
-        path = self._source.findPath(type(ITexture), path)
         if not path in self._cachedTextures: return
         self._builder.deleteTexture(self._cachedTextures[0])
         self._cachedTextures.pop(path)
 
     async def _loadTexture(self, path: object) -> ITexture:
-        path = self._source.findPath(type(ITexture), path)
         assert(not path in self._cachedTextures)
         self.preloadTexture(path)
         obj = await self._preloadTasks[path]
@@ -412,8 +406,7 @@ class IModel:
 
 # IOpenGfx:
 class IOpenGfx:
-    async def getAsset(self, type: type, path: object): pass
-    def preloadObject(self, path: object) -> None: pass
+    source: ISource
 
 # IOpenGfxApiX
 class IOpenGfxApiX(IOpenGfx): pass

@@ -1,17 +1,12 @@
 ﻿using GameX.Gamebryo.Formats;
-using MathNet.Numerics;
 using OpenStack.Client;
 using OpenStack.Gfx;
 using OpenStack.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
 using static OpenStack.Gfx.TextureFormat;
 #pragma warning disable CS0649, CS0169
 
@@ -264,7 +259,6 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
 // OpenGLGfxApi
 public class OpenGLGfxApi(ISource source) : IOpenGfxApi<object, GLRenderMaterial> {
     public ISource Source => source;
-    public Task<T> GetAsset<T>(object path) => throw new NotImplementedException();
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, GLRenderMaterial material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
@@ -284,7 +278,6 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     readonly ISource _source;
     readonly ObjectSpriteManager<object, int> _objectManager;
     readonly SpriteManager<int> _spriteManager;
-
     public OpenGLGfxSprite3D(ISource source) {
         _source = source;
         //_objectManager = new ObjectSpriteManager<object, int>(source, new OpenGLObjectBuilder());
@@ -294,7 +287,6 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     public ISource Source => _source;
     public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
     public SpriteManager<int> SpriteManager => _spriteManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
@@ -310,7 +302,6 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
     readonly ShaderManager<Shader> _shaderManager;
     readonly TextureManager<int> _textureManager;
-
     public OpenGLGfxModel(ISource source) {
         _source = source;
         _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
@@ -325,7 +316,6 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public ObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
     public ShaderManager<Shader> ShaderManager => _shaderManager;
     public TextureManager<int> TextureManager => _textureManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
     public object CreateObject(object path, object parent = default) => _objectManager.CreateObject(path, parent).obj;
@@ -352,7 +342,7 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
         _materialManager = new MaterialManager<GLRenderMaterial, int>(source, _textureManager, new OpenGLMaterialBuilder(_textureManager));
     }
 
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
+    public ISource Source => _source;
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<int>[] layers, float[,,] alphaMap) => new();
     public object CreateTerrain(string name, Vector3? position, object data, object parent = default) => null;
 }

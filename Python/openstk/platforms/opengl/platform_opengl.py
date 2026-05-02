@@ -240,7 +240,6 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
 class OpenGLGfxApi(IOpenGfxSprite):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def addMeshCollider(self, src: object, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMeshRenderer(self, src: object, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMissingMeshCollidersRecursively(self, src: object, isStatic: bool) -> None: raise NotImplementedError();
@@ -260,7 +259,6 @@ class OpenGLGfxSprite3D(IOpenGfxSprite):
         self.source: ISource = source
         # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
         # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
     def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
@@ -276,7 +274,6 @@ class OpenGLGfxModel(IOpenGfxModel):
         self.shaderManager: ShaderManager = ShaderManager(source, OpenGLShaderBuilder())
         self.meshBufferCache: GLMeshBufferCache = GLMeshBufferCache()
 
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
     def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path)[0]
@@ -294,7 +291,6 @@ class OpenGLGfxModel(IOpenGfxModel):
 class OpenGLGfxLight(IOpenGfxLight):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: object = None) -> object: return 'light'
     def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
 
@@ -302,7 +298,6 @@ class OpenGLGfxLight(IOpenGfxLight):
 class OpenGLGfxTerrain(IOpenGfxTerrain):
     def __init__(self, source: ISource):
         self.source: ISource = source
-    async def getAsset(self, t: type, path: object) -> object: return self.source.getAsset(t, path)
     def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: return f't{offset}'
     def createTerrain(self, name: str, position: Vector3, data: object, parent: object = None) -> object: return 'terrain'
 

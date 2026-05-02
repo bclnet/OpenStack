@@ -296,13 +296,11 @@ class EngineRenderer(EginRenderer):
         self.gfx: list[IOpenGfx] = gfx
         self.db: ICellDatabase = obj
         self.engine: OpenGLOpenEngine
-        self.playerPrefab: object = None
 
     def dispose(self) -> None:
         if self.engine: self.engine.dispose()
 
     def start(self) -> None:
-        # log.info(f'db: {self.db}')
         arc = self.db.archive
         self.gfx = arc.gfx
         query = self.db.query
@@ -311,6 +309,8 @@ class EngineRenderer(EginRenderer):
 
     def update(self, deltaTime: float) -> None:
         if self.engine: self.engine.update()
+
+    def render(self, camera: Camera, passx: Renderer.Pass) -> None: self.engine.camera = camera
 
 #endregion
 

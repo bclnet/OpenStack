@@ -2,10 +2,8 @@
 using OpenStack.Gfx;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -26,7 +24,6 @@ public class UnrealClientHost : IClientHost {
 // UnrealGfxApi
 public class UnrealGfxApi(ISource source) : IOpenGfxApi<object, object> {
     public ISource Source => source;
-    public Task<T> GetAsset<T>(object path) => throw new NotImplementedException();
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, object material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
@@ -46,7 +43,6 @@ public class UnrealGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
-
     public UnrealGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -56,7 +52,6 @@ public class UnrealGfxSprite3D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
@@ -70,7 +65,6 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     readonly MaterialManager<object, object> _materialManager;
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
-
     public UnrealGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -85,7 +79,6 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     public MaterialManager<object, object> MaterialManager => _materialManager;
     public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public ShaderManager<object> ShaderManager => _shaderManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
     public object CreateObject(object path, object parent = null) => throw new NotImplementedException();

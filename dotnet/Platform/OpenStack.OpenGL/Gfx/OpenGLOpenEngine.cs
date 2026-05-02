@@ -38,7 +38,7 @@ public class OpenGLOpenEngine : IDisposable {
 
     public virtual void Update() {
         // The current cell can be null if the player is outside of the defined game world.
-        if (Camera != null && _cell == null || !_cell.IsInterior) CellManager.UpdateCells(Camera.Location);
+        if (Camera != null && (_cell == null || !_cell.IsInterior)) CellManager.UpdateCells(Camera.Location);
         Queue.Run(DesiredWorkTimePerFrame);
     }
 

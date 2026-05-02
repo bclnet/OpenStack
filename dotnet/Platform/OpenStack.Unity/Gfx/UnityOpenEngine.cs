@@ -56,7 +56,7 @@ public class UnityOpenEngine : IDisposable {
 
     public virtual void Update() {
         // The current cell can be null if the player is outside of the defined game world.
-        if (_cell == null || !_cell.IsInterior) CellManager.UpdateCells(CameraTransform.position.FromUnity());
+        if (CameraTransform != null && (_cell == null || !_cell.IsInterior)) CellManager.UpdateCells(CameraTransform.position.FromUnity());
         Queue.Run(DesiredWorkTimePerFrame);
     }
 

@@ -154,10 +154,15 @@ public class TextureRenderer : EginRenderer {
 /// <summary>
 /// ObjectRenderer
 /// </summary>
-public class ObjectRenderer : EginRenderer {
-    public ObjectRenderer(IOpenGfx[] gfx, object obj) {
+public class ObjectRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
+    readonly OpenGLGfxModel GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
+    readonly object Obj = obj;
+
+    public override void Start() {
+        GfxModel.ObjectManager.CreateObject(Obj, null);
     }
 }
+
 
 #endregion
 
@@ -799,7 +804,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
             }
         }
 
-        readonly OpenGLGfxModel _gfx;
+        readonly OpenGLGfxModel _gfxModel;
         readonly List<ChildRenderer> _childRenderers;
         bool _hasStarted = false;
 
@@ -809,7 +814,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 
         // TODO: Passing in position here was for testing, do it properly
         public ChildRenderer(OpenGLGfxModel gfx, IParticleSystem particleSystem, Vector3 pos = default) {
-            _gfx = gfx;
+            _gfxModel = gfx;
             _childRenderers = [];
 
             _particleBag = new ParticleBag(100, true);
@@ -942,7 +947,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
             var renderers = new List<IParticleRenderer>();
             foreach (var rendererInfo in rendererData) {
                 var rendererClass = rendererInfo.Get<string>("_class");
-                if (ParticleControllerFactory.TryCreateRender(rendererClass, rendererInfo, _gfx, out var renderer)) renderers.Add(renderer);
+                if (ParticleControllerFactory.TryCreateRender(rendererClass, rendererInfo, _gfxModel, out var renderer)) renderers.Add(renderer);
                 else Console.WriteLine($"Unsupported renderer class '{rendererClass}'.");
             }
             Renderers = renderers;
@@ -950,8 +955,8 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 
         void SetupChildParticles(IEnumerable<string> childNames) {
             foreach (var childName in childNames) {
-                var childSystem = _gfx.GetAsset<IParticleSystem>(childName).Result;
-                _childRenderers.Add(new ChildRenderer(_gfx, childSystem, _systemRenderState.GetControlPoint(0)));
+                var childSystem = _gfxModel.Source.GetAsset<IParticleSystem>(childName).Result;
+                _childRenderers.Add(new ChildRenderer(_gfxModel, childSystem, _systemRenderState.GetControlPoint(0)));
             }
         }
     }
@@ -969,14 +974,11 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 public class EngineRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
     IOpenGfx[] Gfx = gfx;
     readonly ICellDatabase Db = obj as ICellDatabase;
-
     OpenGLOpenEngine Engine;
-    object PlayerPrefab;
 
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
-        //Log.Info($"PlayerPrefab: {PlayerPrefab}");
         var arc = (ISourceWithPlatform)Db.Archive;
         Gfx = arc.Gfx;
         var query = Db.Query;
@@ -986,10 +988,7 @@ public class EngineRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 
     public override void Update(float deltaTime) => Engine?.Update();
 
-    public override void Render(Camera camera, Pass pass) {
-        Engine.Camera = camera;
-        base.Render(camera, pass);
-    }
+    public override void Render(Camera camera, Pass pass) { Engine.Camera = camera; base.Render(camera, pass); }
 }
 
 #endregion

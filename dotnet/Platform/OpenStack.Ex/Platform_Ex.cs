@@ -52,7 +52,6 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
-
     public ExGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -62,7 +61,6 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
     public ISource Source => _source;
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public Task<T> GetAsset<T>(object path) => _source.GetAsset<T>(path);
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
