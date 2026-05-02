@@ -4,7 +4,6 @@ using OpenStack.Gfx;
 using OpenStack.Gfx.Godot;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using XShader = Godot.Shader;

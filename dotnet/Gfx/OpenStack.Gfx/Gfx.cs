@@ -443,7 +443,7 @@ public abstract class MaterialProp {
 /// MaterialStdProp
 /// </summary>
 public class MaterialStdProp : MaterialProp {
-    public Dictionary<string, string> Textures = [];
+    public Dictionary<string, object> Textures = [];
     //public string MainTexture => Textures.TryGetValue("Main", out var z) ? z : default;
     //public string BumpTexture => Textures.TryGetValue("Bump", out var z) ? z : default;
     public bool AlphaBlended;
@@ -491,7 +491,7 @@ public class MaterialShaderVProp : MaterialShaderProp {
 /// <summary>
 /// MaterialTerrainProp
 /// </summary>
-public class MaterialTerrainProp : MaterialProp { }
+//public class MaterialTerrainProp : MaterialProp { }
 
 /// <summary>
 /// MaterialBuilderBase

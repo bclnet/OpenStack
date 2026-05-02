@@ -1,0 +1,86 @@
+import sys, os, numpy as np
+from PyQt6.QtCore import Qt, QEvent, QTimer, QElapsedTimer
+from PyQt6.QtGui import QWindow
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton
+from openstk.gfx import ITextureSelect, MouseState, KeyboardState
+# panda3d
+from panda3d.core import loadPrcFileData, WindowProperties #, FrameBufferProperties
+from direct.showbase.ShowBase import ShowBase
+
+# typedefs
+class Renderer: pass
+class EginRenderer: pass
+class Camera: pass
+class IOpenGfx: pass
+class IOpenSfx: pass
+
+#region Panda3dWidget
+# https://discourse.panda3d.org/t/panda-in-pyqt/3964/35?page=2
+
+class Panda3dWidget(QWidget, ShowBase):
+    renderer: Renderer = None
+    id: int = 0
+
+    # Binding
+
+    def __init__(self, parent: object, tab: object):
+        loadPrcFileData('', """
+        gl-debug #t
+        allow-parent 1
+        window-title GameX
+        show-frame-rate-meter #t
+        """)
+        super(QWidget, self).__init__(parent)
+        super(ShowBase, self).__init__()
+        self.gfx: list[IOpenGfx] = parent.gfx
+        self.sfx: list[IOpenSfx] = parent.sfx
+        self.source: object = tab
+        self.path: object = parent.path
+        self.value: object = tab.value
+        self.type: str = tab.type
+        # print('win: %s' % base.win.getProperties())
+        self.taskMgr.add(self.tick, 'tick')
+
+        # self.disableMouse()
+        # self.camera.setPos(0, -10, 0)
+        # self.camera.lookAt(0, 0, 0)
+        self.onSourceChanged()
+
+    def createRenderer(self) -> Renderer: pass
+    
+    def onSourceChanged(self) -> None:
+        if not self.gfx or not self.path or not self.value or not self.type: return
+        self.renderer = self.createRenderer()
+        if self.renderer: self.renderer.start()
+        if isinstance(self.value, ITextureSelect): self.value.select(self.id)
+
+    def closeEvent(self, event):
+        self.taskMgr.stop()
+        self.closeWindow()
+        self.destroy()
+
+    # Render
+
+    def showEvent(self, event: QEvent) -> None:
+        super().showEvent(event)
+        wp = WindowProperties().getDefault()
+        # wp.setForeground(False)
+        # wp.setOrigin(0, 0)
+        wp.setSize(self.width(), self.height())
+        # wp.setParentWindow(int(self.winId()))
+        self.openDefaultWindow(props=wp)
+        self.run()
+        
+    def tick(self, task):
+        deltaTime = globalClock.getDt()
+        if self.renderer: self.renderer.update(deltaTime)
+        return task.cont # Repeat every frame
+
+    def resizeEvent(self, event):
+        wp = WindowProperties()
+        wp.setParentWindow(int(self.winId()))
+        wp.setSize(self.width(), self.height())
+        # self.win.requestProperties(wp)
+        # self.openDefaultWindow(props=wp)
+
+#endregion

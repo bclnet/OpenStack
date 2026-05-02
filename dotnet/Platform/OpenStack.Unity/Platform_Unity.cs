@@ -177,7 +177,7 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
 /// </summary>
 class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager) {
     static readonly int BaseMap = XShader.PropertyToID("_BaseMap"), BumpMap = XShader.PropertyToID("_BumpMap"), Cutoff = XShader.PropertyToID("_Cutoff");
-    static readonly XShader _litShader = XShader.Find("Universal Render Pipeline/Lit"), _terrainShader = XShader.Find("Nature/Terrain/Diffuse");
+    static readonly XShader _litShader = XShader.Find("Universal Render Pipeline/Lit"), _terrainShader = XShader.Find("Universal Render Pipeline/Terrain/Lit");
 
     Material _defaultMaterial;
     public override Material DefaultMaterial => _defaultMaterial ??= new(_litShader ?? throw new Exception("Missing: _litShader"));
@@ -186,24 +186,27 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
     public override Material TerrainMaterial => _terrainMaterial ??= new(_terrainShader ?? throw new Exception("Missing: _terrainShader"));
 
     public override Material CreateMaterial(object path) {
+        Log.Info($"CreateMaterial: {path.GetType().Name}");
         switch (path) {
             case MaterialStdProp p: {
-                    var m = new Material(_litShader);
+                    var m = new Material(_litShader ?? throw new Exception("Missing: _litShader"));
                     if (p.AlphaBlended) m.SetFloat(Cutoff, 0.5f);
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
                     var mainTexture = p.Textures.TryGetValue("Main", out var z) ? z : default;
                     if (mainTexture != null) {
+                        Log.Info($"mainTexture: {mainTexture}");
                         var tex = TextureManager.CreateTexture(mainTexture).tex;
                         m.SetTexture(BaseMap, tex);
                         var bumpTexture = p.Textures.TryGetValue("Bump", out z) ? z : default;
                         if (bumpTexture != null) {
+                            Log.Info($"bumpTexture: {bumpTexture}");
                             m.EnableKeyword("_NORMALMAP");
                             m.SetTexture(BumpMap, bumpTexture != null ? TextureManager.CreateTexture(bumpTexture).tex : TextureManager.CreateNormalMapTexture(tex));
                         }
                     }
                     return m;
                 }
-            case MaterialTerrainProp _: return new Material(_terrainShader);
+            //case MaterialTerrainProp _: return new Material(_terrainShader);
             default: throw new ArgumentOutOfRangeException(nameof(path));
         }
     }
@@ -460,7 +463,7 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     }
 }
 
-// UnityGfxTerrain
+// UnityGfxLight
 public class UnityGfxLight(ISource source) : IOpenGfxLight<GameObject> {
     const bool RenderLightShadows = false;
     const bool RenderExteriorCellLights = false;
