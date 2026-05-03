@@ -51,7 +51,7 @@ class ObjectSpriteManager:
         self._builder: ObjectSpriteBuilderBase = builder
         self._preloadTasks: dict[object, object] = {}
 
-    def createObject(self, path: object) -> tuple[Object, object]:
+    def createObject(self, path: object, parent: Object = None) -> tuple[Object, object]:
         tag = None
         # load & cache the prefab.
         if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (asyncio.run(self._loadObject(path)), tag)
@@ -89,7 +89,7 @@ class ObjectModelManager:
         self._builder: ObjectModelBuilderBase = builder
         self._preloadTasks: dict[object, object] = {}
 
-    def createObject(self, path: object) -> tuple[Object, object]:
+    def createObject(self, path: object, parent: Object = None) -> tuple[Object, object]:
         tag = None
         self._builder.ensurePrefab()
         # load & cache the prefab.
@@ -408,6 +408,10 @@ class IModel:
 class IOpenGfx:
     source: ISource
 
+# IHaveOpenGfx
+class IHaveOpenGfx:
+    gfx: list[IOpenGfx]
+
 # IOpenGfxApiX
 class IOpenGfxApiX(IOpenGfx): pass
 
@@ -430,7 +434,7 @@ class IOpenGfxSpriteX(IOpenGfx):
 class IOpenGfxSprite(IOpenGfxSpriteX):
     objectManager: ObjectSpriteManager
     spriteManager: SpriteManager
-    def createObject(self, path: object) -> Object: pass
+    def createObject(self, path: object, parent: Object = None) -> Object: pass
 
 # IOpenGfxModelX:
 class IOpenGfxModelX:

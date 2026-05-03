@@ -84,7 +84,7 @@ public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
     public SpriteManager<object> SpriteManager => _spriteManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 

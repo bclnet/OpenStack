@@ -81,7 +81,7 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     public ShaderManager<object> ShaderManager => _shaderManager;
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();

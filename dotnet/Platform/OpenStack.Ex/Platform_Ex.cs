@@ -64,7 +64,7 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
     public void PreloadSprite(object path) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
-    public object CreateObject(object path, object parent) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
 }
 
 // ExPlatform

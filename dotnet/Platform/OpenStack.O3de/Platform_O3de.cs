@@ -38,7 +38,7 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
     public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 
@@ -65,7 +65,7 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public TextureManager<object> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();

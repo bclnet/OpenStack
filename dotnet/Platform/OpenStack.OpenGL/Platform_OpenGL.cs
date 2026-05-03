@@ -289,7 +289,7 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     public SpriteManager<int> SpriteManager => _spriteManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
     public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
 }
 

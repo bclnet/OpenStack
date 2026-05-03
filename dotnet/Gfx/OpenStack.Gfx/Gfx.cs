@@ -90,8 +90,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
     static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
-    public (Object obj, object tag) CreateObject(object path) {
-        Builder.EnsurePrefab();
+    public (Object obj, object tag) CreateObject(object path, Object parent = default) {
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path).Result;
         return (Builder.CreateNewObject(prefab.obj), prefab.tag);
@@ -105,6 +104,7 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
 
     async Task<(Object obj, object tag)> LoadObject(object path) {
         Log.Assert(!CachedObjects.ContainsKey(path));
+        Builder.EnsurePrefab();
         PreloadObject(path);
         var obj = await PreloadTasks[path];
         PreloadTasks.Remove(path);
@@ -144,7 +144,7 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
     static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
-    public (Object obj, object tag) CreateObject(object path, Object parent) {
+    public (Object obj, object tag) CreateObject(object path, Object parent = default) {
         // load & cache the prefab.
         if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path, parent).Result;
         return (Builder.InstanceObject(prefab.obj, parent), prefab.tag);
@@ -408,7 +408,6 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
     }
 
     async Task<ITexture> LoadTexture(object path) {
-        path = Source.FindPath<ITexture>(path);
         Log.Assert(!CachedTextures.ContainsKey(path));
         PreloadTexture(path);
         var obj = await PreloadTasks[path];
@@ -560,6 +559,13 @@ public interface IModel {
 /// </summary>
 public interface IOpenGfx {
     ISource Source { get; }
+}
+
+/// <summary>
+/// IHaveGfx
+/// </summary>
+public interface IHaveOpenGfx {
+    IOpenGfx[] Gfx { get; }
 }
 
 /// <summary>

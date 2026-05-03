@@ -7,5 +7,9 @@ namespace OpenStack;
 /// </summary>
 public interface ISource {
     Task<T> GetAsset<T>(object path, object option = default, bool throwOnError = true);
-    object FindPath<T>(object path);
+    //object FindPath<T>(object path);
 }
+
+//public interface IHaveSource {
+//    ISource Source { get; }
+//}
