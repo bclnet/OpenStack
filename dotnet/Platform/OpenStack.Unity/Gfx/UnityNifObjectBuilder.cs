@@ -18,18 +18,19 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     readonly bool _isStatic = isStatic;
 
     public Object BuildObject() {
-        Log.Assert(_source.Name != null && _source.Roots.Length > 0);
+        var src = _source;
+        Log.Assert(src.Name != null && src.Roots.Length > 0);
 
         // NIF files can have any number of root NiObjects.
         // If there is only one root, instantiate that directly.
         // If there are multiple roots, create a container Object and parent it to the roots.
-        if (_source.Roots.Length == 1) {
-            var rootNiObject = _source.Roots[0].Value;
+        if (src.Roots.Length == 1) {
+            var rootNiObject = src.Roots[0].Value;
             var gobj = InstantiateRootNiObject(rootNiObject);
             // If the file doesn't contain any NiObjects we are looking for, return an empty Object.
             if (gobj == null) {
-                Log.Info($"{_source.Name} resulted in A null Object when instantiated.");
-                gobj = new Object(_source.Name);
+                Log.Info($"{src.Name} resulted in A null Object when instantiated.");
+                gobj = new Object(src.Name);
             }
             // If gobj != null and the root NiObject is an NiNode, discard any transformations (Morrowind apparently does).
             else if (rootNiObject is NiNode) {
@@ -40,9 +41,9 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
             return gobj;
         }
         else {
-            Log.Info(_source.Name + " has multiple roots.");
-            var gobj = new Object(_source.Name);
-            foreach (var rootRef in _source.Roots) {
+            Log.Info($"{src.Name} has multiple roots.");
+            var gobj = new Object(src.Name);
+            foreach (var rootRef in src.Roots) {
                 var child = InstantiateRootNiObject(rootRef.Value);
                 child?.transform.SetParent(gobj.transform, false);
             }
@@ -51,9 +52,10 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
     }
 
     Object InstantiateRootNiObject(NiObject obj) {
+        var src = _source;
         var gobj = InstantiateNiObject(obj);
         ProcessExtraData(obj, out var shouldAddMissingColliders, out var isMarker);
-        if (_source.Name != null && IsMarkerFileName(_source.Name)) { shouldAddMissingColliders = false; isMarker = true; }
+        if (src.Name != null && IsMarkerFileName(src.Name)) { shouldAddMissingColliders = false; isMarker = true; }
         // Add colliders to the object if it doesn't already contain one.
         if (shouldAddMissingColliders && gobj.GetComponentInChildren<Collider>() == null && _isStatic) gobj.AddMissingMeshCollidersRecursively();
         if (isMarker) gobj.SetLayerRecursively(MarkerLayer);
@@ -62,8 +64,8 @@ public class UnityNifObjectBuilder(Binary_Nif source, MaterialManager<Material, 
 
     void ProcessExtraData(NiObject obj, out bool shouldAddMissingColliders, out bool isMarker) {
         shouldAddMissingColliders = true; isMarker = false;
-        if (obj is NiObjectNET objNET) {
-            var extraData = objNET.ExtraData?.Value;
+        if (obj is NiObjectNET objNET && objNET.ExtraData != null) {
+            var extraData = objNET.ExtraData.Value;
             while (extraData != null) {
                 if (extraData is NiStringExtraData strExtraData) {
                     if (strExtraData.StringData == "NCO" || strExtraData.StringData == "NCC") shouldAddMissingColliders = false;

@@ -63,7 +63,12 @@ class TextureRenderer(Renderer):
 
 # ObjectRenderer
 class ObjectRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], obj: object):
+        self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.obj: object = obj
+
+    def start(self) -> None:
+        self.gfxModel.objectManager.createObject(self.obj, None)
 
 #endregion
 

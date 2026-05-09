@@ -28,8 +28,9 @@ class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def createObject(self, src: object, materialManager: MaterialManager) -> object:
         file = src #Binary_Nif
         textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
+        for texturePath in file.getTexturePaths(): print(texturePath); textureManager.preloadTexture(texturePath)
         s = f'obj: {file.name}'
+        print(s)
         return s
 
 # Panda3dShaderBuilder
