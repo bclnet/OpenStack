@@ -61,7 +61,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack", "Core\OpenStack
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{91E5E8D3-B59D-4E4F-AC51-7799EE7AC412}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Godot", "Platform\OpenStack.Godot\OpenStack.Godot.csproj", "{0F0CF377-C96C-1797-6C5C-2CFF7144AD34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Godot", "Platforms\OpenStack.Godot\OpenStack.Godot.csproj", "{0F0CF377-C96C-1797-6C5C-2CFF7144AD34}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Aix", "Aix", "{1EF7951A-DC58-4022-A175-020B8D2C1978}"
 EndProject
@@ -73,25 +73,25 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Phy", "Phy\OpenSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.PhyTests", "Phy\OpenStack.PhyTests\OpenStack.PhyTests.csproj", "{3CAD33B8-2652-679A-5F39-7AA14323AFAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.O3de", "Platform\OpenStack.O3de\OpenStack.O3de.csproj", "{91F24DCA-D93A-5842-522C-D0D2FCCF65F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.O3de", "Platforms\OpenStack.O3de\OpenStack.O3de.csproj", "{91F24DCA-D93A-5842-522C-D0D2FCCF65F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Ogre", "Platform\OpenStack.Ogre\OpenStack.Ogre.csproj", "{195FC3F3-C708-4259-908B-AC632E55A3AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Ogre", "Platforms\OpenStack.Ogre\OpenStack.Ogre.csproj", "{195FC3F3-C708-4259-908B-AC632E55A3AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.OpenGL", "Platform\OpenStack.OpenGL\OpenStack.OpenGL.csproj", "{EF77770A-C7B2-E3AA-DFA7-7B7331E05560}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.OpenGL", "Platforms\OpenStack.OpenGL\OpenStack.OpenGL.csproj", "{EF77770A-C7B2-E3AA-DFA7-7B7331E05560}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Sdl", "Platform\OpenStack.Sdl\OpenStack.Sdl.csproj", "{99235B85-F911-E17E-07D0-2225DE40635E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Sdl", "Platforms\OpenStack.Sdl\OpenStack.Sdl.csproj", "{99235B85-F911-E17E-07D0-2225DE40635E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Stride", "Platform\OpenStack.Stride\OpenStack.Stride.csproj", "{EB6352E2-4A2E-9487-32D7-E76DBF2F18E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Stride", "Platforms\OpenStack.Stride\OpenStack.Stride.csproj", "{EB6352E2-4A2E-9487-32D7-E76DBF2F18E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Tests", "Platform\OpenStack.Tests\OpenStack.Tests.csproj", "{ADF6D7A3-AF3F-0062-7053-E7232097FEEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Tests", "Platforms\OpenStack.Tests\OpenStack.Tests.csproj", "{ADF6D7A3-AF3F-0062-7053-E7232097FEEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Unity", "Platform\OpenStack.Unity\OpenStack.Unity.csproj", "{E74BBCB0-355D-A15B-899B-3B8998B73C44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Unity", "Platforms\OpenStack.Unity\OpenStack.Unity.csproj", "{E74BBCB0-355D-A15B-899B-3B8998B73C44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Unreal", "Platform\OpenStack.Unreal\OpenStack.Unreal.csproj", "{C9DB3760-D0CB-D426-EE40-0305218E08BC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Unreal", "Platforms\OpenStack.Unreal\OpenStack.Unreal.csproj", "{C9DB3760-D0CB-D426-EE40-0305218E08BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Wpf.Control", "Platform\OpenStack.Wpf.Control\OpenStack.Wpf.Control.csproj", "{43D02D6D-0C2C-966F-C2DC-2F10F761232D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Wpf.Control", "Platforms\OpenStack.Wpf.Control\OpenStack.Wpf.Control.csproj", "{43D02D6D-0C2C-966F-C2DC-2F10F761232D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Wpf.Stride", "Platform\OpenStack.Wpf.Stride\OpenStack.Wpf.Stride.csproj", "{4B2788B3-0CBE-1F19-4DCA-F307FFB6BD77}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Wpf.Stride", "Platforms\OpenStack.Wpf.Stride\OpenStack.Wpf.Stride.csproj", "{4B2788B3-0CBE-1F19-4DCA-F307FFB6BD77}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Program", "Core\OpenStack.Program\OpenStack.Program.csproj", "{85375ECE-E3C7-602D-3934-CF520671D191}"
 EndProject

@@ -202,7 +202,7 @@ class CellBuilder(CellBuilderX):
     def createCell(self, cell: ICell, parent: object, r: CellRef) -> None:
         if not r.record: return #log.info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None; obj = r.obj
-        if r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
+        if r.modelPath: modelObj = self.gfxModel.createObject(r.modelPath, True); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
         if self.gfxLight and isinstance(r.record, CellManager.ILigh):
             ligh = r.record
             s = self.gfxLight.createLight('Light', None, ligh.radius, ligh.lightColor, cell.isInterior)

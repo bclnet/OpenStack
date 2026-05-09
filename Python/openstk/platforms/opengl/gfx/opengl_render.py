@@ -140,7 +140,7 @@ class ObjectRenderer(EginRenderer):
         self.obj: object = obj
 
     def start(self) -> None:
-        self.gfxModel.objectManager.createObject(self.obj, None)
+        self.gfxModel.objectManager.createObject(self.obj, True, None)
 
 #endregion
 

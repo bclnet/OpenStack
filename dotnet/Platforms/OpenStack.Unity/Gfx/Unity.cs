@@ -66,7 +66,7 @@ public static class UnityExtensions {
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static Quaternion ToUnityQuaternionAsEulerAnglesX(this System.Numerics.Vector3 source) // NifEulerAnglesToUnityQuaternion
+    public static Quaternion ToUnityQuaternionAsEulerAngles(this System.Numerics.Vector3 source) // NifEulerAnglesToUnityQuaternion
     {
         var newAngles = source.ToUnity();
         return Quaternion.AngleAxis(Mathf.Rad2Deg * newAngles.x, Vector3.right) *

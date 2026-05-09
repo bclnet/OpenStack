@@ -110,7 +110,7 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public TextureManager<Texture> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Entity CreateObject(object path, Entity parent = default) => throw new NotImplementedException();
+    public Entity CreateObject(object path, bool isStatic, Entity parent = default) => throw new NotImplementedException();
     public int CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public Texture CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PostObject(Entity src, Vector3 position, Vector3 eulerAngles, float? scale, Entity parent) => throw new NotImplementedException();
@@ -121,6 +121,7 @@ public class StrideSfx(ISource source) : SystemSfx(source) { }
 
 // StridePlatform
 public class StridePlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, Entity>> BuildersByType = [];
     public static readonly Platform This = new StridePlatform();
     static Logger Log;
     StridePlatform() : base("ST", "Stride") {

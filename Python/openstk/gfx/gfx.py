@@ -89,24 +89,26 @@ class ObjectModelManager:
         self._builder: ObjectModelBuilderBase = builder
         self._preloadTasks: dict[object, object] = {}
 
-    def createObject(self, path: object, parent: Object = None) -> tuple[Object, object]:
-        tag = None
-        self._builder.ensurePrefab()
-        # load & cache the prefab.
-        if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (asyncio.run(self._loadObject(path)), tag)
-        else: prefab = self._cachedObjects[path]
-        return (self._builder.instanceObject(prefab[0]), prefab[1])
+    def createObject(self, path: object, isStatic: bool, parent: Object = None) -> tuple[Object, object]:
+        try:
+            # load & cache the prefab.
+            if not path in self._cachedObjects: s = self._cachedObjects[path] = asyncio.run(self._loadObject(path, isStatic))
+            else: s = self._cachedObjects[path]
+            return (self._builder.instanceObject(s[0]), s[1])
+        except: return (None, None)
 
     def preloadObject(self, path: object) -> None:
         if path in self._cachedObjects: return
         if not path in self._preloadTasks: self._preloadTasks[path] = self._source.getAsset(object, path)
 
-    async def _loadObject(self, path: object) -> tuple[Object, object]:
+    async def _loadObject(self, path: object, isStatic: bool) -> tuple[Object, object]:
         assert(not path in self._cachedObjects)
+        self._builder.ensurePrefab()
         self.preloadObject(path)
-        obj = await self._preloadTasks[path]
-        self._preloadTasks.pop(path)
-        return (self._builder.createObject(obj, self._materialManager), obj)
+        try:
+            obj = await self._preloadTasks[path]
+            return (self._builder.createObject(obj, self._materialManager), obj)
+        finally: self._preloadTasks.pop(path)
 
 #endregion
 
@@ -446,7 +448,7 @@ class IOpenGfxModel(IOpenGfxModelX):
     objectManager: ObjectModelManager
     shaderManager: ShaderManager
     textureManager: TextureManager
-    def createObject(self, path: object, parent: Object = None) -> Object: pass
+    def createObject(self, path: object, isStatic: bool, parent: Object = None) -> Object: pass
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: pass
     def createTexture(self, path: object, level: range = None) -> Texture: pass
     def postObject(self, src: Object, position: Vector3, eulerAngles: Vector3, scale: float, parent: Object = None) -> None: pass

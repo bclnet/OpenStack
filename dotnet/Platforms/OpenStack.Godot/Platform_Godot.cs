@@ -175,7 +175,7 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     public TextureManager<Texture> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
+    public Node CreateObject(object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PostObject(Node src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node parent) => throw new NotImplementedException();
@@ -186,6 +186,7 @@ public class GodotSfx(ISource source) : SystemSfx(source) { }
 
 // GodotPlatform
 public class GodotPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new GodotPlatform();
     GodotPlatform() : base("GD", "Godot") {
         GfxFactory = source => [null, new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source), null, null];

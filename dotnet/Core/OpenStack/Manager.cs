@@ -185,7 +185,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     protected IOpenGfxTerrain<Object, Material, Texture> GfxTerrain = (IOpenGfxTerrain<Object, Material, Texture>)gfx[GfX.XTerrain];
     protected float MeterInUnits = query.MeterInUnits;
     protected float CellLengthInMeters = query.CellLengthInMeters;
-    static readonly Dictionary<Texture, GfxTerrainLayer<Texture>> TerrainLayers = new();
+    static readonly Dictionary<Texture, GfxTerrainLayer<Texture>> TerrainLayers = [];
 
     public override (object, object) CreateContainers(string name) {
         var obj = GfxApi.CreateObject(name, "Cell");
@@ -220,7 +220,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     void CreateCell(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) return; //{ Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default; var obj = r.Obj;
-        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
+        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath, true); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh && GfxLight != null) {
             var s = GfxLight.CreateLight("Light", null, ligh.Radius, ligh.LightColor, cell.IsInterior);
             if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
@@ -313,18 +313,6 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
 }
 
 #endregion
-
-
-//void ProcessObjectType<RecordType>(Object gameObject, RefCellObjInfo info, string tag) where RecordType : Record {
-//    if (info.Record is RecordType r) {
-//        var obj = GameObjectUtils.FindTopLevelObject(gameObject);
-//        if (obj == null) return;
-//        //var component = GenericObjectComponent.Create(obj, record, tag);
-//        ////only door records need access to the cell object data group so far
-//        //if (record is DOORRecord)
-//        //    ((DoorComponent)component).RefObj = info.RefObj;
-//    }
-//}
 
 //List<string> GetLandTextures(ILand land) {
 //    var vtex = land.Vtex;

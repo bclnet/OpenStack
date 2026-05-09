@@ -65,7 +65,7 @@ public class OgreGfxModel : IOpenGfxModel<object, object, object, object> {
     public TextureManager<object> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
+    public object CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
@@ -76,6 +76,7 @@ public class OgreSfx(ISource source) : SystemSfx(source) { }
 
 // OgrePlatform
 public class OgrePlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre") {
         GfxFactory = source => [null, null, new OgreGfxSprite3D(source), new OgreGfxModel(source), null, null];

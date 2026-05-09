@@ -2,6 +2,7 @@
 using OpenStack.Gfx;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 #pragma warning disable CS0649, CS0169
@@ -81,7 +82,7 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     public ShaderManager<object> ShaderManager => _shaderManager;
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
+    public object CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
@@ -92,6 +93,7 @@ public class UnrealSfx(ISource source) : SystemSfx(source) { }
 
 // UnrealPlatform
 public class UnrealPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new UnrealPlatform();
     UnrealPlatform() : base("UR", "Unreal") {
         GfxFactory = source => [new UnrealGfxApi(source), null, new UnrealGfxSprite3D(source), new UnrealGfxModel(source), null, null];

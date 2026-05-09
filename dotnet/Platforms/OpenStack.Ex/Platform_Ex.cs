@@ -2,6 +2,7 @@
 using OpenStack.Client;
 using OpenStack.Gfx;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
@@ -69,6 +70,7 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
 
 // ExPlatform
 public class ExPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new ExPlatform();
     ExPlatform() : base("EX", "EnginX") {
         GfxFactory = source => [null, new ExGfxSprite2D(source), null, null, null, null];

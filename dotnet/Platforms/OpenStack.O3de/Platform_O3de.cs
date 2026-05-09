@@ -65,7 +65,7 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public TextureManager<object> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
+    public object CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
@@ -76,6 +76,7 @@ public class O3deSfx(ISource source) : SystemSfx(source) { }
 
 // O3dePlatform
 public class O3dePlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new O3dePlatform();
     O3dePlatform() : base("O3", "O3de") {
         GfxFactory = source => [null, null, new O3deGfxSprite3D(source), new O3deGfxModel(source), null, null];

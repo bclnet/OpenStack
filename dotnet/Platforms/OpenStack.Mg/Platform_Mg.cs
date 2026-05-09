@@ -420,6 +420,7 @@ public class MgSfx(ISource source) : SystemSfx(source) { }
 
 // MgPlatform
 public class MgPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new MgPlatform();
     MgPlatform() : base("MG", "MonoGame") {
         GfxFactory = source => [null, new MgGfxSprite2D(source), null, null, null, null];

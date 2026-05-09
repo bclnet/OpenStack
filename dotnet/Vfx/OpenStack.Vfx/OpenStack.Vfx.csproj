@@ -10,7 +10,7 @@
 	<PackageReference Include="Gee.External.Capstone" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
 	<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.5" />
-	<PackageReference Include="SharpCompress" Version="0.47.4" />
+	<PackageReference Include="SharpCompress" Version="0.48.0" />
   </ItemGroup>
 
   <ItemGroup>

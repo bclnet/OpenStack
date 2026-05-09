@@ -30,19 +30,15 @@ public class OpenGLClientHost : IClientHost {
 /// OpenGLObjectBuilder
 /// </summary>
 class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int> {
-    public override void EnsurePrefab() { }
     public override object InstanceObject(object prefab, object parent) {
         return "clone";
     }
-    public override object CreateObject(object source, MaterialManager<GLRenderMaterial, int> materialManager) {
-        var file = (Binary_Nif)source;
-        var textureManager = materialManager.TextureManager;
-        foreach (var texturePath in file.GetTexturePaths()) textureManager.PreloadTexture(texturePath);
-        //var builder = new OpenGLNifObjectBuilder(file, materialManager, false);
-        //var s = builder.BuildObject();
-        var s = $"obj: {file.Name}";
+    public override object CreateObject(object path, bool isStatic, MaterialManager<GLRenderMaterial, int> materialManager) {
+        var builder = OpenGLPlatform.BuildersByType[path.GetType()];
+        var s = builder(path, isStatic, materialManager);
         return s;
     }
+    public override void EnsurePrefab() { }
 }
 
 /// <summary>
@@ -318,7 +314,7 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public TextureManager<int> TextureManager => _textureManager;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public object CreateObject(object path, object parent = default) => _objectManager.CreateObject(path, parent).obj;
+    public object CreateObject(object path, bool isStatic, object parent = default) => _objectManager.CreateObject(path, isStatic, parent).obj;
     public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
@@ -351,6 +347,7 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
 /// OpenGLPlatform
 /// </summary>
 public class OpenGLPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
         GfxFactory = source => [new OpenGLGfxApi(source), null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source), null, null, new OpenGLGfxTerrain(source)];

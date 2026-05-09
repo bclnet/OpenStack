@@ -159,7 +159,7 @@ public class ObjectRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
     readonly object Obj = obj;
 
     public override void Start() {
-        GfxModel.ObjectManager.CreateObject(Obj, null);
+        GfxModel.ObjectManager.CreateObject(Obj, true, null);
     }
 }
 

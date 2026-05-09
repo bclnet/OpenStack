@@ -35,7 +35,6 @@ public class UnityClientHost : MonoBehaviour, IClientHost {
     }
 }
 
-
 #endregion
 
 #region Platform
@@ -45,24 +44,18 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
     GameObject _prefabObj;
 
     public override GameObject InstanceObject(GameObject src, GameObject parent) {
-        Log.Info($"InstanceObject: {src}");
         var s = UnityEngine.Object.Instantiate(src);
         if (parent != null) s.transform.parent = parent.transform;
         return s;
     }
 
-    public override GameObject CreateObject(object src, MaterialManager<Material, Texture2D> materialManager) {
-        Log.Info($"CreateObject: {src}");
-        var file = (Binary_Nif)src;
-        var textureManager = materialManager.TextureManager;
-        foreach (var texturePath in file.GetTexturePaths()) textureManager.PreloadTexture(texturePath);
-        var builder = new UnityNifObjectBuilder(file, materialManager, false);
-        var s = builder.BuildObject();
+    public override GameObject CreateObject(object path, bool isStatic, MaterialManager<Material, Texture2D> materialManager) {
+        var builder = UnityPlatform.BuildersByType[path.GetType()];
+        var s = builder(path, isStatic, materialManager);
         s.transform.parent = _prefabObj.transform;
         // Add LOD support to the prefab.
         var lod = s.AddComponent<LODGroup>();
         lod.SetLODs([new(0.015f, s.GetComponentsInChildren<UnityEngine.Renderer>())]);
-        Log.Info($"ojb: {s}");
         return s;
     }
 
@@ -421,16 +414,21 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public TextureManager<Texture2D> TextureManager => _textureManager;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public GameObject CreateObject(object path, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
+    public GameObject CreateObject(object path, bool isStatic, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
     public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
     public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+
+    const int YardInMWUnits = 64;
+    const float MeterInYards = 1.09361f;
+    const float MeterInUnits = MeterInYards * YardInMWUnits;
     public void PostObject(GameObject src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, GameObject parent = default) {
+        if (src == null) return;
         if (scale != null) src.transform.localScale = Vector3.one * scale.Value;
-        src.transform.position += position.ToUnity();
-        src.transform.rotation *= eulerAngles.ToUnityQuaternionAsEulerAnglesX();
-        var tagTarget = src;
+        if (src.name == "CaveMudcrab.NIF(Clone)") Debug.Log($"{src.name} @ {position} -> {position.ToUnity()}");
+        src.transform.position += position.ToUnity() / MeterInUnits;
+        src.transform.rotation *= eulerAngles.ToUnityQuaternionAsEulerAngles();
         var coll = src.GetComponentInChildren<Collider>(); // if the collider is on a child object and not on the object with the component, we need to set that object's tag instead.
-        if (coll != null) tagTarget = coll.gameObject;
+        var tagTarget = coll != null ? coll.gameObject : src;
         //ProcessObjectType<DOORRecord>(tagTarget, refCellObjInfo, "Door");
         //ProcessObjectType<ACTIRecord>(tagTarget, refCellObjInfo, "Activator");
         //ProcessObjectType<CONTRecord>(tagTarget, refCellObjInfo, "ContObj");
@@ -450,6 +448,17 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
         //ProcessObjectType<NPC_Record>(tagTarget, refCellObjInfo, "NPC");
         if (parent != null) src.transform.parent = parent.transform;
     }
+
+    //void ProcessObjectType<RecordType>(Object gameObject, RefCellObjInfo info, string tag) where RecordType : Record {
+    //    if (info.Record is RecordType r) {
+    //        var obj = GameObjectUtils.FindTopLevelObject(gameObject);
+    //        if (obj == null) return;
+    //        //var component = GenericObjectComponent.Create(obj, record, tag);
+    //        ////only door records need access to the cell object data group so far
+    //        //if (record is DOORRecord)
+    //        //    ((DoorComponent)component).RefObj = info.RefObj;
+    //    }
+    //}
 }
 
 // UnityGfxLight
@@ -532,6 +541,7 @@ public class UnitySfx(ISource source) : SystemSfx(source) { }
 
 // UnityPlatform
 public class UnityPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, GameObject>> BuildersByType = [];
     public static readonly Platform This = new UnityPlatform();
     UnityPlatform() : base("UN", "Unity") {
         var task = Task.Run(Application.platform.ToString);

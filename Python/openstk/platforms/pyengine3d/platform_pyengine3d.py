@@ -20,11 +20,11 @@ class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object) -> object:
         return 'clone'
-    def createObject(self, src: object, materialManager: MaterialManager) -> object:
-        file = src #Binary_Nif
-        textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
-        s = f'obj: {file.name}'
+    def createObject(self, src: object, isStatic: bool, materialManager: MaterialManager) -> object:
+        # file = src #Binary_Nif
+        # textureManager = materialManager._textureManager
+        # for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
+        s = f'obj: {src.name}'
         return s
 
 # PyEngine3dShaderBuilder
@@ -119,12 +119,13 @@ class PyEngine3dGfxModel(IOpenGfxModel):
         self.textureManager: TextureManager = TextureManager(source, PyEngine3dTextureBuilder())
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path, parent)[0]
+    def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path, isStatic, parent)[0]
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
 
 # PyEngine3dPlatform
 class PyEngine3dPlatform(Platform):
+    
     def __init__(self):
         super().__init__('P3', 'PyEngine3D')
         self.gfxFactory = staticmethod(lambda source: [None, None, None, PyEngine3dGfxModel(source), None, None])

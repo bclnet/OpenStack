@@ -52,7 +52,7 @@ public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object
     public TextureManager<object> TextureManager => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
     public void PreloadTexture(object path) => throw new NotSupportedException();
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public object CreateObject(object path, bool isStatic, object parent = null) => throw new NotImplementedException();
     public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
     public object CreateTexture(object path, Range? level = null) => throw new NotImplementedException();
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent = default) => throw new NotImplementedException();

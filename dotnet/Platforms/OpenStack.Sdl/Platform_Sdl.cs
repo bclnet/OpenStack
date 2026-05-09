@@ -1,6 +1,7 @@
 ﻿using OpenStack.Client;
 using OpenStack.Gfx;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 #pragma warning disable CS0649, CS0169
 
@@ -47,6 +48,7 @@ public class SdlSfx(ISource source) : SystemSfx(source) { }
 
 // SdlPlatform
 public class SdlPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new SdlPlatform();
     SdlPlatform() : base("SD", "SDL 3") {
         GfxFactory = source => [new SdlGfxSprite2D(source), null, null, null, null, null];
