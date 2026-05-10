@@ -22,16 +22,14 @@ class Panda3dClientHost(IClientHost):
 
 # Panda3dObjectModelBuilder
 class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
-    def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object) -> object:
         return 'clone'
-    def createObject(self, src: object, materialManager: MaterialManager) -> object:
-        file = src #Binary_Nif
-        textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): print(texturePath); textureManager.preloadTexture(texturePath)
-        s = f'obj: {file.name}'
-        print(s)
+    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+        builder = Panda3dPlatform.buildersByType[path.type]
+        s = builder(path, isStatic, materialManager)
+        print(f's: {s}')
         return s
+    def ensurePrefab(self) -> None: pass
 
 # Panda3dShaderBuilder
 class Panda3dShaderBuilder(ShaderBuilderBase):
@@ -308,11 +306,12 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
 
 # Panda3dPlatform
 class Panda3dPlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PD', 'Panda3D')
         self.gfxFactory = staticmethod(lambda source: [Panda3dGfxApi(source), None, None, Panda3dGfxModel(source), Panda3dGfxLight(source), Panda3dGfxTerrain(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-Panda3dPlatform.This = Panda3dPlatform()
+Panda3dPlatform.this = Panda3dPlatform()
 
 #endregion
 

@@ -35,7 +35,7 @@ class PlatformX:
 
     @staticmethod
     def activate(platform: Platform) -> None:
-        if not platform or not platform.enabled: platform = UnknownPlatform.This
+        if not platform or not platform.enabled: platform = UnknownPlatform.this
         PlatformX.platforms.add(platform)
         current = PlatformX.current
         if current != platform:
@@ -78,5 +78,5 @@ class PlatformX:
 from openstk.platforms.test import TestPlatform
 from openstk.platforms.unknown import UnknownPlatform
 
-PlatformX.platforms = { UnknownPlatform.This }
-PlatformX.current = PlatformX.activate(TestPlatform.This if PlatformX.inTestHost else UnknownPlatform.This)
+PlatformX.platforms = { UnknownPlatform.this }
+PlatformX.current = PlatformX.activate(TestPlatform.this if PlatformX.inTestHost else UnknownPlatform.this)

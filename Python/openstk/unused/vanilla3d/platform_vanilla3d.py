@@ -125,6 +125,6 @@ class Vanilla3dPlatform(Platform):
         super().__init__('V3', 'Vanilla3D')
         self.gfxFactory = staticmethod(lambda source: [Vanilla3dGfxApi(source), None, None, Vanilla3dGfxModel(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-Vanilla3dPlatform.This = Vanilla3dPlatform()
+Vanilla3dPlatform.this = Vanilla3dPlatform()
 
 #endregion

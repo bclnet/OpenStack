@@ -6,14 +6,13 @@ from openstk.gfx import ITextureSelect, MouseState, KeyboardState
 
 # typedefs
 class Renderer: pass
-class EginRenderer: pass
 class Camera: pass
 class IOpenGfx: pass
 class IOpenSfx: pass
 
-#region ExWidget
+#region EginXWidget
 
-class ExWidget(QWidget):
+class EginXWidget(QWidget):
     # Binding
     def __init__(self, parent: object, tab: object):
         loadPrcFileData('', """

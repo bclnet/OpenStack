@@ -23,12 +23,12 @@ public class UnknownClientHost : IClientHost {
 /// UnknownPlatform
 /// </summary>
 public class UnknownPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new UnknownPlatform();
     UnknownPlatform() : base("UK", "Unknown") {
         GfxFactory = source => [null, null, null, null, null, null];
         SfxFactory = source => [null];
     }
 }
-
 
 #endregion

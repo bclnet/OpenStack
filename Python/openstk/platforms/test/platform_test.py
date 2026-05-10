@@ -41,10 +41,11 @@ class TestSfx:
 
 # TestPlatform
 class TestPlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('TT', 'Test')
         self.gfxFactory = staticmethod(lambda source: [TestGfxApi(source), TestGfxSprite(source), TestGfxSprite(source), TestGfxModel(source), TestGfxLight(source), TestGfxTerrain(source)])
         self.sfxFactory = staticmethod(lambda source: [TestSfx(source)])
-TestPlatform.This = TestPlatform()
+TestPlatform.this = TestPlatform()
 
 #endregion

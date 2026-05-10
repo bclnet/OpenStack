@@ -20,15 +20,13 @@ class PygameClientHost(IClientHost):
 
 # PygameObjectModelBuilder
 class PygameObjectModelBuilder(ObjectModelBuilderBase):
-    def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object) -> object:
         return 'clone'
-    def createObject(self, src: object, materialManager: MaterialManager) -> object:
-        file = src #Binary_Nif
-        textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
-        s = f'obj: {file.name}'
+    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+        builder = PyGamePlatform.buildersByType[path.type]
+        s = builder(path, isStatic, materialManager)
         return s
+    def ensurePrefab(self) -> None: pass
 
 # PygameShaderBuilder
 class PygameShaderBuilder(ShaderBuilderBase):
@@ -149,10 +147,11 @@ class PygameGfxModel(IOpenGfxModel):
 
 # PygamePlatform
 class PygamePlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PG', 'Pygame')
         self.gfxFactory = staticmethod(lambda source: [None, None, None, PygameGfxModel(source), None, None])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-PygamePlatform.This = PygamePlatform()
+PygamePlatform.this = PygamePlatform()
 
 #endregion

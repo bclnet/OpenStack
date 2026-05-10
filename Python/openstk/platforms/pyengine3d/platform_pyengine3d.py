@@ -17,15 +17,13 @@ class PyEngine3dClientHost(IClientHost):
 
 # PyEngine3dObjectModelBuilder
 class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
-    def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object) -> object:
         return 'clone'
-    def createObject(self, src: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        # file = src #Binary_Nif
-        # textureManager = materialManager._textureManager
-        # for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
-        s = f'obj: {src.name}'
+    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+        builder = PyEngine3dPlatform.buildersByType[path.type]
+        s = builder(path, isStatic, materialManager)
         return s
+    def ensurePrefab(self) -> None: pass
 
 # PyEngine3dShaderBuilder
 class PyEngine3dShaderBuilder(ShaderBuilderBase):
@@ -125,11 +123,11 @@ class PyEngine3dGfxModel(IOpenGfxModel):
 
 # PyEngine3dPlatform
 class PyEngine3dPlatform(Platform):
-    
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('P3', 'PyEngine3D')
         self.gfxFactory = staticmethod(lambda source: [None, None, None, PyEngine3dGfxModel(source), None, None])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-PyEngine3dPlatform.This = PyEngine3dPlatform()
+PyEngine3dPlatform.this = PyEngine3dPlatform()
 
 #endregion

@@ -12,35 +12,33 @@ type Vector3 = ndarray
 
 #region Client
 
-# Panda3dClientHost
-class Panda3dClientHost(IClientHost):
+# GodotClientHost
+class GodotClientHost(IClientHost):
     def __init__(self, client: callable): pass
 
 #endregion
 
 #region Platform
 
-# Panda3dObjectModelBuilder
-class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
-    def ensurePrefab(self) -> None: pass
+# GodotObjectModelBuilder
+class GodotObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
-    def createObject(self, src: object, materialManager: MaterialManager) -> object:
-        file = src #Binary_Nif
-        textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
-        s = f'obj: {file.name}'
+    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+        builder = GodotPlatform.buildersByType[path.type]
+        s = builder(path, isStatic, materialManager)
         return s
+    def ensurePrefab(self) -> None: pass
 
-# Panda3dShaderBuilder
-class Panda3dShaderBuilder(ShaderBuilderBase):
+# GodotShaderBuilder
+class GodotShaderBuilder(ShaderBuilderBase):
     _loader: ShaderLoader = None
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
-# Panda3dTextureBuilder
+# GodotTextureBuilder
 # https://docs.panda3d.org/1.10/python/programming/texturing/simple-texturing#simple-texturing
 # https://docs.panda3d.org/1.10/python/programming/texturing/creating-textures#creating-new-textures-from-scratch
-class Panda3dTextureBuilder(TextureBuilderBase):
+class GodotTextureBuilder(TextureBuilderBase):
     _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> Texture:
@@ -125,9 +123,9 @@ class Panda3dTextureBuilder(TextureBuilderBase):
 
     def deleteTexture(self, texture: Texture) -> None: texture.release()
 
-# Panda3dMaterialBuilder
+# GodotMaterialBuilder
 # https://docs.panda3d.org/1.10/python/programming/render-attributes/materials
-class Panda3dMaterialBuilder(MaterialBuilderBase):
+class GodotMaterialBuilder(MaterialBuilderBase):
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
@@ -181,8 +179,8 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')
 
-# Panda3dGfxApi
-class Panda3dGfxApi(IOpenGfxApi):
+# GodotGfxApi
+class GodotGfxApi(IOpenGfxApi):
     def __init__(self, source: ISource):
         self.source: ISource = source
     def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
@@ -208,14 +206,14 @@ class Panda3dGfxApi(IOpenGfxApi):
         #     if not src.isHidden(): src.hide()
     def destroy(self, src: NodePath) -> None: src.removeNode()
 
-# Panda3dGfx
-class Panda3dGfxModel(IOpenGfxModel):
+# GodotGfx
+class GodotGfxModel(IOpenGfxModel):
     def __init__(self, source: ISource):
         self.source: ISource = source
-        self.textureManager: TextureManager = TextureManager(source, Panda3dTextureBuilder())
-        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, Panda3dMaterialBuilder(self.textureManager))
-        self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
-        self.shaderManager: ShaderManager = ShaderManager(source, Panda3dShaderBuilder())
+        self.textureManager: TextureManager = TextureManager(source, GodotTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, GodotMaterialBuilder(self.textureManager))
+        self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, GodotObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(source, GodotShaderBuilder())
 
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
@@ -223,8 +221,8 @@ class Panda3dGfxModel(IOpenGfxModel):
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
     def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
 
-# Panda3dGfxLight
-class Panda3dGfxLight(IOpenGfxLight):
+# GodotGfxLight
+class GodotGfxLight(IOpenGfxLight):
     def __init__(self, source: ISource):
         self.source: ISource = source
     def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: NodePath = None) -> NodePath:
@@ -237,8 +235,8 @@ class Panda3dGfxLight(IOpenGfxLight):
         return s
     def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
 
-# Panda3dGfxTerrain
-class Panda3dGfxTerrain(IOpenGfxTerrain):
+# GodotGfxTerrain
+class GodotGfxTerrain(IOpenGfxTerrain):
     class TerrainLayer:
         def __init__(self, diffuseTexture: Texture, smoothness: float, metallic: float, maskMapTexture: Texture, normalMapTexture: Texture, tileSize: Vector3):
             self.diffuseTexture = diffuseTexture
@@ -269,11 +267,11 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
         hShape = heights.shape; aShape = alphaMap.shape
         assert(hShape[0] == hShape[1] and heightRange >= 0 and sampleDistance >= 0)
         resolution = hShape[0]
-        s = Panda3dGfxTerrain.TerrainData(heightmapResolution=resolution)
+        s = GodotGfxTerrain.TerrainData(heightmapResolution=resolution)
         terrainWidth = (resolution + offset) * sampleDistance
         if not math.isclose(heightRange, 0): s.size = array([terrainWidth, heightRange, terrainWidth]); s.setHeights(0, 0, heights)
         else: s.size = array([terrainWidth, 1., terrainWidth])
-        s.terrainLayers = [Panda3dGfxTerrain.TerrainLayer(
+        s.terrainLayers = [GodotGfxTerrain.TerrainLayer(
             diffuseTexture=s.texture,
             smoothness=s.smoothness,
             metallic=s.metallic,
@@ -305,13 +303,14 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
         if position.size != 0: s.setPos(vector3ToPanda(position))
         return s
 
-# Panda3dPlatform
-class Panda3dPlatform(Platform):
+# GodotPlatform
+class GodotPlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PD', 'Panda3D')
-        self.gfxFactory = staticmethod(lambda source: [Panda3dGfxApi(source), None, None, Panda3dGfxModel(source), Panda3dGfxLight(source), Panda3dGfxTerrain(source)])
+        self.gfxFactory = staticmethod(lambda source: [GodotGfxApi(source), None, None, GodotGfxModel(source), GodotGfxLight(source), GodotGfxTerrain(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-Panda3dPlatform.This = Panda3dPlatform()
+GodotPlatform.this = GodotPlatform()
 
 #endregion
 

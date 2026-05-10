@@ -1,4 +1,4 @@
-﻿using EnginX;
+﻿using EginX;
 using OpenStack.Client;
 using OpenStack.Gfx;
 using System;
@@ -45,15 +45,15 @@ public class ExClientHost : Game, IClientHost {
 
 #region Platform
 
-// ExObjectBuilder
+// EginXObjectBuilder
 // MISSING
 
-// ExGfxSprite2D
-public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
+// EginXGfxSprite2D
+public class EginXGfxSprite2D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
     readonly ObjectSpriteManager<object, object> _objectManager;
-    public ExGfxSprite2D(ISource source) {
+    public EginXGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
@@ -68,12 +68,12 @@ public class ExGfxSprite2D : IOpenGfxSprite<object, object> {
     public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
 }
 
-// ExPlatform
-public class ExPlatform : Platform {
+// EginXPlatform
+public class EginXPlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
-    public static readonly Platform This = new ExPlatform();
-    ExPlatform() : base("EX", "EnginX") {
-        GfxFactory = source => [null, new ExGfxSprite2D(source), null, null, null, null];
+    public static readonly Platform This = new EginXPlatform();
+    EginXPlatform() : base("EX", "EginX") {
+        GfxFactory = source => [null, new EginXGfxSprite2D(source), null, null, null, null];
         SfxFactory = source => [new SystemSfx(source)];
     }
 }

@@ -5,10 +5,11 @@ from openstk.core.platform import Platform
 
 # UnknownPlatform
 class UnknownPlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('UK', 'Unknown')
         self.gfxFactory = staticmethod(lambda source: [None, None, None, None, None, None])
         self.sfxFactory = staticmethod(lambda source: [None])
-UnknownPlatform.This = UnknownPlatform()
+UnknownPlatform.this = UnknownPlatform()
 
 #endregion

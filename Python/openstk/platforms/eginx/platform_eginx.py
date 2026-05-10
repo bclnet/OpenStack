@@ -11,8 +11,8 @@ class ISource: pass
 
 #region Client
 
-# ExClientHost
-class ExClientHost(Game, IClientHost):
+# EginXClientHost
+class EginXClientHost(Game, IClientHost):
     def __init__(self, client: callable):
         super().__init__()
         # self.deviceManager = GraphicsDeviceManager(self)
@@ -39,17 +39,17 @@ class ExClientHost(Game, IClientHost):
 
 #region Platform
 
-# ExObjectBuilder
+# EginXObjectBuilder
 # MISSING
 
-# ExGfxApi
-class ExGfxApi(IOpenGfxApi):
+# EginXGfxApi
+class EginXGfxApi(IOpenGfxApi):
     def __init__(self, source: ISource):
         self.source: ISource = source
     def attach(self, method: GfxAttach, src: object, args: list[object]) -> object: raise NotImplementedError()
 
-# ExGfxSprite2D
-class ExGfxSprite2D(IOpenGfxSprite):
+# EginXGfxSprite2D
+class EginXGfxSprite2D(IOpenGfxSprite):
     def __init__(self, source: ISource):
         self.source: ISource = source
         # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
@@ -59,12 +59,13 @@ class ExGfxSprite2D(IOpenGfxSprite):
     def createObject(self, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
 
-# ExPlatform
-class ExPlatform(Platform):
+# EginXPlatform
+class EginXPlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
-        super().__init__('EX', 'EnginX')
-        self.gfxFactory = staticmethod(lambda source: [ExGfxApi(source), ExGfxSprite2D(source), None, None, None, None])
+        super().__init__('EX', 'EginX')
+        self.gfxFactory = staticmethod(lambda source: [EginXGfxApi(source), EginXGfxSprite2D(source), None, None, None, None])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-ExPlatform.This = ExPlatform()
+EginXPlatform.this = EginXPlatform()
 
 #endregion

@@ -78,6 +78,7 @@ public class TestSfx(ISource source) : IOpenSfx {
 /// TestPlatform
 /// </summary>
 public class TestPlatform : Platform {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new TestPlatform();
     TestPlatform() : base("TT", "Test") {
         GfxFactory = source => [new TestGfxApi(source), new TestGfxSprite(source), new TestGfxSprite(source), new TestGfxModel(source), new TestGfxTerrain(source)];
@@ -86,4 +87,3 @@ public class TestPlatform : Platform {
 }
 
 #endregion
-

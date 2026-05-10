@@ -39,9 +39,9 @@ class GfxBlendMode(Enum): Zero = 0; One = 1; DstColor = 2; SrcColor = 3; OneMinu
 
 # ObjectSpriteBuilderBase
 class ObjectSpriteBuilderBase:
+    def instanceObject(self, src: Object) -> Object: pass
+    def createObject(self, path: object) -> Object: pass
     def ensurePrefab(self) -> None: pass
-    def instanceObject(self, prefab: Object) -> Object: pass
-    def createObject(self, src: object) -> Object: pass
 
 # ObjectSpriteManager
 class ObjectSpriteManager:
@@ -76,9 +76,9 @@ class ObjectSpriteManager:
 
 # ObjectModelBuilderBase
 class ObjectModelBuilderBase:
-    def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: Object) -> Object: pass
-    def createObject(self, src: object, materialManager: MaterialManager) -> Object: pass
+    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> Object: pass
+    def ensurePrefab(self) -> None: pass
 
 # ObjectModelManager
 class ObjectModelManager:
@@ -107,7 +107,7 @@ class ObjectModelManager:
         self.preloadObject(path)
         try:
             obj = await self._preloadTasks[path]
-            return (self._builder.createObject(obj, self._materialManager), obj)
+            return (self._builder.createObject(obj, isStatic, self._materialManager), obj)
         finally: self._preloadTasks.pop(path)
 
 #endregion

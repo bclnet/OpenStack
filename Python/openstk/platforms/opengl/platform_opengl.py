@@ -25,15 +25,13 @@ class OpenGLClientHost(IClientHost):
 
 # OpenGLObjectModelBuilder
 class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
-    def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object, parent: object = None) -> object:
         return 'clone'
-    def createObject(self, src: object, materialManager: MaterialManager) -> object:
-        file = src #Binary_Nif
-        textureManager = materialManager._textureManager
-        for texturePath in file.getTexturePaths(): textureManager.preloadTexture(texturePath)
-        s = f'obj: {file.name}'
+    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+        builder = OpenGLPlatform.buildersByType[path.type]
+        s = builder(path, isStatic, materialManager)
         return s
+    def ensurePrefab(self) -> None: pass
 
 # OpenGLShaderBuilder
 class OpenGLShaderBuilder(ShaderBuilderBase):
@@ -303,10 +301,11 @@ class OpenGLGfxTerrain(IOpenGfxTerrain):
 
 # OpenGLPlatform
 class OpenGLPlatform(Platform):
+    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('GL', 'OpenGL')
         self.gfxFactory = staticmethod(lambda source: [OpenGLGfxApi(source), None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source), OpenGLGfxLight(source), OpenGLGfxTerrain(source)])
         self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
-OpenGLPlatform.This = OpenGLPlatform()
+OpenGLPlatform.this = OpenGLPlatform()
 
 #endregion
