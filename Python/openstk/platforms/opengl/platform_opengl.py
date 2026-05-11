@@ -1,5 +1,6 @@
 from __future__ import annotations
-from numpy import array, float32, ones, zeros
+import traceback
+from numpy import array, ones, zeros, float32
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
 from openstk.core import Platform
@@ -28,9 +29,11 @@ class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object, parent: object = None) -> object:
         return 'clone'
     def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = OpenGLPlatform.buildersByType[path.type]
-        s = builder(path, isStatic, materialManager)
-        return s
+        builder = OpenGLPlatform.buildersByType[path.__class__.__name__]
+        try:
+            s = builder(path, isStatic, materialManager)
+            return s
+        except Exception as e: print(e); traceback.print_exc()
     def ensurePrefab(self) -> None: pass
 
 # OpenGLShaderBuilder

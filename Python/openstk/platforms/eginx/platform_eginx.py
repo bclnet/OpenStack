@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os, io, numpy as np
+import traceback
 from openstk.core import Platform
 from openstk.platforms.system import SystemSfx
 from openstk.gfx import IOpenGfxApi, IOpenGfxSprite, IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase

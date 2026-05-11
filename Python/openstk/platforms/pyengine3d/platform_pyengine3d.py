@@ -1,5 +1,6 @@
 from __future__ import annotations
-import os, io, numpy as np
+import traceback
+from numpy import ones, zeros
 from openstk.core import Platform
 from openstk.client import IClientHost
 from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
@@ -20,9 +21,11 @@ class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = PyEngine3dPlatform.buildersByType[path.type]
-        s = builder(path, isStatic, materialManager)
-        return s
+        builder = PyEngine3dPlatform.buildersByType[path.__class__.__name__]
+        try:
+            s = builder(path, isStatic, materialManager)
+            return s
+        except Exception as e: print(e); traceback.print_exc()
     def ensurePrefab(self) -> None: pass
 
 # PyEngine3dShaderBuilder
@@ -100,9 +103,9 @@ class PyEngine3dMaterialBuilder(MaterialBuilderBase):
                                     break
 
                         # Set default values for scale and positions
-                        if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = np.ones(4)
-                        if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = np.zeros(4)
-                        if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = np.ones(4)
+                        if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = ones(4)
+                        if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = zeros(4)
+                        if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = ones(4)
                         return m
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')

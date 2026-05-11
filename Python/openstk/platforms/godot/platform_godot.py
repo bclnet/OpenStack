@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os, io, math
+import math, traceback
 from numpy import ndarray, array, ones, zeros
 from openstk.core import Platform
 from openstk.client import IClientHost
@@ -25,9 +25,11 @@ class GodotObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = GodotPlatform.buildersByType[path.type]
-        s = builder(path, isStatic, materialManager)
-        return s
+        builder = GodotPlatform.buildersByType[path.__class__.__name__]
+        try:
+            s = builder(path, isStatic, materialManager)
+            return s
+        except Exception as e: print(e); traceback.print_exc()
     def ensurePrefab(self) -> None: pass
 
 # GodotShaderBuilder

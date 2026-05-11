@@ -1,5 +1,6 @@
 from __future__ import annotations
-import os, io, numpy as np
+import traceback
+from numpy import ndarray, array, ones, zeros, float32
 from openstk.core import Platform
 from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
 from openstk.platforms.system import SystemSfx
@@ -23,9 +24,11 @@ class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = PyGamePlatform.buildersByType[path.type]
-        s = builder(path, isStatic, materialManager)
-        return s
+        builder = PygamePlatform.buildersByType[path.__class__.__name__]
+        try:
+            s = builder(path, isStatic, materialManager)
+            return s
+        except Exception as e: print(e); traceback.print_exc()
     def ensurePrefab(self) -> None: pass
 
 # PygameShaderBuilder
@@ -44,7 +47,7 @@ class PygameTextureBuilder(TextureBuilderBase):
     def release(self) -> None:
         if self._defaultTexture > -1: glDeleteTexture(self._defaultTexture); self._defaultTexture = -1
 
-    def _createDefaultTexture(self) -> int: return self.createSolidTexture(4, 4, np.array([
+    def _createDefaultTexture(self) -> int: return self.createSolidTexture(4, 4, array([
         0.9, 0.2, 0.8, 1.0,
         0.0, 0.9, 0.0, 1.0,
         0.9, 0.2, 0.8, 1.0,
@@ -64,12 +67,12 @@ class PygameTextureBuilder(TextureBuilderBase):
         0.9, 0.2, 0.8, 1.0,
         0.0, 0.9, 0.0, 1.0,
         0.9, 0.2, 0.8, 1.0
-        ], dtype = np.float32))
+        ], dtype = float32))
 
     def createTexture(self, reuse: int, source: ITexture, level2: range = None) -> int:
         pass
 
-    def createSolidTexture(self, width: int, height: int, pixels: np.array) -> int:
+    def createSolidTexture(self, width: int, height: int, pixels: array) -> int:
         pass
 
     def createNormalMap(self, source: int, strength: float) -> int: raise NotImplementedError()
@@ -124,9 +127,9 @@ class PygameMaterialBuilder(MaterialBuilderBase):
                                     break
 
                         # Set default values for scale and positions
-                        if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = np.ones(4)
-                        if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = np.zeros(4)
-                        if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = np.ones(4)
+                        if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = ones(4)
+                        if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = zeros(4)
+                        if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = ones(4)
                         return m
                     case _: raise Exception(f'Unknown: {s}')
             case _: raise Exception(f'Unknown: {key}')
