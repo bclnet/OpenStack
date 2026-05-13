@@ -3,9 +3,9 @@ import math, traceback
 from numpy import ndarray, array, ones, zeros
 from openstk.core import Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platforms.system import SystemSfx
-from panda3d.core import PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
+from panda3d.core import Material, PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
 
 # types
 type Vector3 = ndarray
@@ -30,7 +30,6 @@ class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
             s = builder(path, isStatic, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
-  
     def ensurePrefab(self) -> None: pass
 
 # Panda3dShaderBuilder
@@ -126,68 +125,62 @@ class Panda3dTextureBuilder(TextureBuilderBase):
 
     def deleteTexture(self, texture: Texture) -> None: texture.release()
 
+class MaterialPoly:
+    def __init__(self, m: Material, ts: list[tuple[object, object]]):
+        self.m = m
+        self.ts = ts
+    def apply(self, node: NodePath) -> None:
+        pass
+
 # Panda3dMaterialBuilder
 # https://docs.panda3d.org/1.10/python/programming/render-attributes/materials
 class Panda3dMaterialBuilder(MaterialBuilderBase):
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    _defaultMaterial: GLRenderMaterial; _terrainMaterial: GLRenderMaterial
+    _defaultMaterial: MaterialPoly; _terrainMaterial: MaterialPoly
     @property
-    def defaultMaterial(self) -> int:
+    def defaultMaterial(self) -> MaterialPoly:
         if self._defaultMaterial: return self._defaultMaterial
         self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
     @property
-    def terrainMaterial(self) -> int:
+    def terrainMaterial(self) -> MaterialPoly:
         if self._terrainMaterial: return self._terrainMaterial
         self._terrainMaterial = self._createDefaultMaterial()
         return self._terrainMaterial
 
-    def _createDefaultMaterial() -> GLRenderMaterial:
-        m = GLRenderMaterial(None)
-        m.textures['g_tColor'] = self.textureManager.defaultTexture
-        m.material.shaderName = 'vrf.error'
-        return m
+    def _createDefaultMaterial() -> MaterialPoly:
+        m = Material()
+        tex = self.textureManager.defaultTexture
+        return MaterialPoly(m, [(tex, None)])
 
-    def _createTerrainMaterial() -> GLRenderMaterial:
-        m = GLRenderMaterial(None)
-        m.material.shaderName = 'vrf.error'
-        return m
+    def _createTerrainMaterial() -> MaterialPoly:
+        m = Material()
+        return MaterialPoly(m, [(None, None)])
 
-    def createMaterial(self, key: object) -> GLRenderMaterial:
-        match key:
-            case s if isinstance(key, IMaterial):
-                match s:
-                    case m if isinstance(key, IFixedMaterial): return m
-                    case p if isinstance(key, IMaterial):
-                        for tex in p.textureParams: m.textures[tex.key], _ = self.textureManager.createTexture(f'{tex.Value}_c')
-                        if 'F_SOLID_COLOR' in p.intParams and p.intParams['F_SOLID_COLOR'] == 1:
-                            a = p.vectorParams['g_vColorTint']
-                            m.textures['g_tColor'] = self.textureManager.buildSolidTexture(1, 1, a[0], a[1], a[2], a[3])
-                        if not 'g_tColor' in m.textures: m.textures['g_tColor'] = self.textureManager.defaultTexture
-
-                        # Since our shaders only use g_tColor, we have to find at least one texture to use here
-                        if m.textures['g_tColor'] == self.textureManager.defaultTexture:
-                            for name in ['g_tColor2', 'g_tColor1', 'g_tColorA', 'g_tColorB', 'g_tColorC']:
-                                if name in m.textures:
-                                    m.textures['g_tColor'] = m.textures[name]
-                                    break
-
-                        # Set default values for scale and positions
-                        if not 'g_vTexCoordScale' in p.vectorParams: p.vectorParams['g_vTexCoordScale'] = ones(4)
-                        if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = zeros(4)
-                        if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = ones(4)
-                        return m
-                    case _: raise Exception(f'Unknown: {s}')
-            case _: raise Exception(f'Unknown: {key}')
+    def createMaterial(self, path: object) -> MaterialPoly:
+        print(f'createMaterial {path}'); exit(1)
+        match path:
+            case p if isinstance(path, MaterialStdProp):
+                m = Material(); ts = [] 
+                mainTex = p.textures['Main'] if 'Main' in p.textures else None
+                if mainTex:
+                    ts.append((self.textureManager.createTexture(mainTex).tex, None))
+                    bumpTex = p.textures['Bump'] if 'Bump' in p.textures else None
+                    if bumpTex:
+                        s = TextureStage('norm'); s.setMode(TextureStage.M_normal)
+                        ts.append((self.textureManager.createTexture(bumpTex).tex, s))
+                return MaterialPoly(m, ts)
+            # case s if isinstance(path, MaterialShaderProp): return m
+            case _: raise Exception(f'Unknown: {path}')
 
 # Panda3dGfxApi
 class Panda3dGfxApi(IOpenGfxApi):
     def __init__(self, source: ISource):
         self.source: ISource = source
     def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
-    def addMeshRenderer(self, src: NodePath, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
+    def addMeshRenderer(self, src: NodePath, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMissingMeshCollidersRecursively(self, src: NodePath, isStatic: bool) -> None: raise NotImplementedError();
     def attach(self, method: GfxAttach, src: NodePath, args: list[object]) -> None: pass
     def createMesh(self, mesh: object) -> NodePath: raise NotImplementedError();

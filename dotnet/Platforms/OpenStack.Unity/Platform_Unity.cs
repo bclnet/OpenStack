@@ -1,5 +1,4 @@
-﻿using GameX.Gamebryo.Formats;
-using OpenStack.Client;
+﻿using OpenStack.Client;
 using OpenStack.Gfx;
 using OpenStack.Gfx.Unity;
 using System;
@@ -183,14 +182,14 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
                     var m = new Material(_litShader ?? throw new Exception("Missing: _litShader"));
                     if (p.AlphaBlended) m.SetFloat(Cutoff, 0.5f);
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
-                    var mainTexture = p.Textures.TryGetValue("Main", out var z) ? z : default;
-                    if (mainTexture != null) {
-                        var tex = TextureManager.CreateTexture(mainTexture).tex;
-                        m.SetTexture(BaseMap, tex);
-                        var bumpTexture = p.Textures.TryGetValue("Bump", out z) ? z : default;
-                        if (bumpTexture != null) {
+                    var mainTex = p.Textures.TryGetValue("Main", out var z) ? z : default;
+                    if (mainTex != null) {
+                        m.SetTexture(BaseMap, TextureManager.CreateTexture(mainTex).tex);
+                        var bumpTex = p.Textures.TryGetValue("Bump", out z) ? z : default;
+                        if (bumpTex != null) {
                             m.EnableKeyword("_NORMALMAP");
-                            m.SetTexture(BumpMap, bumpTexture != null ? TextureManager.CreateTexture(bumpTexture).tex : TextureManager.CreateNormalMapTexture(tex));
+                            m.SetTexture(BumpMap, TextureManager.CreateTexture(bumpTex).tex);
+                            //m.SetTexture(BumpMap, bumpTex != null ? TextureManager.CreateTexture(bumpTex).tex : TextureManager.CreateNormalMapTexture(tex));
                         }
                     }
                     return m;

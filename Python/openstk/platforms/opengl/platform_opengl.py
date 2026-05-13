@@ -215,6 +215,7 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
     def createMaterial(self, path: object) -> GLRenderMaterial:
         match path:
             case p if isinstance(path, MaterialShaderVProp):
+                m = GLRenderMaterial(MaterialShaderProp())
                 for tex in p.textureParams: m.textures[tex.key], _ = self.textureManager.createTexture(f'{tex.Value}_c')
                 if 'F_SOLID_COLOR' in p.intParams and p.intParams['F_SOLID_COLOR'] == 1:
                     a = p.vectorParams['g_vColorTint']

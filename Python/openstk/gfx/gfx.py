@@ -1,8 +1,12 @@
 from __future__ import annotations
-import asyncio, numpy as np
+import sys, asyncio
 from numpy import ndarray
 from enum import Enum, Flag
 from dataclasses import dataclass
+
+# nest asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 # types
 type Vector4 = ndarray
@@ -108,6 +112,7 @@ class ObjectModelManager:
         try:
             obj = await self._preloadTasks[path]
             return (self._builder.createObject(obj, isStatic, self._materialManager), obj)
+        except: print(sys.exc_info()[1]); raise
         finally: self._preloadTasks.pop(path)
 
 #endregion
@@ -345,11 +350,11 @@ class MaterialShaderProp(MaterialProp):
 class MaterialShaderVProp(MaterialShaderProp):
     intParams: dict[str, int]
     floatParams: dict[str, float]
-    vectorParams: dict[str, np.ndarray]
+    vectorParams: dict[str, ndarray]
     textureParams: dict[str, str]
     intAttributes: dict[str, int]
     # floatAttributes: dict[str, float]
-    # vectorAttributes: dict[str, np.ndarray]
+    # vectorAttributes: dict[str, ndarray]
     # stringAttributes: dict[str, string]
 
 # MaterialTerrainProp
@@ -424,7 +429,7 @@ class IOpenGfxApi(IOpenGfxApiX):
     def addMeshRenderer(self, src: Object, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: pass
     def addMeshCollider(self, src: Object, mesh: object, isKinematic: bool, isStatic: bool) -> None: pass
     def setParent(self, src: Object, parent: Object) -> None: pass
-    def transform(self, src: Object, position: np.ndarray, rotation: np.ndarray, localScale: np.ndarray) -> None: pass
+    def transform(self, src: Object, position: ndarray, rotation: ndarray, localScale: ndarray) -> None: pass
     def addMissingMeshCollidersRecursively(self, src: Object, isStatic: bool) -> None: pass
     def setLayerRecursively(self, src: Object, layer: int) -> None: pass
 
