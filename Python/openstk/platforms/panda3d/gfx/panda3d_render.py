@@ -1,5 +1,5 @@
 from __future__ import annotations
-import os, numpy as np
+import os, asyncio
 from panda3d.core import *
 from openstk.core import log, CellManager
 from openstk.gfx import GfX, Renderer
@@ -68,7 +68,7 @@ class ObjectRenderer(Renderer):
         self.obj: object = obj
 
     def start(self) -> None:
-        self.gfxModel.objectManager.createObject(self.obj, True, None)
+        asyncio.run(self.gfxModel.objectManager.createObject(self.obj, True, None))
 
 #endregion
 

@@ -90,9 +90,9 @@ public class ObjectSpriteManager<Object, Sprite>(ISource source, ObjectSpriteBui
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
     static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
-    public (Object obj, object tag) CreateObject(object path, Object parent = default) {
+    public async Task<(Object obj, object tag)> CreateObject(object path, Object parent = default) {
         // load & cache the prefab.
-        if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = LoadObject(path).Result;
+        if (!CachedObjects.TryGetValue(path, out var prefab)) prefab = CachedObjects[path] = await LoadObject(path);
         return (Builder.CreateNewObject(prefab.obj), prefab.tag);
     }
 
@@ -144,10 +144,10 @@ public class ObjectModelManager<Object, Material, Texture>(ISource source, Mater
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
     static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
-    public (Object obj, object tag) CreateObject(object path, bool isStatic, Object parent = default) {
+    public async Task<(Object obj, object tag)> CreateObject(object path, bool isStatic, Object parent = default) {
         try {
             // load & cache the prefab.
-            if (!CachedObjects.TryGetValue(path, out var s)) s = CachedObjects[path] = LoadObject(path, isStatic, parent).Result;
+            if (!CachedObjects.TryGetValue(path, out var s)) s = CachedObjects[path] = await LoadObject(path, isStatic, parent);
             return (Builder.InstanceObject(s.obj, parent), s.tag);
         }
         catch { return (default, null); }
@@ -215,7 +215,7 @@ public class ShaderManager<Shader>(ISource source, ShaderBuilderBase<Shader> bui
     readonly ISource Source = source;
     readonly ShaderBuilderBase<Shader> Builder = builder;
 
-    public (Shader sha, object tag) CreateShader(object path, IDictionary<string, bool> args = null) => (Builder.CreateShader(path, args ?? EmptyArgs), null);
+    public async Task<(Shader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => (Builder.CreateShader(path, args ?? EmptyArgs), null);
 }
 
 #endregion
@@ -255,10 +255,10 @@ public class SpriteManager<Sprite>(ISource source, SpriteBuilderBase<Sprite> bui
 
     public Sprite DefaultSprite => Builder.DefaultSprite;
 
-    public (Sprite spr, object tag) CreateSprite(object path) {
+    public async Task<(Sprite spr, object tag)> CreateSprite(object path) {
         if (CachedSprites.TryGetValue(path, out var c)) return c;
         // load & cache the sprite.
-        var tag = path is ISprite z ? z : LoadSprite(path).Result;
+        var tag = path is ISprite z ? z : await LoadSprite(path);
         var obj = tag != null ? Builder.CreateSprite(tag) : Builder.DefaultSprite;
         CachedSprites[path] = (obj, tag);
         return (obj, tag);
@@ -384,10 +384,10 @@ public class TextureManager<Texture>(ISource source, TextureBuilderBase<Texture>
         return s;
     }
 
-    public (Texture tex, object tag) CreateTexture(object path, Range? level = null) {
+    public async Task<(Texture tex, object tag)> CreateTexture(object path, Range? level = null) {
         if (CachedTextures.TryGetValue(path, out var c)) return c;
         // load & cache the texture.
-        var tag = path is ITexture z ? z : LoadTexture(path).Result;
+        var tag = path is ITexture z ? z : await LoadTexture(path);
         var obj = tag != null ? Builder.CreateTexture(default, tag, level) : Builder.DefaultTexture;
         CachedTextures[path] = (obj, tag);
         return (obj, tag);
@@ -518,10 +518,10 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
     public Material DefaultMaterial => Builder.DefaultMaterial;
     public Material TerrainMaterial => Builder.TerrainMaterial;
 
-    public (Material mat, object tag) CreateMaterial(object path) {
+    public async Task<(Material mat, object tag)> CreateMaterial(object path) {
         if (CachedMaterials.TryGetValue(path, out var c)) return c;
         // load & cache the material.
-        var src = path is MaterialProp z ? z : LoadMaterial(path).Result;
+        var src = path is MaterialProp z ? z : await LoadMaterial(path);
         var obj = src != null ? Builder.CreateMaterial(src) : Builder.DefaultMaterial;
         var tag = src?.Tag;
         CachedMaterials[path] = (obj, tag);
@@ -610,7 +610,7 @@ public interface IOpenGfxSprite : IOpenGfx {
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
     ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
     SpriteManager<Sprite> SpriteManager { get; }
-    Object CreateObject(object path, Object parent = default);
+    Task<Object> CreateObject(object path, Object parent = default);
 }
 
 /// <summary>
@@ -629,9 +629,9 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     ShaderManager<Shader> ShaderManager { get; }
     TextureManager<Texture> TextureManager { get; }
-    Object CreateObject(object path, bool isStatic, Object parent = default);
-    Shader CreateShader(object path, IDictionary<string, bool> args = null);
-    Texture CreateTexture(object path, Range? level = null);
+    Task<Object> CreateObject(object path, bool isStatic, Object parent = default);
+    Task<Shader> CreateShader(object path, IDictionary<string, bool> args = null);
+    Task<Texture> CreateTexture(object path, Range? level = null);
     void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent = default);
 }
 

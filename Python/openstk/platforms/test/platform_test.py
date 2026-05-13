@@ -19,9 +19,9 @@ class TestGfxModel:
     def __init__(self, source): self.source: object = source
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def preloadTexture(self, path: object) -> None: raise NotImplementedError()
-    def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
+    async def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
     def createShader(self, path: object, args: dict[str, bool] = None) -> object: raise NotImplementedError()
-    def createTexture(self, path: object, level: range = None) -> object: raise NotImplementedError()
+    async def createTexture(self, path: object, level: range = None) -> object: raise NotImplementedError()
 
 # TestGfxLight
 class TestGfxLight:

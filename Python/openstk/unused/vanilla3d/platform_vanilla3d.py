@@ -19,7 +19,7 @@ class Vanilla3dClientHost(IClientHost):
 class Vanilla3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object) -> object: raise NotImplementedError()
-    def createObject(self, src: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
+    async def createObject(self, src: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # Vanilla3dShaderBuilder
 class Vanilla3dShaderBuilder(ShaderBuilderBase):
@@ -112,9 +112,9 @@ class Vanilla3dGfxModel(IOpenGfxModel):
         self.objectManagerr: ObjectModelManager = ObjectModelManager(source, self.materialManager, Vanilla3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(source, Vanilla3dShaderBuilder())
 
-    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
+    async def createTexture(self, path: object, level: range = None) -> int: return await self.textureManager.createTexture(path, level)[0]
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): return self.objectManager.createObject(path, parent)[0]
+    async def createObject(self, path: object, parent: object = None) -> (object, dict[str, object]): return await self.objectManager.createObject(path, parent)[0]
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
     def attachObject(self, method: GfxAttach, source: object, args: list[object]) -> object: raise NotImplementedError()

@@ -56,7 +56,7 @@ class EginXGfxSprite2D(IOpenGfxSprite):
         # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    def createObject(self, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()
+    async def createObject(self, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
 
 # EginXPlatform

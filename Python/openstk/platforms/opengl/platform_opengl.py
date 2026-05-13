@@ -263,7 +263,7 @@ class OpenGLGfxSprite3D(IOpenGfxSprite):
         # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
     def preloadObject(self, path: object) -> None: raise NotImplementedError()
     def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
+    async def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
     def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
 
 # OpenGLGfxModel
@@ -278,9 +278,9 @@ class OpenGLGfxModel(IOpenGfxModel):
 
     def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
     def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(path, isStatic, parent)[0]
+    async def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return await self.objectManager.createObject(path, isStatic, parent)[0]
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
+    async def createTexture(self, path: object, level: range = None) -> int: return await self.textureManager.createTexture(path, level)[0]
 
     # cache
     _quadIndices: QuadIndexBuffer

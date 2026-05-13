@@ -1,12 +1,8 @@
 from __future__ import annotations
-import sys, asyncio
+import sys
 from numpy import ndarray
 from enum import Enum, Flag
 from dataclasses import dataclass
-
-# nest asyncio
-import nest_asyncio
-nest_asyncio.apply()
 
 # types
 type Vector4 = ndarray
@@ -50,15 +46,15 @@ class ObjectSpriteBuilderBase:
 # ObjectSpriteManager
 class ObjectSpriteManager:
     _cachedObjects: dict[object, (Object, object)] = {}
-    def __init__(self, source: ISource, builder: ObjectSpriteBuilderBase):
+    def __init__(self, builder: ObjectSpriteBuilderBase):
         self._source: ISource = source
         self._builder: ObjectSpriteBuilderBase = builder
         self._preloadTasks: dict[object, object] = {}
 
-    def createObject(self, path: object, parent: Object = None) -> tuple[Object, object]:
+    async def createObject(self, path: object, parent: Object = None) -> tuple[Object, object]:
         tag = None
         # load & cache the prefab.
-        if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (asyncio.run(self._loadObject(path)), tag)
+        if not path in self._cachedObjects: prefab = self._cachedObjects[path] = (await self._loadObject(path), tag)
         else: prefab = self._cachedObjects[path]
         return (self._builder.instanceObject(prefab[0]), prefab[1])
 
@@ -93,10 +89,10 @@ class ObjectModelManager:
         self._builder: ObjectModelBuilderBase = builder
         self._preloadTasks: dict[object, object] = {}
 
-    def createObject(self, path: object, isStatic: bool, parent: Object = None) -> tuple[Object, object]:
+    async def createObject(self, path: object, isStatic: bool, parent: Object = None) -> tuple[Object, object]:
         try:
             # load & cache the prefab.
-            if not path in self._cachedObjects: s = self._cachedObjects[path] = asyncio.run(self._loadObject(path, isStatic))
+            if not path in self._cachedObjects: s = self._cachedObjects[path] = await self._loadObject(path, isStatic)
             else: s = self._cachedObjects[path]
             return (self._builder.instanceObject(s[0]), s[1])
         except: return (None, None)
@@ -177,10 +173,10 @@ class SpriteManager:
     @property
     def defaultSprite(self) -> Sprite: return self._builder.defaultSprite
 
-    def createSprite(self, path: object, level: range = None) -> tuple[Sprite, object]:
+    async def createSprite(self, path: object, level: range = None) -> tuple[Sprite, object]:
         if path in self._cachedSprites: return self._cachedSprites[path]
         # load & cache the texture.
-        tag = path if isinstance(path, ISprite) else asyncio.run(self._loadSprite(path))
+        tag = path if isinstance(path, ISprite) else await self._loadSprite(path)
         obj = self._builder.createSprite(tag) if tag else self._builder.defaultSprite
         self._cachedSprites[path] = (obj, tag)
         return (obj, tag)
@@ -280,10 +276,10 @@ class TextureManager:
         self._cachedSolidTextures[src] = s
         return s
 
-    def createTexture(self, path: object, level: range = None) -> tuple[Texture, object]:
+    async def createTexture(self, path: object, level: range = None) -> tuple[Texture, object]:
         if path in self._cachedTextures: return self._cachedTextures[path]
         # load & cache the texture.
-        tag = path if isinstance(path, ITexture) else asyncio.run(self._loadTexture(path))
+        tag = path if isinstance(path, ITexture) else await self._loadTexture(path)
         obj = self._builder.createTexture(None, tag, level) if tag else self._builder.defaultTexture
         self._cachedTextures[path] = (obj, tag)
         return (obj, tag)
@@ -378,10 +374,10 @@ class MaterialManager:
         self._builder: MaterialBuilderBase = builder
         self._preloadTasks: dict[object, object] = {}
 
-    def createMaterial(self, path: object) -> tuple[Material, object]:
+    async def createMaterial(self, path: object) -> tuple[Material, object]:
         if path in self._cachedMaterials: return self._cachedMaterials[path]
         # load & cache the material.
-        src = path if isinstance(path, MaterialProp) else asyncio.run(self._loadMaterial(path))
+        src = path if isinstance(path, MaterialProp) else await self._loadMaterial(path)
         obj = self._builder.createMaterial(src) if src else self._builder.defaultMaterial
         tag = obj[1] if src else None
         self._cachedMaterials[path] = (obj, tag)
@@ -441,7 +437,7 @@ class IOpenGfxSpriteX(IOpenGfx):
 class IOpenGfxSprite(IOpenGfxSpriteX):
     objectManager: ObjectSpriteManager
     spriteManager: SpriteManager
-    def createObject(self, path: object, parent: Object = None) -> Object: pass
+    async def createObject(self, path: object, parent: Object = None) -> Object: pass
 
 # IOpenGfxModelX:
 class IOpenGfxModelX:
@@ -453,9 +449,9 @@ class IOpenGfxModel(IOpenGfxModelX):
     objectManager: ObjectModelManager
     shaderManager: ShaderManager
     textureManager: TextureManager
-    def createObject(self, path: object, isStatic: bool, parent: Object = None) -> Object: pass
+    async def createObject(self, path: object, isStatic: bool, parent: Object = None) -> Object: pass
     def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: pass
-    def createTexture(self, path: object, level: range = None) -> Texture: pass
+    async def createTexture(self, path: object, level: range = None) -> Texture: pass
     def postObject(self, src: Object, position: Vector3, eulerAngles: Vector3, scale: float, parent: Object = None) -> None: pass
 
 # IOpenGfxLightX:

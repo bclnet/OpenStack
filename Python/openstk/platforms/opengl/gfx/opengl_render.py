@@ -1,5 +1,5 @@
 from __future__ import annotations
-import ctypes
+import ctypes, asyncio
 from numpy import array, ones, float32, identity
 from enum import Enum
 from OpenGL.GL import *
@@ -140,7 +140,7 @@ class ObjectRenderer(EginRenderer):
         self.obj: object = obj
 
     def start(self) -> None:
-        self.gfxModel.objectManager.createObject(self.obj, True, None)
+        asyncio.run(self.gfxModel.objectManager.createObject(self.obj, True, None))
 
 #endregion
 
