@@ -176,7 +176,7 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
     Material _terrainMaterial;
     public override Material TerrainMaterial => _terrainMaterial ??= new(_terrainShader ?? throw new Exception("Missing: _terrainShader"));
 
-    public override Material CreateMaterial(object path) {
+    public override async Task<Material> CreateMaterial(object path) {
         switch (path) {
             case MaterialStdProp p: {
                     var m = new Material(_litShader ?? throw new Exception("Missing: _litShader"));
@@ -184,11 +184,11 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
                     var mainTex = p.Textures.TryGetValue("Main", out var z) ? z : default;
                     if (mainTex != null) {
-                        m.SetTexture(BaseMap, TextureManager.CreateTexture(mainTex).tex);
+                        m.SetTexture(BaseMap, (await TextureManager.CreateTexture(mainTex)).tex);
                         var bumpTex = p.Textures.TryGetValue("Bump", out z) ? z : default;
                         if (bumpTex != null) {
                             m.EnableKeyword("_NORMALMAP");
-                            m.SetTexture(BumpMap, TextureManager.CreateTexture(bumpTex).tex);
+                            m.SetTexture(BumpMap, (await TextureManager.CreateTexture(bumpTex)).tex);
                             //m.SetTexture(BumpMap, bumpTex != null ? TextureManager.CreateTexture(bumpTex).tex : TextureManager.CreateNormalMapTexture(tex));
                         }
                     }
@@ -354,41 +354,31 @@ public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
 // UnityGfx2dSprite
 public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
     readonly ISource _source;
-    readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
     readonly SpriteManager<Sprite> _spriteManager;
     public UnityGfxSprite2D(ISource source) {
         _source = source;
-        //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
     }
 
     public ISource Source => _source;
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
-    public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
-    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(Sprite spr, object tag)> CreateSprite(object path, GameObject parent = default) => _spriteManager.CreateSprite(path);
 }
 
 // UnityGfxSprite3D
 public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
     readonly ISource _source;
     readonly SpriteManager<Sprite> _spriteManager;
-    readonly ObjectSpriteManager<GameObject, Sprite> _objectManager;
     public UnityGfxSprite3D(ISource source) {
         _source = source;
-        //_objectManager = new Object2dManager<GameObject, Sprite>(source, new UnityObjectBuilder());
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
     }
 
     public ISource Source => _source;
-    public ObjectSpriteManager<GameObject, Sprite> ObjectManager => _objectManager;
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public GameObject CreateObject(object path, GameObject parent = default) => throw new NotImplementedException();
-    public Sprite CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(Sprite spr, object tag)> CreateSprite(object path, GameObject parent = default) => _spriteManager.CreateSprite(path);
 }
 
 // UnityGfxModel
@@ -413,9 +403,9 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public TextureManager<Texture2D> TextureManager => _textureManager;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public GameObject CreateObject(object path, bool isStatic, GameObject parent = default) => _objectManager.CreateObject(path, parent).obj;
-    public XShader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-    public Texture2D CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public Task<(GameObject obj, object tag)> CreateObject(object path, bool isStatic, GameObject parent = default) => _objectManager.CreateObject(path, parent);
+    public Task<(XShader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args);
+    public Task<(Texture2D tex, object tag)> CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level);
 
     const int YardInMWUnits = 64;
     const float MeterInYards = 1.09361f;

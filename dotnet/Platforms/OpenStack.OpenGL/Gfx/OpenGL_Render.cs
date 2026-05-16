@@ -22,7 +22,7 @@ public class TestTriRenderer : EginRenderer {
 
     public TestTriRenderer(IOpenGfx[] gfx, object obj) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("testtri");
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("testtri").Result;
         Vao = SetupVao();
     }
 
@@ -83,8 +83,8 @@ public class TextureRenderer : EginRenderer {
         Obj = obj;
         Level = level;
         GfxModel.TextureManager.DeleteTexture(obj);
-        Tex = GfxModel.TextureManager.CreateTexture(obj, level).tex;
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("plane");
+        Tex = GfxModel.TextureManager.CreateTexture(obj, level).Result.tex;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("plane").Result;
         Vao = SetupVao();
         Background = background;
     }
@@ -182,8 +182,8 @@ public class MaterialRenderer : EginRenderer {
     public MaterialRenderer(IOpenGfx[] gfx, object obj) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
         GfxModel.TextureManager.DeleteTexture(obj);
-        Material = GfxModel.MaterialManager.CreateMaterial(obj).mat;
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(Material.Material.ShaderName, Material.Material.ShaderArgs);
+        Material = GfxModel.MaterialManager.CreateMaterial(obj).Result.mat;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(Material.Material.ShaderName, Material.Material.ShaderArgs).Result;
         Vao = SetupVao();
     }
 
@@ -264,7 +264,7 @@ public class GridRenderer : EginRenderer {
         BoundingBox = new AABB(
             -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,
             cellWidth * 0.5f * gridWidthInCells, cellWidth * 0.5f * gridWidthInCells, 0);
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("vrf.grid");
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("vrf.grid").Result;
         Vao = SetupVao(cellWidth, gridWidthInCells);
     }
 
@@ -360,7 +360,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
         int VertexBufferHandle;
 
         public SpritesRenderer(IDictionary<string, object> keyValues, OpenGLGfxModel gfx) {
-            (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("vrf.particle.sprite");
+            (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("vrf.particle.sprite").Result;
             QuadIndices = gfx.QuadIndices;
 
             // The same quad is reused for all particles
@@ -373,7 +373,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
                 if (textures.Length > 0) textureName = textures[0].Get<string>("m_hTexture");
             }
             if (textureName != null) {
-                (Texture, TextureTag) = gfx.TextureManager.CreateTexture(textureName);
+                (Texture, TextureTag) = gfx.TextureManager.CreateTexture(textureName).Result;
                 if (TextureTag is IDictionary<string, object> info)
                     TextureSequences = info.Get<TextureSequences>("sequences");
             }
@@ -597,7 +597,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
         readonly float LengthFadeInTime;
 
         public TrailsRenderer(IDictionary<string, object> keyValues, OpenGLGfxModel graphic) {
-            (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.trail", new Dictionary<string, bool>());
+            (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.trail", new Dictionary<string, bool>()).Result;
 
             // The same quad is reused for all particles
             QuadVao = SetupQuadBuffer();
@@ -610,7 +610,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
             }
 
             if (textureName != null) {
-                (Texture, TextureTag) = graphic.TextureManager.CreateTexture(textureName);
+                (Texture, TextureTag) = graphic.TextureManager.CreateTexture(textureName).Result;
                 if (TextureTag is IDictionary<string, object> info)
                     TextureSequences = info.Get<TextureSequences>("sequences");
             }

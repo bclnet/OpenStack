@@ -29,7 +29,7 @@ public class SpriteRenderer : Renderer {
         GfxSprite = (SdlGfxSprite2D)gfx[GfX.XSprite2D];
         Obj = obj;
         GfxSprite.SpriteManager.DeleteSprite(obj);
-        Sprite = GfxSprite.SpriteManager.CreateSprite(obj).spr;
+        Sprite = GfxSprite.SpriteManager.CreateSprite(obj).Result.spr;
     }
 
     public override void Start() {

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using static OpenStack.CellManager;
 
 namespace OpenStack;
@@ -30,12 +31,12 @@ public interface ICellDatabase {
 
 #region CellManager
 
-public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder) {
-    public class Cell(object cellObj, object objectsObj, ICell record, IEnumerator task) {
+public class CellManager(IQuery query, AsyncCoroutineQueue queue, CellBuilder builder) {
+    public class Cell(object cellObj, object objectsObj, ICell record, IAsyncEnumerator<object> task) {
         public object Obj = cellObj;
         public object ObjectsObj = objectsObj;
         public ICell Record = record;
-        public IEnumerator Task = task;
+        public IAsyncEnumerator<object> Task = task;
     }
 
     public class CellRef {
@@ -100,7 +101,7 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
     }
 
     public readonly IQuery Query = query;
-    protected readonly CoroutineQueue Queue = queue;
+    protected readonly AsyncCoroutineQueue Queue = queue;
     protected readonly CellBuilder Builder = builder;
     readonly Dictionary<Int3, Cell> Cells = [];
     readonly int Radius = query.Radius[0];
@@ -120,7 +121,7 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
         return cell;
     }
 
-    public void UpdateCells(Vector3 position, bool immediate = false, int radius = -1) {
+    public async Task UpdateCells(Vector3 position, bool immediate = false, int radius = -1) {
         if (radius < 0) radius = Radius;
         var point = Query.GetCellId(position);
         int minX = point.X - radius, maxX = point.X + radius, minY = point.Y - radius, maxY = point.Y + radius;
@@ -139,7 +140,7 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
                     var p = new Int3(x, y, world); var d = Math.Max(Math.Abs(point.X - p.X), Math.Abs(point.Y - p.Y));
                     if (d == r && !Cells.ContainsKey(p)) {
                         var cell = BeginCell(p);
-                        if (cell != null && immediate) Queue.WaitFor(cell.Task);
+                        if (cell != null && immediate) await Queue.WaitFor(cell.Task);
                     }
                 }
 
@@ -172,7 +173,7 @@ public class CellManager(IQuery query, CoroutineQueue queue, CellBuilder builder
 public abstract class CellBuilder {
     public abstract (object, object) CreateContainers(string name);
     public abstract void SetVisible(object src, bool visible);
-    public abstract IEnumerator Coroutine(ICell cell, ILand land, object obj, object objectsObj);
+    public abstract IAsyncEnumerator<object> Coroutine(ICell cell, ILand land, object obj, object objectsObj);
     public abstract void Destroy(object src);
 }
 
@@ -199,28 +200,28 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     /// <summary>
     /// A coroutine that instantiates the terrain for, and all objects in, a cell.
     /// </summary>
-    public override IEnumerator Coroutine(ICell cell, ILand land, object obj, object objectsObj) {
+    public async override IAsyncEnumerator<object> Coroutine(ICell cell, ILand land, object obj, object objectsObj) {
         if (cell == null && land == null) yield break;
         Object obj2 = (Object)obj, objectsObj2 = (Object)objectsObj;
         var cellRefs = GetCellRefs(cell);
-        if (land != null && GfxTerrain != null) { yield return null; CreateLand(land, obj2); yield return null; }
-        foreach (var s in cellRefs) CreateCell(cell, objectsObj2, s);
+        if (land != null && GfxTerrain != null) { yield return null; await CreateLand(land, obj2); yield return null; }
+        foreach (var s in cellRefs) await CreateCell(cell, objectsObj2, s);
         if (GfxLight != null) CreateReflectionProbe(cell, obj2);
     }
 
     CellRef[] GetCellRefs(ICell cell) => [.. cell.Xrefs.Select(s => {
         var record = Query.FindAnyByName(s.Name);
-        var modelPath =record != null && record is ICellXrefModel modl ? modl.ModelPath : null;
+        var modelPath = record != null && record is ICellXrefModel modl ? modl.ModelPath : null;
         return new CellRef { Obj = s, Record = record, ModelPath = modelPath };
     })];
 
     /// <summary>
     /// Instantiates an object in a cell. Called by InstantiateCellObjectsCoroutine after the object's assets have been pre-loaded.
     /// </summary>
-    void CreateCell(ICell cell, Object parent, CellRef r) {
+    async Task CreateCell(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) return; //{ Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default; var obj = r.Obj;
-        if (r.ModelPath != null) { modelObj = GfxModel.CreateObject(r.ModelPath, true); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
+        if (r.ModelPath != null) { modelObj = (await GfxModel.CreateObject(r.ModelPath, true)).obj; GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh && GfxLight != null) {
             var s = GfxLight.CreateLight("Light", null, ligh.Radius, ligh.LightColor, cell.IsInterior);
             if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
@@ -231,7 +232,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     /// <summary>
     /// Creates terrain representing a LAND record.
     /// </summary>
-    void CreateLand(ILand land, Object parent) {
+    async Task CreateLand(ILand land, Object parent) {
         const int LAND_SIDELENGTH_IN_SAMPLES = 65;
         const int VHGTIncrementToUnits = 8;
         const int LAND_TEXTUREINDICES = 256;
@@ -268,7 +269,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
             if (layerIndexs.ContainsKey(index)) continue;
             // Load terrain texture.
             var path = index >= 0 ? Query.FindLtex(index).Path : DefaultLandTexturePath;
-            var tex = GfxModel.CreateTexture(path);
+            var (tex, _) = await GfxModel.CreateTexture(path);
             if (!TerrainLayers.TryGetValue(tex, out var layer)) {
                 layer = new GfxTerrainLayer<Texture> {
                     Texture = tex,

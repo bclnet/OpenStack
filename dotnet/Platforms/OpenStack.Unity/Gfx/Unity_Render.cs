@@ -41,7 +41,7 @@ public class TextureRenderer(IOpenGfx[] gfx, object obj) : Renderer {
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane); obj.isStatic = true; obj.name = "Texture";
         obj.transform.rotation = Quaternion.Euler(-90f, -180f, 180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();
-        (meshRenderer.material, _) = GfxModel.MaterialManager.CreateMaterial(new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } });
+        (meshRenderer.material, _) = GfxModel.MaterialManager.CreateMaterial(new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } }).Result;
 
         // cursor
         //var tex = GfxModel.TextureManager.CreateTexture(Obj).tex;

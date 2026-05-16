@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 #pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -26,7 +28,6 @@ public class O3deClientHost : IClientHost {
 public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    readonly ObjectSpriteManager<object, object> _objectManager;
     public O3deGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
@@ -35,11 +36,8 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
 
     public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(object spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
 }
 
 // O3deGfxModel
@@ -51,7 +49,6 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     readonly TextureManager<object> _textureManager;
     public O3deGfxModel(ISource source) {
         _source = source;
-        //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
         //_textureManager = new TextureManager<object>(source, new O3deTextureBuilder());
         //_materialManager = new MaterialManager<Material, int>(source, _textureManager, new GodotMaterialBuilder(_textureManager));
         //_objectManager = new ObjectManager<Model, Material, int>(source, _materialManager, new GodotObjectBuilder());
@@ -64,10 +61,10 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public ShaderManager<object> ShaderManager => _shaderManager;
     public TextureManager<object> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
-    public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
+    public Task<(object obj, object tag)> CreateObject(object path, bool isStatic, object parent = default) => _objectManager.CreateObject(path, isStatic, parent);
+    public Task<(object sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(object tex, object tag)> CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level);
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 

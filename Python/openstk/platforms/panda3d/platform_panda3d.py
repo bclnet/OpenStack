@@ -125,10 +125,9 @@ class Panda3dTextureBuilder(TextureBuilderBase):
 
     def deleteTexture(self, texture: Texture) -> None: texture.release()
 
-class MaterialPoly:
-    def __init__(self, m: Material, ts: list[tuple[object, object]]):
-        self.m = m
-        self.ts = ts
+class MaterialPoly(Material):
+    def __init__(self, texs: dict[str,Texture] = {}):
+        self.texs = texs
     def apply(self, node: NodePath) -> None:
         pass
 
@@ -151,27 +150,27 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
         return self._terrainMaterial
 
     def _createDefaultMaterial() -> MaterialPoly:
-        m = Material()
-        tex = self.textureManager.defaultTexture
-        return MaterialPoly(m, [(tex, None)])
+        m = MaterialPoly({'Main' => self.textureManager.defaultTexture})
+        return m
 
     def _createTerrainMaterial() -> MaterialPoly:
-        m = Material()
-        return MaterialPoly(m, [(None, None)])
+        m = MaterialPoly({'Main' => self.textureManager.terrainTexture})
+        return m
 
     def createMaterial(self, path: object) -> MaterialPoly:
         print(f'createMaterial {path}'); exit(1)
         match path:
             case p if isinstance(path, MaterialStdProp):
-                m = Material(); ts = [] 
-                mainTex = p.textures['Main'] if 'Main' in p.textures else None
-                if mainTex:
-                    ts.append((self.textureManager.createTexture(mainTex).tex, None))
-                    bumpTex = p.textures['Bump'] if 'Bump' in p.textures else None
-                    if bumpTex:
-                        s = TextureStage('norm'); s.setMode(TextureStage.M_normal)
-                        ts.append((self.textureManager.createTexture(bumpTex).tex, s))
-                return MaterialPoly(m, ts)
+                m = MaterialPoly();
+                m.texs = {k,self.textureManager.createTexture(k).tex from p.textures if k == 'Main' or k == 'Bump'}
+                # mainTex = p.textures['Main'] if 'Main' in p.textures else None
+                # if mainTex:
+                #     m.texs[.append]((, None))
+                #     bumpTex = p.textures['Bump'] if 'Bump' in p.textures else None
+                #     if bumpTex:
+                #         s = TextureStage('norm'); s.setMode(TextureStage.M_normal)
+                #         ts.append((self.textureManager.createTexture(bumpTex).tex, s))
+                return m
             # case s if isinstance(path, MaterialShaderProp): return m
             case _: raise Exception(f'Unknown: {path}')
 

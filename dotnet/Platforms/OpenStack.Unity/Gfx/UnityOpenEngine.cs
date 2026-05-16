@@ -15,14 +15,14 @@ public class UnityOpenEngine : IDisposable {
     //public static UnityOpenEngine Current;
     readonly IQuery Query;
     readonly CellManager CellManager;
-    readonly CoroutineQueue Queue = new();
+    readonly AsyncCoroutineQueue Queue = new();
     readonly GameObject SunObj;
     protected int World;
     protected Transform PlayerTransform;
     protected Transform CameraTransform;
     protected Func<GameObject> PlayerPrefabFunc;
 
-    public UnityOpenEngine(Func<CoroutineQueue, CellManager> manager, bool sunCycle = false) {
+    public UnityOpenEngine(Func<AsyncCoroutineQueue, CellManager> manager, bool sunCycle = false) {
         if (manager == null) throw new ArgumentNullException(nameof(manager));
         CellManager = manager(Queue) ?? throw new ArgumentNullException(nameof(manager));
         Query = CellManager.Query;

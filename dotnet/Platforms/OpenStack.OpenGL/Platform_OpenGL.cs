@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using static OpenStack.Gfx.TextureFormat;
 #pragma warning disable CS0649, CS0169
 
@@ -222,11 +223,11 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
         return m;
     }
 
-    public override GLRenderMaterial CreateMaterial(object path) {
+    public override async Task<GLRenderMaterial> CreateMaterial(object path) {
         var m = new GLRenderMaterial(path as MaterialShaderProp);
         switch (path) {
             case MaterialShaderVProp p:
-                foreach (var tex in p.TextureParams) m.Textures[tex.Key] = TextureManager.CreateTexture($"{tex.Value}_c").tex;
+                foreach (var tex in p.TextureParams) (m.Textures[tex.Key], _) = await TextureManager.CreateTexture($"{tex.Value}_c");
                 if (p.IntParams.ContainsKey("F_SOLID_COLOR") && p.IntParams["F_SOLID_COLOR"] == 1) {
                     var a = p.VectorParams["g_vColorTint"];
                     m.Textures["g_tColor"] = TextureManager.CreateSolidTexture(1, 1, [a.X, a.Y, a.Z, a.W]);
@@ -272,21 +273,16 @@ public class OpenGLGfxApi(ISource source) : IOpenGfxApi<object, GLRenderMaterial
 // OpenGLGfxSprite3D
 public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     readonly ISource _source;
-    readonly ObjectSpriteManager<object, int> _objectManager;
     readonly SpriteManager<int> _spriteManager;
     public OpenGLGfxSprite3D(ISource source) {
         _source = source;
-        //_objectManager = new ObjectSpriteManager<object, int>(source, new OpenGLObjectBuilder());
         //_spriteManager = new SpriteManager<int>(source, new OpenGLSpriteBuilder());
     }
 
     public ISource Source => _source;
-    public ObjectSpriteManager<object, int> ObjectManager => _objectManager;
     public SpriteManager<int> SpriteManager => _spriteManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
-    public int CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public Task<(int spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
 }
 
 /// <summary>
@@ -314,9 +310,9 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public TextureManager<int> TextureManager => _textureManager;
     public void PreloadObject(object path) => _objectManager.PreloadObject(path);
     public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public object CreateObject(object path, bool isStatic, object parent = default) => _objectManager.CreateObject(path, isStatic, parent).obj;
-    public Shader CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args).sha;
-    public int CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public Task<(object obj, object tag)> CreateObject(object path, bool isStatic, object parent = default) => _objectManager.CreateObject(path, isStatic, parent);
+    public Task<(Shader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args);
+    public Task<(int tex, object tag)> CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level);
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
 
     // cache

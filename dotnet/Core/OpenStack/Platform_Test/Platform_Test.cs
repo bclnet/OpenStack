@@ -39,9 +39,8 @@ public class TestGfxApi(ISource source) : IOpenGfxApi<object, object> {
 public class TestGfxSprite(ISource source) : IOpenGfxSprite<object, object> {
     public ISource Source => source;
     public SpriteManager<object> SpriteManager => throw new NotImplementedException();
-    public ObjectSpriteManager<object, object> ObjectManager => throw new NotImplementedException();
     public void PreloadSprite(object path) => throw new NotSupportedException();
-    public object CreateObject(object path, object parent = null) => throw new NotImplementedException();
+    public Task<(object spr, object tag)> CreateSprite(object path, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object, object> {
@@ -52,9 +51,9 @@ public class TestGfxModel(ISource source) : IOpenGfxModel<object, object, object
     public TextureManager<object> TextureManager => throw new NotImplementedException();
     public void PreloadObject(object path) => throw new NotSupportedException();
     public void PreloadTexture(object path) => throw new NotSupportedException();
-    public object CreateObject(object path, bool isStatic, object parent = null) => throw new NotImplementedException();
-    public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public object CreateTexture(object path, Range? level = null) => throw new NotImplementedException();
+    public Task<(object obj, object tag)> CreateObject(object path, bool isStatic, object parent = null) => throw new NotImplementedException();
+    public Task<(object sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(object tex, object tag)> CreateTexture(object path, Range? level = null) => throw new NotImplementedException();
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent = default) => throw new NotImplementedException();
 }
 

@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Gfx.Ex;
+﻿namespace OpenStack.Gfx.EginX;
 
 #region Extensions
 

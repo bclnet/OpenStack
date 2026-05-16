@@ -34,7 +34,7 @@ public class TextureRenderer : Renderer {
         Obj = obj;
         Level = level;
         GfxModel.TextureManager.DeleteTexture(obj);
-        Texture = GfxModel.TextureManager.CreateTexture(obj, level).tex;
+        Texture = GfxModel.TextureManager.CreateTexture(obj, level).Result.tex;
     }
 
     public override void Start() {

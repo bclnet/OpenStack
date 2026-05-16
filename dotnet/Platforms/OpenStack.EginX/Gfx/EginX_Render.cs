@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Gfx.Ex;
+﻿namespace OpenStack.Gfx.EginX;
 
 #region TestTriRenderer
 
@@ -29,7 +29,7 @@ public class SpriteRenderer : Renderer {
         GfxSprite = (EginXGfxSprite2D)gfx[GfX.XSprite2D];
         Obj = obj;
         GfxSprite.SpriteManager.DeleteSprite(obj);
-        Sprite = GfxSprite.SpriteManager.CreateSprite(obj).spr;
+        Sprite = GfxSprite.SpriteManager.CreateSprite(obj).Result.spr;
     }
 
     public override void Start() {

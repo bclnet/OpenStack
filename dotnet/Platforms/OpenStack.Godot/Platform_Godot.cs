@@ -5,6 +5,7 @@ using OpenStack.Gfx.Godot;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using XShader = Godot.Shader;
 #pragma warning disable CS0649, CS0169
 
@@ -115,40 +116,30 @@ public class GodotModelApi(ISource source) : IOpenGfxApi<Node3D, Material> {
 public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     readonly ISource _source;
     readonly SpriteManager<Sprite2D> _spriteManager;
-    readonly ObjectSpriteManager<Node, Sprite2D> _objectManager;
     public GodotGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
-        //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
     }
 
     public ISource Source => _source;
     public SpriteManager<Sprite2D> SpriteManager => _spriteManager;
-    public ObjectSpriteManager<Node, Sprite2D> ObjectManager => _objectManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
-    public Sprite2D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(Sprite2D spr, object tag)> CreateSprite(object path, Node parent = default) => _spriteManager.CreateSprite(path);
 }
 
 // GodotGfxSprite3D
 public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     readonly ISource _source;
-    readonly ObjectSpriteManager<Node, Sprite3D> _objectManager;
     readonly SpriteManager<Sprite3D> _spriteManager;
     public GodotGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
-        //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
     }
 
     public ISource Source => _source;
     public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
-    public ObjectSpriteManager<Node, Sprite3D> ObjectManager => _objectManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path, Node parent = default) => throw new NotImplementedException();
-    public Sprite3D CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(Sprite3D spr, object tag)> CreateSprite(object path, Node parent = default) => _spriteManager.CreateSprite(path);
 }
 
 // GodotGfxModel
@@ -160,7 +151,6 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     readonly TextureManager<Texture> _textureManager;
     public GodotGfxModel(ISource source) {
         _source = source;
-        //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
         _textureManager = new TextureManager<Texture>(source, new GodotTextureBuilder());
         //_materialManager = new MaterialManager<Material, int>(source, _textureManager, new GodotMaterialBuilder(_textureManager));
         //_objectManager = new ObjectManager<Model, Material, int>(source, _materialManager, new GodotObjectBuilder());
@@ -168,16 +158,15 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
     }
 
     public ISource Source => _source;
-    //public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
     public MaterialManager<Material, Texture> MaterialManager => _materialManager;
     public ObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public TextureManager<Texture> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
     public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Node CreateObject(object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
-    public XShader CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Texture CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
+    public Task<(Node obj, object tag)> CreateObject(object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
+    public Task<(XShader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(Texture tex, object tag)> CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level);
     public void PostObject(Node src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node parent) => throw new NotImplementedException();
 }
 

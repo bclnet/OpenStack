@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
@@ -43,29 +44,24 @@ public class UnrealGfxApi(ISource source) : IOpenGfxApi<object, object> {
 public class UnrealGfxSprite3D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    readonly ObjectSpriteManager<object, object> _objectManager;
     public UnrealGfxSprite3D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
-        //_objectManager = new ObjectSpriteManager<Node, Sprite2D>(source, new GodotObjectBuilder());
     }
 
     public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(object spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
 }
 
 // UnrealGfxModel
 public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     readonly ISource _source;
-    readonly TextureManager<object> _textureManager;
     readonly MaterialManager<object, object> _materialManager;
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
+    readonly TextureManager<object> _textureManager;
     public UnrealGfxModel(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<object>(source, new GodotSpriteBuilder());
@@ -76,15 +72,15 @@ public class UnrealGfxModel : IOpenGfxModel<object, object, object, object> {
     }
 
     public ISource Source => _source;
-    public TextureManager<object> TextureManager => _textureManager;
     public MaterialManager<object, object> MaterialManager => _materialManager;
     public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public ShaderManager<object> ShaderManager => _shaderManager;
-    public object CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level).tex;
-    public void PreloadTexture(object path) => throw new NotImplementedException();
-    public object CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
+    public TextureManager<object> TextureManager => _textureManager;
     public void PreloadObject(object path) => throw new NotImplementedException();
-    public object CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public void PreloadTexture(object path) => throw new NotImplementedException();
+    public Task<(object obj, object tag)> CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
+    public Task<(object sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(object tex, object tag)> CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level);
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 

@@ -354,8 +354,8 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
     int depthHandle;
 
     public GLPickingTexture(OpenGLGfxModel gfx, EventHandler<PickingResponse> onPicked) {
-        (Shader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>());
-        (DebugShader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } });
+        (Shader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>()).Result;
+        (DebugShader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } }).Result;
         OnPicked += onPicked;
         Setup();
     }
@@ -492,7 +492,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
             // recycle old shader parameters that are not render modes since we are scrapping those anyway
             var parameters = call.Shader.Parameters.Where(kvp => !kvp.Key.StartsWith("renderMode")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             if (renderMode != null && call.Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
-            (call.Shader, _) = Gfx.ShaderManager.CreateShader(call.Shader.Name, parameters);
+            (call.Shader, _) = Gfx.ShaderManager.CreateShader(call.Shader.Name, parameters).Result;
             call.VertexArrayObject = Gfx.MeshBufferCache.GetVertexArrayObject(Mesh.VBIB, call.Shader, call.VertexBuffer.Id, call.IndexBuffer.Id, call.BaseVertex);
         }
     }
@@ -507,7 +507,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
             foreach (var objectDrawCall in sceneObject.GetArray("m_drawCalls")) {
                 var materialName = objectDrawCall.Get<string>("m_material") ?? objectDrawCall.Get<string>("m_pMaterial");
                 if (skinMaterials != null && skinMaterials.ContainsKey(materialName)) materialName = skinMaterials[materialName];
-                var (material, _) = Gfx.MaterialManager.CreateMaterial($"{materialName}_c");
+                var (material, _) = Gfx.MaterialManager.CreateMaterial($"{materialName}_c").Result;
                 var isOverlay = material.Material is MaterialShaderVProp z && z.IntParams.ContainsKey("F_OVERLAY");
                 if (isOverlay) continue; // ignore overlays for now
                 var shaderArgs = new Dictionary<string, bool>();
@@ -568,7 +568,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
         // add shader parameters from material to the shader parameters from the draw call
         var combinedShaderArgs = shaderArgs.Concat(material.Material.ShaderArgs).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         // load shader
-        (drawCall.Shader, _) = Gfx.ShaderManager.CreateShader(drawCall.Material.Material.ShaderName, combinedShaderArgs);
+        (drawCall.Shader, _) = Gfx.ShaderManager.CreateShader(drawCall.Material.Material.ShaderName, combinedShaderArgs).Result;
         // bind and validate shader
         GL.UseProgram(drawCall.Shader.Program);
         // tint and normal
@@ -598,7 +598,7 @@ public class OctreeDebugRenderer<T> where T : class {
     public OctreeDebugRenderer(Octree<T> octree, OpenGLGfxModel graphic, bool dynamic) {
         Octree = octree;
         Dynamic = dynamic;
-        (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.grid");
+        (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.grid").Result;
         GL.UseProgram(Shader.Program);
         VboHandle = GL.GenBuffer();
         if (!dynamic) Rebuild();

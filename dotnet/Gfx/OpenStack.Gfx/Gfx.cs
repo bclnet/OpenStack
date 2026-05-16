@@ -502,7 +502,7 @@ public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Text
     protected TextureManager<Texture> TextureManager = textureManager;
     public abstract Material DefaultMaterial { get; }
     public abstract Material TerrainMaterial { get; }
-    public abstract Material CreateMaterial(object path);
+    public abstract Task<Material> CreateMaterial(object path);
 }
 
 /// <summary>
@@ -522,7 +522,7 @@ public class MaterialManager<Material, Texture>(ISource source, TextureManager<T
         if (CachedMaterials.TryGetValue(path, out var c)) return c;
         // load & cache the material.
         var src = path is MaterialProp z ? z : await LoadMaterial(path);
-        var obj = src != null ? Builder.CreateMaterial(src) : Builder.DefaultMaterial;
+        var obj = src != null ? await Builder.CreateMaterial(src) : Builder.DefaultMaterial;
         var tag = src?.Tag;
         CachedMaterials[path] = (obj, tag);
         return (obj, tag);
@@ -608,9 +608,8 @@ public interface IOpenGfxSprite : IOpenGfx {
 /// IOpenGfxSprite
 /// </summary>
 public interface IOpenGfxSprite<Object, Sprite> : IOpenGfxSprite {
-    ObjectSpriteManager<Object, Sprite> ObjectManager { get; }
     SpriteManager<Sprite> SpriteManager { get; }
-    Task<Object> CreateObject(object path, Object parent = default);
+    Task<(Sprite spr, object tag)> CreateSprite(object path, Object parent = default);
 }
 
 /// <summary>
@@ -629,9 +628,9 @@ public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfxMode
     ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
     ShaderManager<Shader> ShaderManager { get; }
     TextureManager<Texture> TextureManager { get; }
-    Task<Object> CreateObject(object path, bool isStatic, Object parent = default);
-    Task<Shader> CreateShader(object path, IDictionary<string, bool> args = null);
-    Task<Texture> CreateTexture(object path, Range? level = null);
+    Task<(Object obj, object tag)> CreateObject(object path, bool isStatic, Object parent = default);
+    Task<(Shader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null);
+    Task<(Texture tex, object tag)> CreateTexture(object path, Range? level = null);
     void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent = default);
 }
 

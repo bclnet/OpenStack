@@ -52,20 +52,15 @@ public class ExClientHost : Game, IClientHost {
 public class EginXGfxSprite2D : IOpenGfxSprite<object, object> {
     readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    readonly ObjectSpriteManager<object, object> _objectManager;
     public EginXGfxSprite2D(ISource source) {
         _source = source;
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
-        //_objectManager = new Object2dManager<Node, Sprite2D>(source, new GodotObjectBuilder());
     }
 
     public ISource Source => _source;
-    public ObjectSpriteManager<object, object> ObjectManager => _objectManager;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => throw new NotImplementedException();
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public object CreateSprite(object path) => _spriteManager.CreateSprite(path).spr;
-    public object CreateObject(object path, object parent = default) => throw new NotImplementedException();
+    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
+    public Task<(object spr, object tag)> CreateSprite(object path, object parent = null) => _spriteManager.CreateSprite(path);
 }
 
 // EginXPlatform
