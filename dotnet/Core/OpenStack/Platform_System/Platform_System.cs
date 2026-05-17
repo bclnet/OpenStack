@@ -1,5 +1,6 @@
 ﻿using OpenStack.Sfx;
 using System;
+using System.Threading.Tasks;
 
 namespace OpenStack;
 
@@ -9,20 +10,17 @@ namespace OpenStack;
 /// SystemAudioBuilder
 /// </summary>
 public class SystemAudioBuilder : AudioBuilderBase<object> {
-    public override object CreateAudio(object path) => throw new NotImplementedException();
-    public override void DeleteAudio(object audio) => throw new NotImplementedException();
+    public override object CreateAudio(ISource source, object path) => throw new NotImplementedException();
+    public override void DeleteAudio(ISource source, object audio) => throw new NotImplementedException();
 }
 
 /// <summary>
 /// SystemSfx
 /// </summary>
-public class SystemSfx(ISource source) : IOpenSfx<object> {
-    readonly ISource _source = source;
-    readonly AudioManager<object> _audioManager = new(source, new SystemAudioBuilder());
-
-    public ISource Source => _source;
+public class SystemSfx : IOpenSfx<object> {
+    readonly AudioManager<object> _audioManager = new(new SystemAudioBuilder());
     public AudioManager<object> AudioManager => _audioManager;
-    public object CreateAudio(object path) => _audioManager.CreateAudio(path).aud;
+    public async Task<(object aud, object tag)> CreateAudio(ISource source, object path) => (_audioManager.CreateAudio(source, path), null);
 }
 
 #endregion

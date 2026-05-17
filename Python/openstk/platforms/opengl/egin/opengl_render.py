@@ -310,9 +310,9 @@ class GLPickingTexture(IPickingTexture):
     colorHandle: int
     depthHandle: int
 
-    def __init__(self, gfx: IOpenGLGfx3d, onPicked: list[callable]):
-        self.shader, _ = gfx.createShader('vrf.picking', {})
-        self.debugShader, _ = gfx.createShader('vrf.picking', { 'F_DEBUG_PICKER': True })
+    def __init__(self, gfx: IOpenGLGfx3d, source: ISource, onPicked: list[callable]):
+        self.shader, _ = gfx.createShader(source, 'vrf.picking', {})
+        self.debugShader, _ = gfx.createShader(source, 'vrf.picking', { 'F_DEBUG_PICKER': True })
         # self.onPicked += onPicked
         self.setup()
 
@@ -421,22 +421,24 @@ class GLRenderMaterial(RenderMaterial):
 
 # GLRenderableMesh
 class GLRenderableMesh(RenderableMesh):
-    graphic: IOpenGLGfx
+    gfxModel: IOpenGLGfx
 
-    def __init__(self, graphic: IOpenGLGfx, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
-        super().__init__(lambda t: print('TODO: t.graphic = graphic'), mesh, meshIndex, skinMaterials, model)
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IModel = None):
+        super().__init__(mesh, meshIndex, skinMaterials, model)
+        self.gfxModel: IOpenGLGfx = gfx[GfX.XModel]
+        self.source: ISource = source
 
     def setRenderMode(self, renderMode: str):
-        for call in (self.drawCallsOpaque + self.drawCallsBlended):
+        for s in (self.drawCallsOpaque + self.drawCallsBlended):
             # recycle old shader parameters that are not render modes since we are scrapping those anyway
-            parameters = { x.key:x.value for x in call.shader.parameters if x.key.startsWith('renderMode') }
-            if renderMode and call.shader.renderModes.contains(renderMode): parameters.append(f'renderMode_{renderMode}', True)
-            (call.shader, _) = self.graphic.createShader(call.shader.name, parameters)
-            call.vertexArrayObject = self.graphic.meshBufferCache.getVertexArrayObject(self.mesh.vbib, call.shader, call.vertexBuffer.id, call.indexBuffer.id, call.baseVertex)
+            parameters = { x.key:x.value for x in s.shader.parameters if x.key.startsWith('renderMode') }
+            if renderMode and s.shader.renderModes.contains(renderMode): parameters.append(f'renderMode_{renderMode}', True)
+            (s.shader, _) = self.gfxModel.createShader(self.source, s.shader.name, parameters)
+            s.vertexArrayObject = self.gfxModel.meshBufferCache.getVertexArrayObject(self.mesh.vbib, s.shader, s.vertexBuffer.id, s.indexBuffer.id, s.baseVertex)
 
     def _configureDrawCalls(skinMaterials: dict[str, str], firstSetup: bool) -> None:
         data = mesh.data
-        if firstSetup: self.graphic.meshBufferCache.getVertexIndexBuffers(self.vbib) # this call has side effects because it uploads to gpu
+        if firstSetup: self.gfxModel.meshBufferCache.getVertexIndexBuffers(self.vbib) # this call has side effects because it uploads to gpu
 
         # prepare drawcalls
         i = 0
@@ -444,7 +446,7 @@ class GLRenderableMesh(RenderableMesh):
             for objectDrawCall in sceneObject['m_drawCalls']:
                 materialName = objectDrawCall['m_material'] or objectDrawCall['m_pMaterial']
                 if skinMaterials and materialName in skinMaterials: materialName = skinMaterials[materialName]
-                material, _ = self.graphic.materialManager.loadMaterial(f'{materialName}_c')
+                material, _ = self.gfxModel.materialManager.loadMaterial(self.source, f'{materialName}_c')
                 isOverlay = isinstance(material.material, IParamMaterial) and 'F_OVERLAY' in material.material.intParams
                 if isOverlay: continue # ignore overlays for now
                 shaderArgs: dict[str, bool] = {}
@@ -489,7 +491,7 @@ class GLRenderableMesh(RenderableMesh):
         # vbo
         vertexBuffer = objectDrawCall['m_vertexBuffers'][0]
         drawCall.vertexBuffer = (vertexBuffer['m_hBuffer'], vertexBuffer['m_nBindOffsetBytes'])
-        drawCall.vertexArrayObject = self.graphic.meshBufferCache.getVertexArrayObject(self.vbib, drawCall.shader, drawCall.vertexBuffer.id, drawCall.indexBuffer.id, drawCall.baseVertex)
+        drawCall.vertexArrayObject = self.gfxModel.meshBufferCache.getVertexArrayObject(self.vbib, drawCall.shader, drawCall.vertexBuffer.id, drawCall.indexBuffer.id, drawCall.baseVertex)
         return drawCall
 
     def _setupDrawCallMaterial(drawCall: DrawCall, shaderArgs: dict[str, bool], material: RenderMaterial) -> None:
@@ -497,12 +499,12 @@ class GLRenderableMesh(RenderableMesh):
         # add shader parameters from material to the shader parameters from the draw call
         combinedShaderArgs = { x.key:x.value for x in shaderArgs + material.material.getShaderArgs() }
         # load shader
-        drawCall.shader, _ = self.graphic.loadShader(drawCall.material.material.shaderName, combinedShaderArgs)
+        drawCall.shader, _ = self.gfxModel.loadShader(self.source, drawCall.material.material.shaderName, combinedShaderArgs)
         # bind and validate shader
         glUseProgram(drawCall.shader.program)
         # tint and normal
-        if 'g_tTintMask' not in drawCall.material.textures: drawCall.material.textures.append('g_tTintMask', self.graphic.textureManager.buildSolidTexture(1, 1, 1., 1., 1., 1.))
-        if 'g_tNormal' not in drawCall.material.textures: drawCall.material.textures.append('g_tNormal', self.graphic.textureManager.buildSolidTexture(1, 1, 0.5, 1, 0.5, 1))
+        if 'g_tTintMask' not in drawCall.material.textures: drawCall.material.textures.append('g_tTintMask', self.gfxModel.textureManager.buildSolidTexture(1, 1, 1., 1., 1., 1.))
+        if 'g_tNormal' not in drawCall.material.textures: drawCall.material.textures.append('g_tNormal', self.gfxModel.textureManager.buildSolidTexture(1, 1, 0.5, 1, 0.5, 1))
 
 #endregion
 
@@ -519,10 +521,10 @@ class OctreeDebugRenderer:
     dynamic: bool
     vertexCount: int
 
-    def __init__(self, octree: Octree, graphic: IOpenGLGfx, dynamic: bool):
+    def __init__(self, octree: Octree, gfxModel: IOpenGLGfx, source: ISource, dynamic: bool):
         self.octree = octree
         self.dynamic = dynamic
-        self.shader, self.shaderTag = graphic.createShader('vrf.grid')
+        self.shader, self.shaderTag = gfxModel.createShader(source, 'vrf.grid')
         glUseProgram(shader.program)
         self.vboHandle = glGenBuffer()
         if not dynamic: self.rebuild()

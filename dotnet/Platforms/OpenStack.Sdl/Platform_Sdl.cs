@@ -26,29 +26,26 @@ public class SdlClientHost : IClientHost {
 
 // SdlGfxSprite2D
 public class SdlGfxSprite2D : IOpenGfxSprite<object, object> {
-    readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    public SdlGfxSprite2D(ISource source) {
-        _source = source;
+    public SdlGfxSprite2D() {
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(object spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // SdlSfx
-public class SdlSfx(ISource source) : SystemSfx(source) { }
+public class SdlSfx : SystemSfx { }
 
 // SdlPlatform
 public class SdlPlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new SdlPlatform();
     SdlPlatform() : base("SD", "SDL 3") {
-        GfxFactory = source => [new SdlGfxSprite2D(source), null, null, null, null, null];
-        SfxFactory = source => [new SdlSfx(source)];
+        GfxFactory = () => [new SdlGfxSprite2D(), null, null, null, null, null];
+        SfxFactory = () => [new SdlSfx()];
     }
 }
 

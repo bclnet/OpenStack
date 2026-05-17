@@ -68,8 +68,7 @@ class GodotTextureBuilder : TextureBuilderBase<Texture> {
 // GodotMaterialBuilder : MISSING
 
 // GodotModelApi
-public class GodotModelApi(ISource source) : IOpenGfxApi<Node3D, Material> {
-    public ISource Source => source;
+public class GodotModelApi : IOpenGfxApi<Node3D, Material> {
     public void Parent(Node3D source, Node3D parent) => parent.AddChild(source);
     public void Transform(Node3D source, System.Numerics.Vector3 position, System.Numerics.Quaternion rotation, System.Numerics.Vector3 localScale) {
         var transform = new Transform3D { Origin = position.ToGodot() };
@@ -114,72 +113,63 @@ public class GodotModelApi(ISource source) : IOpenGfxApi<Node3D, Material> {
 
 // GodotGfxSprite2D
 public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
-    readonly ISource _source;
     readonly SpriteManager<Sprite2D> _spriteManager;
-    public GodotGfxSprite2D(ISource source) {
-        _source = source;
+    public GodotGfxSprite2D() {
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<Sprite2D> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(Sprite2D spr, object tag)> CreateSprite(object path, Node parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(Sprite2D spr, object tag)> CreateSprite(ISource source, object path, Node parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // GodotGfxSprite3D
 public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
-    readonly ISource _source;
     readonly SpriteManager<Sprite3D> _spriteManager;
-    public GodotGfxSprite3D(ISource source) {
-        _source = source;
+    public GodotGfxSprite3D() {
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(Sprite3D spr, object tag)> CreateSprite(object path, Node parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(Sprite3D spr, object tag)> CreateSprite(ISource source, object path, Node parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // GodotGfxModel
 public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture, XShader> {
-    readonly ISource _source;
     readonly MaterialManager<Material, Texture> _materialManager;
     readonly ObjectModelManager<Node, Material, Texture> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
     readonly TextureManager<Texture> _textureManager;
-    public GodotGfxModel(ISource source) {
-        _source = source;
-        _textureManager = new TextureManager<Texture>(source, new GodotTextureBuilder());
+    public GodotGfxModel() {
+        _textureManager = new TextureManager<Texture>(new GodotTextureBuilder());
         //_materialManager = new MaterialManager<Material, int>(source, _textureManager, new GodotMaterialBuilder(_textureManager));
         //_objectManager = new ObjectManager<Model, Material, int>(source, _materialManager, new GodotObjectBuilder());
         //_shaderManager = new ShaderManager<int>(source, new GodotShaderBuilder());
     }
 
-    public ISource Source => _source;
     public MaterialManager<Material, Texture> MaterialManager => _materialManager;
     public ObjectModelManager<Node, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public TextureManager<Texture> TextureManager => _textureManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Task<(Node obj, object tag)> CreateObject(object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
-    public Task<(XShader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<(Texture tex, object tag)> CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level);
+    public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
+    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
+    public Task<(Node obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
+    public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(Texture tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(Node src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node parent) => throw new NotImplementedException();
 }
 
 // GodotSfx
-public class GodotSfx(ISource source) : SystemSfx(source) { }
+public class GodotSfx : SystemSfx { }
 
 // GodotPlatform
 public class GodotPlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new GodotPlatform();
     GodotPlatform() : base("GD", "Godot") {
-        GfxFactory = source => [null, new GodotGfxSprite2D(source), new GodotGfxSprite3D(source), new GodotGfxModel(source), null, null];
-        SfxFactory = source => [new GodotSfx(source)];
+        GfxFactory = () => [null, new GodotGfxSprite2D(), new GodotGfxSprite3D(), new GodotGfxModel(), null, null];
+        SfxFactory = () => [new GodotSfx()];
         LogFunc = a => GD.Print(a?.Replace("\r", ""));
     }
 }

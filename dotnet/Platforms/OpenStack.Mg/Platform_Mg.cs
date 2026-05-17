@@ -398,29 +398,26 @@ public unsafe class MgClientHost : Game, IClientHost {
 
 // MgGfxSprite2D
 public class MgGfxSprite2D : IOpenGfxSprite<object, object> {
-    readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    public MgGfxSprite2D(ISource source) {
-        _source = source;
-        //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
+    public MgGfxSprite2D() {
+        //_spriteManager = new SpriteManager<Sprite2D>(new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(object spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // MgSfx
-public class MgSfx(ISource source) : SystemSfx(source) { }
+public class MgSfx : SystemSfx { }
 
 // MgPlatform
 public class MgPlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new MgPlatform();
     MgPlatform() : base("MG", "MonoGame") {
-        GfxFactory = source => [null, new MgGfxSprite2D(source), null, null, null, null];
-        SfxFactory = source => [new MgSfx(source)];
+        GfxFactory = () => [null, new MgGfxSprite2D(), null, null, null, null];
+        SfxFactory = () => [new MgSfx()];
         LogFunc = Console.WriteLine;
     }
 }

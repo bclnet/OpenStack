@@ -34,9 +34,9 @@ class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int
     public override object InstanceObject(object prefab, object parent) {
         return "clone";
     }
-    public override object CreateObject(object path, bool isStatic, MaterialManager<GLRenderMaterial, int> materialManager) {
+    public async override Task<object> CreateObject(ISource source, object path, bool isStatic, MaterialManager<GLRenderMaterial, int> materialManager) {
         var builder = OpenGLPlatform.BuildersByType[path.GetType()];
-        var s = builder(path, isStatic, materialManager);
+        var s = await builder(source, path, isStatic, materialManager);
         return s;
     }
     public override void EnsurePrefab() { }
@@ -223,11 +223,11 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
         return m;
     }
 
-    public override async Task<GLRenderMaterial> CreateMaterial(object path) {
+    public override async Task<GLRenderMaterial> CreateMaterial(ISource source, object path) {
         var m = new GLRenderMaterial(path as MaterialShaderProp);
         switch (path) {
             case MaterialShaderVProp p:
-                foreach (var tex in p.TextureParams) (m.Textures[tex.Key], _) = await TextureManager.CreateTexture($"{tex.Value}_c");
+                foreach (var tex in p.TextureParams) (m.Textures[tex.Key], _) = await TextureManager.CreateTexture(source, $"{tex.Value}_c");
                 if (p.IntParams.ContainsKey("F_SOLID_COLOR") && p.IntParams["F_SOLID_COLOR"] == 1) {
                     var a = p.VectorParams["g_vColorTint"];
                     m.Textures["g_tColor"] = TextureManager.CreateSolidTexture(1, 1, [a.X, a.Y, a.Z, a.W]);
@@ -247,15 +247,14 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
                 if (!p.VectorParams.ContainsKey("g_vTexCoordOffset")) p.VectorParams["g_vTexCoordOffset"] = Vector4.Zero;
                 if (!p.VectorParams.ContainsKey("g_vColorTint")) p.VectorParams["g_vColorTint"] = Vector4.One;
                 return m;
-            case MaterialShaderProp s: return m;
+            //case MaterialShaderProp s: return m;
             default: throw new ArgumentOutOfRangeException(nameof(path));
         }
     }
 }
 
 // OpenGLGfxApi
-public class OpenGLGfxApi(ISource source) : IOpenGfxApi<object, GLRenderMaterial> {
-    public ISource Source => source;
+public class OpenGLGfxApi : IOpenGfxApi<object, GLRenderMaterial> {
     public void AddMeshCollider(object src, object mesh, bool isKinematic, bool isStatic) => throw new NotImplementedException();
     public void AddMeshRenderer(object src, object mesh, GLRenderMaterial material, bool enabled, bool isStatic) => throw new NotImplementedException();
     public void AddMissingMeshCollidersRecursively(object src, bool isStatic) => throw new NotImplementedException();
@@ -272,47 +271,41 @@ public class OpenGLGfxApi(ISource source) : IOpenGfxApi<object, GLRenderMaterial
 
 // OpenGLGfxSprite3D
 public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
-    readonly ISource _source;
     readonly SpriteManager<int> _spriteManager;
-    public OpenGLGfxSprite3D(ISource source) {
-        _source = source;
+    public OpenGLGfxSprite3D() {
         //_spriteManager = new SpriteManager<int>(source, new OpenGLSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<int> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(int spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(int spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 /// <summary>
 /// OpenGLGfxModel
 /// </summary>
 public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shader> {
-    readonly ISource _source;
     readonly MaterialManager<GLRenderMaterial, int> _materialManager;
     readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
     readonly ShaderManager<Shader> _shaderManager;
     readonly TextureManager<int> _textureManager;
-    public OpenGLGfxModel(ISource source) {
-        _source = source;
-        _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
-        _materialManager = new MaterialManager<GLRenderMaterial, int>(source, _textureManager, new OpenGLMaterialBuilder(_textureManager));
-        _objectManager = new ObjectModelManager<object, GLRenderMaterial, int>(source, _materialManager, new OpenGLObjectBuilder());
-        _shaderManager = new ShaderManager<Shader>(source, new OpenGLShaderBuilder());
+    public OpenGLGfxModel() {
+        _textureManager = new TextureManager<int>(new OpenGLTextureBuilder());
+        _materialManager = new MaterialManager<GLRenderMaterial, int>(_textureManager, new OpenGLMaterialBuilder(_textureManager));
+        _objectManager = new ObjectModelManager<object, GLRenderMaterial, int>(_materialManager, new OpenGLObjectBuilder());
+        _shaderManager = new ShaderManager<Shader>(new OpenGLShaderBuilder());
         MeshBufferCache = new GLMeshBufferCache();
     }
 
-    public ISource Source => _source;
     public MaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
     public ObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
     public ShaderManager<Shader> ShaderManager => _shaderManager;
     public TextureManager<int> TextureManager => _textureManager;
-    public void PreloadObject(object path) => _objectManager.PreloadObject(path);
-    public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public Task<(object obj, object tag)> CreateObject(object path, bool isStatic, object parent = default) => _objectManager.CreateObject(path, isStatic, parent);
-    public Task<(Shader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args);
-    public Task<(int tex, object tag)> CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level);
+    public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
+    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
+    public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = default) => _objectManager.CreateObject(source, path, isStatic, parent);
+    public Task<(Shader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
+    public Task<(int tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
 
     // cache
@@ -325,16 +318,13 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
 /// OpenGLGfxTerrain
 /// </summary>
 public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
-    readonly ISource _source;
     readonly MaterialManager<GLRenderMaterial, int> _materialManager;
     readonly TextureManager<int> _textureManager;
-    public OpenGLGfxTerrain(ISource source) {
-        _source = source;
-        _textureManager = new TextureManager<int>(source, new OpenGLTextureBuilder());
-        _materialManager = new MaterialManager<GLRenderMaterial, int>(source, _textureManager, new OpenGLMaterialBuilder(_textureManager));
+    public OpenGLGfxTerrain() {
+        _textureManager = new TextureManager<int>(new OpenGLTextureBuilder());
+        _materialManager = new MaterialManager<GLRenderMaterial, int>(_textureManager, new OpenGLMaterialBuilder(_textureManager));
     }
 
-    public ISource Source => _source;
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<int>[] layers, float[,,] alphaMap) => new();
     public object CreateTerrain(string name, Vector3? position, object data, object parent = default) => null;
 }
@@ -343,11 +333,11 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
 /// OpenGLPlatform
 /// </summary>
 public class OpenGLPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
+    public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<GLRenderMaterial, int>, Task<object>>> BuildersByType = [];
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
-        GfxFactory = source => [new OpenGLGfxApi(source), null, new OpenGLGfxSprite3D(source), new OpenGLGfxModel(source), null, null, new OpenGLGfxTerrain(source)];
-        SfxFactory = source => [new SystemSfx(source)];
+        GfxFactory = () => [new OpenGLGfxApi(), null, new OpenGLGfxSprite3D(), new OpenGLGfxModel(), null, null, new OpenGLGfxTerrain()];
+        SfxFactory = () => [new SystemSfx()];
     }
 }
 

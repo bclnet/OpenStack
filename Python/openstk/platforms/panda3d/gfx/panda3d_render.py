@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os, asyncio
 from panda3d.core import *
-from openstk.core import log, CellManager
+from openstk.core import ISource, log, CellManager
 from openstk.gfx import GfX, Renderer
 from openstk.gfx.egin import AABB
 from openstk.platforms.panda3d.gfx.panda3d import Panda3dCellBuilder
@@ -18,7 +18,7 @@ class IOpenGfx: pass
 
 # TestTriRenderer
 class TestTriRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object): pass
 
     def start(self):
         scene = self.scene = base.loader.loadModel('models/environment')
@@ -34,8 +34,9 @@ class TestTriRenderer(Renderer):
 
 # TextureRenderer
 class TextureRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: Panda3dGfxModel = gfx[GfX.XModel]
+        self.source: ISource = source
         self.obj: object = obj
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
         self.frameDelay: int = 0
@@ -43,7 +44,7 @@ class TextureRenderer(Renderer):
     def start(self):
         # self.gfxModel.textureManager.deleteTexture(self.obj)
         obj = base.render.attachNewNode(CardMaker('card').generate())
-        tex = self.gfxModel.textureManager.createTexture(self.obj, None)[0]
+        tex = self.gfxModel.textureManager.createTexture(self.source, self.obj, None)[0]
         # tex = base.loader.loadModel('maps/noise.rgb')
         obj.setTexture(tex)
         obj.setScale(8.0, 8.0, 8.0)
@@ -63,44 +64,13 @@ class TextureRenderer(Renderer):
 
 # ObjectRenderer
 class ObjectRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.source: ISource = source
         self.obj: object = obj
 
     def start(self) -> None:
-        asyncio.run(self.gfxModel.objectManager.createObject(self.obj, True, None))
-
-#endregion
-
-#region MaterialRenderer
-
-# MaterialRenderer
-class MaterialRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region GridRenderer
-
-# GridRenderer
-class GridRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region ParticleRenderer
-
-# ParticleRenderer
-class ParticleRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region CellRenderer
-
-# CellRenderer
-class CellRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
+        asyncio.run(self.gfxModel.objectManager.createObject(self.source, self.obj, True, None))
 
 #endregion
 
@@ -108,32 +78,22 @@ class CellRenderer(Renderer):
 
 # EngineRenderer
 class EngineRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfx: list[IOpenGfx] = gfx
+        self.source: ISource = source
         self.db: ICellDatabase = obj
         self.engine: Panda3dOpenEngine
-        self.playerPrefab: object = None
+        # self.playerPrefab: object = None
 
     def dispose(self) -> None:
         if self.engine: self.engine.dispose()
 
     def start(self) -> None:
         # log.info(f'db: {self.db}')
-        arc = self.db.archive
-        self.gfx = arc.gfx
-        query = self.db.query
-        self.engine = Panda3dOpenEngine(lambda queue: CellManager(query, queue, Panda3dCellBuilder(query, self.gfx)), False)
+        self.engine = Panda3dOpenEngine(lambda queue: CellManager(self.db.query, queue, Panda3dCellBuilder(self.db.archive, self.db.query, self.gfx)), False)
         self.engine.spawnPlayer(self.db)
 
     def update(self, deltaTime: float) -> None:
         if self.engine: self.engine.update()
-
-#endregion
-
-#region WorldRenderer
-
-# WorldRenderer
-class WorldRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion

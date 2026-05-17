@@ -1,19 +1,18 @@
-using System;
-using Stride.Core.Presentation.Controls;
-using Stride.Editor.Engine;
-using System.Threading.Tasks;
+using OpenStack;
+using OpenStack.Gfx;
+using Stride.CommunityToolkit.Engine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Controls;
+using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering.ProceduralModels;
-using System.Windows.Controls;
-using System.Windows;
-using OpenStack.Gfx;
+using System;
 using System.Threading;
-using Stride.CommunityToolkit.Engine;
-using OpenStack.Sfx;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace GameX.App.Explorer.Controls;
 
@@ -64,26 +63,20 @@ public abstract class StrideControl : UserControl {
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
-    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
-    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
+    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(ISource), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
+    public static readonly DependencyProperty Source2Property = DependencyProperty.Register(nameof(Source2), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(StrideControl), new PropertyMetadata((d, e) => (d as StrideControl).OnSourceChanged()));
 
-    public IList<IOpenGfx> Gfx {
-        get => GetValue(GfxProperty) as IList<IOpenGfx>;
-        set => SetValue(GfxProperty, value);
-    }
-
-    public IList<IOpenSfx> Sfx {
-        get => GetValue(SfxProperty) as IList<IOpenSfx>;
-        set => SetValue(SfxProperty, value);
-    }
-
-    public object Source {
-        get => GetValue(SourceProperty);
+    public ISource Source {
+        get => GetValue(SourceProperty) as ISource;
         set => SetValue(SourceProperty, value);
+    }
+
+    public object Source2 {
+        get => GetValue(Source2Property);
+        set => SetValue(Source2Property, value);
     }
 
     public object Path {
@@ -102,7 +95,7 @@ public abstract class StrideControl : UserControl {
     }
 
     void OnSourceChanged() {
-        if (Gfx == null || Path == null || Value == null || Type == null) return;
+        if (Source == null || Path == null || Value == null || Type == null) return;
         Renderer = CreateRenderer(); //this, Gfx3d as IStrideGfx3d, Source, Type);
         Renderer?.Start();
     }

@@ -3,7 +3,7 @@ import ctypes, asyncio
 from numpy import array, ones, float32, identity
 from enum import Enum
 from OpenGL.GL import *
-from openstk.core import log, CellManager
+from openstk.core import ISource, log, CellManager
 from openstk.gfx import GfX, Renderer, ITextureFrames
 from openstk.gfx.egin import AABB, EginRenderer
 from openstk.platforms.opengl.egin import GLRenderMaterial
@@ -22,9 +22,9 @@ class IOpenGfx: pass
 
 # TestTriRenderer
 class TestTriRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
-        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('testtri')
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, 'testtri'))
         self.vao: int = self._setupVao()
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
@@ -66,13 +66,14 @@ FACTOR = 1
 
 # TextureRenderer
 class TextureRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object, level: range, background: bool = False):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object, level: range, background: bool = False):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.source: ISource = source
         self.obj: object = obj
         self.level: range = level
-        self.gfxModel.textureManager.deleteTexture(obj)
-        self.tex: int = self.gfxModel.textureManager.createTexture(obj, self.level)[0] or -1
-        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('plane')
+        self.gfxModel.textureManager.deleteTexture(source, obj)
+        self.tex: int = asyncio.run(self.gfxModel.textureManager.createTexture(source, obj, self.level))[0] or -1
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, 'plane'))
         self.vao: int = self._setupVao()
         self.background: bool = background
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
@@ -127,7 +128,7 @@ class TextureRenderer(EginRenderer):
         self.frameDelay += deltaTime
         if self.frameDelay <= obj.fps or not obj.decodeFrame(): return
         self.frameDelay = 0 # reset delay between frames
-        self.gfxModel.textureManager.reloadTexture(obj)
+        self.gfxModel.textureManager.reloadTexture(self.source, obj)
 
 #endregion
 
@@ -135,12 +136,13 @@ class TextureRenderer(EginRenderer):
 
 # ObjectRenderer
 class ObjectRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.source: ISource = source
         self.obj: object = obj
 
     def start(self) -> None:
-        asyncio.run(self.gfxModel.objectManager.createObject(self.obj, True, None))
+        asyncio.run(self.gfxModel.objectManager.createObject(self.source, self.obj, True, None))
 
 #endregion
 
@@ -148,11 +150,11 @@ class ObjectRenderer(EginRenderer):
 
 # MaterialRenderer
 class MaterialRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
-        self.gfxModel.textureManager.deleteTexture(obj)
-        self.material: GLRenderMaterial = self.gfxModel.materialManager.createMaterial(obj)[0]
-        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader(material.material.shaderName, material.material.getShaderArgs())
+        self.gfxModel.textureManager.deleteTexture(source, obj)
+        self.material, _ = asyncio.run(self.gfxModel.materialManager.createMaterial(source, obj)) #GLRenderMaterial
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, material.material.shaderName, material.material.getShaderArgs()))
         self.vao: int = self._setupVao()
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
@@ -213,9 +215,9 @@ class MaterialRenderer(EginRenderer):
 
 # GridRenderer
 class GridRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], cellWidth: float, gridWidthInCells: int):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, cellWidth: float, gridWidthInCells: int):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
-        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('vrf.grid')
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, 'vrf.grid'))
         self.vao: int = self._setupVao(cellWidth, gridWidthInCells)
         self.boundingBox = AABB(
             -cellWidth * 0.5 * gridWidthInCells, -cellWidth * 0.5 * gridWidthInCells, 0,
@@ -285,20 +287,13 @@ class GridRenderer(EginRenderer):
 
 #endregion
 
-#region ParticleRenderer
-
-# ParticleRenderer
-class ParticleRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
 #region EngineRenderer
 
 # EngineRenderer
 class EngineRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfx: list[IOpenGfx] = gfx
+        self.source: ISource = source
         self.db: ICellDatabase = obj
         self.engine: OpenGLOpenEngine
 
@@ -306,23 +301,12 @@ class EngineRenderer(EginRenderer):
         if self.engine: self.engine.dispose()
 
     def start(self) -> None:
-        arc = self.db.archive
-        self.gfx = arc.gfx
-        query = self.db.query
-        self.engine = OpenGLOpenEngine(lambda queue: CellManager(query, queue, OpenGLCellBuilder(query, self.gfx)), False)
-        self.engine.spawnPlayer(self.db)
+        self.engine = OpenGLOpenEngine(lambda queue: CellManager(self.db.query, queue, OpenGLCellBuilder(self.db.archive, self.db.query, self.gfx)), False)
+        asyncio.run(self.engine.spawnPlayer(self.db))
 
     def update(self, deltaTime: float) -> None:
         if self.engine: self.engine.update()
 
     def render(self, camera: Camera, passx: Renderer.Pass) -> None: self.engine.camera = camera
-
-#endregion
-
-#region WorldRenderer
-
-# WorldRenderer
-class WorldRenderer(EginRenderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion

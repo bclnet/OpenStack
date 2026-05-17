@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os, math
 from numpy import ndarray, array, zeros
+from openstk.core.core import ISource
 from openstk.core.poly.pool import CoroutineQueue
 from openstk.core.poly.poly import Int3, Float3, Float4
 from openstk.core.poly.system import getExtrema, changeRange
@@ -165,7 +166,8 @@ class CellBuilder(CellBuilderX):
     defaultLandTexturePath: str = 'textures/_land_default.dds'
     terrainLayers: dict[Texture, GfxTerrainLayer[Texture]] = {}
 
-    def __init__(self, query: IQuery, gfx: list[IOpenGfx]):
+    def __init__(self, source: ISource, query: IQuery, gfx: list[IOpenGfx]):
+        self.source = source
         self.query = query
         self.gfxApi = gfx[GfX.XApi]
         self.gfxModel = gfx[GfX.XModel]
@@ -202,7 +204,7 @@ class CellBuilder(CellBuilderX):
     async def createCell(self, cell: ICell, parent: object, r: CellRef) -> None:
         if not r.record: return #log.info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None; obj = r.obj
-        if r.modelPath: modelObj = await self.gfxModel.createObject(r.modelPath, True); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
+        if r.modelPath: modelObj, _ = await self.gfxModel.createObject(self.source, r.modelPath, True); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
         if self.gfxLight and isinstance(r.record, CellManager.ILigh):
             ligh = r.record
             s = self.gfxLight.createLight('Light', None, ligh.radius, ligh.lightColor, cell.isInterior)
@@ -227,7 +229,7 @@ class CellBuilder(CellBuilderX):
     VTEX_ROWS: int = 16
     VTEX_COLUMNS: int = VTEX_ROWS
 
-    def createLand(self, land: ILand, parent: object):
+    async def createLand(self, land: ILand, parent: object):
         heights = land.heights
         if not heights: return
 
@@ -256,7 +258,7 @@ class CellBuilder(CellBuilderX):
             if index in layerIndexs: continue
             # Load terrain texture.
             path = self.query.findLtex(index).path if index >= 0 else CellBuilder.defaultLandTexturePath
-            tex = self.gfxModel.createTexture(path)
+            tex, _ = await self.gfxModel.createTexture(self.source, path)
             layer = CellBuilder.terrainLayers.get(tex)
             if not layer:
                 layer = GfxTerrainLayer[Texture](

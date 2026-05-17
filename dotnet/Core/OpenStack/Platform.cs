@@ -10,14 +10,6 @@ namespace OpenStack;
 #region Platform
 
 /// <summary>
-/// ISourceWithPlatform
-/// </summary>
-public interface ISourceWithPlatform : ISource {
-    IOpenGfx[] Gfx { get; }
-    IOpenSfx[] Sfx { get; }
-}
-
-/// <summary>
 /// Gets the platform.
 /// </summary>
 public abstract class Platform(string id, string name) {
@@ -49,12 +41,12 @@ public abstract class Platform(string id, string name) {
     /// <summary>
     /// Gets the platforms gfx factory.
     /// </summary>
-    public Func<ISource, IOpenGfx[]> GfxFactory = source => null; // throw new Exception("No GfxFactory");
+    public Func<IOpenGfx[]> GfxFactory = () => null; // throw new Exception("No GfxFactory");
 
     /// <summary>
     /// Gets the platforms sfx factory.
     /// </summary>
-    public Func<ISource, IOpenSfx[]> SfxFactory = source => null; // throw new Exception("No SfxFactory");
+    public Func<IOpenSfx[]> SfxFactory = () => null; // throw new Exception("No SfxFactory");
 
     /// <summary>
     /// Gets the platforms assert func.
@@ -140,10 +132,28 @@ public static class PlatformX {
         if (current != platform) {
             current?.Deactivate();
             platform?.Activate();
+            Gfx = platform?.GfxFactory?.Invoke();
+            Sfx = platform?.SfxFactory?.Invoke();
             Current = platform;
         }
         return platform;
     }
+
+    /// <summary>
+    /// Gets the gfx.
+    /// </summary>
+    /// <value>
+    /// The gfx.
+    /// </value>
+    public static IOpenGfx[] Gfx { get; internal set; } = null;
+
+    /// <summary>
+    /// Gets the gfx.
+    /// </summary>
+    /// <value>
+    /// The sfx.
+    /// </value>
+    public static IOpenSfx[] Sfx { get; internal set; } = null;
 
     ///// <summary>
     ///// Creates the matcher.

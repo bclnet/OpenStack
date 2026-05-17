@@ -253,6 +253,6 @@ public class ShaderDebugLoader : ShaderLoader {
 
 #region CellManager
 
-public class OpenGLCellBuilder(IQuery query, IOpenGfx[] gfx) : CellBuilder<object, GLRenderMaterial, int, Shader>(query, gfx) { }
+public class OpenGLCellBuilder(ISource source, IQuery query, IOpenGfx[] gfx) : CellBuilder<object, GLRenderMaterial, int, Shader>(source, query, gfx) { }
 
 #endregion

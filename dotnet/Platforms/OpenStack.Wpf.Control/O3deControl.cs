@@ -1,7 +1,5 @@
 using OpenStack.Gfx;
-using OpenStack.Sfx;
 using System;
-using System.Collections.Generic;
 using System.Windows;
 
 namespace OpenStack.Wpf.Control;
@@ -13,26 +11,20 @@ public abstract class O3deControl(Func<object, object, object, string, object> s
     protected abstract Renderer CreateRenderer();
     protected override object GetShellState() => shellState(Source, Path, Value, Type);
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
-    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
-    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
+    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(ISource), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
+    public static readonly DependencyProperty Source2Property = DependencyProperty.Register(nameof(Source2), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
     public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(O3deControl), new PropertyMetadata((d, e) => (d as O3deControl).OnSourceChanged()));
 
-    public IList<IOpenGfx> Gfx {
-        get => GetValue(GfxProperty) as IList<IOpenGfx>;
-        set => SetValue(GfxProperty, value);
-    }
-
-    public IList<IOpenSfx> Sfx {
-        get => GetValue(SfxProperty) as IList<IOpenSfx>;
-        set => SetValue(SfxProperty, value);
-    }
-
-    public object Source {
-        get => GetValue(SourceProperty);
+    public ISource Source {
+        get => GetValue(SourceProperty) as ISource;
         set => SetValue(SourceProperty, value);
+    }
+
+    public object Source2 {
+        get => GetValue(Source2Property);
+        set => SetValue(Source2Property, value);
     }
 
     public object Path {
@@ -51,7 +43,7 @@ public abstract class O3deControl(Func<object, object, object, string, object> s
     }
 
     void OnSourceChanged() {
-        if (Gfx == null || Path == null || Value == null || Type == null) return;
+        if (Source == null || Path == null || Value == null || Type == null) return;
         Renderer = CreateRenderer();
         Renderer?.Start();
     }

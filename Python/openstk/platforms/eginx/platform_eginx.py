@@ -1,13 +1,11 @@
 from __future__ import annotations
 import traceback
-from openstk.core import Platform
+from openstk.core import ISource, Platform
 from openstk.platforms.system import SystemSfx
 from openstk.gfx import IOpenGfxApi, IOpenGfxSprite, IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
 from openstk.client import IClientHost
 from openstk.gfx.egin import Game, GraphicsDeviceManager
 
-# typedefs
-class ISource: pass
 
 #region Client
 
@@ -44,28 +42,27 @@ class EginXClientHost(Game, IClientHost):
 
 # EginXGfxApi
 class EginXGfxApi(IOpenGfxApi):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def attach(self, method: GfxAttach, src: object, args: list[object]) -> object: raise NotImplementedError()
 
 # EginXGfxSprite2D
 class EginXGfxSprite2D(IOpenGfxSprite):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
-        # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
-        # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
-    def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    async def createObject(self, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()
-    def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
+    def __init__(self):
+        # self.spriteManager: SpriteManager = SpriteManager(OpenGLTextureBuilder())
+        # self.objectManager: ObjectSpriteManager = ObjectManager(OpenGLObjectModelBuilder())
+        pass
+    # def preloadObject(self, source: ISource, path: object) -> None: raise NotImplementedError()
+    def preloadSprite(self, source: ISource, path: object) -> None: self.textureManager.spriteManager(path)
+    # def createObject(self, source: ISource, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()
+    def createSprite(self, source: ISource, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
 
 # EginXPlatform
 class EginXPlatform(Platform):
     buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('EX', 'EginX')
-        self.gfxFactory = staticmethod(lambda source: [EginXGfxApi(source), EginXGfxSprite2D(source), None, None, None, None])
-        self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
+        self.gfxFactory = staticmethod(lambda: [EginXGfxApi(), EginXGfxSprite2D(), None, None, None, None])
+        self.sfxFactory = staticmethod(lambda: [SystemSfx()])
 EginXPlatform.this = EginXPlatform()
 
 #endregion

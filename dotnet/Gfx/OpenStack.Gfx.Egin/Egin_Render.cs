@@ -58,7 +58,7 @@ public interface IVBIB {
 /// <summary>
 /// IEginModel
 /// </summary>
-public interface IEginModel : IModel {
+public interface IEginModel : IObjectModel {
     IVBIB RemapBoneIndices(IVBIB vbib, int meshIndex);
 }
 
@@ -298,8 +298,7 @@ public abstract class RenderableMesh {
     protected IMesh Mesh;
     protected IVBIB VBIB;
 
-    public RenderableMesh(Action<RenderableMesh> action, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) {
-        action(this);
+    public RenderableMesh(IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) {
         Mesh = mesh;
         VBIB = model != null ? model.RemapBoneIndices(mesh.VBIB, meshIndex) : mesh.VBIB;
         Mesh.GetBounds();
@@ -628,10 +627,10 @@ public class Octree<T> where T : class {
 /// <summary>
 /// Scene
 /// </summary>
-public class Scene(IOpenGfxModel gfx, Action<List<MeshBatchRequest>, Scene.RenderContext> meshBatchRenderer, float sizeHint = 32768) {
+public class Scene(IOpenGfx[] gfx, Action<List<MeshBatchRequest>, Scene.RenderContext> meshBatchRenderer, float sizeHint = 32768) {
     public readonly Camera MainCamera;
     public readonly Vector3? LightPosition;
-    public readonly IOpenGfxModel GfxModel = gfx ?? throw new ArgumentNullException(nameof(gfx));
+    public readonly IOpenGfx[] Gfx = gfx ?? throw new ArgumentNullException(nameof(gfx));
     public readonly Octree<SceneNode> StaticOctree = new(sizeHint);
     public readonly Octree<SceneNode> DynamicOctree = new(sizeHint);
     public bool ShowDebug;

@@ -163,6 +163,6 @@ class ShaderDebugLoader(ShaderLoader):
 
 # OpenGLCellBuilder
 class OpenGLCellBuilder(CellBuilder):
-    def __init__(self, query: CellManager.IQuery, gfx: list[IOpenGfx]): super().__init__(query, gfx)
+    def __init__(self, source: ISource, query: CellManager.IQuery, gfx: list[IOpenGfx]): super().__init__(source, query, gfx)
 
 #endregion

@@ -50,17 +50,14 @@ public class ExClientHost : Game, IClientHost {
 
 // EginXGfxSprite2D
 public class EginXGfxSprite2D : IOpenGfxSprite<object, object> {
-    readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    public EginXGfxSprite2D(ISource source) {
-        _source = source;
-        //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
+    public EginXGfxSprite2D() {
+        //_spriteManager = new SpriteManager<Sprite2D>(new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(object spr, object tag)> CreateSprite(object path, object parent = null) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = null) => _spriteManager.CreateSprite(source, path);
 }
 
 // EginXPlatform
@@ -68,8 +65,8 @@ public class EginXPlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new EginXPlatform();
     EginXPlatform() : base("EX", "EginX") {
-        GfxFactory = source => [null, new EginXGfxSprite2D(source), null, null, null, null];
-        SfxFactory = source => [new SystemSfx(source)];
+        GfxFactory = () => [null, new EginXGfxSprite2D(), null, null, null, null];
+        SfxFactory = () => [new SystemSfx()];
     }
 }
 

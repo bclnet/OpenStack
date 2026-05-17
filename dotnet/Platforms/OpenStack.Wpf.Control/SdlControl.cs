@@ -1,7 +1,5 @@
 using OpenStack.Gfx;
-using OpenStack.Sfx;
 using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,26 +11,20 @@ public abstract class SdlControl(Func<object, object, object, string, object> sh
     protected Renderer Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IOpenGfx[]), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
-    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IOpenSfx[]), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
-    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
+    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(ISource), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
+    public static readonly DependencyProperty Source2Property = DependencyProperty.Register(nameof(Source2), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(SdlControl), new PropertyMetadata((d, e) => (d as SdlControl).OnSourceChanged()));
 
-    public IList<IOpenGfx> Gfx {
-        get => GetValue(GfxProperty) as IList<IOpenGfx>;
-        set => SetValue(GfxProperty, value);
-    }
-
-    public IList<IOpenSfx> Sfx {
-        get => GetValue(SfxProperty) as IList<IOpenSfx>;
-        set => SetValue(SfxProperty, value);
-    }
-
-    public object Source {
-        get => GetValue(SourceProperty);
+    public ISource Source {
+        get => GetValue(SourceProperty) as ISource;
         set => SetValue(SourceProperty, value);
+    }
+
+    public object Source2 {
+        get => GetValue(Source2Property);
+        set => SetValue(Source2Property, value);
     }
 
     public object Path {
@@ -51,7 +43,7 @@ public abstract class SdlControl(Func<object, object, object, string, object> sh
     }
 
     void OnSourceChanged() {
-        if (Gfx == null || Path == null || Value == null || Type == null) return;
+        if (Source == null || Path == null || Value == null || Type == null) return;
         Renderer = CreateRenderer();
         Renderer?.Start();
     }

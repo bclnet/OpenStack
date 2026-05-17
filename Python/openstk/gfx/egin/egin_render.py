@@ -252,8 +252,7 @@ class RenderableMesh:
     mesh: IMesh
     vbib: IVBIB
 
-    def __init__(self, action: callable, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IEginModel = None):
-        action(self)
+    def __init__(self, mesh: IMesh, meshIndex: int, skinMaterials: dict[str, str] = None, model: IEginModel = None):
         self.mesh = mesh
         self.vbib = model.remapBoneIndices(mesh.vbib, meshIndex) if model else mesh.vbib
         mesh.getBounds()

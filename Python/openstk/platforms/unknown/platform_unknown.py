@@ -8,8 +8,8 @@ class UnknownPlatform(Platform):
     buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('UK', 'Unknown')
-        self.gfxFactory = staticmethod(lambda source: [None, None, None, None, None, None])
-        self.sfxFactory = staticmethod(lambda source: [None])
+        self.gfxFactory = staticmethod(lambda: [None, None, None, None, None, None])
+        self.sfxFactory = staticmethod(lambda: [None])
 UnknownPlatform.this = UnknownPlatform()
 
 #endregion

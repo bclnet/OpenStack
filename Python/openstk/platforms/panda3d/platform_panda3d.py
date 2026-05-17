@@ -24,10 +24,10 @@ class Panda3dClientHost(IClientHost):
 class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
-    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+    async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
         builder = Panda3dPlatform.buildersByType[path.__class__.__name__]
         try:
-            s = builder(path, isStatic, materialManager)
+            s = await builder(source, path, isStatic, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
     def ensurePrefab(self) -> None: pass
@@ -150,19 +150,19 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
         return self._terrainMaterial
 
     def _createDefaultMaterial() -> MaterialPoly:
-        m = MaterialPoly({'Main' => self.textureManager.defaultTexture})
+        m = MaterialPoly({'Main': self.textureManager.defaultTexture})
         return m
 
     def _createTerrainMaterial() -> MaterialPoly:
-        m = MaterialPoly({'Main' => self.textureManager.terrainTexture})
+        m = MaterialPoly({'Main': self.textureManager.terrainTexture})
         return m
 
-    def createMaterial(self, path: object) -> MaterialPoly:
+    async def createMaterial(self, source: ISource, path: object) -> MaterialPoly:
         print(f'createMaterial {path}'); exit(1)
         match path:
             case p if isinstance(path, MaterialStdProp):
                 m = MaterialPoly();
-                m.texs = {k,self.textureManager.createTexture(k).tex from p.textures if k == 'Main' or k == 'Bump'}
+                m.texs = {k:(await self.textureManager.createTexture(source, v))[0] for k,v in p.textures if k == 'Main' or k == 'Bump'}
                 # mainTex = p.textures['Main'] if 'Main' in p.textures else None
                 # if mainTex:
                 #     m.texs[.append]((, None))
@@ -176,8 +176,7 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
 
 # Panda3dGfxApi
 class Panda3dGfxApi(IOpenGfxApi):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMeshRenderer(self, src: NodePath, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMissingMeshCollidersRecursively(self, src: NodePath, isStatic: bool) -> None: raise NotImplementedError();
@@ -203,23 +202,20 @@ class Panda3dGfxApi(IOpenGfxApi):
 
 # Panda3dGfx
 class Panda3dGfxModel(IOpenGfxModel):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
-        self.textureManager: TextureManager = TextureManager(source, Panda3dTextureBuilder())
-        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, Panda3dMaterialBuilder(self.textureManager))
-        self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, Panda3dObjectModelBuilder())
-        self.shaderManager: ShaderManager = ShaderManager(source, Panda3dShaderBuilder())
-
-    def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
-    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    async def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return await self.objectManager.createObject(path, isStatic, parent)[0]
-    def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    def createTexture(self, path: object, level: range = None) -> int: return self.textureManager.createTexture(path, level)[0]
+    def __init__(self):
+        self.textureManager: TextureManager = TextureManager(Panda3dTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(self.textureManager, Panda3dMaterialBuilder(self.textureManager))
+        self.objectManager: ObjectModelManager = ObjectModelManager(self.materialManager, Panda3dObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(Panda3dShaderBuilder())
+    def preloadObject(self, source: ISource, path: object) -> None: self.objectManager.preloadObject(source, path)
+    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preloadTexture(source, path)
+    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, object]: return self.objectManager.createObject(source, path, isStatic, parent)
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[Shader, object]: return self.shaderManager.createShader(source, path, args)
+    def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[int, object]: return self.textureManager.createTexture(source, path, level)
 
 # Panda3dGfxLight
 class Panda3dGfxLight(IOpenGfxLight):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: NodePath = None) -> NodePath:
         n = PointLight(name)
         n.setColor((0.7, 0.7, 0.7, 1))
@@ -256,8 +252,7 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
                     # h = (h / 2) + .5
                     s.setGray(x, y, h) # Set pixel: 0.0 (black) is lowest, 1.0 (white) is highest
         def setAlphamaps(self, x: int, y: int, alphamap: ndarray) -> None: self.alphamap = alphamap
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object:
         hShape = heights.shape; aShape = alphaMap.shape
         assert(hShape[0] == hShape[1] and heightRange >= 0 and sampleDistance >= 0)
@@ -303,8 +298,8 @@ class Panda3dPlatform(Platform):
     buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PD', 'Panda3D')
-        self.gfxFactory = staticmethod(lambda source: [Panda3dGfxApi(source), None, None, Panda3dGfxModel(source), Panda3dGfxLight(source), Panda3dGfxTerrain(source)])
-        self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
+        self.gfxFactory = staticmethod(lambda: [Panda3dGfxApi(), None, None, Panda3dGfxModel(), Panda3dGfxLight(), Panda3dGfxTerrain()])
+        self.sfxFactory = staticmethod(lambda: [SystemSfx()])
 Panda3dPlatform.this = Panda3dPlatform()
 
 #endregion

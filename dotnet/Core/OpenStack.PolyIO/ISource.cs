@@ -10,6 +10,9 @@ public interface ISource {
     //object FindPath<T>(object path);
 }
 
-//public interface IHaveSource {
-//    ISource Source { get; }
-//}
+/// <summary>
+/// IHaveSource
+/// </summary>
+public interface IHaveSource {
+    ISource Source { get; }
+}

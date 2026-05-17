@@ -26,57 +26,51 @@ public class OgreClientHost : IClientHost {
 
 // OgreGfxSprite3D
 public class OgreGfxSprite3D : IOpenGfxSprite<object, object> {
-    readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    public OgreGfxSprite3D(ISource source) {
-        _source = source;
+    public OgreGfxSprite3D() {
         //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(object spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // OgreGfxModel
 public class OgreGfxModel : IOpenGfxModel<object, object, object, object> {
-    readonly ISource _source;
     readonly MaterialManager<object, object> _materialManager;
     readonly ObjectModelManager<object, object, object> _objectManager;
     readonly ShaderManager<object> _shaderManager;
     readonly TextureManager<object> _textureManager;
-    public OgreGfxModel(ISource source) {
-        _source = source;
+    public OgreGfxModel() {
         //_textureManager = new TextureManager<object>(source, new OgreTextureBuilder());
         //_materialManager = new MaterialManager<Material, int>(source, _textureManager, new GodotMaterialBuilder(_textureManager));
         //_objectManager = new ObjectManager<Model, Material, int>(source, _materialManager, new GodotObjectBuilder());
         //_shaderManager = new ShaderManager<int>(source, new GodotShaderBuilder());
     }
 
-    public ISource Source => _source;
     public MaterialManager<object, object> MaterialManager => _materialManager;
     public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public ShaderManager<object> ShaderManager => _shaderManager;
     public TextureManager<object> TextureManager => _textureManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public Task<(object obj, object tag)> CreateObject(object path, bool isStatic, object parent = default) => throw new NotImplementedException();
-    public Task<(object sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<(object tex, object tag)> CreateTexture(object path, System.Range? level = null) => _textureManager.CreateTexture(path, level);
+    public void PreloadObject(ISource source, object path) => throw new NotImplementedException();
+    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
+    public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = default) => throw new NotImplementedException();
+    public Task<(object sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(object tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 
 // OgreSfx
-public class OgreSfx(ISource source) : SystemSfx(source) { }
+public class OgreSfx : SystemSfx { }
 
 // OgrePlatform
 public class OgrePlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre") {
-        GfxFactory = source => [null, null, new OgreGfxSprite3D(source), new OgreGfxModel(source), null, null];
-        SfxFactory = source => [new OgreSfx(source)];
+        GfxFactory = () => [null, null, new OgreGfxSprite3D(), new OgreGfxModel(), null, null];
+        SfxFactory = () => [new OgreSfx()];
     }
 }
 

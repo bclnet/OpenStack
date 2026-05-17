@@ -10,7 +10,7 @@ namespace OpenStack.Gfx.O3de;
 public class TestTriRenderer : Renderer {
     readonly O3deGfxModel GfxModel;
 
-    public TestTriRenderer(IOpenGfx[] gfx, object obj) {
+    public TestTriRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxModel = (O3deGfxModel)gfx[GfX.XModel];
     }
 }
@@ -24,17 +24,19 @@ public class TestTriRenderer : Renderer {
 /// </summary>
 public class TextureRenderer : Renderer {
     readonly O3deGfxModel GfxModel;
+    readonly ISource Source;
     readonly object Obj;
     readonly Range Level;
     readonly object Texture;
     int FrameDelay;
 
-    public TextureRenderer(IOpenGfx[] gfx, object obj, Range level) {
+    public TextureRenderer(IOpenGfx[] gfx, ISource source, object obj, Range level) {
         GfxModel = (O3deGfxModel)gfx[GfX.XModel];
+        Source = source;
         Obj = obj;
         Level = level;
-        GfxModel.TextureManager.DeleteTexture(obj);
-        Texture = GfxModel.TextureManager.CreateTexture(obj, level).Result.tex;
+        GfxModel.TextureManager.DeleteTexture(source, obj);
+        (Texture, _) = GfxModel.TextureManager.CreateTexture(source, obj, level).Result;
     }
 
     public override void Start() {
@@ -47,7 +49,7 @@ public class TextureRenderer : Renderer {
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        GfxModel.TextureManager.ReloadTexture(obj, Level);
+        GfxModel.TextureManager.ReloadTexture(Source, obj, Level);
     }
 }
 

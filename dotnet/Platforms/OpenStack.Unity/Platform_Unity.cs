@@ -48,9 +48,9 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
         return s;
     }
 
-    public override GameObject CreateObject(object path, bool isStatic, MaterialManager<Material, Texture2D> materialManager) {
+    public async override Task<GameObject> CreateObject(ISource source, object path, bool isStatic, MaterialManager<Material, Texture2D> materialManager) {
         var builder = UnityPlatform.BuildersByType[path.GetType()];
-        var s = builder(path, isStatic, materialManager);
+        var s = await builder(source, path, isStatic, materialManager);
         s.transform.parent = _prefabObj.transform;
         // Add LOD support to the prefab.
         var lod = s.AddComponent<LODGroup>();
@@ -168,27 +168,26 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
 /// </summary>
 class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager) {
     static readonly int BaseMap = XShader.PropertyToID("_BaseMap"), BumpMap = XShader.PropertyToID("_BumpMap"), Cutoff = XShader.PropertyToID("_Cutoff");
-    static readonly XShader _litShader = XShader.Find("Universal Render Pipeline/Lit"), _terrainShader = XShader.Find("Universal Render Pipeline/Terrain/Lit");
 
     Material _defaultMaterial;
-    public override Material DefaultMaterial => _defaultMaterial ??= new(_litShader ?? throw new Exception("Missing: _litShader"));
+    public override Material DefaultMaterial => _defaultMaterial ??= new(XShader.Find("Universal Render Pipeline/Lit") ?? throw new Exception("LitShader"));
 
     Material _terrainMaterial;
-    public override Material TerrainMaterial => _terrainMaterial ??= new(_terrainShader ?? throw new Exception("Missing: _terrainShader"));
+    public override Material TerrainMaterial => _terrainMaterial ??= new(XShader.Find("Universal Render Pipeline/Terrain/Lit") ?? throw new Exception("TerrainShader"));
 
-    public override async Task<Material> CreateMaterial(object path) {
+    public override async Task<Material> CreateMaterial(ISource source, object path) {
         switch (path) {
             case MaterialStdProp p: {
-                    var m = new Material(_litShader ?? throw new Exception("Missing: _litShader"));
+                    var m = new Material(XShader.Find("Universal Render Pipeline/Lit") ?? throw new Exception("LitShader"));
                     if (p.AlphaBlended) m.SetFloat(Cutoff, 0.5f);
                     else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
                     var mainTex = p.Textures.TryGetValue("Main", out var z) ? z : default;
                     if (mainTex != null) {
-                        m.SetTexture(BaseMap, (await TextureManager.CreateTexture(mainTex)).tex);
+                        m.SetTexture(BaseMap, (await TextureManager.CreateTexture(source, mainTex)).tex);
                         var bumpTex = p.Textures.TryGetValue("Bump", out z) ? z : default;
                         if (bumpTex != null) {
                             m.EnableKeyword("_NORMALMAP");
-                            m.SetTexture(BumpMap, (await TextureManager.CreateTexture(bumpTex)).tex);
+                            m.SetTexture(BumpMap, (await TextureManager.CreateTexture(source, bumpTex)).tex);
                             //m.SetTexture(BumpMap, bumpTex != null ? TextureManager.CreateTexture(bumpTex).tex : TextureManager.CreateNormalMapTexture(tex));
                         }
                     }
@@ -271,8 +270,7 @@ class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
 }
 
 // UnityGfxApi
-public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
-    public ISource Source => source;
+public class UnityGfxApi : IOpenGfxApi<GameObject, Material> {
     public GameObject CreateObject(string name, string tag, GameObject parent = default) {
         var s = new GameObject(name);
         if (tag != null) s.tag = tag;
@@ -353,59 +351,48 @@ public class UnityGfxApi(ISource source) : IOpenGfxApi<GameObject, Material> {
 
 // UnityGfx2dSprite
 public class UnityGfxSprite2D : IOpenGfxSprite<GameObject, Sprite> {
-    readonly ISource _source;
     readonly SpriteManager<Sprite> _spriteManager;
-    public UnityGfxSprite2D(ISource source) {
-        _source = source;
+    public UnityGfxSprite2D() {
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
     }
-
-    public ISource Source => _source;
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(Sprite spr, object tag)> CreateSprite(object path, GameObject parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(Sprite spr, object tag)> CreateSprite(ISource source, object path, GameObject parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // UnityGfxSprite3D
 public class UnityGfxSprite3D : IOpenGfxSprite<GameObject, Sprite> {
-    readonly ISource _source;
     readonly SpriteManager<Sprite> _spriteManager;
-    public UnityGfxSprite3D(ISource source) {
-        _source = source;
+    public UnityGfxSprite3D() {
         //_spriteManager = new SpriteManager<Sprite>(source, new UnitySpriteBuilder());
     }
-
-    public ISource Source => _source;
     public SpriteManager<Sprite> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(Sprite spr, object tag)> CreateSprite(object path, GameObject parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(Sprite spr, object tag)> CreateSprite(ISource source, object path, GameObject parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // UnityGfxModel
 public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XShader> {
-    readonly ISource _source;
     readonly MaterialManager<Material, Texture2D> _materialManager;
     readonly ObjectModelManager<GameObject, Material, Texture2D> _objectManager;
     readonly ShaderManager<XShader> _shaderManager;
     readonly TextureManager<Texture2D> _textureManager;
-    public UnityGfxModel(ISource source) {
-        _source = source;
-        _textureManager = new TextureManager<Texture2D>(source, new UnityTextureBuilder());
-        _materialManager = new MaterialManager<Material, Texture2D>(source, _textureManager, new UnityMaterialBuilder(_textureManager));
-        _objectManager = new ObjectModelManager<GameObject, Material, Texture2D>(source, _materialManager, new UnityObjectModelBuilder());
-        _shaderManager = new ShaderManager<XShader>(source, new UnityShaderBuilder());
+    public UnityGfxModel() {
+        _textureManager = new TextureManager<Texture2D>(new UnityTextureBuilder());
+        _materialManager = new MaterialManager<Material, Texture2D>(_textureManager, new UnityMaterialBuilder(_textureManager));
+        _objectManager = new ObjectModelManager<GameObject, Material, Texture2D>(_materialManager, new UnityObjectModelBuilder());
+        _shaderManager = new ShaderManager<XShader>(new UnityShaderBuilder());
     }
 
-    public ISource Source => _source;
     public MaterialManager<Material, Texture2D> MaterialManager => _materialManager;
     public ObjectModelManager<GameObject, Material, Texture2D> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => _shaderManager;
     public TextureManager<Texture2D> TextureManager => _textureManager;
-    public void PreloadObject(object path) => _objectManager.PreloadObject(path);
-    public void PreloadTexture(object path) => _textureManager.PreloadTexture(path);
-    public Task<(GameObject obj, object tag)> CreateObject(object path, bool isStatic, GameObject parent = default) => _objectManager.CreateObject(path, parent);
-    public Task<(XShader sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(path, args);
-    public Task<(Texture2D tex, object tag)> CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level);
+    public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
+    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
+    public Task<(GameObject obj, object tag)> CreateObject(ISource source, object path, bool isStatic, GameObject parent = default) => _objectManager.CreateObject(source, path, parent);
+    public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
+    public Task<(Texture2D tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
 
     const int YardInMWUnits = 64;
     const float MeterInYards = 1.09361f;
@@ -451,11 +438,9 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
 }
 
 // UnityGfxLight
-public class UnityGfxLight(ISource source) : IOpenGfxLight<GameObject> {
+public class UnityGfxLight : IOpenGfxLight<GameObject> {
     const bool RenderLightShadows = false;
     const bool RenderExteriorCellLights = false;
-    readonly ISource _source = source;
-    public ISource Source => _source;
     public GameObject CreateLight(string name, System.Numerics.Vector3? position, float radius, System.Drawing.Color color, bool indoors, GameObject parent = default) {
         var s = new GameObject(name) { isStatic = true };
         if (parent != null) s.transform.parent = parent.transform;
@@ -483,10 +468,8 @@ public class UnityGfxLight(ISource source) : IOpenGfxLight<GameObject> {
 }
 
 // UnityGfxTerrain
-public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Material, Texture2D> {
-    readonly ISource _source = source;
-    readonly MaterialManager<Material, Texture2D> _materialManager = new(source, null, new UnityMaterialBuilder(null));
-    public ISource Source => _source;
+public class UnityGfxTerrain : IOpenGfxTerrain<GameObject, Material, Texture2D> {
+    readonly MaterialManager<Material, Texture2D> _materialManager = new(null, new UnityMaterialBuilder(null));
     public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture2D>[] layers, float[,,] alphaMap) {
         Debug.Assert(heights.GetLength(0) == heights.GetLength(1) && heightRange >= 0 && sampleDistance >= 0);
         // Create the TerrainData.
@@ -526,18 +509,18 @@ public class UnityGfxTerrain(ISource source) : IOpenGfxTerrain<GameObject, Mater
 }
 
 // UnitySfx
-public class UnitySfx(ISource source) : SystemSfx(source) { }
+public class UnitySfx : SystemSfx { }
 
 // UnityPlatform
 public class UnityPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, GameObject>> BuildersByType = [];
+    public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<Material, Texture2D>, Task<GameObject>>> BuildersByType = [];
     public static readonly Platform This = new UnityPlatform();
     UnityPlatform() : base("UN", "Unity") {
         var task = Task.Run(Application.platform.ToString);
         try {
             Tag = task.Result;
-            GfxFactory = source => [new UnityGfxApi(source), new UnityGfxSprite2D(source), new UnityGfxSprite3D(source), new UnityGfxModel(source), new UnityGfxLight(source), new UnityGfxTerrain(source)];
-            SfxFactory = source => [new UnitySfx(source)];
+            GfxFactory = () => [new UnityGfxApi(), new UnityGfxSprite2D(), new UnityGfxSprite3D(), new UnityGfxModel(), new UnityGfxLight(), new UnityGfxTerrain()];
+            SfxFactory = () => [new UnitySfx()];
             AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;
         }

@@ -6,11 +6,6 @@ from openstk.core.util import decodePath, YamlDict
 
 #region Platform
 
-# ISourceWithPlatform
-class ISourceWithPlatform(ISource):
-    gfx: list
-    sfx: list
-
 # Platform
 class Platform:
     enabled: bool = True
@@ -41,6 +36,8 @@ class PlatformX:
         if current != platform:
             if current: current.deactivate()
             if platform: platform.activate()
+            PlatformX.gfx = platform.gfxFactory() if platform and platform.gfxFactory else None
+            PlatformX.sfx = platform.sfxFactory() if platform and platform.sfxFactory else None
             PlatformX.current = platform
         return platform
 
@@ -72,6 +69,8 @@ class PlatformX:
     applicationPath = os.getcwd()
     options = YamlDict('~/.gamex.yaml')
     current: Platform = None
+    gfx: list[IOpenGfx] = None
+    sfx: list[IOpenSfx] = None
 
 #endregion
 

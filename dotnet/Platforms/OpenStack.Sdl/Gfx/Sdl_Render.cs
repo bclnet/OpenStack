@@ -8,7 +8,7 @@
 public class TestTriRenderer : Renderer {
     readonly SdlGfxSprite2D GfxSprite;
 
-    public TestTriRenderer(IOpenGfx[] gfx, object obj) {
+    public TestTriRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxSprite = (SdlGfxSprite2D)gfx[GfX.XSprite2D];
     }
 }
@@ -25,11 +25,11 @@ public class SpriteRenderer : Renderer {
     readonly object Obj;
     readonly object Sprite;
 
-    public SpriteRenderer(IOpenGfx[] gfx, object obj) {
+    public SpriteRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxSprite = (SdlGfxSprite2D)gfx[GfX.XSprite2D];
         Obj = obj;
-        GfxSprite.SpriteManager.DeleteSprite(obj);
-        Sprite = GfxSprite.SpriteManager.CreateSprite(obj).Result.spr;
+        GfxSprite.SpriteManager.DeleteSprite(source, obj);
+        (Sprite, _) = GfxSprite.SpriteManager.CreateSprite(source, obj).Result;
     }
 
     public override void Start() {

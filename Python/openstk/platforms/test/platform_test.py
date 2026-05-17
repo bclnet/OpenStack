@@ -1,51 +1,46 @@
 from __future__ import annotations
 import os, io, pathlib
+from openstk.core.core import ISource
 from openstk.core.platform import Platform
 
 #region Platform
 
 # TestGfxApi
-class TestGfxApi:
-    def __init__(self, source): self.source: object = source
+class TestGfxApi: pass
 
 # TestGfxSprite
 class TestGfxSprite:
-    def __init__(self, source): self.source: object = source
-    def preloadSprite(self, path: object) -> None: raise NotImplementedError()
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
+    def preloadSprite(self, source: ISource, path: object) -> None: raise NotImplementedError()
+    def createSprite(self, source: ISource, path: object,  parent: object = None) -> tuple[object, object]: raise NotImplementedError()
 
 # TestGfxModel
 class TestGfxModel:
-    def __init__(self, source): self.source: object = source
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
-    def preloadTexture(self, path: object) -> None: raise NotImplementedError()
-    async def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
-    def createShader(self, path: object, args: dict[str, bool] = None) -> object: raise NotImplementedError()
-    async def createTexture(self, path: object, level: range = None) -> object: raise NotImplementedError()
+    def preloadObject(self, source: ISource, path: object) -> None: raise NotImplementedError()
+    def preloadTexture(self, source: ISource, path: object) -> None: raise NotImplementedError()
+    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, object]: raise NotImplementedError()
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[object, object]: raise NotImplementedError()
+    def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[object, object]: raise NotImplementedError()
 
 # TestGfxLight
 class TestGfxLight:
-    def __init__(self, source): self.source: object = source
     def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: object = None) -> object: print(f'light: {radius}'); return 'light'
     def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: print(f'probe: {name}'); return 'probe'
 
 # TestGfxTerrain
 class TestGfxTerrain:
-    def __init__(self, source): self.source: object = source
     def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: return f't{offset}'
     def createTerrain(self, name: str, position: Vector3, data: object, parent: object = None) -> object: print(f'terrain: {data}'); return 'terrain'
 
 # TestSfx
-class TestSfx:
-    def __init__(self, source): self.source: object = source
+class TestSfx: pass
 
 # TestPlatform
 class TestPlatform(Platform):
     buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('TT', 'Test')
-        self.gfxFactory = staticmethod(lambda source: [TestGfxApi(source), TestGfxSprite(source), TestGfxSprite(source), TestGfxModel(source), TestGfxLight(source), TestGfxTerrain(source)])
-        self.sfxFactory = staticmethod(lambda source: [TestSfx(source)])
+        self.gfxFactory = staticmethod(lambda: [TestGfxApi(), TestGfxSprite(), TestGfxSprite(), TestGfxModel(), TestGfxLight(), TestGfxTerrain()])
+        self.sfxFactory = staticmethod(lambda: [TestSfx()])
 TestPlatform.this = TestPlatform()
 
 #endregion

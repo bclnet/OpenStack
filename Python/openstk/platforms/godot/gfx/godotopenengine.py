@@ -2,14 +2,14 @@ from __future__ import annotations
 import os, re
 from numpy import ndarray
 from quaternion import quaternion
-from openstk.core import _throw, CoroutineQueue, CellManager, CellBuilder
+from openstk.core import _throw, AsyncCoroutineQueue, CellManager, CellBuilder
 from openstk.gfx import Shader
 
 class Panda3dOpenEngine:
     desiredWorkTimePerFrame: float = 1.0 / 200
     def __init__(self, manager: callable, sunCycle: bool = False):
         if not manager: raise Exception('manager')
-        self.queue: CoroutineQueue = CoroutineQueue()
+        self.queue: AsyncCoroutineQueue = AsyncCoroutineQueue()
         self.cellManager: CellManager = manager(self.queue) or _throw('manager')
         self.query = self.cellManager.query
         self.world: int = 0
@@ -29,21 +29,18 @@ class Panda3dOpenEngine:
 
     cellChanged: callable = None
 
-    def update(self) -> None:
-        # if not self.playerCamera: return
+    async def update(self) -> None:
         # The current cell can be null if the player is outside of the defined game world.
-        if not self._cell or not self._cell.isInterior: self.cellManager.updateCells(self.camera)
-        self.queue.run(Panda3dOpenEngine.desiredWorkTimePerFrame)
+        if self.camera and (not self._cell or not self._cell.isInterior): await self.cellManager.updateCells(self.camera.location)
+        await self.queue.run(Panda3dOpenEngine.desiredWorkTimePerFrame)
 
     def _createPlayer(self, position: Vector3, rotation: quaternion) -> None:
         self.camera = position
 
     # Spawns the player inside using the cell's grid coordinates.
-    def spawnPlayer(self, db: ICellDatabase):
+    async def spawnPlayer(self, db: ICellDatabase):
         self.cell = self.query.findCell(db.cellId)
         assert(self._cell)
         self._createPlayer(db.playerPosition, db.playerRotation)
         cell = self.cellManager.beginCell(db.cellId)
-        self.queue.waitFor(cell.task)
-
-        #self.cellManager.updateCells(self.playerCamera.transform.position.fromUnity(), self.world, True, CellRadiusOnLoad)
+        await self.queue.waitFor(cell.task)

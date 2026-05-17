@@ -1,6 +1,7 @@
 ﻿using OpenStack.Gfx.Unity.Components;
 using System;
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using static OpenStack.CellManager;
 
@@ -54,10 +55,10 @@ public class UnityOpenEngine : IDisposable {
 
     public event Action<ICell> CellChanged;
 
-    public virtual void Update() {
+    public async virtual Task Update() {
         // The current cell can be null if the player is outside of the defined game world.
-        if (CameraTransform != null && (_cell == null || !_cell.IsInterior)) CellManager.UpdateCells(CameraTransform.position.FromUnity());
-        Queue.Run(DesiredWorkTimePerFrame);
+        if (CameraTransform != null && (_cell == null || !_cell.IsInterior)) await CellManager.UpdateCells(CameraTransform.position.FromUnity());
+        await Queue.Run(DesiredWorkTimePerFrame);
     }
 
     void CreatePlayer(Vector3 position, Quaternion rotation) {
@@ -74,12 +75,12 @@ public class UnityOpenEngine : IDisposable {
     /// </summary>
     /// <param name="playerPrefab">The player prefab.</param>
     /// <param name="position">The target position of the player.</param>
-    public void SpawnPlayer(ICellDatabase db) {
+    public async Task SpawnPlayer(ICellDatabase db) {
         Cell = Query.FindCell(db.CellId);
         //Debug.Assert(_cell != null);
         CreatePlayer(db.PlayerPosition.ToUnity(), db.PlayerRotation.ToUnity());
         var cell = CellManager.BeginCell(db.CellId);
-        Queue.WaitFor(cell.Task);
+        await Queue.WaitFor(cell.Task);
     }
 
     //protected virtual void OnCell(ICell cell) {

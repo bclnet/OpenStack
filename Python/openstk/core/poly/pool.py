@@ -57,6 +57,27 @@ class StaticPool(GenericPool, Generic[T]):
     def get(self) -> None: return self.static
     def release(self, item: T) -> None: self.reset and self.reset(item)
 
+class AsyncCoroutineQueue:
+    def __init__(self):
+        self.tasks: list[Iterator] = []
+        self.time = None
+    def add(self, task: Iterator) -> Iterator: self.tasks.append(task); return task
+    def cancel(self, task: Iterator) -> None: return self.tasks.remove(task) if task in self.tasks else None
+    def clear(self) -> None: return self.tasks.clear()
+    async def run(self, desiredWorkTime: float) -> None:
+        if len(self.tasks) == 0: return
+        self.time = time.time()
+        while len(self.tasks) > 0 and (time.time() - self.time) < desiredWorkTime:
+            if await next(self.tasks[0], self) == self: self.tasks.pop(0)
+    async def waitFor(self, task: object) -> None:
+        assert(task in self.tasks)
+        while await next(task, self) != self: pass
+        if task in self.tasks: self.tasks.remove(task)
+    async def waitForAll(self):
+        for task in self.tasks:
+            while await next(task, self) != self: pass
+        self.tasks.clear()
+
 class CoroutineQueue:
     def __init__(self):
         self.tasks: list[Iterator] = []

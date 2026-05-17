@@ -1,5 +1,6 @@
 from __future__ import annotations
-import os, numpy as np
+import os
+from openstk.core import ISource
 from openstk.gfx import GfX, Renderer
 
 # typedefs
@@ -12,7 +13,7 @@ class IOpenGfx: pass
 
 # TestTriRenderer
 class TestTriRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object): pass
 
     def start(self):
         scene = self.scene = base.loader.loadModel('models/environment')
@@ -28,8 +29,9 @@ class TestTriRenderer(Renderer):
 
 # TextureRenderer
 class TextureRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: PyEngine3dGfxModel = gfx[GfX.XModel]
+        self.source: ISource = source
         self.obj: object = obj
         # self.gfxModel.textureManager.deleteTexture(obj)
         # self.tex: int = self.gfxModel.textureManager.createTexture(obj, self.level)[0]
@@ -49,61 +51,5 @@ class TextureRenderer(Renderer):
     #     if self.frameDelay <= obj.fps or not obj.decodeFrame(): return
     #     self.frameDelay = 0 # reset delay between frames
     #     self.gfxModel.textureManager.reloadTexture(obj)
-
-#endregion
-
-#region ObjectRenderer
-
-# ObjectRenderer
-class ObjectRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region MaterialRenderer
-
-# MaterialRenderer
-class MaterialRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region GridRenderer
-
-# GridRenderer
-class GridRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region ParticleRenderer
-
-# ParticleRenderer
-class ParticleRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region CellRenderer
-
-# CellRenderer
-class CellRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region EngineRenderer
-
-# EngineRenderer
-class EngineRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
-
-#endregion
-
-#region WorldRenderer
-
-# WorldRenderer
-class WorldRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object): pass
 
 #endregion

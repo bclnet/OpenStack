@@ -20,9 +20,9 @@ public class TestTriRenderer : EginRenderer {
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
-    public TestTriRenderer(IOpenGfx[] gfx, object obj) {
+    public TestTriRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("testtri").Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, "testtri").Result;
         Vao = SetupVao();
     }
 
@@ -68,6 +68,7 @@ public class TextureRenderer : EginRenderer {
     const int FACTOR = 1;
 
     readonly OpenGLGfxModel GfxModel;
+    readonly ISource Source;
     readonly object Obj;
     readonly Range Level;
     readonly int Tex;
@@ -78,13 +79,14 @@ public class TextureRenderer : EginRenderer {
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
     int FrameDelay;
 
-    public TextureRenderer(IOpenGfx[] gfx, object obj, Range level, bool background = false) {
+    public TextureRenderer(IOpenGfx[] gfx, ISource source, object obj, Range level, bool background = false) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
+        Source = source;
         Obj = obj;
         Level = level;
-        GfxModel.TextureManager.DeleteTexture(obj);
-        Tex = GfxModel.TextureManager.CreateTexture(obj, level).Result.tex;
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("plane").Result;
+        GfxModel.TextureManager.DeleteTexture(source, obj);
+        (Tex, _) = GfxModel.TextureManager.CreateTexture(source, obj, level).Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, "plane").Result;
         Vao = SetupVao();
         Background = background;
     }
@@ -143,7 +145,7 @@ public class TextureRenderer : EginRenderer {
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        GfxModel.TextureManager.ReloadTexture(obj, Level);
+        GfxModel.TextureManager.ReloadTexture(Source, obj, Level);
     }
 }
 
@@ -154,12 +156,13 @@ public class TextureRenderer : EginRenderer {
 /// <summary>
 /// ObjectRenderer
 /// </summary>
-public class ObjectRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
+public class ObjectRenderer(IOpenGfx[] gfx, ISource source, object obj) : EginRenderer {
     readonly OpenGLGfxModel GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
+    readonly ISource Source = source;
     readonly object Obj = obj;
 
     public override void Start() {
-        GfxModel.ObjectManager.CreateObject(Obj, true, null);
+        GfxModel.ObjectManager.CreateObject(Source, Obj, true, null).Wait();
     }
 }
 
@@ -179,11 +182,11 @@ public class MaterialRenderer : EginRenderer {
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
-    public MaterialRenderer(IOpenGfx[] gfx, object obj) {
+    public MaterialRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
-        GfxModel.TextureManager.DeleteTexture(obj);
-        Material = GfxModel.MaterialManager.CreateMaterial(obj).Result.mat;
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(Material.Material.ShaderName, Material.Material.ShaderArgs).Result;
+        GfxModel.TextureManager.DeleteTexture(source, obj);
+        (Material, _) = GfxModel.MaterialManager.CreateMaterial(source, obj).Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, Material.Material.ShaderName, Material.Material.ShaderArgs).Result;
         Vao = SetupVao();
     }
 
@@ -259,12 +262,12 @@ public class GridRenderer : EginRenderer {
     int VertexCount;
     public AABB BoundingBox { get; }
 
-    public GridRenderer(IOpenGfx[] gfx, float cellWidth, int gridWidthInCells) {
+    public GridRenderer(IOpenGfx[] gfx, ISource source, float cellWidth, int gridWidthInCells) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
         BoundingBox = new AABB(
             -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,
             cellWidth * 0.5f * gridWidthInCells, cellWidth * 0.5f * gridWidthInCells, 0);
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader("vrf.grid").Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, "vrf.grid").Result;
         Vao = SetupVao(cellWidth, gridWidthInCells);
     }
 
@@ -340,7 +343,7 @@ public class GridRenderer : EginRenderer {
 
 #region ParticleRenderer
 
-public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
+public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : EginRenderer {
     #region SpritesRenderer
 
     public class SpritesRenderer : IParticleRenderer {
@@ -359,9 +362,9 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
         QuadIndexBuffer QuadIndices;
         int VertexBufferHandle;
 
-        public SpritesRenderer(IDictionary<string, object> keyValues, OpenGLGfxModel gfx) {
-            (Shader, ShaderTag) = gfx.ShaderManager.CreateShader("vrf.particle.sprite").Result;
-            QuadIndices = gfx.QuadIndices;
+        public SpritesRenderer(ISource source, IDictionary<string, object> keyValues, OpenGLGfxModel gfxModel) {
+            (Shader, ShaderTag) = gfxModel.ShaderManager.CreateShader(source, "vrf.particle.sprite").Result;
+            QuadIndices = gfxModel.QuadIndices;
 
             // The same quad is reused for all particles
             Vao = MakeVao();
@@ -373,11 +376,11 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
                 if (textures.Length > 0) textureName = textures[0].Get<string>("m_hTexture");
             }
             if (textureName != null) {
-                (Texture, TextureTag) = gfx.TextureManager.CreateTexture(textureName).Result;
+                (Texture, TextureTag) = gfxModel.TextureManager.CreateTexture(source, textureName).Result;
                 if (TextureTag is IDictionary<string, object> info)
                     TextureSequences = info.Get<TextureSequences>("sequences");
             }
-            else Texture = gfx.TextureManager.DefaultTexture;
+            else Texture = gfxModel.TextureManager.DefaultTexture;
 
             Additive = keyValues.Get<bool>("m_bAdditive");
             OverbrightFactor = keyValues.GetFloat("m_flOverbrightFactor", 1f);
@@ -596,8 +599,8 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
         readonly float MaxLength;
         readonly float LengthFadeInTime;
 
-        public TrailsRenderer(IDictionary<string, object> keyValues, OpenGLGfxModel graphic) {
-            (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.particle.trail", new Dictionary<string, bool>()).Result;
+        public TrailsRenderer(ISource source, IDictionary<string, object> keyValues, OpenGLGfxModel gfxModel) {
+            (Shader, ShaderTag) = gfxModel.ShaderManager.CreateShader(source, "vrf.particle.trail", new Dictionary<string, bool>()).Result;
 
             // The same quad is reused for all particles
             QuadVao = SetupQuadBuffer();
@@ -610,11 +613,10 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
             }
 
             if (textureName != null) {
-                (Texture, TextureTag) = graphic.TextureManager.CreateTexture(textureName).Result;
-                if (TextureTag is IDictionary<string, object> info)
-                    TextureSequences = info.Get<TextureSequences>("sequences");
+                (Texture, TextureTag) = gfxModel.TextureManager.CreateTexture(source, textureName).Result;
+                if (TextureTag is IDictionary<string, object> info) TextureSequences = info.Get<TextureSequences>("sequences");
             }
-            else Texture = graphic.TextureManager.DefaultTexture;
+            else Texture = gfxModel.TextureManager.DefaultTexture;
 
             Additive = keyValues.Get<bool>("m_bAdditive");
             OverbrightFactor = keyValues.GetFloat("m_flOverbrightFactor", 1f);
@@ -639,13 +641,11 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
             var vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
 
-            var vertices = new[]
-            {
-            -1.0f, -1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-        };
+            var vertices = new[] {
+                -1.0f, -1.0f, 0.0f,
+                -1.0f, 1.0f, 0.0f,
+                1.0f, -1.0f, 0.0f,
+                1.0f, 1.0f, 0.0f};
 
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
@@ -797,30 +797,29 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
         public AABB BoundingBox { get; private set; }
 
         public Vector3 Position {
-            get => _systemRenderState.GetControlPoint(0);
+            get => SystemRenderState.GetControlPoint(0);
             set {
-                _systemRenderState.SetControlPoint(0, value);
-                foreach (var child in _childRenderers) child.Position = value;
+                SystemRenderState.SetControlPoint(0, value);
+                foreach (var child in ChildRenderers) child.Position = value;
             }
         }
 
-        readonly OpenGLGfxModel _gfxModel;
-        readonly List<ChildRenderer> _childRenderers;
-        bool _hasStarted = false;
-
-        ParticleBag _particleBag;
-        int _particlesEmitted = 0;
-        ParticleSystemRenderState _systemRenderState;
+        readonly ISource Source;
+        readonly OpenGLGfxModel GfxModel;
+        readonly List<ChildRenderer> ChildRenderers;
+        bool HasStarted = false;
+        ParticleBag ParticleBag;
+        int ParticlesEmitted = 0;
+        ParticleSystemRenderState SystemRenderState;
 
         // TODO: Passing in position here was for testing, do it properly
-        public ChildRenderer(OpenGLGfxModel gfx, IParticleSystem particleSystem, Vector3 pos = default) {
-            _gfxModel = gfx;
-            _childRenderers = [];
-
-            _particleBag = new ParticleBag(100, true);
-            _systemRenderState = new ParticleSystemRenderState();
-            _systemRenderState.SetControlPoint(0, pos);
-
+        public ChildRenderer(OpenGLGfxModel gfxModel, ISource source, IParticleSystem particleSystem, Vector3 pos = default) {
+            GfxModel = gfxModel;
+            Source = source;
+            ChildRenderers = [];
+            ParticleBag = new ParticleBag(100, true);
+            SystemRenderState = new ParticleSystemRenderState();
+            SystemRenderState.SetControlPoint(0, pos);
             BoundingBox = new AABB(pos + new Vector3(-32, -32, -32), pos + new Vector3(32, 32, 32));
 
             SetupEmitters(particleSystem.Data, particleSystem.Emitters);
@@ -833,53 +832,53 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 
         public void Start() {
             foreach (var emitter in Emitters) emitter.Start(EmitParticle);
-            foreach (var childParticleRenderer in _childRenderers) childParticleRenderer.Start();
+            foreach (var childParticleRenderer in ChildRenderers) childParticleRenderer.Start();
         }
 
         void EmitParticle() {
-            var index = _particleBag.Add();
+            var index = ParticleBag.Add();
             if (index < 0) { Console.WriteLine("Out of space in particle bag"); return; }
-            _particleBag.LiveParticles[index].ParticleCount = _particlesEmitted++;
-            InitializeParticle(ref _particleBag.LiveParticles[index]);
+            ParticleBag.LiveParticles[index].ParticleCount = ParticlesEmitted++;
+            InitializeParticle(ref ParticleBag.LiveParticles[index]);
         }
 
         void InitializeParticle(ref Particle p) {
-            p.Position = _systemRenderState.GetControlPoint(0);
-            foreach (var initializer in Initializers) initializer.Initialize(ref p, _systemRenderState);
+            p.Position = SystemRenderState.GetControlPoint(0);
+            foreach (var initializer in Initializers) initializer.Initialize(ref p, SystemRenderState);
         }
 
         public void Stop() {
             foreach (var emitter in Emitters) emitter.Stop();
-            foreach (var childParticleRenderer in _childRenderers) childParticleRenderer.Stop();
+            foreach (var childParticleRenderer in ChildRenderers) childParticleRenderer.Stop();
         }
 
         public void Restart() {
             Stop();
-            _systemRenderState.Lifetime = 0;
-            _particleBag.Clear();
+            SystemRenderState.Lifetime = 0;
+            ParticleBag.Clear();
             Start();
 
-            foreach (var childParticleRenderer in _childRenderers) childParticleRenderer.Restart();
+            foreach (var childParticleRenderer in ChildRenderers) childParticleRenderer.Restart();
         }
 
         public void Update(float deltaTime) {
-            if (!_hasStarted) { Start(); _hasStarted = true; }
+            if (!HasStarted) { Start(); HasStarted = true; }
 
-            _systemRenderState.Lifetime += deltaTime;
+            SystemRenderState.Lifetime += deltaTime;
 
             foreach (var emitter in Emitters) emitter.Update(deltaTime);
-            foreach (var particleOperator in Operators) particleOperator.Update(_particleBag.LiveParticles, deltaTime, _systemRenderState);
+            foreach (var particleOperator in Operators) particleOperator.Update(ParticleBag.LiveParticles, deltaTime, SystemRenderState);
 
             // Remove all dead particles
-            _particleBag.PruneExpired();
+            ParticleBag.PruneExpired();
 
-            var center = _systemRenderState.GetControlPoint(0);
-            if (_particleBag.Count == 0) BoundingBox = new AABB(center, center);
+            var center = SystemRenderState.GetControlPoint(0);
+            if (ParticleBag.Count == 0) BoundingBox = new AABB(center, center);
             else {
                 var minParticlePos = center;
                 var maxParticlePos = center;
 
-                var liveParticles = _particleBag.LiveParticles;
+                var liveParticles = ParticleBag.LiveParticles;
                 for (var i = 0; i < liveParticles.Length; ++i) {
                     var pos = liveParticles[i].Position;
                     var radius = liveParticles[i].Radius;
@@ -890,7 +889,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
                 BoundingBox = new AABB(minParticlePos, maxParticlePos);
             }
 
-            foreach (var childParticleRenderer in _childRenderers) {
+            foreach (var childParticleRenderer in ChildRenderers) {
                 childParticleRenderer.Update(deltaTime);
                 BoundingBox = BoundingBox.Union(childParticleRenderer.BoundingBox);
             }
@@ -901,14 +900,14 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 
         public bool IsFinished()
             => Emitters.All(e => e.IsFinished)
-            && _particleBag.Count == 0
-            && _childRenderers.All(r => r.IsFinished());
+            && ParticleBag.Count == 0
+            && ChildRenderers.All(r => r.IsFinished());
 
         public void Render(Camera camera, Pass pass) {
-            if (_particleBag.Count == 0) return;
+            if (ParticleBag.Count == 0) return;
             if (pass == Pass.Translucent || pass == Pass.Both)
-                foreach (var renderer in Renderers) renderer.Render(_particleBag, camera.ViewProjectionMatrix, camera.CameraViewMatrix);
-            foreach (var childParticleRenderer in _childRenderers) childParticleRenderer.Render(camera, Pass.Both);
+                foreach (var renderer in Renderers) renderer.Render(ParticleBag, camera.ViewProjectionMatrix, camera.CameraViewMatrix);
+            foreach (var childParticleRenderer in ChildRenderers) childParticleRenderer.Render(camera, Pass.Both);
         }
 
         public IEnumerable<string> GetSupportedRenderModes() => Renderers.SelectMany(renderer => renderer.GetSupportedRenderModes()).Distinct();
@@ -947,16 +946,16 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
             var renderers = new List<IParticleRenderer>();
             foreach (var rendererInfo in rendererData) {
                 var rendererClass = rendererInfo.Get<string>("_class");
-                if (ParticleControllerFactory.TryCreateRender(rendererClass, rendererInfo, _gfxModel, out var renderer)) renderers.Add(renderer);
+                if (ParticleControllerFactory.TryCreateRender(rendererClass, Source, rendererInfo, GfxModel, out var renderer)) renderers.Add(renderer);
                 else Console.WriteLine($"Unsupported renderer class '{rendererClass}'.");
             }
             Renderers = renderers;
         }
 
         void SetupChildParticles(IEnumerable<string> childNames) {
-            foreach (var childName in childNames) {
-                var childSystem = _gfxModel.Source.GetAsset<IParticleSystem>(childName).Result;
-                _childRenderers.Add(new ChildRenderer(_gfxModel, childSystem, _systemRenderState.GetControlPoint(0)));
+            foreach (var s in childNames) {
+                var childSystem = Source.GetAsset<IParticleSystem>(s).Result;
+                ChildRenderers.Add(new ChildRenderer(GfxModel, Source, childSystem, SystemRenderState.GetControlPoint(0)));
             }
         }
     }
@@ -971,19 +970,17 @@ public class ParticleRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 /// <summary>
 /// EngineRenderer
 /// </summary>
-public class EngineRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
-    IOpenGfx[] Gfx = gfx;
-    readonly ICellDatabase Db = obj as ICellDatabase;
+public class EngineRenderer(IOpenGfx[] gfx, ISource source, object obj) : EginRenderer {
+    readonly IOpenGfx[] Gfx = gfx;
+    readonly ISource Source = source;
+    readonly ICellDatabase Db = (ICellDatabase)obj;
     OpenGLOpenEngine Engine;
 
     public override void Dispose() { base.Dispose(); Engine?.Dispose(); }
 
     public override void Start() {
-        var arc = (ISourceWithPlatform)Db.Archive;
-        Gfx = arc.Gfx;
-        var query = Db.Query;
-        Engine = new OpenGLOpenEngine(queue => new CellManager(query, queue, new OpenGLCellBuilder(query, Gfx)), false);
-        Engine.SpawnPlayer(Db);
+        Engine = new OpenGLOpenEngine(queue => new CellManager(Db.Query, queue, new OpenGLCellBuilder(Db.Archive, Db.Query, Gfx)), false);
+        Engine.SpawnPlayer(Db).Wait();
     }
 
     public override void Update(float deltaTime) => Engine?.Update();
@@ -999,7 +996,7 @@ public class EngineRenderer(IOpenGfx[] gfx, object obj) : EginRenderer {
 /// WorldRenderer
 /// </summary>
 public class WorldRenderer : EginRenderer {
-    public WorldRenderer(IOpenGfx[] gfx, object obj) {
+    public WorldRenderer(IOpenGfx[] gfx, ISource source, object obj) {
     }
 }
 

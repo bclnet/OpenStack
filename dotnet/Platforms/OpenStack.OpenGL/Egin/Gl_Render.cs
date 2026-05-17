@@ -353,9 +353,9 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
     int colorHandle;
     int depthHandle;
 
-    public GLPickingTexture(OpenGLGfxModel gfx, EventHandler<PickingResponse> onPicked) {
-        (Shader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>()).Result;
-        (DebugShader, _) = gfx.ShaderManager.CreateShader("vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } }).Result;
+    public GLPickingTexture(OpenGLGfxModel gfxModel, ISource source, EventHandler<PickingResponse> onPicked) {
+        (Shader, _) = gfxModel.ShaderManager.CreateShader(source, "vrf.picking", new Dictionary<string, bool>()).Result;
+        (DebugShader, _) = gfxModel.ShaderManager.CreateShader(source, "vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } }).Result;
         OnPicked += onPicked;
         Setup();
     }
@@ -484,22 +484,23 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
 /// <summary>
 /// GLRenderableMesh
 /// </summary>
-public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) : RenderableMesh(t => ((GLRenderableMesh)t).Gfx = gfx, mesh, meshIndex, skinMaterials, model) {
-    OpenGLGfxModel Gfx;
+public class GLRenderableMesh(IOpenGfx[] gfx, ISource source, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null, IEginModel model = null) : RenderableMesh(mesh, meshIndex, skinMaterials, model) {
+    OpenGLGfxModel GfxModel = gfx[GfX.XModel] as OpenGLGfxModel;
+    ISource Source = source;
 
     public override void SetRenderMode(string renderMode) {
-        foreach (var call in DrawCallsOpaque.Union(DrawCallsBlended)) {
+        foreach (var s in DrawCallsOpaque.Union(DrawCallsBlended)) {
             // recycle old shader parameters that are not render modes since we are scrapping those anyway
-            var parameters = call.Shader.Parameters.Where(kvp => !kvp.Key.StartsWith("renderMode")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-            if (renderMode != null && call.Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
-            (call.Shader, _) = Gfx.ShaderManager.CreateShader(call.Shader.Name, parameters).Result;
-            call.VertexArrayObject = Gfx.MeshBufferCache.GetVertexArrayObject(Mesh.VBIB, call.Shader, call.VertexBuffer.Id, call.IndexBuffer.Id, call.BaseVertex);
+            var parameters = s.Shader.Parameters.Where(kvp => !kvp.Key.StartsWith("renderMode")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            if (renderMode != null && s.Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
+            (s.Shader, _) = GfxModel.ShaderManager.CreateShader(Source, s.Shader.Name, parameters).Result;
+            s.VertexArrayObject = GfxModel.MeshBufferCache.GetVertexArrayObject(Mesh.VBIB, s.Shader, s.VertexBuffer.Id, s.IndexBuffer.Id, s.BaseVertex);
         }
     }
 
     protected override void ConfigureDrawCalls(IDictionary<string, string> skinMaterials, bool firstSetup) {
         var data = Mesh.Data;
-        if (firstSetup) Gfx.MeshBufferCache.GetVertexIndexBuffers(VBIB); // this call has side effects because it uploads to gpu
+        if (firstSetup) GfxModel.MeshBufferCache.GetVertexIndexBuffers(VBIB); // this call has side effects because it uploads to gpu
 
         // prepare drawcalls
         var i = 0;
@@ -507,7 +508,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
             foreach (var objectDrawCall in sceneObject.GetArray("m_drawCalls")) {
                 var materialName = objectDrawCall.Get<string>("m_material") ?? objectDrawCall.Get<string>("m_pMaterial");
                 if (skinMaterials != null && skinMaterials.ContainsKey(materialName)) materialName = skinMaterials[materialName];
-                var (material, _) = Gfx.MaterialManager.CreateMaterial($"{materialName}_c").Result;
+                var (material, _) = GfxModel.MaterialManager.CreateMaterial(Source, $"{materialName}_c").Result;
                 var isOverlay = material.Material is MaterialShaderVProp z && z.IntParams.ContainsKey("F_OVERLAY");
                 if (isOverlay) continue; // ignore overlays for now
                 var shaderArgs = new Dictionary<string, bool>();
@@ -559,7 +560,7 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
         // vbo
         var vertexBuffer = objectDrawCall.GetArray("m_vertexBuffers")[0];
         drawCall.VertexBuffer = (vertexBuffer.GetUInt32("m_hBuffer"), vertexBuffer.GetUInt32("m_nBindOffsetBytes"));
-        drawCall.VertexArrayObject = Gfx.MeshBufferCache.GetVertexArrayObject(VBIB, drawCall.Shader, drawCall.VertexBuffer.Id, drawCall.IndexBuffer.Id, drawCall.BaseVertex);
+        drawCall.VertexArrayObject = GfxModel.MeshBufferCache.GetVertexArrayObject(VBIB, drawCall.Shader, drawCall.VertexBuffer.Id, drawCall.IndexBuffer.Id, drawCall.BaseVertex);
         return drawCall;
     }
 
@@ -568,12 +569,12 @@ public class GLRenderableMesh(OpenGLGfxModel gfx, IMesh mesh, int meshIndex, IDi
         // add shader parameters from material to the shader parameters from the draw call
         var combinedShaderArgs = shaderArgs.Concat(material.Material.ShaderArgs).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         // load shader
-        (drawCall.Shader, _) = Gfx.ShaderManager.CreateShader(drawCall.Material.Material.ShaderName, combinedShaderArgs).Result;
+        (drawCall.Shader, _) = GfxModel.ShaderManager.CreateShader(Source, drawCall.Material.Material.ShaderName, combinedShaderArgs).Result;
         // bind and validate shader
         GL.UseProgram(drawCall.Shader.Program);
         // tint and normal
-        if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", Gfx.TextureManager.CreateSolidTexture(1, 1, [1f, 1f, 1f, 1f]));
-        if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", Gfx.TextureManager.CreateSolidTexture(1, 1, [0.5f, 1f, 0.5f, 1f]));
+        if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", GfxModel.TextureManager.CreateSolidTexture(1, 1, [1f, 1f, 1f, 1f]));
+        if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", GfxModel.TextureManager.CreateSolidTexture(1, 1, [0.5f, 1f, 0.5f, 1f]));
     }
 }
 
@@ -595,10 +596,10 @@ public class OctreeDebugRenderer<T> where T : class {
     readonly bool Dynamic;
     int VertexCount;
 
-    public OctreeDebugRenderer(Octree<T> octree, OpenGLGfxModel graphic, bool dynamic) {
+    public OctreeDebugRenderer(Octree<T> octree, OpenGLGfxModel gfxModel, ISource source, bool dynamic) {
         Octree = octree;
         Dynamic = dynamic;
-        (Shader, ShaderTag) = graphic.ShaderManager.CreateShader("vrf.grid").Result;
+        (Shader, ShaderTag) = gfxModel.ShaderManager.CreateShader(source, "vrf.grid").Result;
         GL.UseProgram(Shader.Program);
         VboHandle = GL.GenBuffer();
         if (!dynamic) Rebuild();
@@ -687,8 +688,8 @@ public class OctreeDebugRenderer<T> where T : class {
 public class MeshSceneNode : SceneNode, IMeshCollection {
     GLRenderableMesh Mesh;
 
-    public MeshSceneNode(Scene scene, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null) : base(scene) {
-        Mesh = new GLRenderableMesh(Scene.GfxModel as OpenGLGfxModel, mesh, meshIndex, skinMaterials);
+    public MeshSceneNode(Scene scene, ISource source, IMesh mesh, int meshIndex, IDictionary<string, string> skinMaterials = null) : base(scene) {
+        Mesh = new GLRenderableMesh(Scene.Gfx, source, mesh, meshIndex, skinMaterials);
         LocalBoundingBox = Mesh.BoundingBox;
     }
 
@@ -753,10 +754,10 @@ public static class ParticleControllerFactory {
        };
 
     // Register particle renderers
-    static readonly IDictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> RendererDictionary
-       = new Dictionary<string, Func<IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> {
-           ["C_OP_RenderSprites"] = (rendererInfo, gfx) => new ParticleRenderer.SpritesRenderer(rendererInfo, gfx),
-           ["C_OP_RenderTrails"] = (rendererInfo, gfx) => new ParticleRenderer.TrailsRenderer(rendererInfo, gfx),
+    static readonly IDictionary<string, Func<ISource, IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> RendererDictionary
+       = new Dictionary<string, Func<ISource, IDictionary<string, object>, OpenGLGfxModel, IParticleRenderer>> {
+           ["C_OP_RenderSprites"] = (source, rendererInfo, gfx) => new ParticleRenderer.SpritesRenderer(source, rendererInfo, gfx),
+           ["C_OP_RenderTrails"] = (source, rendererInfo, gfx) => new ParticleRenderer.TrailsRenderer(source, rendererInfo, gfx),
        };
 
     public static bool TryCreateEmitter(string name, IDictionary<string, object> baseProperties, IDictionary<string, object> emitterInfo, out IParticleEmitter emitter) {
@@ -780,8 +781,8 @@ public static class ParticleControllerFactory {
         return false;
     }
 
-    public static bool TryCreateRender(string name, IDictionary<string, object> rendererInfo, OpenGLGfxModel gfx, out IParticleRenderer renderer) {
-        if (RendererDictionary.TryGetValue(name, out var factory)) { renderer = factory(rendererInfo, gfx); return true; }
+    public static bool TryCreateRender(string name, ISource source, IDictionary<string, object> rendererInfo, OpenGLGfxModel gfx, out IParticleRenderer renderer) {
+        if (RendererDictionary.TryGetValue(name, out var factory)) { renderer = factory(source, rendererInfo, gfx); return true; }
         renderer = default;
         return false;
     }

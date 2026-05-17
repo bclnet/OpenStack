@@ -177,8 +177,9 @@ public abstract class CellBuilder {
     public abstract void Destroy(object src);
 }
 
-public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenGfx[] gfx) : CellBuilder {
+public class CellBuilder<Object, Material, Texture, Shader>(ISource source, IQuery query, IOpenGfx[] gfx) : CellBuilder {
     const string DefaultLandTexturePath = "textures/_land_default.dds";
+    protected ISource Source = source;
     protected IQuery Query = query;
     protected IOpenGfxApi<Object, Material> GfxApi = (IOpenGfxApi<Object, Material>)gfx[GfX.XApi];
     protected IOpenGfxModel<Object, Material, Texture, Shader> GfxModel = (IOpenGfxModel<Object, Material, Texture, Shader>)gfx[GfX.XModel];
@@ -221,7 +222,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
     async Task CreateCell(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) return; //{ Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default; var obj = r.Obj;
-        if (r.ModelPath != null) { modelObj = (await GfxModel.CreateObject(r.ModelPath, true)).obj; GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
+        if (r.ModelPath != null) { (modelObj, _) = await GfxModel.CreateObject(Source, r.ModelPath, true); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh && GfxLight != null) {
             var s = GfxLight.CreateLight("Light", null, ligh.Radius, ligh.LightColor, cell.IsInterior);
             if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
@@ -269,7 +270,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(IQuery query, IOpenG
             if (layerIndexs.ContainsKey(index)) continue;
             // Load terrain texture.
             var path = index >= 0 ? Query.FindLtex(index).Path : DefaultLandTexturePath;
-            var (tex, _) = await GfxModel.CreateTexture(path);
+            var (tex, _) = await GfxModel.CreateTexture(Source, path);
             if (!TerrainLayers.TryGetValue(tex, out var layer)) {
                 layer = new GfxTerrainLayer<Texture> {
                     Texture = tex,

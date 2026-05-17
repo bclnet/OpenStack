@@ -71,49 +71,43 @@ class StrideTextureBuilder : TextureBuilderBase<Texture> {
 
 // StrideGfxSprite3D
 public class StrideGfxSprite3D : IOpenGfxSprite<object, object> {
-    readonly ISource _source;
     readonly SpriteManager<object> _spriteManager;
-    public StrideGfxSprite3D(ISource source) {
-        _source = source;
-        //_spriteManager = new SpriteManager<Sprite2D>(source, new GodotSpriteBuilder());
+    public StrideGfxSprite3D() {
+        //_spriteManager = new SpriteManager<Sprite2D>(new GodotSpriteBuilder());
     }
 
-    public ISource Source => _source;
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(object path) => _spriteManager.PreloadSprite(path);
-    public Task<(object spr, object tag)> CreateSprite(object path, object parent = default) => _spriteManager.CreateSprite(path);
+    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
+    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
 }
 
 // StrideGfxModel
 public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
-    readonly ISource _source;
     readonly MaterialManager<Material, Texture> _materialManager = default;
     readonly ObjectModelManager<Entity, Material, Texture> _objectManager = default;
     readonly ShaderManager<int> _shaderManager = default;
     readonly TextureManager<Texture> _textureManager;
-    public StrideGfxModel(ISource source) {
-        _source = source;
+    public StrideGfxModel() {
         //_materialManager = new MaterialManager<Material, int>(source, _textureManager, new StrideMaterialBuilder(_textureManager));
         //_objectManager = new Object3dModelManager<Model, Material, int>(source, _materialManager, new StrideObjectBuilder());
         //_shaderManager = new ShaderManager<int>(source, new StrideShaderBuilder());
-        _textureManager = new TextureManager<Texture>(source, new StrideTextureBuilder());
+        _textureManager = new TextureManager<Texture>(new StrideTextureBuilder());
     }
 
-    public ISource Source => _source;
     public MaterialManager<Material, Texture> MaterialManager => _materialManager;
     public ObjectModelManager<Entity, Material, Texture> ObjectManager => _objectManager;
     public ShaderManager<int> ShaderManager => _shaderManager;
     public TextureManager<Texture> TextureManager => _textureManager;
-    public void PreloadObject(object path) => throw new NotImplementedException();
-    public void PreloadTexture(object path) => throw new NotImplementedException();
-    public Task<(Entity obj, object tag)> CreateObject(object path, bool isStatic, Entity parent = default) => throw new NotImplementedException();
-    public Task<(int sha, object tag)> CreateShader(object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<(Texture tex, object tag)> CreateTexture(object path, Range? level = null) => _textureManager.CreateTexture(path, level);
+    public void PreloadObject(ISource source, object path) => throw new NotImplementedException();
+    public void PreloadTexture(ISource source, object path) => throw new NotImplementedException();
+    public Task<(Entity obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Entity parent = default) => throw new NotImplementedException();
+    public Task<(int sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(Texture tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(Entity src, Vector3 position, Vector3 eulerAngles, float? scale, Entity parent) => throw new NotImplementedException();
 }
 
 // StrideSfx
-public class StrideSfx(ISource source) : SystemSfx(source) { }
+public class StrideSfx : SystemSfx { }
 
 // StridePlatform
 public class StridePlatform : Platform {
@@ -123,8 +117,8 @@ public class StridePlatform : Platform {
     StridePlatform() : base("ST", "Stride") {
         Log = GlobalLogger.GetLogger(typeof(StridePlatform).FullName);
         Log.Debug("Start loading MyTexture");
-        GfxFactory = source => [null, null, new StrideGfxSprite3D(source), new StrideGfxModel(source), null, null];
-        SfxFactory = source => [new StrideSfx(source)];
+        GfxFactory = () => [null, null, new StrideGfxSprite3D(), new StrideGfxModel(), null, null];
+        SfxFactory = () => [new StrideSfx()];
         LogFunc = a => Log.Info(a);
     }
 }

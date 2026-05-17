@@ -209,7 +209,7 @@ public static class GameObjectX {
 
 #region CellManager
 
-public class UnityCellBuilder(IQuery query, IOpenGfx[] gfx) : CellBuilder<GameObject, Material, Texture2D, XShader>(query, gfx) { }
+public class UnityCellBuilder(ISource source, IQuery query, IOpenGfx[] gfx) : CellBuilder<GameObject, Material, Texture2D, XShader>(source, query, gfx) { }
 
 #endregion
 

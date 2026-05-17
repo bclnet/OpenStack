@@ -1,6 +1,5 @@
 using OpenStack.Gfx;
 using OpenStack.Gfx.Egin;
-using OpenStack.Sfx;
 using OpenTK.Input;
 using System;
 using System.Collections.Generic;
@@ -19,26 +18,20 @@ public abstract class OpenGLControl(Func<object, object, object, string, object>
     protected EginRenderer Renderer;
     protected abstract Renderer CreateRenderer();
 
-    public static readonly DependencyProperty GfxProperty = DependencyProperty.Register(nameof(Gfx), typeof(IList<IOpenGfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
-    public static readonly DependencyProperty SfxProperty = DependencyProperty.Register(nameof(Sfx), typeof(IList<IOpenSfx>), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
-    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(ISource), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
+    public static readonly DependencyProperty Source2Property = DependencyProperty.Register(nameof(Source2), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty PathProperty = DependencyProperty.Register(nameof(Path), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(object), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
     public static readonly DependencyProperty TypeProperty = DependencyProperty.Register(nameof(Type), typeof(string), typeof(OpenGLControl), new PropertyMetadata((d, e) => (d as OpenGLControl).OnSourceChanged()));
 
-    public IList<IOpenGfx> Gfx {
-        get => GetValue(GfxProperty) as IList<IOpenGfx>;
-        set => SetValue(GfxProperty, value);
-    }
-
-    public IList<IOpenSfx> Sfx {
-        get => GetValue(SfxProperty) as IList<IOpenSfx>;
-        set => SetValue(SfxProperty, value);
-    }
-
-    public object Source {
-        get => GetValue(SourceProperty);
+    public ISource Source {
+        get => GetValue(SourceProperty) as ISource;
         set => SetValue(SourceProperty, value);
+    }
+
+    public object Source2 {
+        get => GetValue(Source2Property);
+        set => SetValue(Source2Property, value);
     }
 
     public object Path {
@@ -57,7 +50,7 @@ public abstract class OpenGLControl(Func<object, object, object, string, object>
     }
 
     void OnSourceChanged() {
-        if (Gfx == null || Path == null || Value == null || Type == null) return;
+        if (Source == null || Path == null || Value == null || Type == null) return;
         Renderer = (EginRenderer)CreateRenderer();
         Renderer?.Start();
         if (Value is ITextureSelect z2) z2.Select(Id);

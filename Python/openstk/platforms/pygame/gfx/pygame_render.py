@@ -1,7 +1,8 @@
 from __future__ import annotations
-import os, numpy as np
+import os
 import pygame
 # from pygame.locals import *
+from openstk.core import ISource
 from openstk.gfx import GfX, Renderer
 
 # typedefs
@@ -12,7 +13,7 @@ class IOpenGfx: pass
 
 # TestTriRenderer
 class TestTriRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object, surf: object): pass
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object, surf: object): pass
 
 #endregion
 
@@ -20,14 +21,15 @@ class TestTriRenderer(Renderer):
 
 # TextureRenderer
 class TextureRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object, surf: object, level: range):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object, surf: object, level: range):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
+        self.source: ISource = source
         self.obj: object = obj
         self.surf: object = surf
         self.level: range = level
-        self.gfxModel.textureManager.deleteTexture(obj)
-        self.tex: int = self.gfxModel.textureManager.createTexture(obj, self.level)[0] or -1
-        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader('plane')
+        self.gfxModel.textureManager.deleteTexture(source, obj)
+        self.tex: int = asyncio.run(self.gfxModel.textureManager.createTexture(source, obj, self.level))[0] or -1
+        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader(source, 'plane')
         self.vao: int = self._setupVao()
         self.background: bool = background
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
@@ -48,12 +50,11 @@ class TextureRenderer(Renderer):
 
 #endregion
 
-
 #region TestAnimRenderer
 
 # TestAnimRenderer
 class TestAnimRenderer(Renderer):
-    def __init__(self, gfx: list[IOpenGfx], obj: object, surf: object):
+    def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object, surf: object):
         self.surf = surf
 
     def start(self) -> None:

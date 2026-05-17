@@ -101,7 +101,7 @@ public class TestGLMeshBuffers : GLMeshBuffers {
 [TestClass]
 public class TestOctreeDebugRenderer : OctreeDebugRenderer<object> {
     #region base
-    public TestOctreeDebugRenderer() : base(null, null, false) { }
+    public TestOctreeDebugRenderer() : base(null, null, null, false) { }
     #endregion
 
     [TestMethod]

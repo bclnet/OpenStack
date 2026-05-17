@@ -12,9 +12,8 @@ class SystemAudioBuilder(AudioBuilderBase):
 
 # SystemSfx
 class SystemSfx(IOpenSfx2):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
-        self.audioManager: AudioManager = AudioManager(source, SystemAudioBuilder())
-    def createAudio(self, path: object) -> int: return self.audioManager.createAudio(path)[0]
+    def __init__(self):
+        self.audioManager: AudioManager = AudioManager(SystemAudioBuilder())
+    def createAudio(self, source: ISource, path: object) -> tuple[int, object]: return self.audioManager.createAudio(source, path)
 
 #endregion

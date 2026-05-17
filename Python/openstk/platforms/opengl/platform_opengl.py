@@ -212,11 +212,11 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
         m.material.shaderName = 'vrf.error'
         return m
 
-    def createMaterial(self, path: object) -> GLRenderMaterial:
+    async def createMaterial(self, source: ISource, path: object) -> GLRenderMaterial:
         match path:
             case p if isinstance(path, MaterialShaderVProp):
                 m = GLRenderMaterial(MaterialShaderProp())
-                for tex in p.textureParams: m.textures[tex.key], _ = self.textureManager.createTexture(f'{tex.Value}_c')
+                for tex in p.textureParams: m.textures[tex.key], _ = await self.textureManager.createTexture(source, f'{tex.Value}_c')
                 if 'F_SOLID_COLOR' in p.intParams and p.intParams['F_SOLID_COLOR'] == 1:
                     a = p.vectorParams['g_vColorTint']
                     m.textures['g_tColor'] = self.textureManager.buildSolidTexture(1, 1, a[0], a[1], a[2], a[3])
@@ -234,14 +234,12 @@ class OpenGLMaterialBuilder(MaterialBuilderBase):
                 if not 'g_vTexCoordOffset' in p.vectorParams: p.vectorParams['g_vTexCoordOffset'] = zeros(4)
                 if not 'g_vColorTint' in p.vectorParams: p.vectorParams['g_vColorTint'] = ones(4)
                 return m
-            case s if isinstance(path, MaterialShaderProp):
-                return m
+            # case s if isinstance(path, MaterialShaderProp): return m
             case _: raise Exception(f'Unknown: {path}')
 
 # OpenGLGfxApi
 class OpenGLGfxApi(IOpenGfxSprite):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def addMeshCollider(self, src: object, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMeshRenderer(self, src: object, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
     def addMissingMeshCollidersRecursively(self, src: object, isStatic: bool) -> None: raise NotImplementedError();
@@ -257,30 +255,24 @@ class OpenGLGfxApi(IOpenGfxSprite):
 
 # OpenGLGfxSprite3D
 class OpenGLGfxSprite3D(IOpenGfxSprite):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
-        # self.spriteManager: SpriteManager = SpriteManager(source, OpenGLTextureBuilder())
-        # self.objectManager: ObjectSpriteManager = ObjectManager(source, OpenGLObjectModelBuilder())
-    def preloadObject(self, path: object) -> None: raise NotImplementedError()
-    def preloadSprite(self, path: object) -> None: self.textureManager.spriteManager(path)
-    async def createObject(self, path: object, parent: object = None) -> tuple[object, dict[str, object]]: raise NotImplementedError()
-    def createSprite(self, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
+    def __init__(self):
+        self.spriteManager: SpriteManager = SpriteManager(OpenGLTextureBuilder())
+    def preloadSprite(self, source: ISource, path: object) -> None: self.spriteManager.spriteManager(source, path)
+    def createSprite(self, source: ISource, path: object, parent: object = None) -> tuple[int, object]: return self.spriteManager.createSprite(source, path)
 
 # OpenGLGfxModel
 class OpenGLGfxModel(IOpenGfxModel):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
-        self.textureManager: TextureManager = TextureManager(source, OpenGLTextureBuilder())
-        self.materialManager: MaterialManager = MaterialManager(source, self.textureManager, OpenGLMaterialBuilder(self.textureManager))
-        self.objectManager: ObjectModelManager = ObjectModelManager(source, self.materialManager, OpenGLObjectModelBuilder())
-        self.shaderManager: ShaderManager = ShaderManager(source, OpenGLShaderBuilder())
+    def __init__(self):
+        self.textureManager: TextureManager = TextureManager(OpenGLTextureBuilder())
+        self.materialManager: MaterialManager = MaterialManager(self.textureManager, OpenGLMaterialBuilder(self.textureManager))
+        self.objectManager: ObjectModelManager = ObjectModelManager(self.materialManager, OpenGLObjectModelBuilder())
+        self.shaderManager: ShaderManager = ShaderManager(OpenGLShaderBuilder())
         self.meshBufferCache: GLMeshBufferCache = GLMeshBufferCache()
-
-    def preloadObject(self, path: object) -> None: self.objectManager.preloadObject(path)
-    def preloadTexture(self, path: object) -> None: self.textureManager.preloadTexture(path)
-    async def createObject(self, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return await self.objectManager.createObject(path, isStatic, parent)[0]
-    def createShader(self, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(path, args)[0]
-    async def createTexture(self, path: object, level: range = None) -> int: return await self.textureManager.createTexture(path, level)[0]
+    def preloadObject(self, source: ISource, path: object) -> None: self.objectManager.preloadObject(source, path)
+    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preloadTexture(source, path)
+    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, object]: return self.objectManager.createObject(source, path, isStatic, parent)
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(source, path, args)
+    def createTexture(self, source: ISource, path: object, level: range = None) -> int: return self.textureManager.createTexture(source, path, level)
 
     # cache
     _quadIndices: QuadIndexBuffer
@@ -291,15 +283,13 @@ class OpenGLGfxModel(IOpenGfxModel):
 
 # OpenGLGfxLight
 class OpenGLGfxLight(IOpenGfxLight):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: object = None) -> object: return 'light'
     def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
 
 # OpenGLGfxTerrain
 class OpenGLGfxTerrain(IOpenGfxTerrain):
-    def __init__(self, source: ISource):
-        self.source: ISource = source
+    def __init__(self): pass
     def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object: return f't{offset}'
     def createTerrain(self, name: str, position: Vector3, data: object, parent: object = None) -> object: return 'terrain'
 
@@ -308,8 +298,8 @@ class OpenGLPlatform(Platform):
     buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('GL', 'OpenGL')
-        self.gfxFactory = staticmethod(lambda source: [OpenGLGfxApi(source), None, OpenGLGfxSprite3D(source), OpenGLGfxModel(source), OpenGLGfxLight(source), OpenGLGfxTerrain(source)])
-        self.sfxFactory = staticmethod(lambda source: [SystemSfx(source)])
+        self.gfxFactory = staticmethod(lambda: [OpenGLGfxApi(), None, OpenGLGfxSprite3D(), OpenGLGfxModel(), OpenGLGfxLight(), OpenGLGfxTerrain()])
+        self.sfxFactory = staticmethod(lambda: [SystemSfx()])
 OpenGLPlatform.this = OpenGLPlatform()
 
 #endregion
