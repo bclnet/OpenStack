@@ -3,7 +3,7 @@ import traceback
 from numpy import array, ones, zeros, float32
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
-from openstk.core import Platform
+from openstk.core import ISource, Platform
 from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platforms.opengl.gfx import ShaderDebugLoader
 from openstk.platforms.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
@@ -12,7 +12,6 @@ from openstk.client import IClientHost
 
 # typedefs
 class Shader: pass
-class ISource: pass
 
 #region Client
 
@@ -28,10 +27,10 @@ class OpenGLClientHost(IClientHost):
 class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object, parent: object = None) -> object:
         return 'clone'
-    def createObject(self, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+    async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
         builder = OpenGLPlatform.buildersByType[path.__class__.__name__]
         try:
-            s = builder(path, isStatic, materialManager)
+            s = await builder(source, path, isStatic, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
     def ensurePrefab(self) -> None: pass
@@ -188,12 +187,12 @@ class OpenGLTextureBuilder(TextureBuilderBase):
 class OpenGLMaterialBuilder(MaterialBuilderBase):
     _defaultMaterial: GLRenderMaterial = None; _terrainMaterial: GLRenderMaterial = None
     @property
-    def defaultMaterial(self) -> int:
+    def defaultMaterial(self) -> GLRenderMaterial:
         if self._defaultMaterial: return self._defaultMaterial
         self._defaultMaterial = self._createDefaultMaterial()
         return self._defaultMaterial
     @property
-    def terrainMaterial(self) -> int:
+    def terrainMaterial(self) -> GLRenderMaterial:
         if self._terrainMaterial: return self._terrainMaterial
         self._terrainMaterial = self._createTerrainMaterial()
         return self._terrainMaterial
@@ -256,7 +255,8 @@ class OpenGLGfxApi(IOpenGfxSprite):
 # OpenGLGfxSprite3D
 class OpenGLGfxSprite3D(IOpenGfxSprite):
     def __init__(self):
-        self.spriteManager: SpriteManager = SpriteManager(OpenGLTextureBuilder())
+        #self.spriteManager: SpriteManager = SpriteManager(OpenGLTextureBuilder())
+        pass
     def preloadSprite(self, source: ISource, path: object) -> None: self.spriteManager.spriteManager(source, path)
     def createSprite(self, source: ISource, path: object, parent: object = None) -> tuple[int, object]: return self.spriteManager.createSprite(source, path)
 
