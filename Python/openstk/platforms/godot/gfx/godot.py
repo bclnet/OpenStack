@@ -8,8 +8,8 @@ from openstk.core import CellManager, CellBuilder
 
 #region CellManager
 
-# Panda3dCellBuilder
-class Panda3dCellBuilder(CellBuilder):
+# GodotCellBuilder
+class GodotCellBuilder(CellBuilder):
     def __init__(self, query: CellManager.IQuery, gfx: list[IOpenGfx]): super().__init__(query, gfx)
 
 #endregion

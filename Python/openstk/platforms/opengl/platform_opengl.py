@@ -90,20 +90,17 @@ class OpenGLTextureBuilder(TextureBuilderBase):
         return s
 
     def createTexture(self, reuse: int, src: ITexture, level2: range = None) -> int:
-        tex = reuse if reuse != None else glGenTextures(1)
-        numMipMaps = max(1, src.mipMaps)
-        level = range(level2.start if level2 else 0, numMipMaps)
-
-        # bind
-        glBindTexture(GL_TEXTURE_2D, tex)
-        if level.start > 0: glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, level.start)
-        glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level.stop - 1)
-
-        # create
         @staticmethod
         def _lambdax(x: object) -> int:
             match x:
                 case Texture_Bytes():
+                    tex = reuse if reuse != None else glGenTextures(1)
+                    numMipMaps = max(1, src.mipMaps)
+                    level = range(level2.start if level2 else 0, numMipMaps)
+                    # bind
+                    glBindTexture(GL_TEXTURE_2D, tex)
+                    if level.start > 0: glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, level.start)
+                    glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level.stop - 1)
                     bytes, fmt, spans = (x.bytes, x.format, x.spans)
                     pixels = []
                     # decode
@@ -165,7 +162,6 @@ class OpenGLTextureBuilder(TextureBuilderBase):
                                 case _: raise Exception(f'Unknown format: {formatx}')
                             if not internalFormat or not texImage2D(src, level, internalFormat, format, type): return self.defaultTexture
                     else: raise Exception(f'Unknown format: {fmt}')
-
                     # texture
                     if self.maxTextureMaxAnisotropy >= 4:
                         glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, self.maxTextureMaxAnisotropy)

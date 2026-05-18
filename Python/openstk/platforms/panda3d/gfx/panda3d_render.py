@@ -44,7 +44,7 @@ class TextureRenderer(Renderer):
     def start(self):
         # self.gfxModel.textureManager.deleteTexture(self.obj)
         obj = base.render.attachNewNode(CardMaker('card').generate())
-        tex = self.gfxModel.textureManager.createTexture(self.source, self.obj, None)[0]
+        tex = asyncio.run(self.gfxModel.textureManager.createTexture(self.source, self.obj, None))[0]
         # tex = base.loader.loadModel('maps/noise.rgb')
         obj.setTexture(tex)
         obj.setScale(8.0, 8.0, 8.0)
@@ -91,9 +91,9 @@ class EngineRenderer(Renderer):
     def start(self) -> None:
         # log.info(f'db: {self.db}')
         self.engine = Panda3dOpenEngine(lambda queue: CellManager(self.db.query, queue, Panda3dCellBuilder(self.db.archive, self.db.query, self.gfx)), False)
-        self.engine.spawnPlayer(self.db)
+        asyncio.run(self.engine.spawnPlayer(self.db))
 
     def update(self, deltaTime: float) -> None:
-        if self.engine: self.engine.update()
+        if self.engine: asyncio.run(self.engine.update())
 
 #endregion

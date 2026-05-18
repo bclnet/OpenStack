@@ -10,6 +10,6 @@ from openstk.core import CellManager, CellBuilder
 
 # Panda3dCellBuilder
 class Panda3dCellBuilder(CellBuilder):
-    def __init__(self, query: CellManager.IQuery, gfx: list[IOpenGfx]): super().__init__(query, gfx)
+    def __init__(self, source: ISource, query: CellManager.IQuery, gfx: list[IOpenGfx]): super().__init__(source, query, gfx)
 
 #endregion

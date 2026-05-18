@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os, sys
-from enum import Enum
+from enum import Enum, Flag
 from openstk.core.core import ISource
 from openstk.core.util import decodePath, YamlDict
 
@@ -8,19 +8,26 @@ from openstk.core.util import decodePath, YamlDict
 
 # Platform
 class Platform:
-    enabled: bool = True
-    id: str = None
-    name: str = None
-    tag: str = None
-    gfxFactory: callable = None
-    sfxFactory: callable = None
-    logFunc: callable = lambda a: print(a)
-    def __init__(self, id: str, name: str): self.id = id; self.name = name
+    def __init__(self, id: str, name: str):
+        self.enabled: bool = True
+        self.caps: PlatformX.Caps = PlatformX.Caps.None_
+        self.id: str = id
+        self.name: str = name
+        self.tag: str = None
+        self.gfxFactory: callable = None
+        self.sfxFactory: callable = None
+        self.logFunc: callable = lambda a: print(a)
     def activate(self) -> None: pass
     def deactivate(self) -> None: pass
 
 # PlatformX
 class PlatformX:
+    # The platform Caps.
+    class Caps(Flag):
+        None_ = 0x0
+        ReadDds = 0x1
+
+    # The platform OS.
     class OS(Enum):
         Unknown = 0
         Windows = 1

@@ -1,11 +1,11 @@
 from __future__ import annotations
 import math, traceback
 from numpy import ndarray, array, ones, zeros
-from openstk.core import Platform
+from openstk.core import Platform, PlatformX
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Dds, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
 from openstk.platforms.system import SystemSfx
-from panda3d.core import Material, PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
+from panda3d.core import StringStream, Material, PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
 
 # types
 type Vector3 = ndarray
@@ -63,15 +63,45 @@ class Panda3dTextureBuilder(TextureBuilderBase):
         return 0
 
     def createTexture(self, reuse: Texture, src: ITexture, level2: range = None) -> Texture:
-        tex = reuse if reuse != None else Texture('texture')
-        numMipMaps = max(1, src.mipMaps)
-        width = src.width; height = src.height
-        # create
         @staticmethod
-        def _lambdax(x: object) -> int:
+        def _lambdax(x: object) -> Texture:
             match x:
+                case Texture_Dds():
+                    if reuse != None: raise NotImplementedError()
+                    tex = Texture('texture')
+                    tex.readDds(StringStream(x.bytes))
+                    return tex
                 case Texture_Bytes():
+                    tex = reuse if reuse != None else Texture('texture')
+                    numMipMaps = max(1, src.mipMaps)
+                    width = src.width; height = src.height
+                    level = (0, numMipMaps)
+
+                    # if level[0] > 0: tex.setBaseLevel(level[0])
+                    # tex.setMaxLevel(level[1] - 1)
                     bytes, fmt, spans = (x.bytes, x.format, x.spans)
+                    # decode
+                    def compressedTexImage2D(tex, level, internalFormat) -> bool:
+                        width = tex.width; height = tex.height
+                        if spans:
+                            for l in range(level[0], level[1]):
+                                span = spans[l]
+                                if span[0] < 0: return False
+                                pixels = bytes[span[0]:span[1]]
+                                # tex.setRamMipmapImage(l, CPTAUchar(pixels))
+                                # GL.CompressedTexImage2D(TextureTarget.Texture2D, l, internalFormat, width >> l, height >> l, 0, pixels.Length, (IntPtr)data);
+                        else: pass #GL.CompressedTexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, bytes.Length, (IntPtr)data);
+                        return True
+                    def texImage2D(tex, level, internalFormat, format, type) -> bool:
+                        width = tex.width; height = tex.height
+                        if spans:
+                            for l in range(level[0], level[1]):
+                                span = spans[l]
+                                if span[0] < 0: return False
+                                pixels = bytes[span[0]:span[1]]
+                                # GL.TexImage2D(TextureTarget.Texture2D, l, internalFormat, width >> l, height >> l, 0, format, type, (IntPtr)data);
+                        else: pass #GL.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, format, type, (IntPtr)data)
+                        return True
                     # process
                     if not bytes: return self.defaultTexture
                     elif isinstance(fmt, tuple):
@@ -91,32 +121,34 @@ class Panda3dTextureBuilder(TextureBuilderBase):
                                 case TextureFormat.ETC2: format, compression = Texture.FRgba, Texture.CMEtc2
                                 case TextureFormat.ETC2_EAC: format, compression = Texture.FRgba, Texture.CMEac
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            tex.setup2dTexture(width, height, Texture.TUnsignedByte, format)
-                            tex.setRamImage(bytes, compression)
+                            # tex.setup2dTexture(width, height, Texture.TUnsignedByte, format)
+                            # tex.setRamImage(bytes, compression)
+                            if compression == 0 or not compressedTexImage2D(src, level, compression): return self.defaultTexture
                         else:
                             match formatx:
-                                case TextureFormat.I8: component_type, format = Texture.TUnsignedByte, Texture.FLuminance
-                                case TextureFormat.L8: component_type, format = Texture.TUnsignedByte, Texture.FLuminance
-                                case TextureFormat.R8: component_type, format = Texture.TUnsignedByte, Texture.FR8i
-                                case TextureFormat.R16: component_type, format = Texture.TFloat, Texture.FR16 if f else Texture.TUnsignedShort, Texture.FR16i
-                                case TextureFormat.RG16: component_type, format = Texture.TFloat, Texture.FRg16 if f else Texture.TUnsignedShort, Texture.FRg16i
-                                case TextureFormat.RGB24: component_type, format = Texture.TUnsignedByte, Texture.FRgb8
-                                case TextureFormat.RGB565: component_type, format = Texture.TUnsignedByte, Texture.FRgb565
-                                case TextureFormat.RGBA32: component_type, format = Texture.TUnsignedByte, Texture.FRgba8
-                                case TextureFormat.ARGB32: component_type, format = Texture.TUnsignedInt, Texture.FRgba8
-                                case TextureFormat.BGRA32: component_type, format = Texture.TUnsignedInt, Texture.FRgba8
-                                case TextureFormat.BGRA1555: component_type, format = Texture.TUnsignedShort, Texture.FRgba8
+                                case TextureFormat.I8: type, format = Texture.TUnsignedByte, Texture.FLuminance
+                                case TextureFormat.L8: type, format = Texture.TUnsignedByte, Texture.FLuminance
+                                case TextureFormat.R8: type, format = Texture.TUnsignedByte, Texture.FR8i
+                                case TextureFormat.R16: type, format = Texture.TFloat, Texture.FR16 if f else Texture.TUnsignedShort, Texture.FR16i
+                                case TextureFormat.RG16: type, format = Texture.TFloat, Texture.FRg16 if f else Texture.TUnsignedShort, Texture.FRg16i
+                                case TextureFormat.RGB24: type, format = Texture.TUnsignedByte, Texture.FRgb8
+                                case TextureFormat.RGB565: type, format = Texture.TUnsignedByte, Texture.FRgb565
+                                case TextureFormat.RGBA32: type, format = Texture.TUnsignedByte, Texture.FRgba8
+                                case TextureFormat.ARGB32: type, format = Texture.TUnsignedInt, Texture.FRgba8
+                                case TextureFormat.BGRA32: type, format = Texture.TUnsignedInt, Texture.FRgba8
+                                case TextureFormat.BGRA1555: type, format = Texture.TUnsignedShort, Texture.FRgba8
                                 case _: raise Exception(f'Unknown format: {formatx}')
-                            tex.setup2dTexture(width, height, Texture.TUnsignedByte, format)
+                            # tex.setup2dTexture(width, height, Texture.TUnsignedByte, format)
                     else: raise Exception(f'Unknown format: {fmt}')
-                    # set mip-maps
                     tex.setMinfilter(Texture.FTLinearMipmapLinear)
-                    offset = 0; width2 = width; height2 = height
-                    for level in range(numMipMaps):
-                        size = tex.getExpectedRamMipmapImageSize(level+1)
-                        image = bytes[offset:offset+size]
-                        tex.setRamMipmapImage(level, CPTAUchar(image))
-                        offset += size; width2 = max(1, width2 // 2); height2 = max(1, height2 // 2)
+
+                    # set mip-maps
+                    # offset = 0; width2 = width; height2 = height
+                    # for level in range(numMipMaps):
+                    #     size = tex.getExpectedRamMipmapImageSize(level+1)
+                    #     image = bytes[offset:offset+size]
+                    #     tex.setRamMipmapImage(level, CPTAUchar(image))
+                    #     offset += size; width2 = max(1, width2 // 2); height2 = max(1, height2 // 2)
                     # tex.prepare(base.win.getGsg())
                     # tex.prepare(base.graphicsEngine.getGs())
                     return tex
@@ -125,10 +157,19 @@ class Panda3dTextureBuilder(TextureBuilderBase):
 
     def deleteTexture(self, texture: Texture) -> None: texture.release()
 
-class MaterialPoly(Material):
-    def __init__(self, texs: dict[str,Texture] = {}):
+class MaterialPoly():
+    def __init__(self, mat: Material, texs: dict[str,Texture] = {}):
+        self.mat = mat
         self.texs = texs
     def apply(self, node: NodePath) -> None:
+        node.setMaterial(self.mat)
+        # mainTex = p.textures['Main'] if 'Main' in p.textures else None
+        # if mainTex:
+        #     m.texs[.append]((, None))
+        #     bumpTex = p.textures['Bump'] if 'Bump' in p.textures else None
+        #     if bumpTex:
+        #         s = TextureStage('norm'); s.setMode(TextureStage.M_normal)
+        #         ts.append((self.textureManager.createTexture(bumpTex).tex, s))
         pass
 
 # Panda3dMaterialBuilder
@@ -150,26 +191,17 @@ class Panda3dMaterialBuilder(MaterialBuilderBase):
         return self._terrainMaterial
 
     def _createDefaultMaterial() -> MaterialPoly:
-        m = MaterialPoly({'Main': self.textureManager.defaultTexture})
+        m = MaterialPoly(Material(), {'Main': self.textureManager.defaultTexture})
         return m
 
     def _createTerrainMaterial() -> MaterialPoly:
-        m = MaterialPoly({'Main': self.textureManager.terrainTexture})
+        m = MaterialPoly(Material(), {'Main': self.textureManager.terrainTexture})
         return m
 
     async def createMaterial(self, source: ISource, path: object) -> MaterialPoly:
-        print(f'createMaterial {path}'); exit(1)
         match path:
             case p if isinstance(path, MaterialStdProp):
-                m = MaterialPoly();
-                m.texs = {k:(await self.textureManager.createTexture(source, v))[0] for k,v in p.textures if k == 'Main' or k == 'Bump'}
-                # mainTex = p.textures['Main'] if 'Main' in p.textures else None
-                # if mainTex:
-                #     m.texs[.append]((, None))
-                #     bumpTex = p.textures['Bump'] if 'Bump' in p.textures else None
-                #     if bumpTex:
-                #         s = TextureStage('norm'); s.setMode(TextureStage.M_normal)
-                #         ts.append((self.textureManager.createTexture(bumpTex).tex, s))
+                m = MaterialPoly(Material(), {k:(await self.textureManager.createTexture(source, v))[0] for k, v in p.textures.items() if k == 'Main' or k == 'Bump'})
                 return m
             # case s if isinstance(path, MaterialShaderProp): return m
             case _: raise Exception(f'Unknown: {path}')
@@ -298,6 +330,7 @@ class Panda3dPlatform(Platform):
     buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PD', 'Panda3D')
+        self.caps = PlatformX.Caps.ReadDds
         self.gfxFactory = staticmethod(lambda: [Panda3dGfxApi(), None, None, Panda3dGfxModel(), Panda3dGfxLight(), Panda3dGfxTerrain()])
         self.sfxFactory = staticmethod(lambda: [SystemSfx()])
 Panda3dPlatform.this = Panda3dPlatform()

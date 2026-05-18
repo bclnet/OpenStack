@@ -19,6 +19,11 @@ public abstract class Platform(string id, string name) {
     public bool Enabled = true;
 
     /// <summary>
+    /// Gets the caps
+    /// </summary>
+    public PlatformX.Caps Caps = PlatformX.Caps.None_;
+
+    /// <summary>
     /// Gets the platform id.
     /// </summary>
     public readonly string Id = id;
@@ -78,8 +83,12 @@ public abstract class Platform(string id, string name) {
 public static class PlatformX {
     public static readonly float Epsilon = GetPlatformEpsilon();
     static float GetPlatformEpsilon() { float epsilon = 1f, comparison; do { epsilon *= 0.5f; comparison = 1.0f + epsilon; } while (comparison > 1.0f); return epsilon; }
-
     //public static Action Hook;
+
+    /// <summary>
+    /// The platform Caps.
+    /// </summary>
+    [Flags] public enum Caps { None_ = 0x0, ReadDds = 0x1 }
 
     /// <summary>
     /// The platform OS.

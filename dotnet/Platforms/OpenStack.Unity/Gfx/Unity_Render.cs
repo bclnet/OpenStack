@@ -66,7 +66,7 @@ public class EngineRenderer(IOpenGfx[] gfx, ISource source, object obj) : Render
         Engine.SpawnPlayer(db).Wait();
     }
 
-    public override void Update(float deltaTime) => Engine?.Update();
+    public override void Update(float deltaTime) => Engine?.Update().Wait();
 }
 
 #endregion

@@ -206,6 +206,11 @@ class SpriteManager:
 
 #region Texture
 
+# Texture_Dds
+@dataclass
+class Texture_Dds:
+    bytes: bytes
+
 # Texture_Bytes
 @dataclass
 class Texture_Bytes:
@@ -322,7 +327,7 @@ class IMaterial:
 
 # MaterialProp
 class MaterialProp:
-    tag: object
+    tag: object = None
 
 # MaterialStdProp
 class MaterialStdProp(MaterialProp):
@@ -382,8 +387,8 @@ class MaterialManager:
         key = (source, path)
         if key in self._cachedMaterials: return self._cachedMaterials[key]
         src = path if isinstance(path, MaterialProp) else await self._loadMaterial(source, path)
-        obj = self._builder.createMaterial(src) if src else self._builder.defaultMaterial
-        tag = obj[1] if src else None
+        obj = await self._builder.createMaterial(source, src) if src else self._builder.defaultMaterial
+        tag = src.tag if src else None
         self._cachedMaterials[key] = (obj, tag); return (obj, tag)
 
     def preloadMaterial(self, source: ISource, path: object) -> None:

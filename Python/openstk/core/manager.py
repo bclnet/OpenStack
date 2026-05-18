@@ -113,7 +113,7 @@ class CellManager:
         cell = self.buildCell(record); self.cells[Int3.zero] = cell
         return cell
     
-    def updateCells(self, position: Vector3, immediate: bool = False, radius: int = -1) -> None:
+    async def updateCells(self, position: Vector3, immediate: bool = False, radius: int = -1) -> None:
         if radius < 0: radius = self.radius
         point = self.query.getCellId(position)
         minX = point.x - radius; maxX = point.x + radius; minY = point.y - radius; maxY = point.y + radius
@@ -132,7 +132,7 @@ class CellManager:
                     p = Int3(x, y, world); d = max(abs(point.x - p.x), abs(point.y - p.y))
                     if d == r and p not in self.cells:
                         cell = self.beginCell(p)
-                        if cell and immediate: self.queue.waitFor(cell.task)
+                        if cell and immediate: await self.queue.waitFor(cell.task)
 
         # update LODs
         for p, cell in self.cells.items(): d = max(abs(point.x - p.x), abs(point.y - p.y)); self.builder.setVisible(cell.objectsObj, d <= self.radius2)
@@ -185,12 +185,12 @@ class CellBuilder(CellBuilderX):
     def destroy(self, src: object) -> None: self.gfxApi.destroy(src)
 
     # A coroutine that instantiates the terrain for, and all objects in, a cell.
-    def coroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> IEnumerator:
+    async def coroutine(self, cell: ICell, land: ILand, obj: object, objectsObj: object) -> Enumerator:
         if not cell and not land: return
         cellRefs = self.getCellRefs(cell)
-        if land and self.gfxTerrain: yield None; self.createLand(land, obj); yield None
-        for s in cellRefs: self.createCell(cell, objectsObj, s); yield None
-        if self.gfxLight: self.createReflectionProbe(cell, obj)
+        if land and self.gfxTerrain: yield None; await self.createLand(land, obj); yield None
+        for s in cellRefs: await self.createCell(cell, objectsObj, s); yield None
+        if self.gfxLight: await self.createReflectionProbe(cell, obj)
 
     def getCellRefs(self, cell: ICell) -> list[CellRef]:
         @staticmethod
@@ -291,7 +291,7 @@ class CellBuilder(CellBuilderX):
         # _terrainError: 5
         # _treeDistance: 80
 
-    def createReflectionProbe(self, cell: ICell, parent: Object) -> None:
+    async def createReflectionProbe(self, cell: ICell, parent: Object) -> None:
         if cell.isInterior: return
         gridId = cell.gridId
         position = array([gridId.x * self.cellLengthInMeters, .0, gridId.y * self.cellLengthInMeters])

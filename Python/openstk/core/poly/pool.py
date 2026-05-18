@@ -68,14 +68,14 @@ class AsyncCoroutineQueue:
         if len(self.tasks) == 0: return
         self.time = time.time()
         while len(self.tasks) > 0 and (time.time() - self.time) < desiredWorkTime:
-            if await next(self.tasks[0], self) == self: self.tasks.pop(0)
+            if await anext(self.tasks[0], self) == self: self.tasks.pop(0)
     async def waitFor(self, task: object) -> None:
         assert(task in self.tasks)
-        while await next(task, self) != self: pass
+        while await anext(task, self) != self: pass
         if task in self.tasks: self.tasks.remove(task)
     async def waitForAll(self):
         for task in self.tasks:
-            while await next(task, self) != self: pass
+            while await anext(task, self) != self: pass
         self.tasks.clear()
 
 class CoroutineQueue:

@@ -27,6 +27,7 @@ class Panda3dWidget(QWidget, ShowBase):
     # gl-debug #t
     def __init__(self, parent: object, tab: object):
         loadPrcFileData('', """
+        driver-generate-mipmaps 0
         allow-parent 1
         window-title GameX
         show-frame-rate-meter #t

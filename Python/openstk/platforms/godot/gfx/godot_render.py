@@ -4,7 +4,7 @@ from panda3d.core import *
 from openstk.core import ISource, log, CellManager
 from openstk.gfx import GfX, Renderer
 from openstk.gfx.egin import AABB
-from openstk.platforms.panda3d.gfx.panda3d import Panda3dCellBuilder
+from openstk.platforms.panda3d.gfx.panda3d import GodotCellBuilder
 from openstk.platforms.panda3d.gfx.panda3dopenengine import Panda3dOpenEngine
 
 # typedefs
@@ -66,7 +66,7 @@ class EngineRenderer(Renderer):
     def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfx: list[IOpenGfx] = gfx
         self.db: ICellDatabase = obj
-        self.engine: Panda3dOpenEngine
+        self.engine: GodotOpenEngine
         self.playerPrefab: object = None
 
     def dispose(self) -> None:
@@ -77,7 +77,7 @@ class EngineRenderer(Renderer):
         arc = self.db.archive
         self.gfx = arc.gfx
         query = self.db.query
-        self.engine = Panda3dOpenEngine(lambda queue: CellManager(query, queue, Panda3dCellBuilder(query, self.gfx)), False)
+        self.engine = GodotOpenEngine(lambda queue: CellManager(query, queue, GodotCellBuilder(query, self.gfx)), False)
         self.engine.spawnPlayer(self.db)
 
     def update(self, deltaTime: float) -> None:

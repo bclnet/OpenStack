@@ -207,7 +207,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(ISource source, IQue
         var cellRefs = GetCellRefs(cell);
         if (land != null && GfxTerrain != null) { yield return null; await CreateLand(land, obj2); yield return null; }
         foreach (var s in cellRefs) await CreateCell(cell, objectsObj2, s);
-        if (GfxLight != null) CreateReflectionProbe(cell, obj2);
+        if (GfxLight != null) await CreateReflectionProbe(cell, obj2);
     }
 
     CellRef[] GetCellRefs(ICell cell) => [.. cell.Xrefs.Select(s => {
@@ -306,7 +306,7 @@ public class CellBuilder<Object, Material, Texture, Shader>(ISource source, IQue
         GfxTerrain.CreateTerrain("terrain", position, terrainData, parent);
     }
 
-    void CreateReflectionProbe(ICell cell, Object parent) {
+    async Task CreateReflectionProbe(ICell cell, Object parent) {
         if (cell.IsInterior) return;
         var gridId = cell.GridId;
         var position = new Vector3(gridId.X * CellLengthInMeters, 0f, gridId.Y * CellLengthInMeters);

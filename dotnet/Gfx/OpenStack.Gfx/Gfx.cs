@@ -62,6 +62,8 @@ blend modes (glBlendFunc):
 /// </summary>
 public enum GfxBlendMode { Zero, One, DstColor, SrcColor, OneMinusDstColor, SrcAlpha, OneMinusSrcColor, DstAlpha, OneMinusDstAlpha, SrcAlphaSaturate, OneMinusSrcAlpha }
 
+//public record GfxKey(ISource Source, object Path);
+
 #endregion
 
 #region ObjectSprite
@@ -156,7 +158,7 @@ public class ObjectModelManager<Object, Material, Texture>(MaterialManager<Mater
             if (!CachedObjects.TryGetValue(key, out var s)) s = CachedObjects[key] = await LoadObject(source, path, isStatic, parent);
             return (Builder.InstanceObject(s.obj, parent), s.tag);
         }
-        catch { return (default, null); }
+        catch (Exception e) { Log.Error($"{e.Message}\n{e.StackTrace}"); return (default, null); }
     }
 
     public void PreloadObject(ISource source, object path) {
@@ -169,13 +171,12 @@ public class ObjectModelManager<Object, Material, Texture>(MaterialManager<Mater
         var key = (source, path);
         Log.Assert(!CachedObjects.ContainsKey(key));
         Builder.EnsurePrefab();
-        PreloadObject(source, key);
+        PreloadObject(source, path);
         try {
             var obj = await PreloadTasks[key];
             return (await Builder.CreateObject(source, obj, isStatic, MaterialManager), obj);
         }
         finally { PreloadTasks.Remove(key); }
-
     }
 }
 
@@ -294,6 +295,13 @@ public class SpriteManager<Sprite>(SpriteBuilderBase<Sprite> builder) {
 #endregion
 
 #region Texture
+
+/// <summary>
+/// Texture_Dds
+/// </summary>
+public struct Texture_Dds(byte[] bytes) {
+    public byte[] Bytes = bytes;
+}
 
 /// <summary>
 /// Texture_Bytes
@@ -525,7 +533,6 @@ public class MaterialManager<Material, Texture>(TextureManager<Texture> textureM
     public async Task<(Material mat, object tag)> CreateMaterial(ISource source, object path) {
         var key = (source, path);
         if (CachedMaterials.TryGetValue(key, out var c)) return c;
-        // load & cache the material.
         var src = path is MaterialProp z ? z : await LoadMaterial(source, path);
         var obj = src != null ? await Builder.CreateMaterial(source, src) : Builder.DefaultMaterial;
         var tag = src?.Tag;
@@ -535,7 +542,6 @@ public class MaterialManager<Material, Texture>(TextureManager<Texture> textureM
     public void PreloadMaterial(ISource source, object path) {
         var key = (source, path);
         if (CachedMaterials.ContainsKey(key)) return;
-        // start loading the material file asynchronously if we haven't already started.
         if (!PreloadTasks.ContainsKey(key)) PreloadTasks[key] = source.GetAsset<MaterialProp>(path);
     }
 

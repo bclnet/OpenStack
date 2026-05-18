@@ -983,7 +983,7 @@ public class EngineRenderer(IOpenGfx[] gfx, ISource source, object obj) : EginRe
         Engine.SpawnPlayer(Db).Wait();
     }
 
-    public override void Update(float deltaTime) => Engine?.Update();
+    public override void Update(float deltaTime) => Engine?.Update().Wait();
 
     public override void Render(Camera camera, Pass pass) { Engine.Camera = camera; base.Render(camera, pass); }
 }

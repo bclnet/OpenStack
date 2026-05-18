@@ -41,7 +41,8 @@ class PyEngine3dWidget(QWidget):
     # Render
 
     def resizeEvent(self, event):
-        print('resizeEvent')
+        # print('resizeEvent')
+        pass
 
     def tick(self):
         print('tick')
