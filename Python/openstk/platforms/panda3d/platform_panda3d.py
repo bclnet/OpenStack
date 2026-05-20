@@ -4,7 +4,9 @@ from numpy import ndarray, array, ones, zeros
 from openstk.core import Platform, PlatformX
 from openstk.client import IClientHost
 from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Dds, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.platforms.panda3d.gfx.panda3d import Panda3dX
 from openstk.platforms.system import SystemSfx
+
 from panda3d.core import StringStream, Material, PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
 
 # types
@@ -25,7 +27,7 @@ class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = Panda3dPlatform.buildersByType[path.__class__.__name__]
+        builder = Panda3dX.buildersByType[path.__class__.__name__]
         try:
             s = await builder(source, path, isStatic, materialManager)
             return s
@@ -327,7 +329,6 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
 
 # Panda3dPlatform
 class Panda3dPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PD', 'Panda3D')
         self.caps = PlatformX.Caps.ReadDds

@@ -4,6 +4,7 @@ from numpy import ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
 from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Dds, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.platforms.pygame.gfx.pygame import PyEngine3dX
 from openstk.platforms.system import SystemSfx
 
 #region Client
@@ -21,7 +22,7 @@ class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = PyEngine3dPlatform.buildersByType[path.__class__.__name__]
+        builder = PyEngine3dX.buildersByType[path.__class__.__name__]
         try:
             s = await builder(source, path, isStatic, materialManager)
             return s
@@ -162,7 +163,6 @@ class PyEngine3dGfxModel(IOpenGfxModel):
 
 # PyEngine3dPlatform
 class PyEngine3dPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('P3', 'PyEngine3D')
         self.gfxFactory = staticmethod(lambda: [PyEngine3dGfxApi(), None, None, PyEngine3dGfxModel(), None, None])

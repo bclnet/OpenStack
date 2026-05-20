@@ -3,4 +3,7 @@ import os
 
 #region Extensions
 
+class EginX:
+    buildersByType: dict[type, callable] = {}
+
 #endregion

@@ -5,8 +5,9 @@ from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
 from openstk.core import ISource, Platform
 from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
-from openstk.platforms.opengl.gfx import ShaderDebugLoader
 from openstk.platforms.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
+from openstk.platforms.opengl.gfx import ShaderDebugLoader
+from openstk.platforms.opengl.gfx.opengl import OpenGLX
 from openstk.platforms.system import SystemSfx
 from openstk.client import IClientHost
 
@@ -28,7 +29,7 @@ class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object, parent: object = None) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = OpenGLPlatform.buildersByType[path.__class__.__name__]
+        builder = OpenGLX.buildersByType[path.__class__.__name__]
         try:
             s = await builder(source, path, isStatic, materialManager)
             return s
@@ -291,7 +292,6 @@ class OpenGLGfxTerrain(IOpenGfxTerrain):
 
 # OpenGLPlatform
 class OpenGLPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('GL', 'OpenGL')
         self.gfxFactory = staticmethod(lambda: [OpenGLGfxApi(), None, OpenGLGfxSprite3D(), OpenGLGfxModel(), OpenGLGfxLight(), OpenGLGfxTerrain()])

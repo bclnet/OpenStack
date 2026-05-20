@@ -5,7 +5,7 @@ from openstk.core.platform import Platform
 
 # UnknownPlatform
 class UnknownPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
+    # buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('UK', 'Unknown')
         self.gfxFactory = staticmethod(lambda: [None, None, None, None, None, None])

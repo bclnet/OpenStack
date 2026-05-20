@@ -3,6 +3,7 @@ import traceback
 from numpy import ndarray, array, ones, zeros, float32
 from openstk.core import ISource, Platform
 from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
+from openstk.platforms.pygame.gfx.pygame import PygameX
 from openstk.platforms.system import SystemSfx
 from openstk.client import IClientHost
 
@@ -21,7 +22,7 @@ class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = PygamePlatform.buildersByType[path.__class__.__name__]
+        builder = PygameX.buildersByType[path.__class__.__name__]
         try:
             s = await builder(source, path, isStatic, materialManager)
             return s
@@ -123,7 +124,6 @@ class PygameGfxModel(IOpenGfxModel):
 
 # PygamePlatform
 class PygamePlatform(Platform):
-    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PG', 'Pygame')
         self.gfxFactory = staticmethod(lambda: [None, None, None, PygameGfxModel(), None, None])

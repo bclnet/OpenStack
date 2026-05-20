@@ -4,6 +4,7 @@ from numpy import ndarray, array, ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
 from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.platforms.godot.gfx.godot import GodotX
 from openstk.platforms.system import SystemSfx
 from panda3d.core import PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
 
@@ -25,7 +26,7 @@ class GodotObjectModelBuilder(ObjectModelBuilderBase):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
-        builder = GodotPlatform.buildersByType[path.__class__.__name__]
+        builder = GodotX.buildersByType[path.__class__.__name__]
         try:
             s = await builder(source, path, isStatic, materialManager)
             return s
@@ -279,7 +280,6 @@ class GodotGfxTerrain(IOpenGfxTerrain):
 
 # GodotPlatform
 class GodotPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('PD', 'Panda3D')
         self.gfxFactory = staticmethod(lambda: [GodotGfxApi(), None, None, GodotGfxModel(), GodotGfxLight(), GodotGfxTerrain()])

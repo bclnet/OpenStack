@@ -4,6 +4,9 @@ from openstk.core import CellManager, CellBuilder
 
 #region Extensions
 
+class GodotX:
+    buildersByType: dict[type, callable] = {}
+
 #endregion
 
 #region CellManager

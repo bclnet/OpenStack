@@ -13,6 +13,9 @@ class OpenGLGfxModel: pass
 
 #region Extensions
 
+class OpenGLX:
+    buildersByType: dict[type, callable] = {}
+
 #endregion
 
 #region Shader

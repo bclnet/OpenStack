@@ -58,7 +58,6 @@ class EginXGfxSprite2D(IOpenGfxSprite):
 
 # EginXPlatform
 class EginXPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('EX', 'EginX')
         self.gfxFactory = staticmethod(lambda: [EginXGfxApi(), EginXGfxSprite2D(), None, None, None, None])

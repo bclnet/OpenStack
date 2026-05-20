@@ -71,7 +71,7 @@ public class TestSfx : IOpenSfx {
 /// TestPlatform
 /// </summary>
 public class TestPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
+    //public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new TestPlatform();
     TestPlatform() : base("TT", "Test") {
         GfxFactory = () => [new TestGfxApi(), new TestGfxSprite(), new TestGfxSprite(), new TestGfxModel(), new TestGfxTerrain()];

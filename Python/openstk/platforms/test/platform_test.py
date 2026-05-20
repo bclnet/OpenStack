@@ -36,7 +36,7 @@ class TestSfx: pass
 
 # TestPlatform
 class TestPlatform(Platform):
-    buildersByType: dict[type, callable] = {}
+    # buildersByType: dict[type, callable] = {}
     def __init__(self):
         super().__init__('TT', 'Test')
         self.gfxFactory = staticmethod(lambda: [TestGfxApi(), TestGfxSprite(), TestGfxSprite(), TestGfxModel(), TestGfxLight(), TestGfxTerrain()])
