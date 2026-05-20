@@ -1,8 +1,14 @@
-﻿namespace OpenStack.Gfx.Ogre;
+﻿using System;
+using System.Collections.Generic;
+
+namespace OpenStack.Gfx.Ogre;
 
 #region Extensions
 
-// OgreExtensions
-public static class OgreExtensions { }
+// OgreX
+public static class OgreX {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
+
+}
 
 #endregion

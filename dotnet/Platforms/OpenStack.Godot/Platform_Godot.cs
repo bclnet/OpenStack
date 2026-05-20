@@ -165,7 +165,6 @@ public class GodotSfx : SystemSfx { }
 
 // GodotPlatform
 public class GodotPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new GodotPlatform();
     GodotPlatform() : base("GD", "Godot") {
         GfxFactory = () => [null, new GodotGfxSprite2D(), new GodotGfxSprite3D(), new GodotGfxModel(), null, null];

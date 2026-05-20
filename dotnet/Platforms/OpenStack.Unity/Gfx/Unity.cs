@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using static OpenStack.CellManager;
 using XShader = UnityEngine.Shader;
@@ -8,7 +10,9 @@ namespace OpenStack.Gfx.Unity;
 #region Extensions
 
 // UnityExtensions
-public static class UnityExtensions {
+public static class UnityX {
+    public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<Material, Texture2D>, Task<GameObject>>> BuildersByType = [];
+
     /// <summary>
     /// FromUnity
     /// </summary>

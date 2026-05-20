@@ -1,11 +1,14 @@
 ﻿using Godot;
+using System;
+using System.Collections.Generic;
 
 namespace OpenStack.Gfx.Godot;
 
 #region Extensions
 
-// GodotExtensions
-public static class GodotExtensions {
+// GodotX
+public static class GodotX {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     /// <summary>
     /// ToGodot
     /// </summary>

@@ -41,7 +41,6 @@ public class SdlSfx : SystemSfx { }
 
 // SdlPlatform
 public class SdlPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new SdlPlatform();
     SdlPlatform() : base("SD", "SDL 3") {
         GfxFactory = () => [new SdlGfxSprite2D(), null, null, null, null, null];

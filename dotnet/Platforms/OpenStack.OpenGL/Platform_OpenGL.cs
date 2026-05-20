@@ -35,7 +35,7 @@ class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int
         return "clone";
     }
     public async override Task<object> CreateObject(ISource source, object path, bool isStatic, MaterialManager<GLRenderMaterial, int> materialManager) {
-        var builder = OpenGLPlatform.BuildersByType[path.GetType()];
+        var builder = OpenGLX.BuildersByType[path.GetType()];
         var s = await builder(source, path, isStatic, materialManager);
         return s;
     }
@@ -327,7 +327,6 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
 /// OpenGLPlatform
 /// </summary>
 public class OpenGLPlatform : Platform {
-    public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<GLRenderMaterial, int>, Task<object>>> BuildersByType = [];
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
         GfxFactory = () => [new OpenGLGfxApi(), null, new OpenGLGfxSprite3D(), new OpenGLGfxModel(), null, null, new OpenGLGfxTerrain()];

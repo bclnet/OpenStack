@@ -1,8 +1,14 @@
-﻿namespace OpenStack.Gfx.Sdl;
+﻿using System;
+using System.Collections.Generic;
+
+namespace OpenStack.Gfx.Sdl;
 
 #region Extensions
 
-// SdlExtensions
-public static class SdlExtensions { }
+// SdlX
+public static class SdlX {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
+
+}
 
 #endregion

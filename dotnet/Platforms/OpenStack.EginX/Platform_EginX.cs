@@ -62,7 +62,6 @@ public class EginXGfxSprite2D : IOpenGfxSprite<object, object> {
 
 // EginXPlatform
 public class EginXPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new EginXPlatform();
     EginXPlatform() : base("EX", "EginX") {
         GfxFactory = () => [null, new EginXGfxSprite2D(), null, null, null, null];

@@ -1,4 +1,8 @@
-﻿namespace OpenStack.Gfx.Stride;
+﻿using Stride.Engine;
+using System;
+using System.Collections.Generic;
+
+namespace OpenStack.Gfx.Stride;
 
 #region Extensions
 
@@ -11,7 +15,10 @@
 	</ItemGroup>
 */
 
-// StrideExtensions
-public static class StrideExtensions { }
+// StrideX
+public static class StrideX {
+    public static Dictionary<Type, Func<object, bool, object, Entity>> BuildersByType = [];
+
+}
 
 #endregion

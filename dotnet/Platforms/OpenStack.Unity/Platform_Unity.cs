@@ -49,7 +49,7 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
     }
 
     public async override Task<GameObject> CreateObject(ISource source, object path, bool isStatic, MaterialManager<Material, Texture2D> materialManager) {
-        var builder = UnityPlatform.BuildersByType[path.GetType()];
+        var builder = UnityX.BuildersByType[path.GetType()];
         var s = await builder(source, path, isStatic, materialManager);
         s.transform.parent = _prefabObj.transform;
         // Add LOD support to the prefab.
@@ -513,7 +513,6 @@ public class UnitySfx : SystemSfx { }
 
 // UnityPlatform
 public class UnityPlatform : Platform {
-    public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<Material, Texture2D>, Task<GameObject>>> BuildersByType = [];
     public static readonly Platform This = new UnityPlatform();
     UnityPlatform() : base("UN", "Unity") {
         var task = Task.Run(Application.platform.ToString);

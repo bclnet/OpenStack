@@ -413,7 +413,6 @@ public class MgSfx : SystemSfx { }
 
 // MgPlatform
 public class MgPlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new MgPlatform();
     MgPlatform() : base("MG", "MonoGame") {
         GfxFactory = () => [null, new MgGfxSprite2D(), null, null, null, null];

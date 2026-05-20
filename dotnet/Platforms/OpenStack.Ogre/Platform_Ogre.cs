@@ -66,7 +66,6 @@ public class OgreSfx : SystemSfx { }
 
 // OgrePlatform
 public class OgrePlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre") {
         GfxFactory = () => [null, null, new OgreGfxSprite3D(), new OgreGfxModel(), null, null];

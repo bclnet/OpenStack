@@ -111,7 +111,6 @@ public class StrideSfx : SystemSfx { }
 
 // StridePlatform
 public class StridePlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, Entity>> BuildersByType = [];
     public static readonly Platform This = new StridePlatform();
     static Logger Log;
     StridePlatform() : base("ST", "Stride") {

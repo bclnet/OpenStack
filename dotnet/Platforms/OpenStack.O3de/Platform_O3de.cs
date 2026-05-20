@@ -66,7 +66,6 @@ public class O3deSfx : SystemSfx { }
 
 // O3dePlatform
 public class O3dePlatform : Platform {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new O3dePlatform();
     O3dePlatform() : base("O3", "O3de") {
         GfxFactory = () => [null, null, new O3deGfxSprite3D(), new O3deGfxModel(), null, null];

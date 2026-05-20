@@ -1,8 +1,13 @@
-﻿namespace OpenStack.Gfx.Mg;
+﻿using System;
+using System.Collections.Generic;
+
+namespace OpenStack.Gfx.Mg;
 
 #region Extensions
 
-// MgExtensions
-public static class MgExtensions { }
+// MgX
+public static class MgX {
+    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
+}
 
 #endregion
