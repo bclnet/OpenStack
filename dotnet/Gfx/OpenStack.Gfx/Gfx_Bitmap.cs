@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -9,8 +10,9 @@ namespace OpenStack.Gfx;
 /// DirectBitmap
 /// </summary>
 public class DirectBitmap : IDisposable {
+    static bool UseDrawing;
     bool Disposed;
-    public Bitmap Bitmap;
+    public IDisposable Bitmap;
     public int[] Pixels;
     public int Height;
     public int Width;
@@ -21,7 +23,9 @@ public class DirectBitmap : IDisposable {
         Height = height;
         Pixels = new int[width * height];
         PixelsHandle = GCHandle.Alloc(Pixels, GCHandleType.Pinned);
-        Bitmap = new Bitmap(width, height, width * sizeof(int), PixelFormat.Format32bppPArgb, PixelsHandle.AddrOfPinnedObject());
+        Bitmap = UseDrawing
+            ? new Bitmap(width, height, width * sizeof(int), PixelFormat.Format32bppPArgb, PixelsHandle.AddrOfPinnedObject())
+            : new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unknown);
     }
 
     public void Dispose() {
@@ -35,6 +39,6 @@ public class DirectBitmap : IDisposable {
     public Color GetPixel(int x, int y) => Color.FromArgb(Pixels[x + (y * Width)]);
 
     public void Save(string path) {
-        if (path != "path") Bitmap.Save(path, ImageFormat.Png);
+        if (path != "path" && UseDrawing) ((Bitmap)Bitmap).Save(path, ImageFormat.Png);
     }
 }
