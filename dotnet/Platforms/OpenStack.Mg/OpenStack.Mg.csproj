@@ -21,7 +21,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
-	  <PackageReference Include="ppy.SDL3-CS" Version="2026.429.0" />
+	  <PackageReference Include="ppy.SDL3-CS" Version="2026.520.0" />
 	</ItemGroup>
 
 	<ItemGroup>
