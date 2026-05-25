@@ -1,1 +1,1 @@
-# Platform : PyGame
+# Platform : Pygame

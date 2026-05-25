@@ -16,6 +16,7 @@ public class Log {
     public static void Warn(string message) => Func($"WARN: {message}");
     public static void Error(string message) => Func($"ERROR: {message}");
     public static void Trace(string message) => Func($"TRACE: {message}");
+    public static void Exception(Exception e) => Func($"{e.Message}\n{e.StackTrace}");
 }
 
 /// <summary>

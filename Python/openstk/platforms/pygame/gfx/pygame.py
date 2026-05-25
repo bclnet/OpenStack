@@ -3,7 +3,7 @@ import os
 
 #region Extensions
 
-class PyGameX:
+class PygameX:
     buildersByType: dict[type, callable] = {}
 
 #endregion

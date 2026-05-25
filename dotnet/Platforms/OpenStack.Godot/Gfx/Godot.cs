@@ -1,6 +1,7 @@
 ﻿using Godot;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OpenStack.Gfx.Godot;
 
@@ -8,7 +9,7 @@ namespace OpenStack.Gfx.Godot;
 
 // GodotX
 public static class GodotX {
-    public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
+    public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<Material, Texture2D>, Task<Node>>> BuildersByType = [];
     /// <summary>
     /// ToGodot
     /// </summary>

@@ -4,7 +4,7 @@ from numpy import ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
 from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Dds, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
-from openstk.platforms.pygame.gfx.pygame import PyEngine3dX
+from openstk.platforms.pyengine3d.gfx.pyengine3d import PyEngine3dX
 from openstk.platforms.system import SystemSfx
 
 #region Client
