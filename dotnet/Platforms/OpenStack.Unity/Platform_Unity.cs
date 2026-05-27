@@ -518,6 +518,7 @@ public class UnityPlatform : Platform {
         var task = Task.Run(Application.platform.ToString);
         try {
             Tag = task.Result;
+            Caps = PlatformX.Caps.None_;
             GfxFactory = () => [new UnityGfxApi(), new UnityGfxSprite2D(), new UnityGfxSprite3D(), new UnityGfxModel(), new UnityGfxLight(), new UnityGfxTerrain()];
             SfxFactory = () => [new UnitySfx()];
             AssertFunc = x => UnityEngine.Debug.Assert(x);

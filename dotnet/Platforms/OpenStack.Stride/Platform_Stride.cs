@@ -116,6 +116,7 @@ public class StridePlatform : Platform {
     StridePlatform() : base("ST", "Stride") {
         Log = GlobalLogger.GetLogger(typeof(StridePlatform).FullName);
         Log.Debug("Start loading MyTexture");
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [null, null, new StrideGfxSprite3D(), new StrideGfxModel(), null, null];
         SfxFactory = () => [new StrideSfx()];
         LogFunc = a => Log.Info(a);

@@ -84,6 +84,7 @@ public class UnrealPlatform : Platform {
     public static Dictionary<Type, Func<object, bool, object, object>> BuildersByType = [];
     public static readonly Platform This = new UnrealPlatform();
     UnrealPlatform() : base("UR", "Unreal") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [new UnrealGfxApi(), null, new UnrealGfxSprite3D(), new UnrealGfxModel(), null, null];
         SfxFactory = () => [new UnrealSfx()];
     }

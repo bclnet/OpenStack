@@ -329,6 +329,7 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
 public class OpenGLPlatform : Platform {
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [new OpenGLGfxApi(), null, new OpenGLGfxSprite3D(), new OpenGLGfxModel(), null, null, new OpenGLGfxTerrain()];
         SfxFactory = () => [new SystemSfx()];
     }

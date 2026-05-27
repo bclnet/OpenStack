@@ -43,6 +43,7 @@ public class SdlSfx : SystemSfx { }
 public class SdlPlatform : Platform {
     public static readonly Platform This = new SdlPlatform();
     SdlPlatform() : base("SD", "SDL 3") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [new SdlGfxSprite2D(), null, null, null, null, null];
         SfxFactory = () => [new SdlSfx()];
     }

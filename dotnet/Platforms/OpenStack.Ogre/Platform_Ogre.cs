@@ -68,6 +68,7 @@ public class OgreSfx : SystemSfx { }
 public class OgrePlatform : Platform {
     public static readonly Platform This = new OgrePlatform();
     OgrePlatform() : base("OG", "Ogre") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [null, null, new OgreGfxSprite3D(), new OgreGfxModel(), null, null];
         SfxFactory = () => [new OgreSfx()];
     }

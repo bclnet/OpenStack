@@ -415,6 +415,7 @@ public class MgSfx : SystemSfx { }
 public class MgPlatform : Platform {
     public static readonly Platform This = new MgPlatform();
     MgPlatform() : base("MG", "MonoGame") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [null, new MgGfxSprite2D(), null, null, null, null];
         SfxFactory = () => [new MgSfx()];
         LogFunc = Console.WriteLine;

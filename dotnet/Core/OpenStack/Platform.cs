@@ -88,7 +88,7 @@ public static class PlatformX {
     /// <summary>
     /// The platform Caps.
     /// </summary>
-    [Flags] public enum Caps { None_ = 0x0, ReadDds = 0x1 }
+    [Flags] public enum Caps { None_ = 0x0, ReadDds = 0x1, Drawing = 0x2 }
 
     /// <summary>
     /// The platform OS.

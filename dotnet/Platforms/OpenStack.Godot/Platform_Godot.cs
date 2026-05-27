@@ -271,6 +271,7 @@ public class GodotSfx : SystemSfx { }
 public class GodotPlatform : Platform {
     public static readonly Platform This = new GodotPlatform();
     GodotPlatform() : base("GD", "Godot") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [new GodotGfxApi(), new GodotGfxSprite2D(), new GodotGfxSprite3D(), new GodotGfxModel(), null, null];
         SfxFactory = () => [new GodotSfx()];
         LogFunc = a => GD.Print(a?.Replace("\r", ""));

@@ -64,6 +64,7 @@ public class EginXGfxSprite2D : IOpenGfxSprite<object, object> {
 public class EginXPlatform : Platform {
     public static readonly Platform This = new EginXPlatform();
     EginXPlatform() : base("EX", "EginX") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [null, new EginXGfxSprite2D(), null, null, null, null];
         SfxFactory = () => [new SystemSfx()];
     }

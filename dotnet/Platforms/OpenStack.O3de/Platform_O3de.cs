@@ -68,6 +68,7 @@ public class O3deSfx : SystemSfx { }
 public class O3dePlatform : Platform {
     public static readonly Platform This = new O3dePlatform();
     O3dePlatform() : base("O3", "O3de") {
+        Caps = PlatformX.Caps.Drawing;
         GfxFactory = () => [null, null, new O3deGfxSprite3D(), new O3deGfxModel(), null, null];
         SfxFactory = () => [new O3deSfx()];
     }
