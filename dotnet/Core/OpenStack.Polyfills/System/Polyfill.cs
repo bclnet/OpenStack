@@ -1,12 +1,28 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
 namespace System;
 
 public static class Polyfill {
+    public static T CreateDelegate<T>(this MethodInfo s) where T : Delegate => (T)s.CreateDelegate(typeof(T));
+    public static int ReadAtLeast(this Stream s, Span<byte> buffer, int minimumBytes, bool throwOnEndOfStream = true) {
+        if (buffer.Length < minimumBytes) throw new Exception("Not big enough");
+        var totalRead = 0;
+        while (totalRead < minimumBytes) {
+            var read = s.Read(buffer[totalRead..]); // Slice the buffer so we only read into the remaining space
+            if (read == 0) {
+                if (throwOnEndOfStream) throw new EndOfStreamException("End of stream encountered before reaching minimumBytes");
+                return totalRead;
+            }
+            totalRead += read;
+        }
+        return totalRead;
+    }
+
     #region Convert Color
 
     public static uint FromBGR555(this ushort bgr555, bool addAlpha = true) {
