@@ -44,15 +44,12 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <param name="values">The span of elements to assign to the vector.</param>
     public Vector3(ReadOnlySpan<T> values) {
         if (values.Length < 3) throw new ArgumentOutOfRangeException(nameof(values));
-
         this = Unsafe.ReadUnaligned<Vector3<T>>(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(values)));
     }
 
     /// <summary>Gets a vector whose 3 elements are equal to zero.</summary>
     /// <value>A vector whose three elements are equal to zero (that is, it returns the vector <c>(0,0,0)</c>.</value>
-    public static Vector3<T> Zero {
-        get => default;
-    }
+    public static Vector3<T> Zero => default;
 
     /// <summary>Gets or sets the element at the specified index.</summary>
     /// <param name="index">The index of the element to get or set.</param>
@@ -70,7 +67,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> was less than zero or greater than the number of elements.</exception>
     internal static T GetElement(Vector3<T> vector, int index) {
         if ((uint)index >= Count) throw new ArgumentOutOfRangeException(nameof(index));
-
         return GetElementUnsafe(ref vector, index);
     }
 
@@ -87,7 +83,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> was less than zero or greater than the number of elements.</exception>
     internal static Vector3<T> WithElement(Vector3<T> vector, int index, T value) {
         if ((uint)index >= Count) throw new ArgumentOutOfRangeException(nameof(index));
-
         Vector3<T> result = vector;
         SetElementUnsafe(ref result, index, value);
         return result;
@@ -105,13 +100,10 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The summed vector.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Addition" /> method defines the addition operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator +(Vector3<T> left, Vector3<T> right) {
-        return new Vector3<T>(
-            Ops['+'](left.X, right.X),
-            Ops['+'](left.Y, right.Y),
-            Ops['+'](left.Z, right.Z)
-        );
-    }
+    public static Vector3<T> operator +(Vector3<T> left, Vector3<T> right) => new(
+        Ops['+'](left.X, right.X),
+        Ops['+'](left.Y, right.Y),
+        Ops['+'](left.Z, right.Z));
 
     /// <summary>Divides the first vector by the second.</summary>
     /// <param name="left">The first vector.</param>
@@ -119,13 +111,10 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The vector that results from dividing <paramref name="left" /> by <paramref name="right" />.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Division" /> method defines the division operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator /(Vector3<T> left, Vector3<T> right) {
-        return new Vector3<T>(
-            Ops['/'](left.X, right.X),
-            Ops['/'](left.Y, right.Y),
-            Ops['/'](left.Z, right.Z)
-        );
-    }
+    public static Vector3<T> operator /(Vector3<T> left, Vector3<T> right) => new(
+        Ops['/'](left.X, right.X),
+        Ops['/'](left.Y, right.Y),
+        Ops['/'](left.Z, right.Z));
 
     /// <summary>Divides the specified vector by a specified scalar value.</summary>
     /// <param name="value1">The vector.</param>
@@ -133,9 +122,7 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The result of the division.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Division" /> method defines the division operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator /(Vector3<T> value1, T value2) {
-        return value1 / new Vector3<T>(value2);
-    }
+    public static Vector3<T> operator /(Vector3<T> value1, T value2) => value1 / new Vector3<T>(value2);
 
     /// <summary>Returns a value that indicates whether each pair of elements in two specified vectors is equal.</summary>
     /// <param name="left">The first vector to compare.</param>
@@ -143,20 +130,16 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns><see langword="true" /> if <paramref name="left" /> and <paramref name="right" /> are equal; otherwise, <see langword="false" />.</returns>
     /// <remarks>Two <see cref="System.Numerics.Vector3<T>" /> objects are equal if each element in <paramref name="left" /> is equal to the corresponding element in <paramref name="right" />.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Vector3<T> left, Vector3<T> right) {
-        return (left.X.Equals(right.X))
-            && (left.Y.Equals(right.Y))
-            && (left.Z.Equals(right.Z));
-    }
+    public static bool operator ==(Vector3<T> left, Vector3<T> right) => left.X.Equals(right.X)
+        && left.Y.Equals(right.Y)
+        && left.Z.Equals(right.Z);
 
     /// <summary>Returns a value that indicates whether two specified vectors are not equal.</summary>
     /// <param name="left">The first vector to compare.</param>
     /// <param name="right">The second vector to compare.</param>
     /// <returns><see langword="true" /> if <paramref name="left" /> and <paramref name="right" /> are not equal; otherwise, <see langword="false" />.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Vector3<T> left, Vector3<T> right) {
-        return !(left == right);
-    }
+    public static bool operator !=(Vector3<T> left, Vector3<T> right) => !(left == right);
 
     /// <summary>Returns a new vector whose values are the product of each pair of elements in two specified vectors.</summary>
     /// <param name="left">The first vector.</param>
@@ -164,13 +147,10 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The element-wise product vector.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Multiply" /> method defines the multiplication operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator *(Vector3<T> left, Vector3<T> right) {
-        return new Vector3<T>(
-            Ops['*'](left.X, right.X),
-            Ops['*'](left.Y, right.Y),
-            Ops['*'](left.Z, right.Z)
-        );
-    }
+    public static Vector3<T> operator *(Vector3<T> left, Vector3<T> right) => new(
+        Ops['*'](left.X, right.X),
+        Ops['*'](left.Y, right.Y),
+        Ops['*'](left.Z, right.Z));
 
     /// <summary>Multiplies the specified vector by the specified scalar value.</summary>
     /// <param name="left">The vector.</param>
@@ -178,9 +158,7 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The scaled vector.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Multiply" /> method defines the multiplication operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator *(Vector3<T> left, T right) {
-        return left * new Vector3<T>(right);
-    }
+    public static Vector3<T> operator *(Vector3<T> left, T right) => left * new Vector3<T>(right);
 
     /// <summary>Multiplies the scalar value by the specified vector.</summary>
     /// <param name="left">The vector.</param>
@@ -188,9 +166,7 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The scaled vector.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Multiply" /> method defines the multiplication operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator *(T left, Vector3<T> right) {
-        return right * left;
-    }
+    public static Vector3<T> operator *(T left, Vector3<T> right) => right * left;
 
     /// <summary>Subtracts the second vector from the first.</summary>
     /// <param name="left">The first vector.</param>
@@ -198,31 +174,24 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns>The vector that results from subtracting <paramref name="right" /> from <paramref name="left" />.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_Subtraction" /> method defines the subtraction operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator -(Vector3<T> left, Vector3<T> right) {
-        return new Vector3<T>(
-            Ops['-'](left.X, right.X),
-            Ops['-'](left.Y, right.Y),
-            Ops['-'](left.Z, right.Z)
-        );
-    }
+    public static Vector3<T> operator -(Vector3<T> left, Vector3<T> right) => new Vector3<T>(
+        Ops['-'](left.X, right.X),
+        Ops['-'](left.Y, right.Y),
+        Ops['-'](left.Z, right.Z));
 
     /// <summary>Negates the specified vector.</summary>
     /// <param name="value">The vector to negate.</param>
     /// <returns>The negated vector.</returns>
     /// <remarks>The <see cref="System.Numerics.Vector3<T>.op_UnaryNegation" /> method defines the unary negation operation for <see cref="System.Numerics.Vector3<T>" /> objects.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> operator -(Vector3<T> value) {
-        return Zero - value;
-    }
+    public static Vector3<T> operator -(Vector3<T> value) => Zero - value;
 
     /// <summary>Adds two vectors together.</summary>
     /// <param name="left">The first vector to add.</param>
     /// <param name="right">The second vector to add.</param>
     /// <returns>The summed vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Add(Vector3<T> left, Vector3<T> right) {
-        return left + right;
-    }
+    public static Vector3<T> Add(Vector3<T> left, Vector3<T> right) => left + right;
 
     /// <summary>Restricts a vector between a minimum and a maximum value.</summary>
     /// <param name="value1">The vector to restrict.</param>
@@ -230,123 +199,95 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <param name="max">The maximum value.</param>
     /// <returns>The restricted vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Clamp(Vector3<T> value1, Vector3<T> min, Vector3<T> max) {
-        // We must follow HLSL behavior in the case user specified min value is bigger than max value.
-        return Min(Max(value1, min), max);
-    }
+    public static Vector3<T> Clamp(Vector3<T> value1, Vector3<T> min, Vector3<T> max) => Min(Max(value1, min), max); // We must follow HLSL behavior in the case user specified min value is bigger than max value.
 
     /// <summary>Computes the cross product of two vectors.</summary>
     /// <param name="vector1">The first vector.</param>
     /// <param name="vector2">The second vector.</param>
     /// <returns>The cross product.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Cross(Vector3<T> vector1, Vector3<T> vector2) {
-        return new Vector3<T>(
-            Ops['-'](Ops['*'](vector1.Y, vector2.Z), Ops['*'](vector1.Z, vector2.Y)),
-            Ops['-'](Ops['*'](vector1.Z, vector2.X), Ops['*'](vector1.X, vector2.Z)),
-            Ops['-'](Ops['*'](vector1.X, vector2.Y), Ops['*'](vector1.Y, vector2.X))
-        );
-    }
+    public static Vector3<T> Cross(Vector3<T> vector1, Vector3<T> vector2) => new(
+        Ops['-'](Ops['*'](vector1.Y, vector2.Z), Ops['*'](vector1.Z, vector2.Y)),
+        Ops['-'](Ops['*'](vector1.Z, vector2.X), Ops['*'](vector1.X, vector2.Z)),
+        Ops['-'](Ops['*'](vector1.X, vector2.Y), Ops['*'](vector1.Y, vector2.X)));
 
     /// <summary>Divides the first vector by the second.</summary>
     /// <param name="left">The first vector.</param>
     /// <param name="right">The second vector.</param>
     /// <returns>The vector resulting from the division.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Divide(Vector3<T> left, Vector3<T> right) {
-        return left / right;
-    }
+    public static Vector3<T> Divide(Vector3<T> left, Vector3<T> right) => left / right;
 
     /// <summary>Divides the specified vector by a specified scalar value.</summary>
     /// <param name="left">The vector.</param>
     /// <param name="divisor">The scalar value.</param>
     /// <returns>The vector that results from the division.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Divide(Vector3<T> left, T divisor) {
-        return left / divisor;
-    }
+    public static Vector3<T> Divide(Vector3<T> left, T divisor) => left / divisor;
 
     /// <summary>Returns the dot product of two vectors.</summary>
     /// <param name="vector1">The first vector.</param>
     /// <param name="vector2">The second vector.</param>
     /// <returns>The dot product.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Dot(Vector3<T> vector1, Vector3<T> vector2) {
-        return Ops['+'](Ops['+'](
-            Ops['*'](vector1.X, vector2.X),
-            Ops['*'](vector1.Y, vector2.Y)),
-            Ops['*'](vector1.Z, vector2.Z));
-    }
+    public static T Dot(Vector3<T> vector1, Vector3<T> vector2) => Ops['+'](Ops['+'](
+        Ops['*'](vector1.X, vector2.X),
+        Ops['*'](vector1.Y, vector2.Y)),
+        Ops['*'](vector1.Z, vector2.Z));
 
     /// <summary>Returns a vector whose elements are the maximum of each of the pairs of elements in two specified vectors.</summary>
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <returns>The maximized vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Max(Vector3<T> value1, Vector3<T> value2) {
-        return new Vector3<T>(
-            (value1.X.CompareTo(value2.X) > 0) ? value1.X : value2.X,
-            (value1.Y.CompareTo(value2.Y) > 0) ? value1.Y : value2.Y,
-            (value1.Z.CompareTo(value2.Z) > 0) ? value1.Z : value2.Z
-        );
-    }
+    public static Vector3<T> Max(Vector3<T> value1, Vector3<T> value2) => new(
+        (value1.X.CompareTo(value2.X) > 0) ? value1.X : value2.X,
+        (value1.Y.CompareTo(value2.Y) > 0) ? value1.Y : value2.Y,
+        (value1.Z.CompareTo(value2.Z) > 0) ? value1.Z : value2.Z);
 
     /// <summary>Returns a vector whose elements are the minimum of each of the pairs of elements in two specified vectors.</summary>
     /// <param name="value1">The first vector.</param>
     /// <param name="value2">The second vector.</param>
     /// <returns>The minimized vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Min(Vector3<T> value1, Vector3<T> value2) {
-        return new Vector3<T>(
-            (value1.X.CompareTo(value2.X) < 0) ? value1.X : value2.X,
-            (value1.Y.CompareTo(value2.Y) < 0) ? value1.Y : value2.Y,
-            (value1.Z.CompareTo(value2.Z) < 0) ? value1.Z : value2.Z
-        );
-    }
+    public static Vector3<T> Min(Vector3<T> value1, Vector3<T> value2) => new(
+        (value1.X.CompareTo(value2.X) < 0) ? value1.X : value2.X,
+        (value1.Y.CompareTo(value2.Y) < 0) ? value1.Y : value2.Y,
+        (value1.Z.CompareTo(value2.Z) < 0) ? value1.Z : value2.Z);
 
     /// <summary>Returns a new vector whose values are the product of each pair of elements in two specified vectors.</summary>
     /// <param name="left">The first vector.</param>
     /// <param name="right">The second vector.</param>
     /// <returns>The element-wise product vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Multiply(Vector3<T> left, Vector3<T> right) {
-        return left * right;
-    }
+    public static Vector3<T> Multiply(Vector3<T> left, Vector3<T> right) => left * right;
 
     /// <summary>Multiplies a vector by a specified scalar.</summary>
     /// <param name="left">The vector to multiply.</param>
     /// <param name="right">The scalar value.</param>
     /// <returns>The scaled vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Multiply(Vector3<T> left, T right) {
-        return left * right;
-    }
+    public static Vector3<T> Multiply(Vector3<T> left, T right) => left * right;
 
     /// <summary>Multiplies a scalar value by a specified vector.</summary>
     /// <param name="left">The scaled value.</param>
     /// <param name="right">The vector.</param>
     /// <returns>The scaled vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Multiply(T left, Vector3<T> right) {
-        return left * right;
-    }
+    public static Vector3<T> Multiply(T left, Vector3<T> right) => left * right;
 
     /// <summary>Negates a specified vector.</summary>
     /// <param name="value">The vector to negate.</param>
     /// <returns>The negated vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Negate(Vector3<T> value) {
-        return -value;
-    }
+    public static Vector3<T> Negate(Vector3<T> value) => -value;
 
     /// <summary>Subtracts the second vector from the first.</summary>
     /// <param name="left">The first vector.</param>
     /// <param name="right">The second vector.</param>
     /// <returns>The difference vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3<T> Subtract(Vector3<T> left, Vector3<T> right) {
-        return left - right;
-    }
+    public static Vector3<T> Subtract(Vector3<T> left, Vector3<T> right) => left - right;
 
     /// <summary>Copies the elements of the vector to a specified array.</summary>
     /// <param name="array">The destination array.</param>
@@ -358,7 +299,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     public readonly void CopyTo(T[] array) {
         // We explicitly don't check for `null` because historically this has thrown `NullReferenceException` for perf reasons
         if (array.Length < Count) throw new ArgumentException("DestinationTooShort");
-
         Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref array[0]), this);
     }
 
@@ -377,7 +317,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
         // We explicitly don't check for `null` because historically this has thrown `NullReferenceException` for perf reasons
         if ((uint)index >= (uint)array.Length) throw new ArgumentOutOfRangeException("IndexMustBeLess");
         if ((array.Length - index) < Count) throw new ArgumentException("DestinationTooShort");
-
         Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref array[index]), this);
     }
 
@@ -387,7 +326,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly void CopyTo(Span<T> destination) {
         if (destination.Length < Count) throw new ArgumentException("DestinationTooShort");
-
         Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(destination)), this);
     }
 
@@ -397,7 +335,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool TryCopyTo(Span<T> destination) {
         if (destination.Length < Count) return false;
-
         Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(destination)), this);
         return true;
     }
@@ -407,33 +344,25 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <returns><see langword="true" /> if the current instance and <paramref name="obj" /> are equal; otherwise, <see langword="false" />. If <paramref name="obj" /> is <see langword="null" />, the method returns <see langword="false" />.</returns>
     /// <remarks>The current instance and <paramref name="obj" /> are equal if <paramref name="obj" /> is a <see cref="System.Numerics.Vector3" /> object and their corresponding elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override readonly bool Equals(object obj) {
-        return (obj is Vector3<T> other) && Equals(other);
-    }
+    public override readonly bool Equals(object obj) => (obj is Vector3<T> other) && Equals(other);
 
     /// <summary>Returns a value that indicates whether this instance and another vector are equal.</summary>
     /// <param name="other">The other vector.</param>
     /// <returns><see langword="true" /> if the two vectors are equal; otherwise, <see langword="false" />.</returns>
     /// <remarks>Two vectors are equal if their <see cref="System.Numerics.Vector3.X" />, <see cref="System.Numerics.Vector3.Y" />, and <see cref="System.Numerics.Vector3.Z" /> elements are equal.</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly bool Equals(Vector3<T> other) {
-        return X.Equals(other.X)
-            && Y.Equals(other.Y)
-            && Z.Equals(other.Z);
-    }
+    public readonly bool Equals(Vector3<T> other) => X.Equals(other.X)
+        && Y.Equals(other.Y)
+        && Z.Equals(other.Z);
 
     /// <summary>Returns the hash code for this instance.</summary>
     /// <returns>The hash code.</returns>
-    public override readonly int GetHashCode() {
-        return HashCode.Combine(X, Y, Z);
-    }
+    public override readonly int GetHashCode() => HashCode.Combine(X, Y, Z);
 
     /// <summary>Returns the string representation of the current instance using default formatting.</summary>
     /// <returns>The string representation of the current instance.</returns>
     /// <remarks>This method returns a string in which each element of the vector is formatted using the "G" (general) format string and the formatting conventions of the current thread culture. The "&lt;" and "&gt;" characters are used to begin and end the string, and the current culture's <see cref="System.Globalization.NumberFormatInfo.NumberGroupSeparator" /> property followed by a space is used to separate each element.</remarks>
-    public override readonly string ToString() {
-        return ToString("G", CultureInfo.CurrentCulture);
-    }
+    public override readonly string ToString() => ToString("G", CultureInfo.CurrentCulture);
 
     /// <summary>Returns the string representation of the current instance using the specified format string to format individual elements.</summary>
     /// <param name="format">A standard or custom numeric format string that defines the format of individual elements.</param>
@@ -441,9 +370,7 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <remarks>This method returns a string in which each element of the vector is formatted using <paramref name="format" /> and the current culture's formatting conventions. The "&lt;" and "&gt;" characters are used to begin and end the string, and the current culture's <see cref="System.Globalization.NumberFormatInfo.NumberGroupSeparator" /> property followed by a space is used to separate each element.</remarks>
     /// <related type="Article" href="/dotnet/standard/base-types/standard-numeric-format-strings">Standard Numeric Format Strings</related>
     /// <related type="Article" href="/dotnet/standard/base-types/custom-numeric-format-strings">Custom Numeric Format Strings</related>
-    public readonly string ToString(string format) {
-        return ToString(format, CultureInfo.CurrentCulture);
-    }
+    public readonly string ToString(string format) => ToString(format, CultureInfo.CurrentCulture);
 
     /// <summary>Returns the string representation of the current instance using the specified format string to format individual elements and the specified format provider to define culture-specific formatting.</summary>
     /// <param name="format">A standard or custom numeric format string that defines the format of individual elements.</param>
@@ -454,7 +381,6 @@ public partial struct Vector3<T> : IEquatable<Vector3<T>>, IFormattable where T 
     /// <related type="Article" href="/dotnet/standard/base-types/custom-numeric-format-strings">Custom Numeric Format Strings</related>
     public readonly string ToString(string format, IFormatProvider formatProvider) {
         var separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
-
         return $"<{X}{separator} {Y}{separator} {Z}>";
     }
 }

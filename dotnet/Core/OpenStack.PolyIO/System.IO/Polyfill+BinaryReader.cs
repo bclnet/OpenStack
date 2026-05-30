@@ -597,8 +597,8 @@ public static partial class Polyfill {
             y: source.ReadSingle());
     public static Vector2 ReadHalfVector2(this BinaryReader source)
         => new(
-            x: source.ReadHalf(),
-            y: source.ReadHalf());
+            x: (float)source.ReadHalf(),
+            y: (float)source.ReadHalf());
     public static Vector3 ReadVector3(this BinaryReader source)
         => new(
             x: source.ReadSingle(),
@@ -606,9 +606,9 @@ public static partial class Polyfill {
             z: source.ReadSingle());
     public static Vector3 ReadHalfVector3(this BinaryReader source)
         => new(
-            x: source.ReadHalf(),
-            y: source.ReadHalf(),
-            z: source.ReadHalf());
+            x: (float)source.ReadHalf(),
+            y: (float)source.ReadHalf(),
+            z: (float)source.ReadHalf());
     public static Vector3 ReadHalf16Vector3(this BinaryReader source)
         => new(
             x: source.ReadHalf16(),
@@ -622,10 +622,10 @@ public static partial class Polyfill {
             w: source.ReadSingle());
     public static Vector4 ReadHalfVector4(this BinaryReader source)
         => new(
-            x: source.ReadHalf(),
-            y: source.ReadHalf(),
-            z: source.ReadHalf(),
-            w: source.ReadHalf());
+            x: (float)source.ReadHalf(),
+            y: (float)source.ReadHalf(),
+            z: (float)source.ReadHalf(),
+            w: (float)source.ReadHalf());
 
     public static Matrix2x2 ReadMatrix2x2(this BinaryReader r)
         => new() {
@@ -758,10 +758,10 @@ public static partial class Polyfill {
             z: source.ReadSingle());
     public static Quaternion ReadHalfQuaternion(this BinaryReader source)
         => new(
-            x: source.ReadHalf(),
-            y: source.ReadHalf(),
-            z: source.ReadHalf(),
-            w: source.ReadHalf());
+            x: (float)source.ReadHalf(),
+            y: (float)source.ReadHalf(),
+            z: (float)source.ReadHalf(),
+            w: (float)source.ReadHalf());
 
     #endregion
 

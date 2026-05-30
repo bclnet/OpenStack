@@ -12,7 +12,7 @@ public static partial class Polyfill {
         return s.ToArray();
     }
 
-    public static byte[] ReadBytes(this Stream stream, int count) { var data = new byte[count]; stream.Read(data, 0, count); return data; }
+    public static byte[] ReadBytes(this Stream stream, int count) { var data = new byte[count]; stream.ReadExactly(data, 0, count); return data; }
 
     #endregion
 

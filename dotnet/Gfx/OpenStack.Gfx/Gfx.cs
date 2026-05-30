@@ -202,7 +202,7 @@ public class Shader(Func<int, string, int> getUniformLocation, Func<int, string,
         return value;
     }
 
-    public int GetAttribLocation(string name) => _getAttribLocation(Program, name);
+    public uint GetAttribLocation(string name) => (uint)_getAttribLocation(Program, name);
 }
 
 /// <summary>

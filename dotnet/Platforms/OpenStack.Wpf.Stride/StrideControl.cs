@@ -47,7 +47,7 @@ public abstract class StrideControl : UserControl {
         var game = new Game();
         game.Run(context, (Scene scene) => {
             game.Window.IsBorderLess = true;
-            game.SetupBase();
+            //game.SetupBase();
             var entity1 = new Entity("Name", new Vector3(1f, 0.5f, 3f))
                 {
                     new ModelComponent(new CubeProceduralModel().Generate(game.Services))

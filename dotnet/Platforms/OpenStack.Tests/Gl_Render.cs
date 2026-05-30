@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OpenTK.Input;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 
 namespace OpenStack.Gfx.OpenGL;
 
@@ -37,7 +38,7 @@ public class TestGLCamera : GLCamera {
 public class TestGLDebugCamera : GLDebugCamera {
     #region base
     public TestGLDebugCamera() {
-        HandleInput(new MouseState(), new KeyboardState());
+        HandleInput(Activator.CreateInstance<MouseState>(), Activator.CreateInstance<KeyboardState>());
         MouseOverRenderArea = true;
         SetViewport(0, 0, 100, 100);
     }
@@ -53,7 +54,8 @@ public class TestGLDebugCamera : GLDebugCamera {
     }
     [TestMethod]
     public void Test_HandleInput() {
-        HandleInput(new MouseState(), new KeyboardState());
+        
+        HandleInput(Activator.CreateInstance<MouseState>(), Activator.CreateInstance<KeyboardState>());
     }
     [TestMethod]
     public void Test_HandleInputTick() {

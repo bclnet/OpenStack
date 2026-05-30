@@ -4,7 +4,7 @@ namespace MathNet.Numerics.LinearAlgebra;
 
 public static class NumericsExtensions {
     public static Vector<float> ToMathVector3(this Vector3 s) { var r = Vector<float>.Build.Dense(3); r[0] = s.X; r[1] = s.Y; r[2] = s.Z; return r; }
-    public static Vector3 ToVector3(this Vector3 s, Vector<float> vector) => new Vector3 { X = vector[0], Y = vector[1], Z = vector[2] };
+    public static Vector3 ToVector3(this Vector3 s, Vector<float> vector) => new() { X = vector[0], Y = vector[1], Z = vector[2] };
 
     public static Matrix<float> ToMathMatrix(this Matrix3x3 s) {
         var r = Matrix<float>.Build.Dense(3, 3);

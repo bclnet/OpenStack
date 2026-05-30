@@ -1,5 +1,4 @@
-﻿using SkiaSharp;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -25,7 +24,7 @@ public class DirectBitmap : IDisposable {
         PixelsHandle = GCHandle.Alloc(Pixels, GCHandleType.Pinned);
         Bitmap = UseDrawing
             ? new Bitmap(width, height, width * sizeof(int), PixelFormat.Format32bppPArgb, PixelsHandle.AddrOfPinnedObject())
-            : new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unknown);
+            : null; // new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unknown);
     }
 
     public void Dispose() {

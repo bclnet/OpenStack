@@ -1,16 +1,16 @@
 using OpenStack.Gfx;
 using OpenStack.Gfx.Egin;
-using OpenTK.Input;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using Key = OpenTK.Input.Key;
+#pragma warning disable CS9113
 
 namespace OpenStack.Wpf.Control;
 
 #region OpenGLControl
 
-public abstract class OpenGLControl(Func<object, object, object, string, object> shellState) : GLControl {
+public abstract class OpenGLControl(Func<object, object, object, string, object> shellState) : GLWpfControl {
     int Id = 0;
 
     #region Binding
@@ -70,9 +70,9 @@ public abstract class OpenGLControl(Func<object, object, object, string, object>
     protected override void Render(Camera camera, float frameTime)
         => Renderer?.Render(camera, default);
 
-    public override void Tick(int? deltaTime = null) {
+    public override void Tick(float deltaTime) {
         base.Tick(deltaTime);
-        Renderer?.Update(DeltaTime);
+        Renderer?.Update(deltaTime);
         Render(Camera, 0f);
     }
 
@@ -80,27 +80,27 @@ public abstract class OpenGLControl(Func<object, object, object, string, object>
 
     #region HandleInput
 
-    static readonly Key[] Keys = [Key.Q, Key.W, Key.A, Key.Z, Key.Escape, Key.Space, Key.Tilde];
-    readonly HashSet<Key> KeyDowns = [];
+    static readonly Keys[] AllKeys = [Keys.Q, Keys.W, Keys.A, Keys.Z, Keys.Escape, Keys.Space, Keys.GraveAccent];
+    readonly HashSet<Keys> KeyDowns = [];
 
-    protected override void HandleInput(MouseState mouseState, KeyboardState keyboardState) {
-        if (Renderer == null) return;
-        foreach (var key in Keys)
-            if (!KeyDowns.Contains(key) && keyboardState.IsKeyDown(key)) KeyDowns.Add(key);
-        foreach (var key in KeyDowns)
-            if (keyboardState.IsKeyUp(key)) {
-                KeyDowns.Remove(key);
-                switch (key) {
-                    case Key.W: Select(++Id); break;
-                    case Key.Q: Select(--Id); break;
-                        //case Key.A: MovePrev(); break;
-                        //case Key.Z: MoveNext(); ; break;
-                        //case Key.Escape: Reset(); break;
-                        //case Key.Space: MoveReset(); break;
-                        //case Key.Tilde: Toggle(); break;
-                }
-            }
-    }
+    //protected override void HandleInput(MouseState mouseState, KeyboardState keyboardState) {
+    //    if (Renderer == null) return;
+    //    foreach (var key in Keys)
+    //        if (!KeyDowns.Contains(key) && keyboardState.IsKeyDown(key)) KeyDowns.Add(key);
+    //    foreach (var key in KeyDowns)
+    //        if (keyboardState.IsKeyReleased(key)) {
+    //            KeyDowns.Remove(key);
+    //            switch (key) {
+    //                case Key.W: Select(++Id); break;
+    //                case Key.Q: Select(--Id); break;
+    //                    //case Key.A: MovePrev(); break;
+    //                    //case Key.Z: MoveNext(); ; break;
+    //                    //case Key.Escape: Reset(); break;
+    //                    //case Key.Space: MoveReset(); break;
+    //                    //case Key.Tilde: Toggle(); break;
+    //            }
+    //        }
+    //}
 
     void Select(int id) {
         if (Source is ITextureSelect z2) z2.Select(id);

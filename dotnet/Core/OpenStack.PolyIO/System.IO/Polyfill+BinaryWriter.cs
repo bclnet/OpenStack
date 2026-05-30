@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using static System.UnsafeX;
 
-
 namespace System.IO;
 
 public unsafe static partial class Polyfill {
@@ -17,14 +16,14 @@ public unsafe static partial class Polyfill {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static void WriteDoubleBigEndian(Span<byte> source, double value) {
-        if (BitConverter.IsLittleEndian) { var tmp = BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits(value)); MemoryMarshal.Write(source, ref tmp); }
-        else MemoryMarshal.Write(source, ref value);
+        if (BitConverter.IsLittleEndian) { var tmp = BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits(value)); MemoryMarshal.Write(source, in tmp); }
+        else MemoryMarshal.Write(source, in value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static void WriteSingleBigEndian(Span<byte> source, float value) {
-        if (BitConverter.IsLittleEndian) { var tmp = BinaryPrimitives.ReverseEndianness(BitConverter.SingleToInt32Bits(value)); MemoryMarshal.Write(source, ref tmp); }
-        else MemoryMarshal.Write(source, ref value);
+        if (BitConverter.IsLittleEndian) { var tmp = BinaryPrimitives.ReverseEndianness(BitConverter.SingleToInt32Bits(value)); MemoryMarshal.Write(source, in tmp); }
+        else MemoryMarshal.Write(source, in value);
     }
 
     // primatives : endian

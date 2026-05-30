@@ -21,9 +21,9 @@ namespace OpenStack.Gfx.OpenGL;
 /// </summary>
 public static class OpenGLX {
     public static Dictionary<Type, Func<ISource, object, bool, MaterialManager<GLRenderMaterial, int>, Task<object>>> BuildersByType = [];
-    public static OpenTK.Vector3 ToOpenTK(this Vector3 vec) => new(vec.X, vec.Y, vec.Z);
-    public static OpenTK.Vector4 ToOpenTK(this Vector4 vec) => new(vec.X, vec.Y, vec.Z, vec.W);
-    public static OpenTK.Matrix4 ToOpenTK(this Matrix4x4 m) => new(m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44);
+    public static OpenTK.Mathematics.Vector3 ToOpenTK(this Vector3 vec) => new(vec.X, vec.Y, vec.Z);
+    public static OpenTK.Mathematics.Vector4 ToOpenTK(this Vector4 vec) => new(vec.X, vec.Y, vec.Z, vec.W);
+    public static OpenTK.Mathematics.Matrix4 ToOpenTK(this Matrix4x4 m) => new(m.M11, m.M12, m.M13, m.M14, m.M21, m.M22, m.M23, m.M24, m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44);
 }
 
 // RenderPrimitiveType
@@ -120,7 +120,7 @@ public abstract class ShaderLoader {
             defines.AddRange(FindDefines(shaderSource));
         }
         GL.CompileShader(vertexShader);
-        GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out var shaderStatus);
+        GL.GetShaderi(vertexShader, ShaderParameterName.CompileStatus, out var shaderStatus);
         if (shaderStatus != 1) {
             GL.GetShaderInfoLog(vertexShader, out var vsInfo);
             throw new Exception($"Error setting up Vertex Shader \"{name}\": {vsInfo}");
@@ -135,7 +135,7 @@ public abstract class ShaderLoader {
             defines = [.. defines.Union(FindDefines(shaderSource))];
         }
         GL.CompileShader(fragmentShader);
-        GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out shaderStatus);
+        GL.GetShaderi(fragmentShader, ShaderParameterName.CompileStatus, out shaderStatus);
         if (shaderStatus != 1) {
             GL.GetShaderInfoLog(fragmentShader, out var fsInfo);
             throw new Exception($"Error setting up Fragment Shader \"{name}\": {fsInfo}");
@@ -156,7 +156,7 @@ public abstract class ShaderLoader {
         GL.AttachShader(shader.Program, fragmentShader);
         GL.LinkProgram(shader.Program);
         GL.ValidateProgram(shader.Program);
-        GL.GetProgram(shader.Program, GetProgramParameterName.LinkStatus, out var linkStatus);
+        GL.GetProgrami(shader.Program, ProgramProperty.LinkStatus, out var linkStatus);
         GL.DetachShader(shader.Program, vertexShader);
         GL.DeleteShader(vertexShader);
         GL.DetachShader(shader.Program, fragmentShader);

@@ -1,7 +1,7 @@
 ﻿using OpenStack.Gfx.Egin;
 using OpenStack.Gfx.Egin.Particles;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +52,7 @@ public class GLDebugCamera : GLCamera {
     MouseState MouseState;
     int ScrollWheelDelta;
 
-    public override void Tick(int deltaTime) {
+    public override void Tick(float deltaTime) {
         if (!MouseOverRenderArea) return;
 
         // use the keyboard state to update position
@@ -66,17 +66,17 @@ public class GLDebugCamera : GLCamera {
     }
 
     public override void HandleInput(MouseState mouseState, KeyboardState keyboardState) {
-        ScrollWheelDelta += mouseState.ScrollWheelValue - MouseState.ScrollWheelValue;
+        ScrollWheelDelta += (int)(mouseState.Scroll.X - MouseState.X);
         MouseState = mouseState;
         KeyboardState = keyboardState;
-        if (!MouseOverRenderArea || mouseState.LeftButton == ButtonState.Released) {
+        if (!MouseOverRenderArea || mouseState.IsButtonReleased(MouseButton.Left)) {
             MouseDragging = false;
             MouseDelta = default;
             if (!MouseOverRenderArea) return;
         }
 
         // drag
-        if (mouseState.LeftButton == ButtonState.Pressed) {
+        if (mouseState.IsButtonPressed(MouseButton.Left)) {
             if (!MouseDragging) { MouseDragging = true; MousePreviousPosition = new Vector2(mouseState.X, mouseState.Y); }
             var mouseNewCoords = new Vector2(mouseState.X, mouseState.Y);
             MouseDelta.X = mouseNewCoords.X - MousePreviousPosition.X;
@@ -89,15 +89,15 @@ public class GLDebugCamera : GLCamera {
         var speed = CAMERASPEED * deltaTime;
 
         // double speed if shift is pressed
-        if (KeyboardState.IsKeyDown(Key.ShiftLeft)) speed *= 2;
-        else if (KeyboardState.IsKeyDown(Key.F)) speed *= 10;
+        if (KeyboardState.IsKeyDown(Keys.LeftShift)) speed *= 2;
+        else if (KeyboardState.IsKeyDown(Keys.F)) speed *= 10;
 
-        if (KeyboardState.IsKeyDown(Key.W)) Location += GetForwardVector() * speed;
-        if (KeyboardState.IsKeyDown(Key.S)) Location -= GetForwardVector() * speed;
-        if (KeyboardState.IsKeyDown(Key.D)) Location += GetRightVector() * speed;
-        if (KeyboardState.IsKeyDown(Key.A)) Location -= GetRightVector() * speed;
-        if (KeyboardState.IsKeyDown(Key.Z)) Location += new Vector3(0, 0, -speed);
-        if (KeyboardState.IsKeyDown(Key.Q)) Location += new Vector3(0, 0, speed);
+        if (KeyboardState.IsKeyDown(Keys.W)) Location += GetForwardVector() * speed;
+        if (KeyboardState.IsKeyDown(Keys.S)) Location -= GetForwardVector() * speed;
+        if (KeyboardState.IsKeyDown(Keys.D)) Location += GetRightVector() * speed;
+        if (KeyboardState.IsKeyDown(Keys.A)) Location -= GetRightVector() * speed;
+        if (KeyboardState.IsKeyDown(Keys.Z)) Location += new Vector3(0, 0, -speed);
+        if (KeyboardState.IsKeyDown(Keys.Q)) Location += new Vector3(0, 0, speed);
 
         // scroll
         if (ScrollWheelDelta != 0) { Location += GetForwardVector() * ScrollWheelDelta * speed; ScrollWheelDelta = 0; }
@@ -116,7 +116,7 @@ public class GLMeshBuffers {
     public Buffer[] IndexBuffers;
 
     public struct Buffer {
-        public uint Handle;
+        public int Handle;
         public long Size;
     }
 
@@ -124,16 +124,16 @@ public class GLMeshBuffers {
         VertexBuffers = new Buffer[vbib.VertexBuffers.Count];
         IndexBuffers = new Buffer[vbib.IndexBuffers.Count];
         for (var i = 0; i < vbib.VertexBuffers.Count; i++) {
-            VertexBuffers[i].Handle = (uint)GL.GenBuffer();
+            VertexBuffers[i].Handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBuffers[i].Handle);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vbib.VertexBuffers[i].ElementCount * vbib.VertexBuffers[i].ElementSizeInBytes), vbib.VertexBuffers[i].Data, BufferUsageHint.StaticDraw);
-            GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out VertexBuffers[i].Size);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vbib.VertexBuffers[i].ElementCount * vbib.VertexBuffers[i].ElementSizeInBytes), vbib.VertexBuffers[i].Data, BufferUsage.StaticDraw);
+            GL.GetBufferParameteri64(BufferTarget.ArrayBuffer, BufferPName.BufferSize, out VertexBuffers[i].Size);
         }
         for (var i = 0; i < vbib.IndexBuffers.Count; i++) {
-            IndexBuffers[i].Handle = (uint)GL.GenBuffer();
+            IndexBuffers[i].Handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBuffers[i].Handle);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(vbib.IndexBuffers[i].ElementCount * vbib.IndexBuffers[i].ElementSizeInBytes), vbib.IndexBuffers[i].Data, BufferUsageHint.StaticDraw);
-            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out IndexBuffers[i].Size);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(vbib.IndexBuffers[i].ElementCount * vbib.IndexBuffers[i].ElementSizeInBytes), vbib.IndexBuffers[i].Data, BufferUsage.StaticDraw);
+            GL.GetBufferParameteri64(BufferTarget.ElementArrayBuffer, BufferPName.BufferSize, out IndexBuffers[i].Size);
         }
     }
 }
@@ -143,7 +143,7 @@ public class GLMeshBuffers {
 /// </summary>
 public class GLMeshBufferCache {
     Dictionary<IVBIB, GLMeshBuffers> _gpuBuffers = [];
-    Dictionary<VAOKey, uint> _vertexArrayObjects = [];
+    Dictionary<VAOKey, int> _vertexArrayObjects = [];
 
     struct VAOKey {
         public GLMeshBuffers VBIB;
@@ -162,7 +162,7 @@ public class GLMeshBufferCache {
         return newGpuVbib;
     }
 
-    public uint GetVertexArrayObject(IVBIB vbib, Shader shader, uint vtxIndex, uint idxIndex, uint baseVertex) {
+    public int GetVertexArrayObject(IVBIB vbib, Shader shader, uint vtxIndex, uint idxIndex, uint baseVertex) {
         var gpuVbib = GetVertexIndexBuffers(vbib);
         var vaoKey = new VAOKey {
             VBIB = gpuVbib,
@@ -175,7 +175,7 @@ public class GLMeshBufferCache {
         // cache
         if (_vertexArrayObjects.TryGetValue(vaoKey, out var z)) return z;
         // build
-        GL.GenVertexArrays(1, out uint newVaoHandle);
+        int newVaoHandle = 0; GL.GenVertexArrays(1, ref newVaoHandle);
         GL.BindVertexArray(newVaoHandle);
         GL.BindBuffer(BufferTarget.ArrayBuffer, gpuVbib.VertexBuffers[vtxIndex].Handle);
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, gpuVbib.IndexBuffers[idxIndex].Handle);
@@ -194,8 +194,8 @@ public class GLMeshBufferCache {
     }
 
     static void BindVertexAttrib(OnDiskBufferData.Attribute attribute, string attributeName, int shaderProgram, int stride, uint baseVertex) {
-        var attributeLocation = GL.GetAttribLocation(shaderProgram, attributeName);
-        if (attributeLocation == -1) return; // Ignore this attribute if it is not found in the shader
+        var attributeLocation = (uint)GL.GetAttribLocation(shaderProgram, attributeName);
+        if (attributeLocation == uint.MaxValue) return; // Ignore this attribute if it is not found in the shader
         GL.EnableVertexAttribArray(attributeLocation);
         switch (attribute.Format) {
             case DXGI_FORMAT.R32G32B32_FLOAT: GL.VertexAttribPointer(attributeLocation, 3, VertexAttribPointerType.Float, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
@@ -204,8 +204,8 @@ public class GLMeshBufferCache {
             case DXGI_FORMAT.R16G16_FLOAT: GL.VertexAttribPointer(attributeLocation, 2, VertexAttribPointerType.HalfFloat, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             case DXGI_FORMAT.R32G32B32A32_FLOAT: GL.VertexAttribPointer(attributeLocation, 4, VertexAttribPointerType.Float, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             case DXGI_FORMAT.R8G8B8A8_UINT: GL.VertexAttribPointer(attributeLocation, 4, VertexAttribPointerType.UnsignedByte, false, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
-            case DXGI_FORMAT.R16G16_SINT: GL.VertexAttribIPointer(attributeLocation, 2, VertexAttribIntegerType.Short, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
-            case DXGI_FORMAT.R16G16B16A16_SINT: GL.VertexAttribIPointer(attributeLocation, 4, VertexAttribIntegerType.Short, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
+            case DXGI_FORMAT.R16G16_SINT: GL.VertexAttribIPointer(attributeLocation, 2, VertexAttribIType.Short, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
+            case DXGI_FORMAT.R16G16B16A16_SINT: GL.VertexAttribIPointer(attributeLocation, 4, VertexAttribIType.Short, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             case DXGI_FORMAT.R16G16_SNORM: GL.VertexAttribPointer(attributeLocation, 2, VertexAttribPointerType.Short, true, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             case DXGI_FORMAT.R16G16_UNORM: GL.VertexAttribPointer(attributeLocation, 2, VertexAttribPointerType.UnsignedShort, true, stride, (IntPtr)(baseVertex + attribute.Offset)); break;
             default: throw new FormatException($"Unknown attribute format {attribute.Format}");
@@ -250,9 +250,9 @@ public static class MeshBatchRenderer {
             var uniformLocationObjectId = shader.GetUniformLocation("sceneObjectId");
             var uniformLocationMeshId = shader.GetUniformLocation("meshId");
             GL.UseProgram(shader.Program);
-            GL.Uniform3(shader.GetUniformLocation("vLightPosition"), cameraPosition);
-            GL.Uniform3(shader.GetUniformLocation("vEyePosition"), cameraPosition);
-            GL.UniformMatrix4(shader.GetUniformLocation("uProjectionViewMatrix"), false, ref viewProjectionMatrix);
+            GL.Uniform3f(shader.GetUniformLocation("vLightPosition"), 1, in cameraPosition);
+            GL.Uniform3f(shader.GetUniformLocation("vEyePosition"), 1, in cameraPosition);
+            GL.UniformMatrix4f(shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in viewProjectionMatrix);
 
             // materials
             foreach (var materialGroup in shaderGroup.GroupBy(a => a.Call.Material)) {
@@ -261,21 +261,21 @@ public static class MeshBatchRenderer {
                 material.Render(shader);
                 foreach (var request in materialGroup) {
                     var transform = request.Transform.ToOpenTK();
-                    GL.UniformMatrix4(uniformLocationTransform, false, ref transform);
-                    if (uniformLocationObjectId != 1) GL.Uniform1(uniformLocationObjectId, request.NodeId);
-                    if (uniformLocationMeshId != 1) GL.Uniform1(uniformLocationMeshId, request.MeshId);
-                    if (uniformLocationTime != 1) GL.Uniform1(uniformLocationTime, request.Mesh.Time);
-                    if (uniformLocationAnimated != -1) GL.Uniform1(uniformLocationAnimated, request.Mesh.AnimationTexture.HasValue ? 1.0f : 0.0f);
+                    GL.UniformMatrix4f(uniformLocationTransform, 1, false, ref transform);
+                    if (uniformLocationObjectId != 1) GL.Uniform1i(uniformLocationObjectId, request.NodeId);
+                    if (uniformLocationMeshId != 1) GL.Uniform1i(uniformLocationMeshId, request.MeshId);
+                    if (uniformLocationTime != 1) GL.Uniform1f(uniformLocationTime, request.Mesh.Time);
+                    if (uniformLocationAnimated != -1) GL.Uniform1f(uniformLocationAnimated, request.Mesh.AnimationTexture.HasValue ? 1.0f : 0.0f);
 
                     // push animation texture to the shader (if it supports it)
                     if (request.Mesh.AnimationTexture.HasValue) {
-                        if (uniformLocationAnimationTexture != -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, request.Mesh.AnimationTexture.Value); GL.Uniform1(uniformLocationAnimationTexture, 0); }
-                        if (uniformLocationNumBones != -1) { var v = (float)Math.Max(1, request.Mesh.AnimationTextureSize - 1); GL.Uniform1(uniformLocationNumBones, v); }
+                        if (uniformLocationAnimationTexture != -1) { GL.ActiveTexture(TextureUnit.Texture0); GL.BindTexture(TextureTarget.Texture2D, request.Mesh.AnimationTexture.Value); GL.Uniform1i(uniformLocationAnimationTexture, 0); }
+                        if (uniformLocationNumBones != -1) { var v = (float)Math.Max(1, request.Mesh.AnimationTextureSize - 1); GL.Uniform1f(uniformLocationNumBones, v); }
                     }
 
                     // draw
-                    if (uniformLocationTint > -1) { var tint = request.Mesh.Tint.ToOpenTK(); GL.Uniform4(uniformLocationTint, tint); }
-                    if (uniformLocationTintDrawCall > -1) GL.Uniform3(uniformLocationTintDrawCall, request.Call.TintColor.ToOpenTK());
+                    if (uniformLocationTint > -1) { var tint = request.Mesh.Tint.ToOpenTK(); GL.Uniform4f(uniformLocationTint, 1, in tint); }
+                    if (uniformLocationTintDrawCall > -1) GL.Uniform3f(uniformLocationTintDrawCall, 1, in request.Call.TintColor);
                     GL.BindVertexArray(request.Call.VertexArrayObject);
                     GL.DrawElements((PrimitiveType)request.Call.PrimitiveType, request.Call.IndexCount, (DrawElementsType)request.Call.IndexType, (IntPtr)request.Call.StartIndex);
                 }
@@ -304,7 +304,7 @@ public class QuadIndexBuffer {
             indices[(i * 6) + 4] = (ushort)((i * 4) + 2);
             indices[(i * 6) + 5] = (ushort)((i * 4) + 3);
         }
-        GL.BufferData(BufferTarget.ElementArrayBuffer, size * sizeof(ushort), indices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, size * sizeof(ushort), indices, BufferUsage.StaticDraw);
     }
 }
 
@@ -374,20 +374,20 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
         // color
         colorHandle = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, colorHandle);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32ui, width, height, 0, PixelFormat.RgbaInteger, PixelType.UnsignedInt, IntPtr.Zero);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Nearest);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba32ui, width, height, 0, PixelFormat.RgbaInteger, PixelType.UnsignedInt, IntPtr.Zero);
+        GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        GL.TexParameteri(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Nearest);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, colorHandle, 0);
 
         // depth
         depthHandle = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, depthHandle);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.DepthComponent, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, depthHandle, 0);
 
         // bind
         var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-        if (status != FramebufferErrorCode.FramebufferComplete) throw new InvalidOperationException($"Framebuffer failed to bind with error: {status}");
+        if (status != FramebufferStatus.FramebufferComplete) throw new InvalidOperationException($"Framebuffer failed to bind with error: {status}");
         GL.BindTexture(TextureTarget.Texture2D, 0);
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
@@ -414,9 +414,9 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
         this.width = width;
         this.height = height;
         GL.BindTexture(TextureTarget.Texture2D, colorHandle);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32ui, width, height, 0, PixelFormat.RgbaInteger, PixelType.UnsignedInt, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba32ui, width, height, 0, PixelFormat.RgbaInteger, PixelType.UnsignedInt, IntPtr.Zero);
         GL.BindTexture(TextureTarget.Texture2D, depthHandle);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.DepthComponent, width, height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
     }
 
     public PixelInfo ReadPixelInfo(int width, int height) {
@@ -438,14 +438,14 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
 public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(material) {
     public override void Render(Shader shader) {
         // start at 1, texture unit 0 is reserved for the animation texture
-        var textureUnit = 1;
+        var textureUnit = 1U;
         int location;
         foreach (var texture in Textures) {
             location = shader.GetUniformLocation(texture.Key);
             if (location > -1) {
                 GL.ActiveTexture(TextureUnit.Texture0 + textureUnit);
                 GL.BindTexture(TextureTarget.Texture2D, texture.Value);
-                GL.Uniform1(location, textureUnit);
+                GL.Uniform1ui(location, textureUnit);
                 textureUnit++;
             }
         }
@@ -453,20 +453,20 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
             case MaterialShaderVProp p:
                 foreach (var param in p.IntParams) {
                     location = shader.GetUniformLocation(param.Key);
-                    if (location > -1) GL.Uniform1(location, param.Value);
+                    if (location > -1) GL.Uniform1d(location, param.Value);
                 }
                 foreach (var param in p.FloatParams) {
                     location = shader.GetUniformLocation(param.Key);
-                    if (location > -1) GL.Uniform1(location, param.Value);
+                    if (location > -1) GL.Uniform1f(location, param.Value);
                 }
                 foreach (var param in p.VectorParams) {
                     location = shader.GetUniformLocation(param.Key);
-                    if (location > -1) GL.Uniform4(location, param.Value.X, param.Value.Y, param.Value.Z, param.Value.W);
+                    if (location > -1) GL.Uniform4f(location, param.Value.X, param.Value.Y, param.Value.Z, param.Value.W);
                 }
                 break;
         }
         var alphaReference = shader.GetUniformLocation("g_flAlphaTestReference");
-        if (alphaReference > -1) GL.Uniform1(alphaReference, AlphaTestReference);
+        if (alphaReference > -1) GL.Uniform1f(alphaReference, AlphaTestReference);
         if (IsBlended) {
             GL.DepthMask(false);
             GL.Enable(EnableCap.Blend);
@@ -658,7 +658,7 @@ public class OctreeDebugRenderer<T> where T : class {
         AddOctreeNode(vertices, Octree.Root, 0);
         VertexCount = vertices.Count / 7;
         GL.BindBuffer(BufferTarget.ArrayBuffer, VboHandle);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), Dynamic ? BufferUsageHint.DynamicDraw : BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), Dynamic ? BufferUsage.DynamicDraw : BufferUsage.StaticDraw);
     }
 
     public void Render(Camera camera, Pass pass) {
@@ -670,7 +670,7 @@ public class OctreeDebugRenderer<T> where T : class {
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.UseProgram(Shader.Program);
             var projectionViewMatrix = camera.ViewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref projectionViewMatrix);
+            GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in projectionViewMatrix);
             GL.BindVertexArray(VaoHandle);
             GL.DrawArrays(PrimitiveType.Lines, 0, VertexCount);
             GL.BindVertexArray(0);

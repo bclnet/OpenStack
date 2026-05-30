@@ -2,6 +2,7 @@ using OpenStack.Gfx;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+#pragma warning disable CS9113
 
 namespace OpenStack.Wpf.Control;
 

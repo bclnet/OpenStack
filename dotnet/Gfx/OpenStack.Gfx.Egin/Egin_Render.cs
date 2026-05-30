@@ -249,7 +249,7 @@ public class DrawCall {
     //public string Flags;
     public Vector3 TintColor = Vector3.One;
     public RenderMaterial Material;
-    public uint VertexArrayObject;
+    public int VertexArrayObject;
     public (uint Id, uint Offset) VertexBuffer;
     public int IndexType;
     public (uint Id, uint Offset) IndexBuffer;
@@ -438,7 +438,7 @@ public abstract class Camera {
         RecalculateMatrices();
     }
 
-    public virtual void Tick(int deltaTime) { }
+    public virtual void Tick(float deltaTime) { }
 
     // Prevent camera from going upside-down
     protected void ClampRotation() {

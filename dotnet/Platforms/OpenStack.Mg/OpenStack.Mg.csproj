@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+	  <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5-preview.6" />
 	  <PackageReference Include="ppy.SDL3-CS" Version="2026.520.0" />
 	</ItemGroup>
 

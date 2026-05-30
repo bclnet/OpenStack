@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+#pragma warning disable CS9113
 
 namespace OpenStack.Gfx.OpenGL;
 
@@ -38,7 +39,7 @@ public class TestTriRenderer : EginRenderer {
             0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
             0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
         ];
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
 
         // attributes
         GL.EnableVertexAttribArray(0); GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 24, 0);
@@ -108,7 +109,7 @@ public class TextureRenderer : EginRenderer {
             +1f, -1f, +0f,  +0f, +0f, 1f,  +1f, +1f,  +1f, +0f, +0f,
             +1f, +1f, +0f,  +0f, +0f, 1f,  +1f, +0f,  +1f, +0f, +0f,
         ];
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
 
         // attributes
         GL.EnableVertexAttribArray(0);
@@ -122,7 +123,7 @@ public class TextureRenderer : EginRenderer {
         int offset = 0, stride = sizeof(float) * attributes.Sum(x => x.size);
         foreach (var (name, size) in attributes) {
             var location = Shader.GetAttribLocation(name);
-            if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
+            if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
             offset += sizeof(float) * size;
         }
         GL.BindVertexArray(0); // unbind vao
@@ -130,7 +131,7 @@ public class TextureRenderer : EginRenderer {
     }
 
     public override void Render(Camera camera, Pass pass) {
-        if (Background) { GL.ClearColor(OpenTK.Color.White); GL.Clear(ClearBufferMask.ColorBufferBit); }
+        if (Background) { GL.ClearColor(OpenTK.Mathematics.Color4.White); GL.Clear(ClearBufferMask.ColorBufferBit); }
         GL.UseProgram(Shader.Program);
         GL.BindVertexArray(Vao);
         GL.EnableVertexAttribArray(0);
@@ -203,7 +204,7 @@ public class MaterialRenderer : EginRenderer {
             +1f, -1f, 0f,  0f, 0f, 0f, 1f,   1f, 1f,   1f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,
             +1f, +1f, 0f,  0f, 0f, 0f, 1f,   1f, 0f,   1f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,   0f, 0f, 0f, 0f,
         ];
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
 
         // attributes
         GL.EnableVertexAttribArray(0);
@@ -219,7 +220,7 @@ public class MaterialRenderer : EginRenderer {
         int offset = 0, stride = sizeof(float) * attributes.Sum(x => x.size);
         foreach (var (name, size) in attributes) {
             var location = Shader.GetAttribLocation(name);
-            if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
+            if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
             offset += sizeof(float) * size;
         }
         GL.BindVertexArray(0); // unbind vao
@@ -227,18 +228,18 @@ public class MaterialRenderer : EginRenderer {
     }
 
     public override void Render(Camera camera, Pass pass) {
-        var identity = OpenTK.Matrix4.Identity;
+        var identity = OpenTK.Mathematics.Matrix4.Identity;
         GL.UseProgram(Shader.Program);
         GL.BindVertexArray(Vao);
         GL.EnableVertexAttribArray(0);
         var location = Shader.GetUniformLocation("m_vTintColorSceneObject");
-        if (location > -1) GL.Uniform4(location, OpenTK.Vector4.One);
+        if (location > -1) GL.Uniform4f(location, 1, in OpenTK.Mathematics.Vector4.One);
         location = Shader.GetUniformLocation("m_vTintColorDrawCall");
-        if (location > -1) GL.Uniform3(location, OpenTK.Vector3.One);
+        if (location > -1) GL.Uniform3f(location, 1, in OpenTK.Mathematics.Vector3.One);
         location = Shader.GetUniformLocation("uProjectionViewMatrix");
-        if (location > -1) GL.UniformMatrix4(location, false, ref identity);
+        if (location > -1) GL.UniformMatrix4f(location, 1, false, in identity);
         location = Shader.GetUniformLocation("transform");
-        if (location > -1) GL.UniformMatrix4(location, false, ref identity);
+        if (location > -1) GL.UniformMatrix4f(location, 1, false, in identity);
         Material.Render(Shader);
         GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
         Material.PostRender();
@@ -311,14 +312,14 @@ public class GridRenderer : EginRenderer {
         var vbo = GL.GenBuffer(); GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
         var vertices = GenerateGridVertexBuffer(cellWidth, gridWidthInCells);
         VertexCount = vertices.Length / 3; // number of vertices in our buffer
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
 
         // attributes
         GL.EnableVertexAttribArray(0);
         var location = Shader.GetAttribLocation("aVertexPosition");
-        if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, STRIDE, 0); }
+        if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, STRIDE, 0); }
         location = Shader.GetAttribLocation("aVertexColor");
-        if (location > -1) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3); }
+        if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3); }
         GL.BindVertexArray(0); // unbind vao
         GL.UseProgram(0); // unbind program
         return vao;
@@ -329,7 +330,7 @@ public class GridRenderer : EginRenderer {
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.UseProgram(Shader.Program);
-        GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref matrix);
+        GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in matrix);
         GL.BindVertexArray(Vao);
         GL.EnableVertexAttribArray(0);
         GL.DrawArrays(PrimitiveType.Lines, 0, VertexCount);
@@ -513,7 +514,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
             }
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferHandle);
-            GL.BufferData(BufferTarget.ArrayBuffer, particleBag.Count * VertexSize * 4 * sizeof(float), RawVertices, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, particleBag.Count * VertexSize * 4 * sizeof(float), RawVertices, BufferUsage.DynamicDraw);
         }
 
         public void Render(ParticleBag particleBag, Matrix4x4 viewProjectionMatrix, Matrix4x4 modelViewMatrix) {
@@ -537,20 +538,20 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferHandle);
 
-            GL.Uniform1(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
+            GL.Uniform1i(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
 
             var otkProjection = viewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref otkProjection);
+            GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in otkProjection);
 
             // TODO: This formula is a guess but still seems too bright compared to valve particles
-            GL.Uniform1(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
+            GL.Uniform1f(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
 
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
             GL.DepthMask(false);
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndices.GLHandle);
-            GL.DrawElements(BeginMode.Triangles, particleBag.Count * 6, DrawElementsType.UnsignedShort, 0);
+            GL.DrawElements(PrimitiveType.Triangles, particleBag.Count * 6, DrawElementsType.UnsignedShort, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
@@ -647,7 +648,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
                 1.0f, -1.0f, 0.0f,
                 1.0f, 1.0f, 0.0f};
 
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsage.StaticDraw);
 
             GL.EnableVertexAttribArray(0);
 
@@ -683,13 +684,13 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Texture);
 
-            GL.Uniform1(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
+            GL.Uniform1i(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
 
             var otkProjection = viewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4(Shader.GetUniformLocation("uProjectionViewMatrix"), false, ref otkProjection);
+            GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in otkProjection);
 
             // TODO: This formula is a guess but still seems too bright compared to valve particles
-            GL.Uniform1(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
+            GL.Uniform1f(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
 
             var modelMatrixLocation = Shader.GetUniformLocation("uModelMatrix");
             var colorLocation = Shader.GetUniformLocation("uColor");
@@ -734,7 +735,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
 
                 // Position/Radius uniform
                 var otkModelMatrix = modelMatrix.ToOpenTK();
-                GL.UniformMatrix4(modelMatrixLocation, false, ref otkModelMatrix);
+                GL.UniformMatrix4f(modelMatrixLocation, 0, false, in otkModelMatrix);
 
                 if (TextureSequences != null && TextureSequences.Count > 0 && TextureSequences[0].Frames.Count > 0) {
                     var sequence = TextureSequences[0];
@@ -751,18 +752,18 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
                     var scale = (currentImage.CroppedMax - currentImage.CroppedMin) * (1 - subFrameTime) +
                         (currentImage.UncroppedMax - currentImage.UncroppedMin) * subFrameTime;
 
-                    GL.Uniform2(uvOffsetLocation, offset.X, offset.Y);
-                    GL.Uniform2(uvScaleLocation, scale.X * FinalTextureScaleU, scale.Y * FinalTextureScaleV);
+                    GL.Uniform2f(uvOffsetLocation, offset.X, offset.Y);
+                    GL.Uniform2f(uvScaleLocation, scale.X * FinalTextureScaleU, scale.Y * FinalTextureScaleV);
                 }
                 else {
-                    GL.Uniform2(uvOffsetLocation, 1f, 1f);
-                    GL.Uniform2(uvScaleLocation, FinalTextureScaleU, FinalTextureScaleV);
+                    GL.Uniform2f(uvOffsetLocation, 1f, 1f);
+                    GL.Uniform2f(uvScaleLocation, FinalTextureScaleU, FinalTextureScaleV);
                 }
 
                 // Color uniform
-                GL.Uniform3(colorLocation, particles[i].Color.X, particles[i].Color.Y, particles[i].Color.Z);
+                GL.Uniform3f(colorLocation, particles[i].Color.X, particles[i].Color.Y, particles[i].Color.Z);
 
-                GL.Uniform1(alphaLocation, particles[i].Alpha * particles[i].AlphaAlternate);
+                GL.Uniform1f(alphaLocation, particles[i].Alpha * particles[i].AlphaAlternate);
 
                 GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
             }
