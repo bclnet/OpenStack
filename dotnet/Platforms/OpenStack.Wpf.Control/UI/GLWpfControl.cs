@@ -13,7 +13,7 @@ namespace OpenStack.Wpf.Control;
 
 public class GLWpfControl : OpenTK.Wpf.GLWpfControl {
     static bool CheckGLCalled;
-    public static bool ShowConsole = true;
+    public static bool ShowConsole = false;
     public GLCamera Camera;
     public bool ViewportChanged = true;
 

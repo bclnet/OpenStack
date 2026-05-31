@@ -8,6 +8,7 @@ def findType(klass):
     klass, modulePath = klass.rsplit(',', 1)
     try:
         _, className = klass.rsplit('.', 1)
+        moduleName = f"{moduleRoot}.{modulePath.strip().replace('.', '_')}"
         module = import_module(moduleName := f"{moduleRoot}.{modulePath.strip().replace('.', '_')}")
         return getattr(module, className)
     except (ImportError, AttributeError) as e: raise ImportError(klass)

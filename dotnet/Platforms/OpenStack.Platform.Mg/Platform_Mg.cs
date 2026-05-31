@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using OpenStack.Client;
 using OpenStack.Gfx;
-using OpenStack.Mg;
+using OpenStack.NameMe.Mg;
 using SDL;
 using System;
 using System.Collections.Generic;
@@ -89,7 +89,7 @@ public unsafe class MgClientHost : Game, IClientHost {
     protected override void LoadContent() {
         base.LoadContent();
         Client.LoadContent().Wait();
-        using var ms = typeof(MgClientHost).Assembly.GetManifestResourceStream("OpenStack.Mg.Client_Mg.png");
+        using var ms = typeof(MgClientHost).Assembly.GetManifestResourceStream("OpenStack.Platform.Mg.Client_Mg.png");
         _background = Texture2D.FromStream(GraphicsDevice, ms);
         Log.Trace("Loading plugins...");
         PluginHost?.Initialize();

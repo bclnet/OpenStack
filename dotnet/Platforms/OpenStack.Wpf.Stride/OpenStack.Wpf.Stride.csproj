@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenStack.Stride\OpenStack.Stride.csproj" />
+    <ProjectReference Include="..\OpenStack.Platform.Stride\OpenStack.Platform.Stride.csproj" />
   </ItemGroup>
 	
 </Project>

@@ -17,11 +17,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\OpenStack.Godot\OpenStack.Godot.csproj" />
-		<ProjectReference Include="..\OpenStack.Ogre\OpenStack.Ogre.csproj" />
-		<ProjectReference Include="..\OpenStack.OpenGL\OpenStack.OpenGL.csproj" />
-		<ProjectReference Include="..\OpenStack.Sdl\OpenStack.Sdl.csproj" />
-		<ProjectReference Include="..\OpenStack.Unity\OpenStack.Unity.csproj" />
+		<ProjectReference Include="..\OpenStack.Platform.Godot\OpenStack.Platform.Godot.csproj" />
+		<ProjectReference Include="..\OpenStack.Platform.Ogre\OpenStack.Platform.Ogre.csproj" />
+		<ProjectReference Include="..\OpenStack.Platform.OpenGL\OpenStack.Platform.OpenGL.csproj" />
+		<ProjectReference Include="..\OpenStack.Platform.Sdl\OpenStack.Platform.Sdl.csproj" />
+		<ProjectReference Include="..\OpenStack.Platform.Unity\OpenStack.Platform.Unity.csproj" />
 	</ItemGroup>
 
 </Project>

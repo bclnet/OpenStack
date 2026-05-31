@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OpenStack.Mg;
+namespace OpenStack.NameMe.Mg;
 
 public static class SolidColorTextureCache {
     static readonly Dictionary<Color, Texture2D> Textures = [];

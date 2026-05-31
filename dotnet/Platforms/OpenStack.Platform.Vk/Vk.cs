@@ -2,7 +2,7 @@
 
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
-namespace OpenStack.Vk;
+namespace OpenStack.Platform.Vk;
 
 /// <summary>
 /// IVulkenGraphic

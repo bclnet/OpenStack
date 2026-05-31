@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #pragma warning disable CS0649, CS0169, CS8500
 
-namespace OpenStack.Mg;
+namespace OpenStack.NameMe.Mg;
 
 #region Effects
 
@@ -24,7 +24,7 @@ class BasicXEffect : Effect {
         CurrentTechnique = Techniques["HueTechnique"];
         Pass = CurrentTechnique.Passes[0];
     }
-    static byte[] GetShader() { using var ms = typeof(BasicXEffect).Assembly.GetManifestResourceStream("OpenStack.Mg.Name.shaders.IsometricWorld.fxc"); var b = new byte[ms.Length]; ms.ReadExactly(b); return b; }
+    static byte[] GetShader() { using var ms = typeof(BasicXEffect).Assembly.GetManifestResourceStream("OpenStack.Platform.Mg.Name.shaders.IsometricWorld.fxc"); var b = new byte[ms.Length]; ms.ReadExactly(b); return b; }
 }
 
 public class XbrEffect : Effect {
@@ -34,7 +34,7 @@ public class XbrEffect : Effect {
         MatrixTransform = Parameters["MatrixTransform"];
         TextureSize = Parameters["textureSize"];
     }
-    static byte[] GetShader() { using var ms = typeof(BasicXEffect).Assembly.GetManifestResourceStream("OpenStack.Mg.Name.shaders.xBR.fxc"); var b = new byte[ms.Length]; ms.ReadExactly(b); return b; }
+    static byte[] GetShader() { using var ms = typeof(BasicXEffect).Assembly.GetManifestResourceStream("OpenStack.Platform.Mg.Name.shaders.xBR.fxc"); var b = new byte[ms.Length]; ms.ReadExactly(b); return b; }
 }
 
 #endregion
