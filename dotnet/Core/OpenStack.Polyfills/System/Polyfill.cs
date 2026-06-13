@@ -8,6 +8,7 @@ using System.Reflection;
 namespace System;
 
 public static class Polyfill {
+    public static string Hex(this byte[] s) => BitConverter.ToString(s).Replace("-", "").ToLower();
     public static T CreateDelegate<T>(this MethodInfo s) where T : Delegate => (T)s.CreateDelegate(typeof(T));
     public static int ReadAtLeast(this Stream s, Span<byte> buffer, int minimumBytes, bool throwOnEndOfStream = true) {
         if (buffer.Length < minimumBytes) throw new Exception("Not big enough");
