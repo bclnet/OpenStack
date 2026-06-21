@@ -54,10 +54,14 @@ public static partial class Polyfill {
 
     #region Bytes
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte[] ReadToEnd(this BinaryReader source) {
-        var length = (int)(source.BaseStream.Length - source.BaseStream.Position);
-        return source.ReadBytes(length);
+        var bs = source.BaseStream;
+        if (bs.CanSeek) return source.ReadBytes((int)(bs.Length - bs.Position));
+        var ms = new MemoryStream();
+        var buf = new byte[4096]; // 4KB chunk
+        int read;
+        while ((read = bs.Read(buf, 0, buf.Length)) > 0) ms.Write(buf, 0, read);
+        return ms.ToArray();
     }
     //public static void ReadToEnd(this BinaryReader source, byte[] buffer, int startIndex = 0)
     //{
@@ -65,7 +69,6 @@ public static partial class Polyfill {
     //    Debug.Assert(startIndex >= 0 && length <= int.MaxValue && startIndex + length <= buffer.Length);
     //    source.Read(buffer, startIndex, (int)length);
     //}
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte[] ReadToValue(this BinaryReader source, byte value = 0, int length = int.MaxValue, MemoryStream ms = null) {
         if (ms == null) ms = new MemoryStream();
         else ms.SetLength(0);
