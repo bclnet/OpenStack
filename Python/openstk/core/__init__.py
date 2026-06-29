@@ -9,6 +9,7 @@ from openstk.core.poly.writer import Writer
 from openstk.core.core import ISource, IHaveSource, IStream, IWriteToStream, X_LumpON, X_LumpNO, X_LumpNO2, X_Lump2NO
 from openstk.core.manager import IDatabase, ICellDatabase, CellManager, CellBuilder
 from openstk.core.platform import Platform, PlatformX
+from openstk.core.stream import StreamIterators, ForwardStream, SeekableStream
 from openstk.core.util import _throw, _pathExtension, _pathTempFile, decodePath, _int_tryParse, YamlDict
 __all__ = [
     'findType',
@@ -22,4 +23,5 @@ __all__ = [
     'ISource', 'IHaveSource', 'IStream', 'IWriteToStream', 'X_LumpON', 'X_LumpNO', 'X_LumpNO2', 'X_Lump2NO',
     'IDatabase', 'ICellDatabase', 'CellManager', 'CellBuilder',
     'Platform', 'PlatformX',
+    'StreamIterators', 'ForwardStream', 'SeekableStream',
     '_throw', '_pathExtension', '_pathTempFile', 'decodePath', '_int_tryParse', 'YamlDict']

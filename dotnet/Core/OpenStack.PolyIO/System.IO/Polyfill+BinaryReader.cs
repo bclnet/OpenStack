@@ -244,6 +244,10 @@ public static partial class Polyfill {
     /// <param name="zstring">Remove last character</param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadFAString(this BinaryReader source, int length) => length != 0 ? Encoding.ASCII.GetString(source.ReadBytes(length), 0, length).TrimEnd('\0') : null;
+
+    //var nameAsSpan = r.ReadBytes(0x108).AsSpan();
+    //var path = Encoding.ASCII.GetString(nameAsSpan[..nameAsSpan.IndexOf(byte.MinValue)]);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static string ReadVAString(this BinaryReader source, int length = int.MaxValue, byte stopValue = 0, MemoryStream ms = null) => Encoding.ASCII.GetString(source.ReadToValue(stopValue, length, ms));
     /// <summary>
     /// Read a Length-prefixed ascii string from the stream

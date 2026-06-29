@@ -21,7 +21,8 @@ class BinaryReader:
         f = self.f
         if self.length == None:
             if isinstance(f, BytesIO): self.length = f.getbuffer().nbytes
-            else: pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
+            elif f.seekable(): pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
+            else: self.length = -1
 
     # base
     def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()
