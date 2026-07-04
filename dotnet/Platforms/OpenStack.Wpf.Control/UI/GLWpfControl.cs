@@ -13,6 +13,14 @@ namespace OpenStack.Wpf.Control;
 
 public class GLWpfControl : OpenTK.Wpf.GLWpfControl {
     static bool CheckGLCalled;
+    static GLWpfControlSettings XSetting = new GLWpfControlSettings {
+        MajorVersion = 4,
+        MinorVersion = 6,
+        Profile = ContextProfile.Compatability,
+        ContextFlags = ContextFlags.Debug,
+        RenderContinuously = true,
+    };
+    static DxGlContext XContext = new DxGlContext(XSetting);
     public static bool ShowConsole = false;
     public GLCamera Camera;
     public bool ViewportChanged = true;
@@ -20,13 +28,8 @@ public class GLWpfControl : OpenTK.Wpf.GLWpfControl {
     public GLWpfControl() {
         if (ShowConsole && !DesignerProperties.GetIsInDesignMode(this)) ConsoleManager.Show();
         base.Render += _Render;
-        Start(new GLWpfControlSettings {
-            MajorVersion = 4,
-            MinorVersion = 6,
-            Profile = ContextProfile.Compatability,
-            ContextFlags = ContextFlags.Debug,
-            RenderContinuously = true,
-        });
+        XSetting.ContextToUse = XContext.GraphicsContext;
+        Start(XSetting);
     }
 
     void _Render(TimeSpan delta) {

@@ -2,7 +2,7 @@ import io
 
 class StreamIterators:
     @staticmethod
-    def streamCipherIter(stream, cipher, chunkSize=16): # 4096
+    def StreamCipher(stream, cipher, chunkSize=16): # 4096
         while True:
             chunk = stream.read(chunkSize)
             if not chunk: break
