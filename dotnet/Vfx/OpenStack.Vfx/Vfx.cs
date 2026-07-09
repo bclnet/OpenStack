@@ -131,7 +131,7 @@ public class DirectoryFileSystem(string baseRoot, string basePath) : FileSystem 
     public override IEnumerable<string> Glob(string path, string searchPattern) {
         var matcher = new Matcher();
         matcher.AddIncludePatterns([string.IsNullOrEmpty(searchPattern) ? "**/*" : searchPattern]);
-        return [.. matcher.GetResultsInFullPath(Path.Combine(Root, path)).Select(x => x[Skip..])];
+        return [.. matcher.GetResultsInFullPath(Path.Combine(Root, path)).Select(s => s[Skip..])];
     }
     public override bool FileExists(string path) => File.Exists(Path.Combine(Root, path));
     public override (string path, long length) FileInfo(string path) => File.Exists(path = Path.Combine(Root, path)) ? (path[Skip..], new FileInfo(Path.Combine(Root, path)).Length) : (null, 0);

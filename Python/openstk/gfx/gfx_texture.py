@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from enum import IntEnum, Enum, Flag
+from enum import IntEnum, Enum, IntFlag, Flag
 from openstk.core import BinaryReader, Writer
 
 #region Texture Enums
@@ -124,7 +124,6 @@ class DDS_HEADER_DXT10:
         # remap
         self.dxgiFormat = DXGI_FORMAT(self.dxgiFormat)
         self.resourceDimension = D3D10_RESOURCE_DIMENSION(self.resourceDimension)
-        self.dwCaps2 = DDSCAPS2(self.dwCaps2)
 
 #endregion
 
@@ -149,7 +148,7 @@ class DDSD(Flag):
     HEADER_FLAGS_LINEARSIZE = LINEARSIZE
 
 # Specifies the complexity of the surfaces stored
-class DDSCAPS(Flag):
+class DDSCAPS(IntFlag):
     COMPLEX = 0x00000008        # Optional; must be used on any file that contains more than one surface (a mipmap, a cubic environment map, or mipmapped volume texture)
     TEXTURE = 0x00001000        # Required
     MIPMAP = 0x00400000         # Optional; should be used for a mipmap
@@ -158,7 +157,7 @@ class DDSCAPS(Flag):
     SURFACE_FLAGS_CUBEMAP = COMPLEX
 
 # Additional detail about the surfaces stored
-class DDSCAPS2(Flag):
+class DDSCAPS2(IntFlag):
     CUBEMAP = 0x00000200            # Required for a cube map
     CUBEMAPPOSITIVEX = 0x00000400   # Required when these surfaces are stored in a cube map
     CUBEMAPNEGATIVEX = 0x00000800   # Required when these surfaces are stored in a cube map
@@ -225,7 +224,7 @@ class DDS_HEADER:
         header = r.readS(DDS_HEADER)
         header.verify()
         ddspf = header.ddspf
-        headerDxt10 = r.ReadT(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None
+        headerDxt10 = r.readS(DDS_HEADER_DXT10) if ddspf.dwFourCC == FourCC.DX10 else None
         match ddspf.dwFourCC:
             case FourCC.NONE: format = DDS_HEADER._makeformat(ddspf)
             case FourCC.DXT1: format = (FourCC.DXT1, 8, (TextureFormat.DXT1, TexturePixel.Unknown))
@@ -233,21 +232,21 @@ class DDS_HEADER:
             case FourCC.DXT5: format = (FourCC.DXT5, 16, (TextureFormat.DXT5, TexturePixel.Unknown))
             case FourCC.DX10: 
                 match headerDxt10.dxgiFormat:
-                    case DXGI_FORMAT.BC1_UNORM: format = (BC1_UNORM, 8, (TextureFormat.DXT1, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC1_UNORM_SRGB: format = (BC1_UNORM_SRGB, 8, (TextureFormat.DXT1, TexturePixel.Signed))
-                    case DXGI_FORMAT.BC2_UNORM: format = (BC2_UNORM, 16, (TextureFormat.DXT3, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC2_UNORM_SRGB : format = (BC2_UNORM_SRGB, 16, (TextureFormat.DXT3, TexturePixel.Signed))
-                    case DXGI_FORMAT.BC3_UNORM: format = (BC3_UNORM, 16, (TextureFormat.DXT5, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC3_UNORM_SRGB: format = (BC3_UNORM_SRGB, 16, (TextureFormat.DXT5, TexturePixel.Signed))
-                    case DXGI_FORMAT.BC4_UNORM: format = (BC4_UNORM, 8, (TextureFormat.BC4, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC4_SNORM: format = (BC4_SNORM, 8, (TextureFormat.BC4, TexturePixel.Signed))
-                    case DXGI_FORMAT.BC5_UNORM: format = (BC5_UNORM, 16, (TextureFormat.BC5, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC5_SNORM: format = (BC5_SNORM, 16, (TextureFormat.BC5, TexturePixel.Signed))
-                    case DXGI_FORMAT.BC6H_UF16: format = (BC6H_UF16, 16, (TextureFormat.BC6H, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC6H_SF16: format = (BC6H_SF16, 16, (TextureFormat.BC6H, TexturePixel.Signed))
-                    case DXGI_FORMAT.BC7_UNORM: format = (BC7_UNORM, 16, (TextureFormat.BC5, TexturePixel.Unknown))
-                    case DXGI_FORMAT.BC7_UNORM_SRGB: format = (BC7_UNORM_SRGB, 16, (TextureFormat.BC5, TexturePixel.Signed))
-                    case DXGI_FORMAT.R8_UNORM: format = (R8_UNORM, 1, (TextureFormat.R8, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC1_UNORM: format = (DXGI_FORMAT.BC1_UNORM, 8, (TextureFormat.DXT1, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC1_UNORM_SRGB: format = (DXGI_FORMAT.BC1_UNORM_SRGB, 8, (TextureFormat.DXT1, TexturePixel.Signed))
+                    case DXGI_FORMAT.BC2_UNORM: format = (DXGI_FORMAT.BC2_UNORM, 16, (TextureFormat.DXT3, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC2_UNORM_SRGB : format = (DXGI_FORMAT.BC2_UNORM_SRGB, 16, (TextureFormat.DXT3, TexturePixel.Signed))
+                    case DXGI_FORMAT.BC3_UNORM: format = (DXGI_FORMAT.BC3_UNORM, 16, (TextureFormat.DXT5, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC3_UNORM_SRGB: format = (DXGI_FORMAT.BC3_UNORM_SRGB, 16, (TextureFormat.DXT5, TexturePixel.Signed))
+                    case DXGI_FORMAT.BC4_UNORM: format = (DXGI_FORMAT.BC4_UNORM, 8, (TextureFormat.BC4, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC4_SNORM: format = (DXGI_FORMAT.BC4_SNORM, 8, (TextureFormat.BC4, TexturePixel.Signed))
+                    case DXGI_FORMAT.BC5_UNORM: format = (DXGI_FORMAT.BC5_UNORM, 16, (TextureFormat.BC5, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC5_SNORM: format = (DXGI_FORMAT.BC5_SNORM, 16, (TextureFormat.BC5, TexturePixel.Signed))
+                    case DXGI_FORMAT.BC6H_UF16: format = (DXGI_FORMAT.BC6H_UF16, 16, (TextureFormat.BC6H, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC6H_SF16: format = (DXGI_FORMAT.BC6H_SF16, 16, (TextureFormat.BC6H, TexturePixel.Signed))
+                    case DXGI_FORMAT.BC7_UNORM: format = (DXGI_FORMAT.BC7_UNORM, 16, (TextureFormat.BC5, TexturePixel.Unknown))
+                    case DXGI_FORMAT.BC7_UNORM_SRGB: format = (DXGI_FORMAT.BC7_UNORM_SRGB, 16, (TextureFormat.BC5, TexturePixel.Signed))
+                    case DXGI_FORMAT.R8_UNORM: format = (DXGI_FORMAT.R8_UNORM, 1, (TextureFormat.R8, TexturePixel.Unknown))
                     case _: raise Exception(f'Unknown dxgiFormat: 0x{ddspf.dxgiFormat:x}')
             # BC4U/BC4S/ATI2/BC55/R8G8_B8G8/G8R8_G8B8/UYVY-packed/YUY2-packed unsupported
             case _: raise Exception(f'Unknown dwFourCC: 0x{ddspf.dwFourCC:x}')

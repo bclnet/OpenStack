@@ -13,16 +13,18 @@ def _structGet(cls, sizeOf: int) -> tuple:
 # BinaryReader
 _brn = 0
 class BinaryReader:
-    def dispose(self): self.f.close()
-    def __init__(self, f, length: int = None): self.f = f; self.length = length; self.__update()
+    def __init__(self, f, length: int = None, leaveOpen: bool = False): self.f = f; self.length = length; self.leaveOpen = leaveOpen; self.__update()
     def __enter__(self): return self
-    def __exit__(self, type, value, traceback): self.f.close()
+    def __exit__(self, type, value, traceback):
+        if not self.leaveOpen: self.f.close()
     def __update(self):
         f = self.f
         if self.length == None:
             if isinstance(f, BytesIO): self.length = f.getbuffer().nbytes
             elif f.seekable(): pos = f.tell(); self.length = f.seek(0, os.SEEK_END); f.seek(pos, os.SEEK_SET)
             else: self.length = -1
+    def dispose(self):
+        if not self.leaveOpen: self.f.close()
 
     # base
     def copyTo(self, destination: BytesIO, resetAfter: bool = False) -> None: raise NotImplementedError()

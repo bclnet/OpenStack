@@ -65,3 +65,8 @@ class SeekableStream(io.BufferedIOBase):
         # Read specific byte size
         self._fill(self._pos + size); end_pos = self._pos + size; result = self._buf[self._pos:end_pos]; self._pos += len(result)
         return result
+
+class UncloseableStream:
+    def __init__(self, obj): self.obj = obj
+    def __getattr__(self, name): print(name); return getattr(self.obj, name)
+    def close(self): pass
