@@ -130,13 +130,15 @@ class BinaryReader:
             if (v & 0x80) == 0: break
         return r
     def readIntV7X(self, endian: bool) -> int: return self.readIntV7() if not endian else _throw('NotImplementedError')
-    def readIntV8(self) -> int:
+    def readUIntV8(self) -> int:
         b0 = self.f.read(1)[0]
         if (b0 & 0x80) == 0: return b0
         b1 = self.f.read(1)[0]
         if (b0 & 0x40) == 0: return ((b0 & 0x7F) << 8) | b1
         return ((((b0 & 0x3F) << 8) | b1) << 16) | int.from_bytes(self.f.read(2), 'little', signed=False)
-    def readIntV8X(self, endian: bool) -> int: return self.readIntV8() if not endian else _throw('NotImplementedError')
+    def readUIntV8X(self, endian: bool) -> int: return self.readUIntV8() if not endian else _throw('NotImplementedError')
+    def readUIntV8a(self) -> int: z = self.readByte(); return z if z < 0xFF else self.readUInt32()
+    def readUIntV8aX(self, endian: bool) -> int: z = self.readByte(); return z if z < 0xFF else self.readUInt32X(endian)
     def readBool32(self) -> bool: return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
     def readGuid(self) -> bytes: return self.f.read(16)
 
@@ -149,7 +151,7 @@ class BinaryReader:
     def readL8WString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-16').rstrip('\00') if length != 0 else None
     def readL16WString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-16').rstrip('\00') if length != 0 else None
     def readL32WString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-16').rstrip('\00') if length != 0 else None
-    # def readLV8WString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-16').rstrip('\00') if length != 0 else None
+    # def readLV8WString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-16').rstrip('\00') if length != 0 else None
 
     # string : utf8
     def readFUString(self, length: int) -> str: return self.f.read(length)[:length].decode('utf-8', 'replace').rstrip('\00') if length != 0 else None
@@ -157,7 +159,7 @@ class BinaryReader:
     def readL8UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readL16UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
     def readL32UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
-    # def readLV8UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
+    # def readLV8UString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('utf-8').rstrip('\00') if length != 0 else None
 
     # string : ascii (latin1)
     def readFAString(self, length: int) -> str: return self.f.read(length)[:length].decode('latin1', 'replace').rstrip('\00') if length != 0 else None
@@ -165,7 +167,7 @@ class BinaryReader:
     def readL8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
     def readL16AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
     def readL32AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
-    # def readLV8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
+    # def readLV8AString(self, maxLength: int = 0, endian: bool = False) -> str: length = self.readUIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode('latin1').rstrip('\00') if length != 0 else None
 
     # string : x
     def readFXString(self, encoding: str, length: int) -> str: return self.f.read(length)[:length].decode(encoding, 'replace').rstrip('\00') if length != 0 else None
@@ -173,7 +175,7 @@ class BinaryReader:
     def readL8XString(self, encoding: str, maxLength: int = 0, endian: bool = False) -> str: length = self.readByte(); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode(encoding).rstrip('\00') if length != 0 else None
     def readL16XString(self, encoding: str, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt16X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode(encoding).rstrip('\00') if length != 0 else None
     def readL32XString(self, encoding: str, maxLength: int = 0, endian: bool = False) -> str: length = self.readUInt32X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode(encoding).rstrip('\00') if length != 0 else None
-    # def readLV8XString(self, encoding: str, maxLength: int = 0, endian: bool = False) -> str: length = self.readIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode(encoding).rstrip('\00') if length != 0 else None
+    # def readLV8XString(self, encoding: str, maxLength: int = 0, endian: bool = False) -> str: length = self.readUIntV8X(endian); return _throw('string length exceeds maximum length') if maxLength > 0 and length > maxLength else self.f.read(length)[:length].decode(encoding).rstrip('\00') if length != 0 else None
 
     def readVAStringList(self, length: int = sys.maxsize, stopValue: int = b'\x00', ms: BytesIO = None):
         if not ms: ms = BytesIO()
@@ -196,7 +198,7 @@ class BinaryReader:
     def readL16FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readUInt16X(endian), obj)
     def readL32FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readUInt32X(endian), obj)
     def readLV7FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readIntV7X(endian), obj)
-    def readLV8FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readIntV8X(endian), obj)
+    def readLV8FArray(self, factory: callable, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readFArray(factory, self.readUIntV8X(endian), obj)
     def readFArray(self, factory: callable, count: int, obj: list[object] = None) -> list[object]:
         if not obj: return [factory(self) for i in range(count)] if count else []
         elif count > 0:
@@ -213,7 +215,7 @@ class BinaryReader:
     def readL16PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readUInt16X(endian), obj)
     def readL32PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readUInt32X(endian), obj)
     def readLV7PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readIntV7X(endian), obj)
-    def readLV8PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readIntV8X(endian), obj)
+    def readLV8PArray(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPArray(cls, pat, self.readUIntV8X(endian), obj)
     def readPArray(self, cls: callable, pat: str, count: int, obj: list[object] = None) -> list[object]:
         cls = cls or (lambda s: s)
         if not obj: return [cls(s[0] if len(s) == 1 else s) for s in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
@@ -227,7 +229,7 @@ class BinaryReader:
     def readL16SArray(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSArray(cls, self.readUInt16X(endian), sizeOf, obj)
     def readL32SArray(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSArray(cls, self.readUInt32X(endian), sizeOf, obj)
     def readLV7SArray(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSArray(cls, self.readIntV7X(endian), sizeOf, obj)
-    def readLV8SArray(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSArray(cls, self.readIntV8X(endian), sizeOf, obj)
+    def readLV8SArray(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSArray(cls, self.readUIntV8X(endian), sizeOf, obj)
     def readSArray(self, cls: object, count: int, sizeOf: int = 0, obj: list[object] = None) -> list[object]:
         if not obj: return [self.readS(cls) for i in range(count)] if count else []
         if count > 0:
@@ -254,7 +256,7 @@ class BinaryReader:
     def readL16FList(self, factory: callable, endian: bool = False, obj: object = None) -> list[object]: return self.readFList(factory, self.readUInt16X(endian))
     def readL32FList(self, factory: callable, endian: bool = False, obj: object = None) -> list[object]: return self.readFList(factory, self.readUInt32X(endian))
     def readLV7FList(self, factory: callable, endian: bool = False, obj: object = None) -> list[object]: return self.readFList(factory, self.readIntV7X(endian))
-    def readLV8FList(self, factory: callable, endian: bool = False, obj: object = None) -> list[object]: return self.readFList(factory, self.readIntV8X(endian))
+    def readLV8FList(self, factory: callable, endian: bool = False, obj: object = None) -> list[object]: return self.readFList(factory, self.readUIntV8X(endian))
     def readFList(self, factory: callable, count: int, obj: object = None) -> list[object]:
         if not obj: return [factory(self) for i in range(count)] if count else []
         if count > 0:
@@ -271,7 +273,7 @@ class BinaryReader:
     def readL16PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readUInt16X(endian), obj)
     def readL32PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readUInt32X(endian), obj)
     def readLV7PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readIntV7X(endian), obj)
-    def readLV8PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readIntV8X(endian), obj)
+    def readLV8PList(self, cls: callable, pat: str, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readPList(cls, pat, self.readUIntV8X(endian), obj)
     def readPList(self, cls: callable, pat: str, count: int, obj: list[object] = None) -> list[object]:
         cls = cls or (lambda s: s)
         if not obj: return [cls(s[0] if len(s) == 1 else s) for s in iter_unpack(pat, self.f.read(calcsize(pat) * count))] if count else []
@@ -285,7 +287,7 @@ class BinaryReader:
     def readL16SList(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSList(cls, self.readUInt16X(endian), sizeOf, obj)
     def readL32SList(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSList(cls, self.readUInt32X(endian), sizeOf, obj)
     def readLV7SList(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSList(cls, self.readIntV7X(endian), sizeOf, obj)
-    def readLV8SList(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSList(cls, self.readIntV8X(endian), sizeOf, obj)
+    def readLV8SList(self, cls: object, sizeOf: int = 0, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readSList(cls, self.readUIntV8X(endian), sizeOf, obj)
     def readSList(self, cls: object, count: int, sizeOf: int = 0, obj: list[object] = None) -> list[object]:
         if not obj: return [self.readS(cls) for i in range(count)] if count else []
         if count > 0:
@@ -296,7 +298,7 @@ class BinaryReader:
     def readL8FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readByte(), obj)
     def readL16FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUInt16X(endian), obj)
     def readL32FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUInt32X(endian), obj)
-    def readV8FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readIntV8X(endian), obj)
+    def readV8FMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, endian: bool = False, obj: object = None) -> dict[object, object]: return self.readFMany(clsKey, keyFactory, valueFactory, self.readUIntV8X(endian), obj)
     def readFMany(self, clsKey: object, keyFactory: callable, valueFactory: callable, count: int, obj: object = None) -> dict[object, object]:
         if not obj: return {keyFactory(self):valueFactory(self) for i in range(count)} if count else {}
         if count > 0:
@@ -307,7 +309,7 @@ class BinaryReader:
     def readL8PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readByte(), obj)
     def readL16PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readUInt16X(endian), obj)
     def readL32PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readUInt32X(endian), obj)
-    def readV8PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readIntV8X(endian), obj)
+    def readV8PMany(self, clsKey: object, pat: str, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readPMany(clsKey, pat, valueFactory, self.readUIntV8X(endian), obj)
     def readPMany(self, clsKey: object, pat: str, valueFactory: callable, count: int, obj: dict[object, object] = None) -> dict[object, object]:
         if not obj: return {self.readP(clsKey, pat):valueFactory(self) for i in range(count)} if count else {}
         if count > 0:
@@ -318,7 +320,7 @@ class BinaryReader:
     def readL8SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readByte(), obj)
     def readL16SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readUInt16X(endian), obj)
     def readL32SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readUInt32X(endian), obj)
-    def readV8SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readIntV8X(endian), obj)
+    def readV8SMany(self, clsKey: object, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readSMany(clsKey, valueFactory, self.readUIntV8X(endian), obj)
     def readSMany(self, clsKey: object, valueFactory: callable, count: int, obj: dict[object, object] = None) -> dict[object, object]:
         if not obj: return {self.readS(clsKey):valueFactory(self) for i in range(count)} if count else {}
         if count > 0:
@@ -329,7 +331,7 @@ class BinaryReader:
     # def readL8TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readByte())
     # def readL16TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt16X(endian))
     # def readL32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUInt32X(endian))
-    # def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readIntV8X(endian))
+    # def readC32TMany(self, clsKey: object, sizeOf: int, valueFactory: callable, endian: bool = False, obj: dict[object, object] = None) -> dict[object, object]: return self.readTMany(clsKey, sizeOf, valueFactory, self.readUIntV8X(endian))
     # def readTMany(self, clsKey: object, sizeOf: int, valueFactory: callable, count: int) -> dict[object, object]:
     #     if not obj: return {self.readT(clsKey, sizeOf):valueFactory(self) for i in range(count)} if count else {}
     #     if count > 0:
