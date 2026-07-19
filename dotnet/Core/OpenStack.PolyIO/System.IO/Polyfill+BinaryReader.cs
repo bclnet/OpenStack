@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using static System.UnsafeX;
 
@@ -78,10 +77,13 @@ public static partial class Polyfill {
         return ms.ToArray();
     }
 
+    public static byte[] ReadL32Bytes(this BinaryReader source) => source.ReadBytes((int)source.ReadUInt32());
+    public static BinaryReader ReadL32BytesToReader(this BinaryReader source) => source.ReadBytesToReader((int)source.ReadUInt32());
+    public static BinaryReader ReadBytesToReader(this BinaryReader source, int count) => new(new MemoryStream(source.ReadBytes(count)));
+
     #endregion
 
     #region Primitives
-
 
     // primatives : bytes
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static byte[] ReadL8Bytes(this BinaryReader source, int maxLength = 0, bool endian = false) { var length = source.ReadByte(); if (maxLength > 0 && length > maxLength) throw new FormatException("byte length exceeds maximum length"); return length > 0 ? source.ReadBytes(length) : null; }
