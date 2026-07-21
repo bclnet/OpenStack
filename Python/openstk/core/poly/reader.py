@@ -63,7 +63,7 @@ class BinaryReader:
         if self.f.tell() != (end or self.length): raise Exception(message)
 
     # bytes
-    def read(self, data: bytearray, offset: int, size: int) -> bytearray: return self.f.readinto(data[offset:offset+size]) #data[offset:offset+size] = self.f.read(size)
+    def read(self, data: bytearray, offset: int, size: int) -> int: return self.f.readinto(data) if offset == 0 and size == len(data) else self.f.readinto(memoryview(data)[offset:offset+size])
     def readBytes(self, size: int) -> bytearray: return self.f.read(size)
     def readL8Bytes(self, maxLength: int = 0, endian: bool = False) -> bytearray:
         length = self.readByte()
