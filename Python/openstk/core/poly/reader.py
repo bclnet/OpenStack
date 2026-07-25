@@ -137,8 +137,10 @@ class BinaryReader:
         if (b0 & 0x40) == 0: return ((b0 & 0x7F) << 8) | b1
         return ((((b0 & 0x3F) << 8) | b1) << 16) | int.from_bytes(self.f.read(2), 'little', signed=False)
     def readUIntV8X(self, endian: bool) -> int: return self.readUIntV8() if not endian else _throw('NotImplementedError')
-    def readUIntV8a(self) -> int: z = self.readByte(); return z if z < 0xFF else self.readUInt32()
-    def readUIntV8aX(self, endian: bool) -> int: z = self.readByte(); return z if z < 0xFF else self.readUInt32X(endian)
+    def readUIntV8a(self) -> int: z = self.readByte(); return z if z < 0xFE else self.readUInt32() if z != 0xFE else _throw()
+    def readUIntV8aX(self, endian: bool) -> int: z = self.readByte(); return z if z < 0xFE else self.readUInt32X(endian) if z != 0xFE else _throw()
+    def readUIntV8a2(self) -> tuple[int, bool]: z = self.readByte(); return (z, False) if z < 0xFE else (self.readUInt32(), z != 0xFF)
+    def readUIntV8a2X(self, endian: bool) -> tuple[int, bool]: z = self.readByte(); return (z, False) if z < 0xFE else (self.readUInt32X(endian), z != 0xFF)
     def readBool32(self) -> bool: return int.from_bytes(self.f.read(4), 'little', signed=False) != 0
     def readGuid(self) -> bytes: return self.f.read(16)
 

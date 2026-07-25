@@ -133,9 +133,10 @@ public static partial class Polyfill {
         return (uint)(((((b0 & 0x3F) << 8) | b1) << 16) | source.ReadUInt16());
     }
     public static uint ReadUIntV8X(this BinaryReader source, bool endian) => !endian ? source.ReadUIntV8() : throw new NotImplementedException();
-    public static uint ReadUIntV8a(this BinaryReader source) { var z = source.ReadByte(); return z < 0xFF ? z : source.ReadUInt32(); }
-    public static uint ReadUIntV8aX(this BinaryReader source, bool endian) { var z = source.ReadByte(); return z < 0xFF ? z : source.ReadUInt32X(endian); }
-
+    public static uint ReadUIntV8a(this BinaryReader source) { var z = source.ReadByte(); return z < 0xFE ? z : z != 0xFE ? source.ReadUInt32() : throw new FormatException(); }
+    public static uint ReadUIntV8aX(this BinaryReader source, bool endian) { var z = source.ReadByte(); return z < 0xFE ? z : z != 0xFE ? source.ReadUInt32X(endian) : throw new FormatException(); }
+    public static (uint, bool) ReadUIntV8a2(this BinaryReader source) { var z = source.ReadByte(); return z < 0xFE ? (z, false) : (source.ReadUInt32(), z != 0xFF); }
+    public static (uint, bool) ReadUIntV8a2X(this BinaryReader source, bool endian) { var z = source.ReadByte(); return z < 0xFE ? (z, false) : (source.ReadUInt32X(endian), z != 0xFF); }
     //[MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBoolean(this BinaryReader source) => source.ReadByte() != 0;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool ReadBoolean32(this BinaryReader source) => source.ReadUInt32() != 0;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static Guid ReadGuid(this BinaryReader source) => new(source.ReadBytes(16));
