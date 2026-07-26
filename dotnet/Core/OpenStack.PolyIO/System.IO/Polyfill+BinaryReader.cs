@@ -149,8 +149,10 @@ public static partial class Polyfill {
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader Align(this BinaryReader source, int align = 4) { source.BaseStream.Position = (source.BaseStream.Position + --align) & ~align; return source; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static long Tell(this BinaryReader source) => source.BaseStream.Position;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader Seek(this BinaryReader source, long offset) { source.BaseStream.Position = offset; return source; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T SeekAfter<T>(this BinaryReader source, T value, long offset) { source.BaseStream.Position = offset; return value; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader SeekAndAlign(this BinaryReader source, long offset, int align = 4) { source.BaseStream.Position = offset % align != 0 ? offset + align - (offset % align) : offset; return source; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader Skip(this BinaryReader source, long count) { source.BaseStream.Position += count; return source; }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public static T SkipAfter<T>(this BinaryReader source, T value, long count) { source.BaseStream.Position += count; return value; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader SkipAndAlign(this BinaryReader source, long count, int align = 4) { var offset = source.BaseStream.Position + count; source.BaseStream.Position = offset % align != 0 ? offset + align - (offset % align) : offset; return source; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public static BinaryReader End(this BinaryReader source, long offset) { source.BaseStream.Seek(offset, SeekOrigin.End); return source; }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

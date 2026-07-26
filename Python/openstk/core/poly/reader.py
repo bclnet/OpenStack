@@ -47,8 +47,10 @@ class BinaryReader:
     def align(self, align: int = 4) -> 'BinaryReader': align -= 1; self.f.seek((self.f.tell() + align) & ~align, os.SEEK_SET); return self
     def tell(self) -> int: return self.f.tell()
     def seek(self, offset: int) -> 'BinaryReader': self.f.seek(offset, os.SEEK_SET); return self
+    def seekAfter(self, value: any, offset: int) -> any: self.f.seek(offset, os.SEEK_SET); return value
     def seekAndAlign(self, offset: int, align: int = 4) -> 'BinaryReader': self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_SET); return self
     def skip(self, count: int) -> 'BinaryReader': self.f.seek(count, os.SEEK_CUR); return self
+    def skipAfter(self, value: any, count: int) -> any: self.f.seek(count, os.SEEK_CUR); return value
     def skipAndAlign(self, count: int, align: int = 4) -> int: offset = self.f.tell() + count; self.f.seek(offset + align - (offset % align) if offset % align else offset, os.SEEK_CUR); return self
     def end(self, offset: int) -> 'BinaryReader': self.f.seek(offset, os.SEEK_END); return self
     def peek(self, action, offset: int = 0, origin: int = os.SEEK_CUR) -> object:

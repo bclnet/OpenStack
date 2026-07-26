@@ -16,7 +16,9 @@ public struct Byte3 { public byte X; public byte Y; public byte Z; public overri
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Int3 { public int X; public int Y; public int Z; public Int3(int x, int y, int z) { X = x; Y = y; Z = z; } public override string ToString() => $"{X},{Y},{Z}"; public static Int3 Zero = new(0, 0, 0); }
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Float3 { public float X; public float Y; public float Z; public override string ToString() => $"{X},{Y},{Z}"; public readonly Vector3 AsVector3 => new(X, Y, Z); }
+public struct Float2(float x, float y) { public float X = x; public float Y = y; public override string ToString() => $"{X},{Y}"; public readonly Vector2 AsVector2 => new(X, Y); }
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct Float3(float x, float y, float z) { public float X = x; public float Y = y; public float Z = z; public override string ToString() => $"{X},{Y},{Z}"; public readonly Vector3 AsVector3 => new(X, Y, Z); }
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Float4(float x, float y, float z, float w) { public float X = x; public float Y = y; public float Z = z; public float W = w; public override string ToString() => $"{X},{Y},{Z},{W}"; public readonly Vector4 AsVector4 => new(X, Y, Z, W); }
 
