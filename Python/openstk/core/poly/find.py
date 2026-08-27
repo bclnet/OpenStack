@@ -11,4 +11,4 @@ def findType(klass):
         moduleName = f"{moduleRoot}.{modulePath.strip().replace('.', '_')}"
         module = import_module(moduleName := f"{moduleRoot}.{modulePath.strip().replace('.', '_')}")
         return getattr(module, className)
-    except (ImportError, AttributeError) as e: raise ImportError(klass)
+    except (ImportError, AttributeError) as e: print(e); raise ImportError(klass)
