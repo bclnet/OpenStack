@@ -1,0 +1,10 @@
+[package]
+name = "openstack-platform-opengl"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+openstack = { path = "../../core/openstack" }
+openstack-gfx-egin = { path = "../../gfx/gfx-egin" }

@@ -1,0 +1,21 @@
+// mirrors dotnet folder `animation` — see PORT_MAP.tsv
+pub mod a_frame;
+pub mod action_node;
+pub mod anim_data;
+pub mod anim_node;
+pub mod anim_sequence_node;
+pub mod animation;
+pub mod interpolation_node;
+pub mod interpreted_motion_state;
+pub mod motion;
+pub mod motion_interp;
+pub mod motion_node;
+pub mod motion_state;
+pub mod motion_table;
+pub mod movement_node;
+pub mod movement_param_flags;
+pub mod movement_parameters;
+pub mod movement_struct;
+pub mod movement_system;
+pub mod raw_motion_state;
+pub mod sequence;

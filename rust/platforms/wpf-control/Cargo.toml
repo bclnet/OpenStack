@@ -1,0 +1,13 @@
+[package]
+name = "openstack-wpf-control"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+openstack-platform-godot = { path = "../../platforms/godot" }
+openstack-platform-ogre = { path = "../../platforms/ogre" }
+openstack-platform-opengl = { path = "../../platforms/opengl" }
+openstack-platform-sdl = { path = "../../platforms/sdl" }
+openstack-platform-unity = { path = "../../platforms/unity" }

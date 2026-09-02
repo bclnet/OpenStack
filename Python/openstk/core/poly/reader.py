@@ -96,7 +96,7 @@ class BinaryReader:
     def readInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=True)
     def readInt32(self) -> int: return int.from_bytes(self.f.read(4), 'little', signed=True)
     def readInt64(self) -> int: return int.from_bytes(self.f.read(8), 'little', signed=True)
-    def readSingle(self) -> float: return unpack('<f', self.f.read(4))[0]
+    def readSingle(self) -> float: return round(unpack('<f', self.f.read(4))[0], 7)
     def readUInt16(self) -> int: return int.from_bytes(self.f.read(2), 'little', signed=False)
     def readUInt32(self) -> int: return int.from_bytes(self.f.read(4), 'little', signed=False)
     def readUInt64(self) -> int: return int.from_bytes(self.f.read(8), 'little', signed=False)
@@ -107,7 +107,7 @@ class BinaryReader:
     def readInt16E(self) -> int: return int.from_bytes(self.f.read(2), 'big', signed=True)
     def readInt32E(self) -> int: return int.from_bytes(self.f.read(4), 'big', signed=True)
     def readInt64E(self) -> int: return int.from_bytes(self.f.read(8), 'big', signed=True)
-    def readSingleE(self) -> float: return unpack('>f', self.f.read(4))[0]
+    def readSingleE(self) -> float: return round(unpack('>f', self.f.read(4))[0], 7)
     def readUInt16E(self) -> int: return int.from_bytes(self.f.read(2), 'big', signed=False)
     def readUInt32E(self) -> int: return int.from_bytes(self.f.read(4), 'big', signed=False)
     def readUInt64E(self) -> int: return int.from_bytes(self.f.read(8), 'big', signed=False)
@@ -118,7 +118,7 @@ class BinaryReader:
     def readInt16X(self, endian: bool) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=True)
     def readInt32X(self, endian: bool) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=True)
     def readInt64X(self, endian: bool) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=True)
-    def readSingleX(self, endian: bool) -> float: return unpack('>f' if endian else '<f', self.f.read(4))[0]
+    def readSingleX(self, endian: bool) -> float: return round(unpack('>f' if endian else '<f', self.f.read(4))[0], 7)
     def readUInt16X(self, endian: bool) -> int: return int.from_bytes(self.f.read(2), 'big' if endian else 'little', signed=False)
     def readUInt32X(self, endian: bool) -> int: return int.from_bytes(self.f.read(4), 'big' if endian else 'little', signed=False)
     def readUInt64X(self, endian: bool) -> int: return int.from_bytes(self.f.read(8), 'big' if endian else 'little', signed=False)
@@ -242,7 +242,7 @@ class BinaryReader:
 
     # struct : array - each
     def readSEach(self, cls: object, count: int) -> list[object]: return [self.readS(cls) for i in range(count)] if count else []
-    def readTEach(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for i in range(count)] if count else []
+    # def readTEach(self, cls: object, sizeOf: int, count: int) -> list[object]: return [self.readT(cls, sizeOf) for i in range(count)] if count else []
 
     # struct : array - type
     # def readL8TArray(self, cls: object, sizeOf: int, endian: bool = False, obj: list[object] = None) -> list[object]: return self.readTArray(cls, sizeOf, self.readByte(), obj)

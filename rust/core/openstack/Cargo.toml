@@ -1,0 +1,12 @@
+[package]
+name = "openstack"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+openstack-gfx = { path = "../../gfx/gfx" }
+openstack-sfx = { path = "../../sfx/sfx" }
+openstack-vfx = { path = "../../vfx/vfx" }
+openstack-polyfills = { path = "../../core/polyfills" }

@@ -1,0 +1,53 @@
+[workspace]
+resolver = "2"
+members = [
+    "aix/aix",
+    "aix/aix-tests",
+    "core/openstack",
+    "core/polyfills",
+    "core/polyio",
+    "gfx/gfx",
+    "gfx/gfx-egin",
+    "gfx/gfx-other",
+    "gfx/gfx-tests",
+    "phy/phy",
+    "phy/phy-tests",
+    "phy/phy2",
+    "platforms/eginx",
+    "platforms/godot",
+    "platforms/mg",
+    "platforms/o3de",
+    "platforms/ogre",
+    "platforms/opengl",
+    "platforms/sdl",
+    "platforms/stride",
+    "platforms/tests",
+    "platforms/unity",
+    "platforms/unreal",
+    "platforms/vk",
+    "platforms/wpf-control",
+    "platforms/wpf-stride",
+    "sfx/sfx",
+    "sfx/sfx-al",
+    "sfx/sfx-ogg",
+    "sfx/sfx-tests",
+    "vfx/vfx",
+    "vfx/vfx-program",
+]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+
+[workspace.dependencies]
+bytemuck = { version = "1", features = ["derive"] }
+byteorder = "1"
+glam = { version = "0.29", features = ["bytemuck"] }
+half = "2"
+thiserror = "1"
+bitflags = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
