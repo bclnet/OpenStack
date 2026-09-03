@@ -1,7 +1,27 @@
 // PORT-SOURCE: Core/OpenStack.Polyfills/System/Indirect.cs
 // PORT-SHA: 528011e587539996
-// PORT-STATUS: todo (8 LOC in C#)
-//
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// PORT-STATUS: done
+
+/// C# `interface Indirect<T> { T Value { get; } }` — a read-only box.
+///
+/// `std::ops::Deref` is the idiomatic Rust spelling, but this keeps the C#
+/// shape so ported call sites read the same. Implement whichever fits.
+pub trait Indirect<T> {
+    fn value(&self) -> &T;
+}
+
+impl<T> Indirect<T> for T {
+    fn value(&self) -> &T {
+        self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn any_value_is_its_own_indirection() {
+        assert_eq!(*Indirect::<i32>::value(&42), 42);
+    }
+}

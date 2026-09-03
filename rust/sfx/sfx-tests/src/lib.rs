@@ -1,7 +1,7 @@
-//! `openstack-sfx-tests` — 1:1 port of .NET project `OpenStack.SfxTests`.
+//! `openstack-sfx-tests` — 1:1 mapping of .NET project `OpenStack.SfxTests`.
 //!
-//! Module layout mirrors the C# folder/file layout exactly so the two trees
-//! can be diffed and updated in parallel. See PORT_MAP.tsv at the workspace root.
+//! The C# project contains one empty test method and one runner attribute.
+//! Nothing to port; unit tests for the sfx crates live beside their code.
 
 pub mod assembly;
 pub mod sfx;

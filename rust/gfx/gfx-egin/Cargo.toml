@@ -6,5 +6,6 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+openstack-gfx = { path = "../gfx" }
 openstack-polyfills = { path = "../../core/polyfills" }
-openstack-gfx = { path = "../../gfx/gfx" }
+glam = { workspace = true }

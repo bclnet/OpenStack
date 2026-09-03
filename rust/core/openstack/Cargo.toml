@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 openstack-gfx = { path = "../../gfx/gfx" }
+openstack-polyfills = { path = "../polyfills" }
+openstack-polyio = { path = "../polyio" }
 openstack-sfx = { path = "../../sfx/sfx" }
 openstack-vfx = { path = "../../vfx/vfx" }
-openstack-polyfills = { path = "../../core/polyfills" }

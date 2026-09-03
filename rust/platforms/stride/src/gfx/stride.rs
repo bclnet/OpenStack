@@ -1,7 +1,22 @@
 // PORT-SOURCE: Platforms/OpenStack.Platform.Stride/Gfx/Stride.cs
 // PORT-SHA: f882015b97cb8021
-// PORT-STATUS: todo (24 LOC in C#)
+// PORT-STATUS: done
 //
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// NOT PORTED — Stride has no Rust counterpart.
+//
+// This crate binds to **Stride**, which is a .NET-only game engine. There is no
+// Rust library to bind the same calls to, so a "port" would mean rewriting the
+// backend against a different engine entirely — a design decision, not a
+// translation, and one that should be made against a real target rather than
+// implied by a file-by-file mapping.
+//
+// If this backend is wanted in Rust, the equivalents are:
+//   * `bevy` — a full ECS engine, the closest match in scope.
+//   * `wgpu` + `winit` — if only rendering and windowing are wanted.
+//
+// The abstraction it plugs into is already ported and engine-agnostic:
+// implement `openstack_gfx::gfx::Backend` plus the `TextureBuilder` /
+// `MaterialBuilder` / `ShaderBuilder` traits, and `openstack::platform::Platform`.
+// Nothing above this layer needs to change.
+//
+// Kept as a file so the 1:1 mapping holds and `sync-check.sh` tracks drift.

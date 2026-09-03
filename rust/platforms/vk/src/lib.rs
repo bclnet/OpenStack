@@ -1,6 +1,7 @@
-//! `openstack-platform-vk` — 1:1 port of .NET project `OpenStack.Platform.Vk`.
+//! `openstack-platform-vk` — 1:1 mapping of its .NET project.
 //!
-//! Module layout mirrors the C# folder/file layout exactly so the two trees
-//! can be diffed and updated in parallel. See PORT_MAP.tsv at the workspace root.
+//! Nothing here is translated. Each module states why at the file; the
+//! summary is in PORTING.md under "Platform backends: the viability
+//! assessment".
 
 pub mod vk;

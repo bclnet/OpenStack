@@ -1,6 +1,6 @@
-//! `openstack-vfx-program` — 1:1 port of .NET project `OpenStack.Vfx.Program`.
+//! `openstack-vfx-program` — 1:1 mapping of .NET project `OpenStack.Vfx.Program`.
 //!
-//! Module layout mirrors the C# folder/file layout exactly so the two trees
-//! can be diffed and updated in parallel. See PORT_MAP.tsv at the workspace root.
+//! Not ported: the C# is a scratchpad of hardcoded absolute paths from one
+//! developer's machine. See the module for details.
 
 pub mod program;

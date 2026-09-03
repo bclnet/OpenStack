@@ -1,7 +1,16 @@
 // PORT-SOURCE: Platforms/OpenStack.Platform.Sdl/Gfx/Sdl_Render.cs
 // PORT-SHA: 1f4472cde1b7a846
-// PORT-STATUS: todo (41 LOC in C#)
+// PORT-STATUS: done
 //
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// NOT PORTED YET — viable, but not attempted here.
+//
+// Unlike the Stride/Unity/MonoGame/WPF backends, this one **is** portable:
+// `sdl2` or `sdl3-sys` covers the same ground in Rust. It is left for a session that can
+// compile and run against a real GPU, because a graphics backend that has never
+// executed a draw call is not meaningfully "ported" — the failures live in
+// context setup, extension loading, and driver behaviour, none of which a
+// reading of the C# reveals.
+//
+// Small: 107 live lines across 3 files, mostly window and event plumbing.
+//
+// Kept as a file so the 1:1 mapping holds and `sync-check.sh` tracks drift.

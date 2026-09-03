@@ -7,4 +7,7 @@ license.workspace = true
 
 [dependencies]
 openstack = { path = "../../core/openstack" }
+openstack-gfx = { path = "../../gfx/gfx" }
 openstack-gfx-egin = { path = "../../gfx/gfx-egin" }
+glam = { workspace = true }
+glow = "0.14"

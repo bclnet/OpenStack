@@ -7,3 +7,7 @@ license.workspace = true
 
 [dependencies]
 openstack-polyfills = { path = "../../core/polyfills" }
+openstack-polyio = { path = "../../core/polyio" }
+bytemuck = { workspace = true }
+bitflags = { workspace = true }
+glam = { workspace = true }

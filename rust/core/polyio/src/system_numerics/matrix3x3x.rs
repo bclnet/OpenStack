@@ -1,7 +1,10 @@
 // PORT-SOURCE: Core/OpenStack.PolyIO/System.Numerics/Matrix3x3x.cs
 // PORT-SHA: 9a319ae3ab778b9f
-// PORT-STATUS: todo (121 LOC in C#)
+// PORT-STATUS: done
 //
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// The entire C# file is commented out — a superseded second attempt at
+// `Matrix3x3`, kept in the tree but not compiled. `Matrix3x3` in the sibling
+// file is the live type.
+//
+// Nothing to translate. Kept as a file so the 1:1 mapping holds and
+// `sync-check.sh` notices if it is ever uncommented.

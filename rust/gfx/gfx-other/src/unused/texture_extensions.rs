@@ -1,7 +1,15 @@
 // PORT-SOURCE: Gfx/OpenStack.Gfx.Other/Unused/TextureExtensions.cs
 // PORT-SHA: d1361cc7a4b55b53
-// PORT-STATUS: todo (145 LOC in C#)
+// PORT-STATUS: done
 //
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// NOT PORTED — the entire C# file is wrapped in `#if false`, so it is not
+// compiled at all, and it sits in a folder named `Unused`. Every type it
+// declares has zero references anywhere in the solution.
+//
+// The namespace is also `OpenStack.Graphics.DirectX_` — the old name, with a
+// trailing underscore — while the live code uses `OpenStack.Gfx`. This is a
+// superseded earlier attempt kept beside its replacement: `gfx_texture.rs` in
+// `openstack-gfx` is the live DDS/texture path.
+//
+// Kept as a file so the 1:1 mapping holds and `sync-check.sh` notices if the
+// `#if false` is ever removed.

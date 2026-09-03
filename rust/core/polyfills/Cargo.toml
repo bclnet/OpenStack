@@ -6,4 +6,6 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
-openstack-polyio = { path = "../../core/polyio" }
+openstack-polyio = { path = "../polyio" }
+glam = { workspace = true }
+half = { workspace = true }

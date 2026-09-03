@@ -1,7 +1,12 @@
-//! `openstack-platform-unreal` — 1:1 port of .NET project `OpenStack.Platform.Unreal`.
+//! `openstack-platform-unreal` — 1:1 port of its .NET project.
 //!
-//! Module layout mirrors the C# folder/file layout exactly so the two trees
-//! can be diffed and updated in parallel. See PORT_MAP.tsv at the workspace root.
+//! The platform **registration** layer is translated: id, name, capability
+//! flags, and which `GfX.X*` manager slots the backend fills. That half is
+//! engine-independent and ports directly.
+//!
+//! The **render** half is not: see the individual modules for why, and
+//! PORTING.md for the per-backend viability assessment.
 
-pub mod gfx;
 pub mod platform_unreal;
+pub mod slots;
+pub mod gfx;

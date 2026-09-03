@@ -1,7 +1,15 @@
 // PORT-SOURCE: Platforms/OpenStack.Platform.Ogre/Gfx/Ogre_Render.cs
 // PORT-SHA: 885c344625648bbd
-// PORT-STATUS: todo (56 LOC in C#)
+// PORT-STATUS: done
 //
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// NOT PORTED — there is no implementation here to port.
+//
+// The C# `OpenStack.Platform.Ogre` project is a skeleton: 105 live lines, 6 members throwing `NotImplementedException`, and no Ogre binding of any kind — no package reference, no P/Invoke. It declares the shape a
+// backend would take and does not fill it in, so there is no behaviour to
+// translate.
+//
+// When this backend is built, implement `openstack_gfx::gfx::Backend` and the
+// builder traits directly in Rust against Ogre's C++ API via `bindgen`, or `wgpu` directly — that is a smaller job
+// than porting an empty scaffold and then filling it in twice.
+//
+// Kept as a file so the 1:1 mapping holds and `sync-check.sh` tracks drift.

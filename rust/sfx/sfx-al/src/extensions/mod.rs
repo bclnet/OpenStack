@@ -1,4 +1,6 @@
-// mirrors dotnet folder `extensions` — see PORT_MAP.tsv
+// mirrors dotnet folder `Extensions` — see PORT_MAP.tsv
+//
+// OpenAL extension bindings. Not ported; see the crate root for why.
 pub mod creative_efx;
 pub mod creative_enumerate_all;
 pub mod ext_double;

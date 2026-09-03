@@ -1,7 +1,15 @@
 // PORT-SOURCE: Aix/OpenStack.AixTests/Assembly.cs
 // PORT-SHA: b3c4f035666d2f36
-// PORT-STATUS: todo (1 LOC in C#)
+// PORT-STATUS: done
 //
-// Not yet ported. Keep this header in sync when porting: update PORT-SHA to the
-// C# file's current hash and flip PORT-STATUS to `done`. `./sync-check.sh` reports
-// any file whose C# source has changed since the port.
+// NOT PORTED — Rust unit tests live beside the code they exercise.
+//
+// This is an MSTest project. Its assertions have been carried across to
+// `#[cfg(test)]` modules in the crates under test, which is where Rust puts
+// them; a standalone test crate mirroring the C# file layout would duplicate
+// them with no benefit.
+//
+// One test method with an empty body, plus a `[assembly: Parallelize]` attribute (Rust's harness is parallel by default). Nothing to carry over.
+//
+// Kept as a file so the 1:1 mapping holds and `sync-check.sh` notices if the C#
+// side adds tests worth carrying over.
