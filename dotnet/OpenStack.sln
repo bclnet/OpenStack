@@ -83,7 +83,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Platform.Sdl", "P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Platform.Stride", "Platforms\OpenStack.Platform.Stride\OpenStack.Platform.Stride.csproj", "{EB6352E2-4A2E-9487-32D7-E76DBF2F18E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Platform.Tests", "Platforms\OpenStack.Platform.Tests\OpenStack.Platform.Tests.csproj", "{ADF6D7A3-AF3F-0062-7053-E7232097FEEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.PlatformTests", "Platforms\OpenStack.PlatformTests\OpenStack.PlatformTests.csproj", "{ADF6D7A3-AF3F-0062-7053-E7232097FEEF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenStack.Platform.Unity", "Platforms\OpenStack.Platform.Unity\OpenStack.Platform.Unity.csproj", "{E74BBCB0-355D-A15B-899B-3B8998B73C44}"
 EndProject
