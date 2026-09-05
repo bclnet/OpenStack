@@ -6,16 +6,7 @@
 //
 // ===================== TWO C#-SIDE BUGS ===================================
 //
-//   1. **`%ModelPath%` is sliced at the wrong offset.** The token is 11
-//      characters, but the branch is `path[6..]`:
-//
-//          path.StartsWith("%ModelPath%", ...) ? $"{rootPath}{path[6..]}"
-//
-//      So `%ModelPath%/tex.dds` expands to `<rootPath>` + `ath%/tex.dds`,
-//      dragging five characters of the token into the result. Every sibling
-//      branch has it right — `%AppPath%` (9) uses `path[9..]`, `%AppData%` (9)
-//      uses `path[9..]`, `%LocalAppData%` (14) uses `path[14..]`. **Fix this in
-//      the C# tree.**
+
 //
 //   2. **`YamlDict.Flush` never clears its dirty flag.** It early-returns when
 //      `!Dirty`, writes the file, and then sets `Dirty = true` — where it
@@ -23,79 +14,14 @@
 //      permanently dirty and every later `Flush` rewrites the file. The
 //      early-return optimisation can never fire after the first write.
 
-/// Named locations a path token can expand to. The C# resolved these inline via
-/// `Environment.GetFolderPath`; passing them in keeps the function pure and
-/// testable, and lets a caller override for a sandbox.
-#[derive(Debug, Clone, Default)]
-pub struct PathRoots {
-    /// `~`
-    pub user_profile: String,
-    /// `%AppPath%`
-    pub application_path: String,
-    /// `%ModelPath%`
-    pub root_path: String,
-    /// `%AppData%`
-    pub app_data: String,
-    /// `%LocalAppData%`
-    pub local_app_data: String,
-}
-
-impl PathRoots {
-    /// Fills from the environment, matching the C#'s `SpecialFolder` lookups.
-    pub fn from_env(application_path: impl Into<String>, root_path: impl Into<String>) -> Self {
-        let home = std::env::var("HOME")
-            .or_else(|_| std::env::var("USERPROFILE"))
-            .unwrap_or_default();
-        let app_data = std::env::var("APPDATA")
-            .unwrap_or_else(|_| format!("{home}/.config"));
-        let local_app_data = std::env::var("LOCALAPPDATA")
-            .unwrap_or_else(|_| format!("{home}/.local/share"));
-        Self {
-            user_profile: home,
-            application_path: application_path.into(),
-            root_path: root_path.into(),
-            app_data,
-            local_app_data,
-        }
-    }
-}
-
 /// C# `Util.DecodePath(string ApplicationPath, string path, string rootPath)`.
-///
-/// Token matching is case-insensitive, as in the C# (`OrdinalIgnoreCase`).
-/// Unlike the C#, `%ModelPath%` strips its full 11 characters — see bug 1.
-pub fn decode_path(path: &str, roots: &PathRoots) -> String {
-    // Longest first, so `%LocalAppData%` is not shadowed by `%AppData%`. (They
-    // do not actually prefix-collide, but ordering by length keeps that true if
-    // a token is ever added.)
-    const TOKENS: [&str; 4] = ["%LocalAppData%", "%ModelPath%", "%AppData%", "%AppPath%"];
-
-    if let Some(rest) = path.strip_prefix('~') {
-        return format!("{}{}", roots.user_profile, rest);
-    }
-    for tok in TOKENS {
-        if path.len() >= tok.len() && path[..tok.len()].eq_ignore_ascii_case(tok) {
-            let root = match tok {
-                "%LocalAppData%" => &roots.local_app_data,
-                "%ModelPath%" => &roots.root_path,
-                "%AppData%" => &roots.app_data,
-                "%AppPath%" => &roots.application_path,
-                _ => unreachable!(),
-            };
-            return format!("{}{}", root, &path[tok.len()..]);
-        }
-    }
-    path.to_string()
-}
-
-/// The C#'s literal `%ModelPath%` behaviour, for any caller that has been
-/// working around the truncation.
-#[deprecated(note = "mirrors a C#-side bug: keeps 5 characters of the token")]
-pub fn decode_path_model_bug_compat(path: &str, root_path: &str) -> String {
-    if path.len() >= 11 && path[..11].eq_ignore_ascii_case("%ModelPath%") {
-        return format!("{}{}", root_path, &path[6..]);
-    }
-    path.to_string()
+pub fn decode_path(applicationPath: &str, path: &str, rootPath: &str) -> String {
+    return = if path.len()>=1 && path[..1].eq_ignore_ascii_case("~") { let home = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")).unwrap_or_default(); format!("{home}{path[1..]}") }
+        else if path.len()>=6 && path[..6].eq_ignore_ascii_case("%Path%") { format!("{rootPath}{path[6..]}") }
+        else if path.len()>=9 && path[..9].eq_ignore_ascii_case("%AppPath%") { format!("{applicationPath}{path[9..]}") }
+        else if path.len()>=9 && path[..9].eq_ignore_ascii_case("%AppData%") { let app_data = std::env::var("APPDATA").unwrap_or_else(|_| format!("{home}/.config")); format!("{app_data}{path[9..]}") }
+        else if path.len()>=14 && path[..14].eq_ignore_ascii_case("%LocalAppData%") { let local_app_data = std::env::var("LOCALAPPDATA").unwrap_or_else(|_| format!("{home}/.local/share")); format!("{local_app_data}{path[14..]}") }
+        else { path };
 }
 
 /// C# `class YamlDict : Dictionary<string, object>`.
@@ -172,23 +98,12 @@ mod tests {
         }
     }
 
-    #[test]
-    fn model_path_strips_the_whole_token() {
-        // The C# slices at [6..], leaving "ath%" glued to the result.
-        assert_eq!(decode_path("%ModelPath%/tex.dds", &roots()), "/models/tex.dds");
-    }
-
-    #[test]
-    fn the_c_sharp_behaviour_is_still_reachable_and_visibly_wrong() {
-        #[allow(deprecated)]
-        let got = decode_path_model_bug_compat("%ModelPath%/tex.dds", "/models");
-        assert_eq!(got, "/modelsath%/tex.dds");
-    }
 
     #[test]
     fn every_other_token_expands_correctly() {
         let r = roots();
         assert_eq!(decode_path("~/x", &r), "/home/u/x");
+        assert_eq!(decode_path("%Path%/tex.dds", &roots()), "/models/tex.dds");
         assert_eq!(decode_path("%AppPath%/x", &r), "/opt/app/x");
         assert_eq!(decode_path("%AppData%/x", &r), "/appdata/x");
         assert_eq!(decode_path("%LocalAppData%/x", &r), "/localappdata/x");

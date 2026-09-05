@@ -1,6 +1,6 @@
 ﻿namespace System.IO;
 
-public static partial class Polyfill {
+public static partial class Poly {
     #region Read
 
     public static byte[] ReadAllBytes(this Stream stream) {

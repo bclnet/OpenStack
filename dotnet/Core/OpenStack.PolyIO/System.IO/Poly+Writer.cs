@@ -7,7 +7,7 @@ using static System.UnsafeX;
 
 namespace System.IO;
 
-public unsafe static partial class Polyfill {
+public unsafe static partial class Poly {
     #region Base
 
     #endregion

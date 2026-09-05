@@ -1,17 +1,19 @@
 [workspace]
 resolver = "2"
 members = [
+    "core/polyio",
+]
+
+[blah]
+members = [
     "aix/aix",
-    "aix/aix-tests",
     "core/openstack",
     "core/polyfills",
     "core/polyio",
     "gfx/gfx",
     "gfx/gfx-egin",
     "gfx/gfx-other",
-    "gfx/gfx-tests",
     "phy/phy",
-    "phy/phy-tests",
     "phy/phy2",
     "platforms/eginx",
     "platforms/godot",
@@ -30,7 +32,6 @@ members = [
     "sfx/sfx",
     "sfx/sfx-al",
     "sfx/sfx-ogg",
-    "sfx/sfx-tests",
     "vfx/vfx",
     "vfx/vfx-program",
 ]

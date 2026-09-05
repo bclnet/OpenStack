@@ -6,7 +6,7 @@ from openstk.core.poly.reader import BinaryReader
 from openstk.core.poly.system import getExtrema, changeRange
 import openstk.core.poly.unsafe as unsafe
 from openstk.core.poly.writer import Writer
-from openstk.core.core import ISource, IHaveSource, IStream, IWriteToStream, X_LumpON, X_LumpNO, X_LumpNO2, X_Lump2NO
+from openstk.core.core import ISource, IHaveSource, IStream, IWriteToStream
 from openstk.core.manager import IDatabase, ICellDatabase, CellManager, CellBuilder
 from openstk.core.platform import Platform, PlatformX
 from openstk.core.stream import StreamIterators, ForwardStream, SeekableStream
@@ -20,7 +20,7 @@ __all__ = [
     'getExtrema', 'changeRange',
     'unsafe',
     'Writer',
-    'ISource', 'IHaveSource', 'IStream', 'IWriteToStream', 'X_LumpON', 'X_LumpNO', 'X_LumpNO2', 'X_Lump2NO',
+    'ISource', 'IHaveSource', 'IStream', 'IWriteToStream',
     'IDatabase', 'ICellDatabase', 'CellManager', 'CellBuilder',
     'Platform', 'PlatformX',
     'StreamIterators', 'ForwardStream', 'SeekableStream',

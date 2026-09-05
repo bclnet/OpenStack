@@ -13,11 +13,11 @@ def _pathTempFile(ext: str) -> str:
         tmp_file = f'tmp/{c}.{ext}'
     return tmp_file
 
-def decodePath(ApplicationPath: str, path: str, rootPath: str = None) -> str:
+def decodePath(applicationPath: str, path: str, rootPath: str = None) -> str:
     lowerPath = path.lower()
     return f'{os.path.expanduser('~')}{path[1:]}' if lowerPath.startswith('~') else \
         f'{rootPath}{path[6:]}' if lowerPath.startswith('%path%') else \
-        f'{ApplicationPath}{path[9:]}' if lowerPath.startswith('%apppath%') else \
+        f'{applicationPath}{path[9:]}' if lowerPath.startswith('%apppath%') else \
         f'{os.getenv("APPDATA")}{path[9:]}' if lowerPath.startswith('%appdata%') else \
         f'{os.getenv("LOCALAPPDATA")}{path[14:]}' if lowerPath.startswith('%localappdata%') else \
         path
