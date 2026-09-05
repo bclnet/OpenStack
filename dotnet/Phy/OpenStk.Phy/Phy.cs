@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("OpenStack.PhyTests")]
 
-namespace OpenStack.Phy;
+namespace OpenStk.Phy;
 
 /// <summary>
 /// IOpenPhy

@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("OpenStack.AixTests")]
 
-namespace OpenStack.Aix;
+namespace OpenStk.Aix;
 
 /// <summary>
 /// IOpenAix

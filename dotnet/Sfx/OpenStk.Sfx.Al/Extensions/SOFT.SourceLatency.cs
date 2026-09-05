@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions.SOFT.SourceLatency;
+namespace OpenStk.Sfx.Al.Extensions.SOFT.SourceLatency;
 
 public class SourceLatency : ALBase {
     /// <summary>

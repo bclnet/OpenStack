@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Gfx.EginX;
+﻿namespace OpenStk.Gfx.EginX;
 
 #region TestTriRenderer
 

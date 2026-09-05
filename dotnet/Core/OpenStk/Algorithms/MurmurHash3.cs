@@ -2,7 +2,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenStack.Algorithms;
+namespace OpenStk.Algorithms;
 
 public static class MurmurHash3 {
     const uint C1 = 0xcc9e2d51;

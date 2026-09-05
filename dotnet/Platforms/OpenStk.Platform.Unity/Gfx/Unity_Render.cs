@@ -2,7 +2,7 @@
 using UnityEngine;
 #pragma warning disable CS9113
 
-namespace OpenStack.Gfx.Unity;
+namespace OpenStk.Gfx.Unity;
 
 #region TestTriRenderer
 

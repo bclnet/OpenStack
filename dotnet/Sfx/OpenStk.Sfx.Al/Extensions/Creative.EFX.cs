@@ -2,7 +2,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions.Creative.EFX;
+namespace OpenStk.Sfx.Al.Extensions.Creative.EFX;
 
 /// <summary>
 /// Exposes the functions of the Effects Extension.

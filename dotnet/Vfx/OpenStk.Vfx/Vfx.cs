@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.FileSystemGlobbing;
-using OpenStack.Vfx.Disc;
-using OpenStack.Vfx.N64;
-using OpenStack.Vfx.X3ds;
+using OpenStk.Vfx.Disc;
+using OpenStk.Vfx.N64;
+using OpenStk.Vfx.X3ds;
 using SharpCompress.Archives;
 using SharpCompress.Archives.SevenZip;
 using System;
@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 
 [assembly: InternalsVisibleTo("OpenStk.Vfx.Program")]
 
-namespace OpenStack.Vfx;
+namespace OpenStk.Vfx;
 
 /// <summary>
 /// VfxExtensions

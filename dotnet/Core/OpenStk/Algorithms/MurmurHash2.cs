@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace OpenStack.Algorithms;
+namespace OpenStk.Algorithms;
 
 public static class MurmurHash2 {
     const uint M = 0x5bd1e995;

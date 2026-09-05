@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Aix.Aix;
+namespace OpenStk.Aix.Aix;
 
 /// <summary>
 /// TestPlatformStats

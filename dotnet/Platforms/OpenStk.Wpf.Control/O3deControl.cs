@@ -1,8 +1,8 @@
-using OpenStack.Gfx;
+using OpenStk.Gfx;
 using System;
 using System.Windows;
 
-namespace OpenStack.Wpf.Control;
+namespace OpenStk.Wpf.Control;
 
 public abstract class O3deControl(Func<object, object, object, string, object> shellState) : ShellControl {
     #region Binding

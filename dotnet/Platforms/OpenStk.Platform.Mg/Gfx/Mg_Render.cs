@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Gfx.Mg;
+﻿namespace OpenStk.Gfx.Mg;
 
 #region TestTriRenderer
 

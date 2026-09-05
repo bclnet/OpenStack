@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.O3de;
+namespace OpenStk.Gfx.O3de;
 
 #region Extensions
 

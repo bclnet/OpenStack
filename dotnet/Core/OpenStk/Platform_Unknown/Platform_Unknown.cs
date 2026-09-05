@@ -1,8 +1,8 @@
-﻿using OpenStack.Client;
+﻿using OpenStk.Client;
 using System;
 using System.Collections.Generic;
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Client
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using OpenStack.Client;
-using OpenStack.Gfx;
-using OpenStack.NameMe.Mg;
+using OpenStk.Client;
+using OpenStk.Gfx;
+using OpenStk.NameMe.Mg;
 using SDL;
 using System;
 using System.Collections.Generic;
@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 using static SDL.SDL3;
 #pragma warning disable CS0649, CS0169, CS8500
 
-[assembly: InternalsVisibleTo("OpenStack.GfxTests")]
+[assembly: InternalsVisibleTo("OpenStk.GfxTests")]
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Client
 
@@ -89,7 +89,7 @@ public unsafe class MgClientHost : Game, IClientHost {
     protected override void LoadContent() {
         base.LoadContent();
         Client.LoadContent().Wait();
-        using var ms = typeof(MgClientHost).Assembly.GetManifestResourceStream("OpenStack.Platform.Mg.Client_Mg.png");
+        using var ms = typeof(MgClientHost).Assembly.GetManifestResourceStream("OpenStk.Platform.Mg.Client_Mg.png");
         _background = Texture2D.FromStream(GraphicsDevice, ms);
         Log.Trace("Loading plugins...");
         PluginHost?.Initialize();

@@ -1,5 +1,5 @@
-using OpenStack;
-using OpenStack.Gfx;
+using OpenStk;
+using OpenStk.Gfx;
 using Stride.CommunityToolkit.Engine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;

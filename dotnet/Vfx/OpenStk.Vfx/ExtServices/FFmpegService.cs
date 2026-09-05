@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OpenStack.ExtServices;
+namespace OpenStk.ExtServices;
 
 public static class FFmpegService {
     const string BIN_HOST_URI_LINUX_X64 = "https://github.com/TASEmulators/ffmpeg-binaries/raw/master/ffmpeg-4.4.1-static-linux-x64.7z";

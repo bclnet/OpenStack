@@ -4,7 +4,7 @@ using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace OpenStack;
+namespace OpenStk;
 
 public static class Util {
     public static string DecodePath(string applicationPath, string path, string rootPath = null) =>

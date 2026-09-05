@@ -7,9 +7,9 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
-using static OpenStack.Wpf.Control.WindowsNative;
+using static OpenStk.Wpf.Control.WindowsNative;
 
-namespace OpenStack.Wpf.Control;
+namespace OpenStk.Wpf.Control;
 
 public static class WindowsNative {
     [DllImport("User32.dll", EntryPoint = "SetParent")] public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.EginX;
+namespace OpenStk.Gfx.EginX;
 
 #region Extensions
 

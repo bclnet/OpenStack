@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using static OpenStack.CellManager;
+using static OpenStk.CellManager;
 using XShader = UnityEngine.Shader;
 
-namespace OpenStack.Gfx.Unity;
+namespace OpenStk.Gfx.Unity;
 
 #region Extensions
 

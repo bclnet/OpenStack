@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al;
+namespace OpenStk.Sfx.Al;
 
 /// <summary>
 /// Provides a base for ApiContext so that it can register dll intercepts.

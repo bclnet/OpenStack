@@ -1,11 +1,11 @@
-﻿using OpenStack.Gfx;
-using OpenStack.Sfx;
+﻿using OpenStk.Gfx;
+using OpenStk.Sfx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Platform
 

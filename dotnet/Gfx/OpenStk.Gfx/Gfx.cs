@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 [assembly: InternalsVisibleTo("OpenStack.Gl")]
 [assembly: InternalsVisibleTo("OpenStack.GfxTests")]
 
-namespace OpenStack.Gfx;
+namespace OpenStk.Gfx;
 
 #region GfX
 

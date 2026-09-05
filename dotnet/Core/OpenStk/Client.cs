@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 #pragma warning disable CS9113
 
-namespace OpenStack.Client;
+namespace OpenStk.Client;
 
 #region Client
 

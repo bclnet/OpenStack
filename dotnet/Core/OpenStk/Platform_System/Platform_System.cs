@@ -1,8 +1,8 @@
-﻿using OpenStack.Sfx;
+﻿using OpenStk.Sfx;
 using System;
 using System.Threading.Tasks;
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Platform
 

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
-namespace OpenStack.NameMe.Mg;
+namespace OpenStk.NameMe.Mg;
 
 static class ScissorStack {
     static readonly Stack<Rectangle> _scissors = new();

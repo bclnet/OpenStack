@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
-namespace OpenStack.Algorithms;
+namespace OpenStk.Algorithms;
 
 public sealed class BerDecodeException : Exception {
     readonly int _position;

@@ -1,4 +1,4 @@
-using OpenStack.ExtServices;
+using OpenStk.ExtServices;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using static OpenStack.Vfx.Disc.CueFormat;
+using static OpenStk.Vfx.Disc.CueFormat;
 #pragma warning disable CS9113, CS0649
 
-namespace OpenStack.Vfx.Disc;
+namespace OpenStk.Vfx.Disc;
 
 #region FileSystem : Cue
 

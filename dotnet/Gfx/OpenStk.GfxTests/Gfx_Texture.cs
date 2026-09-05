@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 
-namespace OpenStack.Gfx.Texture;
+namespace OpenStk.Gfx.Texture;
 
 /// <summary>
 /// TestCamera

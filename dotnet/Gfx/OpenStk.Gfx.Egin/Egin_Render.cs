@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Egin;
+namespace OpenStk.Gfx.Egin;
 
 #region Model
 

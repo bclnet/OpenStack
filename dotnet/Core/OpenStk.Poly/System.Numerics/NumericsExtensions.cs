@@ -1,5 +1,5 @@
 using MathNet.Numerics.LinearAlgebra;
-using static OpenStack.Log;
+using static OpenStk.Log;
 
 namespace System.Numerics;
 

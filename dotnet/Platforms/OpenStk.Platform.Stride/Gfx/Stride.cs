@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.Stride;
+namespace OpenStk.Gfx.Stride;
 
 #region Extensions
 

@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Phy.Phy;
+namespace OpenStk.Phy.Phy;
 
 /// <summary>
 /// TestPlatformStats

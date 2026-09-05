@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions.EXT.Double;
+namespace OpenStk.Sfx.Al.Extensions.EXT.Double;
 
 public class EXTDouble : ALBase {
     /// <summary>

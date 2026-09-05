@@ -2,10 +2,10 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static OpenStack.Gfx.DXGI_FORMAT;
-using static OpenStack.Gfx.FourCC;
+using static OpenStk.Gfx.DXGI_FORMAT;
+using static OpenStk.Gfx.FourCC;
 
-namespace OpenStack.Gfx;
+namespace OpenStk.Gfx;
 
 #region Texture Enums
 

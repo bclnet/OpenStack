@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 
-namespace OpenStack.Gfx.OpenGL;
+namespace OpenStk.Gfx.OpenGL;
 
 #region Camera
 

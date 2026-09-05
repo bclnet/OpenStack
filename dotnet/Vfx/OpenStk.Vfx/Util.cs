@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace OpenStack.Vfx;
+namespace OpenStk.Vfx;
 
 public static unsafe class EndiannessUtils {
     /// <summary>reverses pairs of octets in-place: <c>0xAABBIIJJPPQQYYZZ</c> &lt;=> <c>0xBBAAJJIIQQPPZZYY</c></summary>

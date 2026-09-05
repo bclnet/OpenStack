@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Gfx.Sdl;
+﻿namespace OpenStk.Gfx.Sdl;
 
 #region TestTriRenderer
 

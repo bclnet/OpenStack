@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenStack.Gfx.Ogre;
+namespace OpenStk.Gfx.Ogre;
 
 #region TestTriRenderer
 

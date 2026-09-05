@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 #pragma warning disable CS9113
 
-namespace OpenStack.Gfx.Egin.Particles;
+namespace OpenStk.Gfx.Egin.Particles;
 
 #region IParticleEmitter
 

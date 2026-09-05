@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenStack.Gfx.Stride;
+namespace OpenStk.Gfx.Stride;
 
 #region TestTriRenderer
 

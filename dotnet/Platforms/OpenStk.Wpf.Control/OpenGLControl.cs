@@ -1,12 +1,12 @@
-using OpenStack.Gfx;
-using OpenStack.Gfx.Egin;
+using OpenStk.Gfx;
+using OpenStk.Gfx.Egin;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 #pragma warning disable CS9113
 
-namespace OpenStack.Wpf.Control;
+namespace OpenStk.Wpf.Control;
 
 #region OpenGLControl
 

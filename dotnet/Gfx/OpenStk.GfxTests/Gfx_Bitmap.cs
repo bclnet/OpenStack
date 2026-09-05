@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Drawing;
 
-namespace OpenStack.Gfx.Bitmap;
+namespace OpenStk.Gfx.Bitmap;
 
 /// <summary>
 /// TestDirectBitmap

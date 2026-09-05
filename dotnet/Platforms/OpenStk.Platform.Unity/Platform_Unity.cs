@@ -1,6 +1,6 @@
-﻿using OpenStack.Client;
-using OpenStack.Gfx;
-using OpenStack.Gfx.Unity;
+﻿using OpenStk.Client;
+using OpenStk.Gfx;
+using OpenStk.Gfx.Unity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,14 +8,14 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using static OpenStack.Gfx.TextureFormat;
+using static OpenStk.Gfx.TextureFormat;
 using TextureFormat = UnityEngine.TextureFormat;
 using XShader = UnityEngine.Shader;
 #pragma warning disable CS0649, CS0169, CS8500
 
-[assembly: InternalsVisibleTo("OpenStack.GfxTests")]
+[assembly: InternalsVisibleTo("OpenStk.GfxTests")]
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Client
 

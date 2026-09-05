@@ -1,14 +1,14 @@
-﻿using OpenStack.Gfx.Egin;
-using OpenStack.Gfx.Egin.Particles;
+﻿using OpenStk.Gfx.Egin;
+using OpenStk.Gfx.Egin.Particles;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using static OpenStack.Gfx.Renderer;
+using static OpenStk.Gfx.Renderer;
 
-namespace OpenStack.Gfx.OpenGL;
+namespace OpenStk.Gfx.OpenGL;
 
 #region Camera
 

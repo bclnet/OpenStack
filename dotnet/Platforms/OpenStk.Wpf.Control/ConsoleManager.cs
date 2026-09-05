@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Wpf.Control;
+namespace OpenStk.Wpf.Control;
 
 public static class ConsoleManager {
     [DllImport("kernel32.dll", SetLastError = true)] static extern IntPtr GetConsoleWindow();

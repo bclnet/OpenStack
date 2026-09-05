@@ -1,11 +1,11 @@
-﻿using OpenStack.Gfx.Unity.Components;
+﻿using OpenStk.Gfx.Unity.Components;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
-using static OpenStack.CellManager;
+using static OpenStk.CellManager;
 
-namespace OpenStack.Gfx.Unity;
+namespace OpenStk.Gfx.Unity;
 
 public class UnityOpenEngine : IDisposable {
     const bool RenderSunShadows = true;

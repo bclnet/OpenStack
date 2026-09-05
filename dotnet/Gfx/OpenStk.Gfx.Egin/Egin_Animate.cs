@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Gfx.Egin;
+namespace OpenStk.Gfx.Egin;
 
 #region Animate
 

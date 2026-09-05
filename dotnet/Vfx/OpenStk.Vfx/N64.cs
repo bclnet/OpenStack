@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using static System.Buffers.Binary.BinaryPrimitives;
 #pragma warning disable CS0162
 
-namespace OpenStack.Vfx.N64;
+namespace OpenStk.Vfx.N64;
 
 #region FileSystem : N64
 

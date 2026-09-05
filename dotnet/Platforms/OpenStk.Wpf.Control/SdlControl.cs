@@ -1,10 +1,10 @@
-using OpenStack.Gfx;
+using OpenStk.Gfx;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 #pragma warning disable CS9113
 
-namespace OpenStack.Wpf.Control;
+namespace OpenStk.Wpf.Control;
 
 public abstract class SdlControl(Func<object, object, object, string, object> shellState) : UserControl {
     #region Binding

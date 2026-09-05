@@ -1,12 +1,12 @@
-﻿using OpenStack.Gfx.Egin;
+﻿using OpenStk.Gfx.Egin;
 using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
-using static OpenStack.CellManager;
+using static OpenStk.CellManager;
 
-namespace OpenStack.Gfx.OpenGL;
+namespace OpenStk.Gfx.OpenGL;
 
 public class OpenGLOpenEngine : IDisposable {
     const float DesiredWorkTimePerFrame = 1.0f / 200;

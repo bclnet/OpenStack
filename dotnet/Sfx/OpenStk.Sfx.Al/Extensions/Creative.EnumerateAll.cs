@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions;
+namespace OpenStk.Sfx.Al.Extensions;
 
 /// <summary>
 /// Exposes the API in the EnumerateAll extension.

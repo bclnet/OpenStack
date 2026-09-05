@@ -1,18 +1,18 @@
-﻿using OpenStack.Client;
-using OpenStack.Gfx;
-using OpenStack.Gfx.OpenGL;
+﻿using OpenStk.Client;
+using OpenStk.Gfx;
+using OpenStk.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using static OpenStack.Gfx.TextureFormat;
+using static OpenStk.Gfx.TextureFormat;
 #pragma warning disable CS0649, CS0169
 
-[assembly: InternalsVisibleTo("OpenStack.GfxTests")]
+[assembly: InternalsVisibleTo("OpenStk.GfxTests")]
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Client
 

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions.SOFT.HRTF;
+namespace OpenStk.Sfx.Al.Extensions.SOFT.HRTF;
 
 public class HRTF : ALBase {
     /// <summary>

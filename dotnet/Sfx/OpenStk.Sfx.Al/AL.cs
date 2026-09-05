@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al;
+namespace OpenStk.Sfx.Al;
 
 /// <summary>
 /// Provides access to the OpenAL 1.1 flat API.

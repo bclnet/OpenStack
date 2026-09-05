@@ -1,5 +1,5 @@
 ﻿//#define DEBUG_SHADERS
-using OpenStack.Algorithms;
+using OpenStk.Algorithms;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,9 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static OpenStack.CellManager;
+using static OpenStk.CellManager;
 
-namespace OpenStack.Gfx.OpenGL;
+namespace OpenStk.Gfx.OpenGL;
 
 #region Extensions
 
@@ -210,7 +210,7 @@ public abstract class ShaderLoader {
 /// ShaderDebugLoader
 /// </summary>
 public class ShaderDebugLoader : ShaderLoader {
-    const string ShaderDirectory = "OpenStack.Platform.OpenGL.Gfx.Shaders";
+    const string ShaderDirectory = "OpenStk.Platform.OpenGL.Gfx.Shaders";
 
     // Map shader names to shader files
     protected override string GetShaderFileByName(string name) {

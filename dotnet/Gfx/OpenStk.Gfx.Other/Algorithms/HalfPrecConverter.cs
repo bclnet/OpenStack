@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace OpenStack.Gfx.Algorithms;
+namespace OpenStk.Gfx.Algorithms;
 
 public static class HalfPrecConverter {
     [StructLayout(LayoutKind.Explicit)]

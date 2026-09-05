@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Gfx;
+namespace OpenStk.Gfx;
 
 /// <summary>
 /// DirectBitmap

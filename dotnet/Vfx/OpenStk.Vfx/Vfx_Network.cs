@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace OpenStack.Vfx;
+namespace OpenStk.Vfx;
 
 /// <summary>
 /// AbstractHost

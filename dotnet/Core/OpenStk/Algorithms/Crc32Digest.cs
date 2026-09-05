@@ -1,4 +1,4 @@
-﻿namespace OpenStack.Algorithms;
+﻿namespace OpenStk.Algorithms;
 
 /// <summary>
 /// A utility class to compute CRC32.

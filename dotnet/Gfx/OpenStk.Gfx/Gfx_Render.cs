@@ -2,7 +2,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Gfx;
+namespace OpenStk.Gfx;
 
 #region Color
 

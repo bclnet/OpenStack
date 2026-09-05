@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("OpenStack.SfxTests")]
 
-namespace OpenStack.Sfx;
+namespace OpenStk.Sfx;
 
 #region Audio
 

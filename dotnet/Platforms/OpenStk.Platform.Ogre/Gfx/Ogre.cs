@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.Ogre;
+namespace OpenStk.Gfx.Ogre;
 
 #region Extensions
 

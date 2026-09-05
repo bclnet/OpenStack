@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al;
+namespace OpenStk.Sfx.Al;
 
 /// <summary>Alc = Audio Library Context.</summary>
 public class ALC : ALBase {

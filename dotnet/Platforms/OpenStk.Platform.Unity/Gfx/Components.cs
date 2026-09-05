@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using Image = UnityEngine.UIElements.Image;
 
-namespace OpenStack.Gfx.Unity.Components;
+namespace OpenStk.Gfx.Unity.Components;
 
 #region UICrosshairComponent
 

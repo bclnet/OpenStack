@@ -1,5 +1,5 @@
-﻿using OpenStack.Client;
-using OpenStack.Gfx;
+﻿using OpenStk.Client;
+using OpenStk.Gfx;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -8,9 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 #pragma warning disable CS0649, CS0169
 
-[assembly: InternalsVisibleTo("OpenStack.GfxTests")]
+[assembly: InternalsVisibleTo("OpenStk.GfxTests")]
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Client
 

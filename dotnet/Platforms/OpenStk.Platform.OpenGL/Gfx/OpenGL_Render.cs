@@ -1,5 +1,5 @@
-﻿using OpenStack.Gfx.Egin;
-using OpenStack.Gfx.Egin.Particles;
+﻿using OpenStk.Gfx.Egin;
+using OpenStk.Gfx.Egin.Particles;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Numerics;
 #pragma warning disable CS9113
 
-namespace OpenStack.Gfx.OpenGL;
+namespace OpenStk.Gfx.OpenGL;
 
 #region TestTriRenderer
 

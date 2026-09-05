@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 
-namespace OpenStack.Gfx;
+namespace OpenStk.Gfx;
 
 /// <summary>
 /// TextureSequences
 /// </summary>
-/// <seealso cref="System.Collections.Generic.List{OpenStack.Gfx.TextureSequences.Sequence}" />
+/// <seealso cref="System.Collections.Generic.List{OpenStk.Gfx.TextureSequences.Sequence}" />
 public class TextureSequences : List<TextureSequences.Sequence> {
     /// <summary>
     /// Frame

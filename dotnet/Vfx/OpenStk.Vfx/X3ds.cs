@@ -13,12 +13,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static Gee.External.Capstone.Arm.ArmOperandType;
 using static Gee.External.Capstone.Arm.ArmRegisterId;
-using static OpenStack.Vfx.Util;
-using static OpenStack.Vfx.X3ds.Crypt;
-using static OpenStack.Vfx.X3ds.Ncch;
+using static OpenStk.Vfx.Util;
+using static OpenStk.Vfx.X3ds.Crypt;
+using static OpenStk.Vfx.X3ds.Ncch;
 #pragma warning disable CS9084, CS0649
 
-namespace OpenStack.Vfx.X3ds;
+namespace OpenStk.Vfx.X3ds;
 
 #region FileSystem : 3ds
 

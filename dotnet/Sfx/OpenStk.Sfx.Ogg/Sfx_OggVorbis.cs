@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.OggVorbis;
+namespace OpenStk.Sfx.OggVorbis;
 
 #region Ogg
 

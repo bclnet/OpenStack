@@ -1,4 +1,4 @@
-﻿using OpenStack.Gfx;
+﻿using OpenStk.Gfx;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,9 +7,9 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using static OpenStack.CellManager;
+using static OpenStk.CellManager;
 
-namespace OpenStack;
+namespace OpenStk;
 
 #region Database
 

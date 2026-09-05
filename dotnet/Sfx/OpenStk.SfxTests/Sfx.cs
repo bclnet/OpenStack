@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace OpenStack.Sfx.Sfx;
+namespace OpenStk.Sfx.Sfx;
 
 /// <summary>
 /// TestPlatformStats

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.ExtServices;
+namespace OpenStk.ExtServices;
 
 /// <summary>
 /// Bindings matching libchdr's chd.h

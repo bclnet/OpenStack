@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions.SOFT.DeviceClock;
+namespace OpenStk.Sfx.Al.Extensions.SOFT.DeviceClock;
 
 public class DeviceClock : ALBase {
     /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OpenStack.Sfx.Al.Extensions.EXT.Float32;
+namespace OpenStk.Sfx.Al.Extensions.EXT.Float32;
 
 public class EXTFloat32 : ALBase {
     /// <summary>

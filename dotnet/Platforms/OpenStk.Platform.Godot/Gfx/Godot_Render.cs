@@ -1,7 +1,7 @@
 ﻿using Godot;
 using System.Collections.Generic;
 
-namespace OpenStack.Gfx.Godot;
+namespace OpenStk.Gfx.Godot;
 
 #region TestTriRenderer
 

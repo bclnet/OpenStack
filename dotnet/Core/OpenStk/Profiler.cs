@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace OpenStack;
+namespace OpenStk;
 
 public static class Profiler {
     public class ProfileData {

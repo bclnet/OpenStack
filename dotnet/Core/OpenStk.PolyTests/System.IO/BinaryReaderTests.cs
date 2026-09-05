@@ -2,7 +2,7 @@
 using System.IO;
 using System.Numerics;
 
-namespace OpenStack.PolyIOTests.System.IO
+namespace OpenStk.PolyIOTests.System.IO
 {
     [TestClass]
     public class BinaryReaderTests

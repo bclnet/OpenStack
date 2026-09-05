@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenStack.Gfx.Unreal;
+namespace OpenStk.Gfx.Unreal;
 
 #region TestTriRenderer
 

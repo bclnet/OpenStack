@@ -1,6 +1,6 @@
-﻿using OpenStack.Gfx;
-using OpenStack.Gfx.Egin;
-using OpenStack.Gfx.OpenGL;
+﻿using OpenStk.Gfx;
+using OpenStk.Gfx.Egin;
+using OpenStk.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Wpf;
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 
-namespace OpenStack.Wpf.Control;
+namespace OpenStk.Wpf.Control;
 
 public class GLWpfControl : OpenTK.Wpf.GLWpfControl {
     static bool CheckGLCalled;
