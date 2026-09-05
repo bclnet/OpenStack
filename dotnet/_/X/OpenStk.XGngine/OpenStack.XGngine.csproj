@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;ID_DEDICATED_</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="VertexCache.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Render\VertexCache.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WaveEngine.Bindings.OpenGLES" Version="1.0.4998" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Img\OpenStk.Img\OpenStk.Img.csproj" />
+    <ProjectReference Include="..\OpenStk.XSystem\OpenStk.XSystem.csproj" />
+  </ItemGroup>
+
+</Project>

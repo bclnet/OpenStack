@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\OpenStk.Platform.Godot\OpenStk.Platform.Godot.csproj" />
+		<ProjectReference Include="..\OpenStk.Platform.Ogre\OpenStk.Platform.Ogre.csproj" />
+		<ProjectReference Include="..\OpenStk.Platform.OpenGL\OpenStk.Platform.OpenGL.csproj" />
+		<ProjectReference Include="..\OpenStk.Platform.Sdl\OpenStk.Platform.Sdl.csproj" />
+		<ProjectReference Include="..\OpenStk.Platform.Unity\OpenStk.Platform.Unity.csproj" />
+	</ItemGroup>
+
+</Project>

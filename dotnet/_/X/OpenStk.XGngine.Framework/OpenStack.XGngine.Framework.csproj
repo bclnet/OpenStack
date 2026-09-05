@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;ID_DEDICATED_</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="GameBearShootWindow.cs" />
+    <Compile Remove="GameBustOutWindow.cs" />
+    <Compile Remove="GameSSDWindow.cs" />
+    <Compile Remove="UsercmdGenLocal.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenStk.XGngine.Sound\OpenStk.XGngine.Sound.csproj" />
+    <ProjectReference Include="..\OpenStk.XGngine\OpenStk.XGngine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <LangVersion>latest</LangVersion>
+	<UseWPF>true</UseWPF>  
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <!--<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>-->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<!-- This library requires a shader defined in the engine assemblies. Shaders are assets typically compiled by the asset compiler according to the Graphics API target, necessitating the inclusion of Stride.Core.Assets.CompilerApp. -->  
+    <!--<PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2381" IncludeAssets="build;buildTransitive" />-->  
+    <PackageReference Include="Stride.CommunityToolkit" Version="1.0.0-preview.62" />  
+    <PackageReference Include="Stride.Core" Version="4.3.0.2507" />  
+    <PackageReference Include="Stride.Core.Presentation.Wpf" Version="4.3.0.2507" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenStk.Platform.Stride\OpenStk.Platform.Stride.csproj" />
+  </ItemGroup>
+	
+</Project>

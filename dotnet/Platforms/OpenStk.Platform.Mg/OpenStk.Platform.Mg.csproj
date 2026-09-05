@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="Client_Mg.png" />
+	  <None Remove="NameMe\shaders\IsometricWorld.fxc" />
+	  <None Remove="NameMe\shaders\xBR.fxc" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Client_Mg.png" />
+	  <EmbeddedResource Include="NameMe\shaders\IsometricWorld.fxc" />
+	  <EmbeddedResource Include="NameMe\shaders\Readme.md" />
+	  <EmbeddedResource Include="NameMe\shaders\xBR.fxc" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.5-preview.6" />
+	  <PackageReference Include="ppy.SDL3-CS" Version="2026.520.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Core\OpenStk\OpenStk.csproj" />
+	</ItemGroup>
+
+</Project>

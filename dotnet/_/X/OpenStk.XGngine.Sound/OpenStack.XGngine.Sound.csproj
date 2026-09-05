@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;ID_DEDICATED_</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Sfx\OpenStk.Sfx.Al\OpenStk.Sfx.Al.csproj" />
+    <ProjectReference Include="..\..\Sfx\OpenStk.Sfx.Ogg\OpenStk.Sfx.Ogg.csproj" />
+    <ProjectReference Include="..\OpenStk.XGngine\OpenStk.XGngine.csproj" />
+  </ItemGroup>
+
+</Project>
