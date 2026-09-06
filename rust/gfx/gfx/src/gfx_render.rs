@@ -39,7 +39,7 @@
 
 use glam::Vec4;
 
-use openstack_polyfills::system::math_x::clamp;
+use poly::system::math_x::clamp;
 
 // ---------------------------------------------------------------------------
 // Colorf

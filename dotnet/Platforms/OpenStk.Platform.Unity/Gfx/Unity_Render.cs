@@ -38,7 +38,7 @@ public class TextureRenderer(IOpenGfx[] gfx, ISource source, object obj) : Rende
     readonly object Obj = obj;
 
     public override void Start() {
-        var obj = GameObject.CreatePrimitive(PrimitiveType.Plane); obj.isStatic = true; obj.name = "Texture";
+        var obj = GameObject.CreatePrimitive(PrimitiveType.Plane); obj.isStatic = true; obj.name = "B_Texture";
         obj.transform.rotation = Quaternion.Euler(-90f, -180f, 180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();
         (meshRenderer.material, _) = GfxModel.MaterialManager.CreateMaterial(source, new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } }).Result;

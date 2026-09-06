@@ -3,7 +3,7 @@ import math, traceback
 from numpy import ndarray, array, ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.godot.gfx.godot import GodotX
 from openstk.platforms.system import SystemSfx
 from panda3d.core import PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
@@ -22,7 +22,7 @@ class GodotClientHost(IClientHost):
 #region Platform
 
 # GodotObjectModelBuilder
-class GodotObjectModelBuilder(ObjectModelBuilderBase):
+class GodotObjectModelBuilder(ObjectModelBuilder):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
@@ -34,14 +34,14 @@ class GodotObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
 
 # GodotShaderBuilder
-class GodotShaderBuilder(ShaderBuilderBase):
+class GodotShaderBuilder(ShaderBuilder):
     _loader: ShaderLoader = None
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
 # GodotTextureBuilder
 # https://docs.panda3d.org/1.10/python/programming/texturing/simple-texturing#simple-texturing
 # https://docs.panda3d.org/1.10/python/programming/texturing/creating-textures#creating-new-textures-from-scratch
-class GodotTextureBuilder(TextureBuilderBase):
+class GodotTextureBuilder(TextureBuilder):
     _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> Texture:
@@ -71,7 +71,7 @@ class GodotTextureBuilder(TextureBuilderBase):
         @staticmethod
         def _lambdax(x: object) -> int:
             match x:
-                case Texture_Bytes():
+                case TextureAsBytes():
                     bytes, fmt, spans = (x.bytes, x.format, x.spans)
                     # process
                     if not bytes: return self.defaultTexture
@@ -128,7 +128,7 @@ class GodotTextureBuilder(TextureBuilderBase):
 
 # GodotMaterialBuilder
 # https://docs.panda3d.org/1.10/python/programming/render-attributes/materials
-class GodotMaterialBuilder(MaterialBuilderBase):
+class GodotMaterialBuilder(MaterialBuilder):
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 

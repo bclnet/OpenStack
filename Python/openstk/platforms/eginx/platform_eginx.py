@@ -2,7 +2,7 @@ from __future__ import annotations
 import traceback
 from openstk.core import ISource, Platform
 from openstk.platforms.system import SystemSfx
-from openstk.gfx import IOpenGfxApi, IOpenGfxSprite, IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
+from openstk.gfx import IOpenGfxApi, IOpenGfxSprite, IOpenGfxModel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, ShaderBuilder, ShaderManager, TextureManager, TextureBuilder
 from openstk.client import IClientHost
 from openstk.gfx.egin import Game, GraphicsDeviceManager
 

@@ -29,7 +29,7 @@ public class OpenGLClientHost : IClientHost {
 /// <summary>
 /// OpenGLObjectBuilder
 /// </summary>
-class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int> {
+class OpenGLObjectBuilder : ObjectModelBuilder<object, GLRenderMaterial, int> {
     public override object InstanceObject(object prefab, object parent) {
         return "clone";
     }
@@ -44,15 +44,15 @@ class OpenGLObjectBuilder : ObjectModelBuilderBase<object, GLRenderMaterial, int
 /// <summary>
 /// OpenGLShaderBuilder
 /// </summary>
-class OpenGLShaderBuilder : ShaderBuilderBase<Shader> {
+class OpenGLShaderBuilder : ShaderBuilder<Shader> {
     static readonly ShaderLoader _loader = new ShaderDebugLoader();
-    public override Shader CreateShader(object path, IDictionary<string, bool> args = null) => _loader.CreateShader(path, args);
+    public override Shader CreateShader(object path, Dictionary<string, bool> args = null) => _loader.CreateShader(path, args);
 }
 
 /// <summary>
 /// OpenGLTextureBuilder
 /// </summary>
-unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
+unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
     static int _defaultTexture = -1;
     public override int DefaultTexture => _defaultTexture > -1 ? _defaultTexture : _defaultTexture = CreateDefaultTexture();
 
@@ -99,7 +99,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
 
     public override int CreateTexture(int reuse, ITexture src, Range? level2 = null) => src.Create("GL", x => {
         switch (x) {
-            case Texture_Bytes t:
+            case TextureAsBytes t:
                 var tex = reuse != 0 ? reuse : GL.GenTexture();
                 var numMipMaps = Math.Max(1, src.MipMaps);
                 (int start, int stop) level = (level2?.Start.Value ?? 0, numMipMaps);
@@ -198,7 +198,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilderBase<int> {
 /// <summary>
 /// OpenGLMaterialBuilder
 /// </summary>
-class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilderBase<GLRenderMaterial, int>(textureManager) {
+class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilder<GLRenderMaterial, int>(textureManager) {
     static GLRenderMaterial _defaultMaterial, _terrainMaterial;
     public override GLRenderMaterial DefaultMaterial => _defaultMaterial ??= CreateDefaultMaterial();
     public override GLRenderMaterial TerrainMaterial => _terrainMaterial ??= CreateTerrainMaterial();
@@ -297,7 +297,7 @@ public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shade
     public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
     public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
     public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = default) => _objectManager.CreateObject(source, path, isStatic, parent);
-    public Task<(Shader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
+    public Task<(Shader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
     public Task<(int tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
 
@@ -329,7 +329,7 @@ public class OpenGLPlatform : Platform {
     public static readonly Platform This = new OpenGLPlatform();
     OpenGLPlatform() : base("GL", "OpenGL") {
         Caps = PlatformX.Caps.Drawing;
-        GfxFactory = () => [new OpenGLGfxApi(), null, new OpenGLGfxSprite3D(), new OpenGLGfxModel(), null, null, new OpenGLGfxTerrain()];
+        GfxFactory = () => [new OpenGLGfxApi(), null, new OpenGLGfxSprite3D(), new OpenGLGfxModel(), null, new OpenGLGfxTerrain()];
         SfxFactory = () => [new SystemSfx()];
     }
 }

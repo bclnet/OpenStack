@@ -122,7 +122,7 @@ public class TextureRenderer : EginRenderer {
         };
         int offset = 0, stride = sizeof(float) * attributes.Sum(x => x.size);
         foreach (var (name, size) in attributes) {
-            var location = Shader.GetAttribLocation(name);
+            var location = Shader.AttribLocation(name);
             if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
             offset += sizeof(float) * size;
         }
@@ -144,7 +144,7 @@ public class TextureRenderer : EginRenderer {
     public override void Update(float deltaTime) {
         if (Obj is not ITextureFrames obj || GfxModel == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
-        if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
+        if (FrameDelay <= obj.Fps || !obj.NextFrame()) return;
         FrameDelay = 0; // reset delay between frames
         GfxModel.TextureManager.ReloadTexture(Source, obj, Level);
     }
@@ -219,7 +219,7 @@ public class MaterialRenderer : EginRenderer {
         };
         int offset = 0, stride = sizeof(float) * attributes.Sum(x => x.size);
         foreach (var (name, size) in attributes) {
-            var location = Shader.GetAttribLocation(name);
+            var location = Shader.AttribLocation(name);
             if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, size, VertexAttribPointerType.Float, false, stride, offset); }
             offset += sizeof(float) * size;
         }
@@ -232,13 +232,13 @@ public class MaterialRenderer : EginRenderer {
         GL.UseProgram(Shader.Program);
         GL.BindVertexArray(Vao);
         GL.EnableVertexAttribArray(0);
-        var location = Shader.GetUniformLocation("m_vTintColorSceneObject");
+        var location = Shader.UniformLocation("m_vTintColorSceneObject");
         if (location > -1) GL.Uniform4f(location, 1, in OpenTK.Mathematics.Vector4.One);
-        location = Shader.GetUniformLocation("m_vTintColorDrawCall");
+        location = Shader.UniformLocation("m_vTintColorDrawCall");
         if (location > -1) GL.Uniform3f(location, 1, in OpenTK.Mathematics.Vector3.One);
-        location = Shader.GetUniformLocation("uProjectionViewMatrix");
+        location = Shader.UniformLocation("uProjectionViewMatrix");
         if (location > -1) GL.UniformMatrix4f(location, 1, false, in identity);
-        location = Shader.GetUniformLocation("transform");
+        location = Shader.UniformLocation("transform");
         if (location > -1) GL.UniformMatrix4f(location, 1, false, in identity);
         Material.Render(Shader);
         GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
@@ -316,9 +316,9 @@ public class GridRenderer : EginRenderer {
 
         // attributes
         GL.EnableVertexAttribArray(0);
-        var location = Shader.GetAttribLocation("aVertexPosition");
+        var location = Shader.AttribLocation("aVertexPosition");
         if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, STRIDE, 0); }
-        location = Shader.GetAttribLocation("aVertexColor");
+        location = Shader.AttribLocation("aVertexColor");
         if (location != uint.MaxValue) { GL.EnableVertexAttribArray(location); GL.VertexAttribPointer(location, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3); }
         GL.BindVertexArray(0); // unbind vao
         GL.UseProgram(0); // unbind program
@@ -330,7 +330,7 @@ public class GridRenderer : EginRenderer {
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.UseProgram(Shader.Program);
-        GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in matrix);
+        GL.UniformMatrix4f(Shader.UniformLocation("uProjectionViewMatrix"), 1, false, in matrix);
         GL.BindVertexArray(Vao);
         GL.EnableVertexAttribArray(0);
         GL.DrawArrays(PrimitiveType.Lines, 0, VertexCount);
@@ -400,11 +400,11 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferHandle);
 
             var stride = sizeof(float) * VertexSize;
-            var positionAttributeLocation = Shader.GetAttribLocation("aVertexPosition");
+            var positionAttributeLocation = Shader.AttribLocation("aVertexPosition");
             GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, stride, 0);
-            var colorAttributeLocation = Shader.GetAttribLocation("aVertexColor");
+            var colorAttributeLocation = Shader.AttribLocation("aVertexColor");
             GL.VertexAttribPointer(colorAttributeLocation, 4, VertexAttribPointerType.Float, false, stride, sizeof(float) * 3);
-            var uvAttributeLocation = Shader.GetAttribLocation("aTexCoords");
+            var uvAttributeLocation = Shader.AttribLocation("aTexCoords");
             GL.VertexAttribPointer(uvAttributeLocation, 2, VertexAttribPointerType.Float, false, stride, sizeof(float) * 7);
 
             GL.EnableVertexAttribArray(positionAttributeLocation);
@@ -538,13 +538,13 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferHandle);
 
-            GL.Uniform1i(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
+            GL.Uniform1i(Shader.UniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
 
             var otkProjection = viewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in otkProjection);
+            GL.UniformMatrix4f(Shader.UniformLocation("uProjectionViewMatrix"), 1, false, in otkProjection);
 
             // TODO: This formula is a guess but still seems too bright compared to valve particles
-            GL.Uniform1f(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
+            GL.Uniform1f(Shader.UniformLocation("uOverbrightFactor"), OverbrightFactor);
 
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
@@ -652,7 +652,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
 
             GL.EnableVertexAttribArray(0);
 
-            var positionAttributeLocation = Shader.GetAttribLocation("aVertexPosition");
+            var positionAttributeLocation = Shader.AttribLocation("aVertexPosition");
             GL.VertexAttribPointer(positionAttributeLocation, 3, VertexAttribPointerType.Float, false, 0, 0);
 
             GL.BindVertexArray(0); // Unbind VAO
@@ -684,19 +684,19 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Texture);
 
-            GL.Uniform1i(Shader.GetUniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
+            GL.Uniform1i(Shader.UniformLocation("uTexture"), 0); // set texture unit 0 as uTexture uniform
 
             var otkProjection = viewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in otkProjection);
+            GL.UniformMatrix4f(Shader.UniformLocation("uProjectionViewMatrix"), 1, false, in otkProjection);
 
             // TODO: This formula is a guess but still seems too bright compared to valve particles
-            GL.Uniform1f(Shader.GetUniformLocation("uOverbrightFactor"), OverbrightFactor);
+            GL.Uniform1f(Shader.UniformLocation("uOverbrightFactor"), OverbrightFactor);
 
-            var modelMatrixLocation = Shader.GetUniformLocation("uModelMatrix");
-            var colorLocation = Shader.GetUniformLocation("uColor");
-            var alphaLocation = Shader.GetUniformLocation("uAlpha");
-            var uvOffsetLocation = Shader.GetUniformLocation("uUvOffset");
-            var uvScaleLocation = Shader.GetUniformLocation("uUvScale");
+            var modelMatrixLocation = Shader.UniformLocation("uModelMatrix");
+            var colorLocation = Shader.UniformLocation("uColor");
+            var alphaLocation = Shader.UniformLocation("uAlpha");
+            var uvOffsetLocation = Shader.UniformLocation("uUvOffset");
+            var uvScaleLocation = Shader.UniformLocation("uUvScale");
 
             // Create billboarding rotation (always facing camera)
             Matrix4x4.Decompose(modelViewMatrix, out _, out Quaternion modelViewRotation, out _);

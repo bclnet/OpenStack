@@ -11,7 +11,7 @@
 // value. Both are ported here with a real `BlockFormat` enum, because the
 // arithmetic they were meant to perform is correct and needed; see below.
 
-use openstack_polyio::prelude::BinaryReaderExt;
+use poly::prelude::BinaryReaderExt;
 use std::io::{Read, Seek, SeekFrom};
 
 /// Replaces C# `object format` — the untyped parameter `GetBlockSize` took.

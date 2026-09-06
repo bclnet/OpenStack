@@ -189,9 +189,9 @@ public class AsnParser {
         var position = CurrentPosition();
         try {
             var b = GetNextOctet();
-            if (b != 0x06) throw new BerDecodeException($"Expected Object Identifier. Specified Identifier: {b}", position);
+            if (b != 0x06) throw new BerDecodeException($"Expected B_Object Identifier. Specified Identifier: {b}", position);
             var length = GetLength();
-            if (length > RemainingBytes()) throw new BerDecodeException($"Incorrect Object Identifier Size. Specified: {length}, Remaining: {RemainingBytes()}", position);
+            if (length > RemainingBytes()) throw new BerDecodeException($"Incorrect B_Object Identifier Size. Specified: {length}, Remaining: {RemainingBytes()}", position);
             var values = new byte[length];
             for (var i = 0; i < length; i++) { values[i] = _octets[0]; _octets.RemoveAt(0); }
             return values;

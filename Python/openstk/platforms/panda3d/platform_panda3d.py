@@ -3,7 +3,7 @@ import math, traceback
 from numpy import ndarray, array, ones, zeros
 from openstk.core import Platform, PlatformX
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Dds, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsDds, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.panda3d.gfx.panda3d import Panda3dX
 from openstk.platforms.system import SystemSfx
 
@@ -23,7 +23,7 @@ class Panda3dClientHost(IClientHost):
 #region Platform
 
 # Panda3dObjectModelBuilder
-class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
+class Panda3dObjectModelBuilder(ObjectModelBuilder):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
@@ -35,14 +35,14 @@ class Panda3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
 
 # Panda3dShaderBuilder
-class Panda3dShaderBuilder(ShaderBuilderBase):
+class Panda3dShaderBuilder(ShaderBuilder):
     _loader: ShaderLoader = None
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
 # Panda3dTextureBuilder
 # https://docs.panda3d.org/1.10/python/programming/texturing/simple-texturing#simple-texturing
 # https://docs.panda3d.org/1.10/python/programming/texturing/creating-textures#creating-new-textures-from-scratch
-class Panda3dTextureBuilder(TextureBuilderBase):
+class Panda3dTextureBuilder(TextureBuilder):
     _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> Texture:
@@ -68,12 +68,12 @@ class Panda3dTextureBuilder(TextureBuilderBase):
         @staticmethod
         def _lambdax(x: object) -> Texture:
             match x:
-                case Texture_Dds():
+                case TextureAsDds():
                     if reuse != None: raise NotImplementedError()
                     tex = Texture('texture')
                     tex.readDds(StringStream(x.bytes))
                     return tex
-                case Texture_Bytes():
+                case TextureAsBytes():
                     tex = reuse if reuse != None else Texture('texture')
                     numMipMaps = max(1, src.mipMaps)
                     width = src.width; height = src.height
@@ -176,7 +176,7 @@ class MaterialPoly():
 
 # Panda3dMaterialBuilder
 # https://docs.panda3d.org/1.10/python/programming/render-attributes/materials
-class Panda3dMaterialBuilder(MaterialBuilderBase):
+class Panda3dMaterialBuilder(MaterialBuilder):
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 

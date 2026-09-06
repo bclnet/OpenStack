@@ -26,7 +26,7 @@ public class GodotClientHost : IClientHost {
 #region Platform
 
 // GodotObjectBuilder : MISSING
-class GodotObjectModelBuilder : ObjectModelBuilderBase<Node, Material, Texture2D> {
+class GodotObjectModelBuilder : ObjectModelBuilder<Node, Material, Texture2D> {
     Node _prefabObj;
 
     public override Node InstanceObject(Node src, Node parent) {
@@ -57,7 +57,7 @@ class GodotObjectModelBuilder : ObjectModelBuilderBase<Node, Material, Texture2D
 // GodotShaderBuilder : MISSING
 
 // GodotTextureBuilder
-class GodotTextureBuilder : TextureBuilderBase<Texture2D> {
+class GodotTextureBuilder : TextureBuilder<Texture2D> {
     Texture2D _defaultTexture;
     public override Texture2D DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
 
@@ -97,7 +97,7 @@ class GodotTextureBuilder : TextureBuilderBase<Texture2D> {
     // https://docs.godotengine.org/en/stable/classes/class_image.html
     public override Texture2D CreateTexture(Texture2D reuse, ITexture src, System.Range? range = null) => src.Create("GD", x => {
         switch (x) {
-            case Texture_Bytes t:
+            case TextureAsBytes t:
                 if (t.Bytes == null) return DefaultTexture;
                 else if (t.Format is ValueTuple<TextureFormat, TexturePixel> z) {
                     var (format, pixel) = z;
@@ -141,7 +141,7 @@ class GodotTextureBuilder : TextureBuilderBase<Texture2D> {
     public override void DeleteTexture(Texture2D src) => src.TakeOverPath(null);
 }
 
-class GodotMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager) {
+class GodotMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilder<Material, Texture2D>(textureManager) {
     Material _defaultMaterial;
     public override Material DefaultMaterial => _defaultMaterial ??= new StandardMaterial3D();
 
@@ -259,7 +259,7 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture2D, XShader> {
     public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
     public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
     public Task<(Node obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
-    public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => throw new NotImplementedException();
     public Task<(Texture2D tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(Node src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node parent) => throw new NotImplementedException();
 }

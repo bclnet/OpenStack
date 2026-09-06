@@ -4,7 +4,7 @@ from numpy import array, ones, zeros, float32
 from OpenGL.GL import *
 from OpenGL.GL.EXT import texture_compression_s3tc as s3tc
 from openstk.core import ISource, Platform
-from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxSprite, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.opengl.egin import QuadIndexBuffer, GLMeshBufferCache, GLRenderMaterial
 from openstk.platforms.opengl.gfx import ShaderDebugLoader
 from openstk.platforms.opengl.gfx.opengl import OpenGLX
@@ -25,7 +25,7 @@ class OpenGLClientHost(IClientHost):
 #region Platform
 
 # OpenGLObjectModelBuilder
-class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
+class OpenGLObjectModelBuilder(ObjectModelBuilder):
     def instanceObject(self, src: object, parent: object = None) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
@@ -37,12 +37,12 @@ class OpenGLObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
 
 # OpenGLShaderBuilder
-class OpenGLShaderBuilder(ShaderBuilderBase):
+class OpenGLShaderBuilder(ShaderBuilder):
     _loader: ShaderLoader = ShaderDebugLoader()
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
 # OpenGLTextureBuilder
-class OpenGLTextureBuilder(TextureBuilderBase):
+class OpenGLTextureBuilder(TextureBuilder):
     _defaultTexture: int = -1
     @property
     def defaultTexture(self) -> int:
@@ -94,7 +94,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
         @staticmethod
         def _lambdax(x: object) -> int:
             match x:
-                case Texture_Bytes():
+                case TextureAsBytes():
                     tex = reuse if reuse != None else glGenTextures(1)
                     numMipMaps = max(1, src.mipMaps)
                     level = range(level2.start if level2 else 0, numMipMaps)
@@ -181,7 +181,7 @@ class OpenGLTextureBuilder(TextureBuilderBase):
     def deleteTexture(self, src: int) -> None: glDeleteTexture(src)
 
 # OpenGLMaterialBuilder
-class OpenGLMaterialBuilder(MaterialBuilderBase):
+class OpenGLMaterialBuilder(MaterialBuilder):
     _defaultMaterial: GLRenderMaterial = None; _terrainMaterial: GLRenderMaterial = None
     @property
     def defaultMaterial(self) -> GLRenderMaterial:

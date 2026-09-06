@@ -47,7 +47,7 @@ public class TextureRenderer : Renderer {
     public override void Update(float deltaTime) {
         if (Obj is not ITextureFrames obj || GfxModel == null || !obj.HasFrames) return;
         FrameDelay += (int)deltaTime;
-        if (FrameDelay <= obj.Fps || !obj.DecodeFrame()) return;
+        if (FrameDelay <= obj.Fps || !obj.NextFrame()) return;
         FrameDelay = 0; // reset delay between frames
         GfxModel.TextureManager.ReloadTexture(Source, obj, Level);
     }

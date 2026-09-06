@@ -97,7 +97,7 @@ public abstract class ShaderLoader {
 
     protected abstract string GetShaderSource(string name);
 
-    public Shader CreateShader(object path, IDictionary<string, bool> args) {
+    public Shader CreateShader(object path, Dictionary<string, bool> args) {
         var name = (string)path;
         var cache = !name.StartsWith("#");
         var shaderFileName = GetShaderFileByName(name);
@@ -123,7 +123,7 @@ public abstract class ShaderLoader {
         GL.GetShaderi(vertexShader, ShaderParameterName.CompileStatus, out var shaderStatus);
         if (shaderStatus != 1) {
             GL.GetShaderInfoLog(vertexShader, out var vsInfo);
-            throw new Exception($"Error setting up Vertex Shader \"{name}\": {vsInfo}");
+            throw new Exception($"Error setting up Vertex B_Shader \"{name}\": {vsInfo}");
         }
 
         // fragment shader
@@ -138,7 +138,7 @@ public abstract class ShaderLoader {
         GL.GetShaderi(fragmentShader, ShaderParameterName.CompileStatus, out shaderStatus);
         if (shaderStatus != 1) {
             GL.GetShaderInfoLog(fragmentShader, out var fsInfo);
-            throw new Exception($"Error setting up Fragment Shader \"{name}\": {fsInfo}");
+            throw new Exception($"Error setting up Fragment B_Shader \"{name}\": {fsInfo}");
         }
 
         // defines: find render modes
@@ -172,7 +172,7 @@ public abstract class ShaderLoader {
             ShaderDefines[shaderFileName] = defines;
             var newShaderCacheHash = CalculateShaderCacheHash(shaderFileName, args);
             CachedShaders[newShaderCacheHash] = shader;
-            Log.Info($"Shader {name}({string.Join(", ", args.Keys)}) compiled and linked succesfully");
+            Log.Info($"B_Shader {name}({string.Join(", ", args.Keys)}) compiled and linked succesfully");
         }
 #endif
         return shader;

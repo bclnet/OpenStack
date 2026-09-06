@@ -5,8 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("OpenStack.Gl")]
-[assembly: InternalsVisibleTo("OpenStack.GfxTests")]
+[assembly: InternalsVisibleTo("OpenStk.GfxTests")]
 
 namespace OpenStk.Gfx;
 
@@ -27,40 +26,15 @@ public static class GfX {
 
 public enum GfxAttach { Find, Transform, All, AllCenter }
 
-/*
-test modes (glAlphaFunc):
-000 GL_ALWAYS
-001 GL_LESS
-010 GL_EQUAL
-011 GL_LEQUAL
-100 GL_GREATER
-101 GL_NOTEQUAL
-110 GL_GEQUAL
-111 GL_NEVER
-*/
 /// <summary>
-/// GfxAlphaMode
+/// GfxAlphaMode (glAlphaFunc)
 /// </summary>
-public enum GfxAlphaMode { Always, Less, LEqual, Equal, GEqual, Greater, NotEqual, Never }
+public enum GfxAlphaMode { Never = 0x0200, Less = 0x0201, Equal = 0x0202, LEqual = 0x0203, Greater = 0x0204, NotEqual = 0x0205, GEqual = 0x0206, Always = 0x0207 }
 
-/*
-blend modes (glBlendFunc):
-0000 GL_ONE
-0001 GL_ZERO
-0010 GL_SRC_COLOR
-0011 GL_ONE_MINUS_SRC_COLOR
-0100 GL_DST_COLOR
-0101 GL_ONE_MINUS_DST_COLOR
-0110 GL_SRC_ALPHA
-0111 GL_ONE_MINUS_SRC_ALPHA
-1000 GL_DST_ALPHA
-1001 GL_ONE_MINUS_DST_ALPHA
-1010 GL_SRC_ALPHA_SATURATE
-*/
 /// <summary>
-/// GfxBlendMode
+/// GfxBlendMode (glBlendFunc)
 /// </summary>
-public enum GfxBlendMode { Zero, One, DstColor, SrcColor, OneMinusDstColor, SrcAlpha, OneMinusSrcColor, DstAlpha, OneMinusDstAlpha, SrcAlphaSaturate, OneMinusSrcAlpha }
+public enum GfxBlendMode { Zero = 0, One = 1, SrcColor = 0x0300, OneMinusSrcColor = 0x0301, SrcAlpha = 0x0302, OneMinusSrcAlpha = 0x0303, DstAlpha = 0x0304, OneMinusDstAlpha = 0x0305, DstColor = 0x0306, OneMinusDstColor = 0x0307, SrcAlphaSaturate = 0x0308 }
 
 //public record GfxKey(ISource Source, object Path);
 
@@ -69,11 +43,11 @@ public enum GfxBlendMode { Zero, One, DstColor, SrcColor, OneMinusDstColor, SrcA
 #region ObjectSprite
 
 /// <summary>
-/// ObjectSpriteBuilderBase
+/// ObjectSpriteBuilder
 /// </summary>
 /// <typeparam name="Object"></typeparam>
 /// <typeparam name="Sprite"></typeparam>
-public abstract class ObjectSpriteBuilderBase<Object, Sprite> {
+public abstract class ObjectSpriteBuilder<Object, Sprite> {
     public abstract void EnsurePrefab();
     public abstract Object InstanceObject(Object src, Object parent);
     public abstract Object CreateObject(object src);
@@ -86,8 +60,8 @@ public abstract class ObjectSpriteBuilderBase<Object, Sprite> {
 /// <typeparam name="Sprite"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class ObjectSpriteManager<Object, Sprite>(ObjectSpriteBuilderBase<Object, Sprite> builder) {
-    readonly ObjectSpriteBuilderBase<Object, Sprite> Builder = builder;
+public class ObjectSpriteManager<Object, Sprite>(ObjectSpriteBuilder<Object, Sprite> builder) {
+    readonly ObjectSpriteBuilder<Object, Sprite> Builder = builder;
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
     static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
 
@@ -126,33 +100,33 @@ public interface IObjectModel {
 }
 
 /// <summary>
-/// ObjectModelBuilderBase
+/// ObjectModelBuilder
 /// </summary>
-/// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-/// <typeparam name="Texture"></typeparam>
-public abstract class ObjectModelBuilderBase<Object, Material, Texture> {
-    public abstract Object InstanceObject(Object src, Object parent);
-    public abstract Task<Object> CreateObject(ISource source, object src, bool isStatic, MaterialManager<Material, Texture> materialManager);
+/// <typeparam name="B_Object"></typeparam>
+/// <typeparam name="B_Material"></typeparam>
+/// <typeparam name="B_Texture"></typeparam>
+public abstract class ObjectModelBuilder<B_Object, B_Material, B_Texture> {
+    public abstract B_Object InstanceObject(B_Object src, B_Object parent);
+    public abstract Task<B_Object> CreateObject(ISource source, object src, bool isStatic, MaterialManager<B_Material, B_Texture> materialManager);
     public abstract void EnsurePrefab();
 }
 
 /// <summary>
 /// ObjectModelManager
 /// </summary>
-/// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-/// <typeparam name="Texture"></typeparam>
+/// <typeparam name="B_Object"></typeparam>
+/// <typeparam name="B_Material"></typeparam>
+/// <typeparam name="B_Texture"></typeparam>
 /// <param name="source"></param>
 /// <param name="materialManager"></param>
 /// <param name="builder"></param>
-public class ObjectModelManager<Object, Material, Texture>(MaterialManager<Material, Texture> materialManager, ObjectModelBuilderBase<Object, Material, Texture> builder) {
-    readonly MaterialManager<Material, Texture> MaterialManager = materialManager;
-    readonly ObjectModelBuilderBase<Object, Material, Texture> Builder = builder;
+public class ObjectModelManager<B_Object, B_Material, B_Texture>(MaterialManager<B_Material, B_Texture> materialManager, ObjectModelBuilder<B_Object, B_Material, B_Texture> builder) {
+    readonly MaterialManager<B_Material, B_Texture> MaterialManager = materialManager;
+    readonly ObjectModelBuilder<B_Object, B_Material, B_Texture> Builder = builder;
     readonly Dictionary<object, Task<object>> PreloadTasks = [];
-    static readonly Dictionary<object, (Object obj, object tag)> CachedObjects = [];
+    static readonly Dictionary<object, (B_Object obj, object tag)> CachedObjects = [];
 
-    public async Task<(Object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Object parent = default) {
+    public async Task<(B_Object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, B_Object parent = default) {
         var key = (source, path);
         try {
             if (!CachedObjects.TryGetValue(key, out var s)) s = CachedObjects[key] = await LoadObject(source, path, isStatic, parent);
@@ -167,7 +141,7 @@ public class ObjectModelManager<Object, Material, Texture>(MaterialManager<Mater
         if (!PreloadTasks.ContainsKey(key)) PreloadTasks[key] = source.GetAsset<object>(path);
     }
 
-    async Task<(Object obj, object tag)> LoadObject(ISource source, object path, bool isStatic, Object parent) {
+    async Task<(B_Object obj, object tag)> LoadObject(ISource source, object path, bool isStatic, B_Object parent) {
         var key = (source, path);
         Log.Assert(!CachedObjects.ContainsKey(key));
         Builder.EnsurePrefab();
@@ -187,43 +161,43 @@ public class ObjectModelManager<Object, Material, Texture>(MaterialManager<Mater
 /// <summary>
 /// Shader
 /// </summary>
-public class Shader(Func<int, string, int> getUniformLocation, Func<int, string, int> getAttribLocation) {
-    readonly Func<int, string, int> _getUniformLocation = getUniformLocation ?? throw new ArgumentNullException(nameof(getUniformLocation));
-    readonly Func<int, string, int> _getAttribLocation = getAttribLocation ?? throw new ArgumentNullException(nameof(getAttribLocation));
+public class Shader(Func<int, string, int> uniformLocation, Func<int, string, int> attribLocation) {
+    readonly Func<int, string, int> _uniformLocation = uniformLocation ?? throw new ArgumentNullException(nameof(uniformLocation));
+    readonly Func<int, string, int> _attribLocation = attribLocation ?? throw new ArgumentNullException(nameof(attribLocation));
     public string Name;
     public int Program;
-    public IDictionary<string, bool> Parameters;
+    public Dictionary<string, bool> Parameters;
     public List<string> RenderModes;
     Dictionary<string, int> _uniforms = [];
 
-    public int GetUniformLocation(string name) {
+    public int UniformLocation(string name) {
         if (_uniforms.TryGetValue(name, out var value)) return value;
-        value = _getUniformLocation(Program, name); _uniforms[name] = value;
+        value = _uniformLocation(Program, name); _uniforms[name] = value;
         return value;
     }
 
-    public uint GetAttribLocation(string name) => (uint)_getAttribLocation(Program, name);
+    public uint AttribLocation(string name) => (uint)_attribLocation(Program, name);
 }
 
 /// <summary>
-/// ShaderBuilderBase
+/// ShaderBuilder
 /// </summary>
-/// <typeparam name="Shader"></typeparam>
-public abstract class ShaderBuilderBase<Shader> {
-    public abstract Shader CreateShader(object path, IDictionary<string, bool> args = null);
+/// <typeparam name="B_Shader"></typeparam>
+public abstract class ShaderBuilder<B_Shader> {
+    public abstract B_Shader CreateShader(object path, Dictionary<string, bool> args = null);
 }
 
 /// <summary>
 /// ShaderManager
 /// </summary>
-/// <typeparam name="Shader"></typeparam>
+/// <typeparam name="B_Shader"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class ShaderManager<Shader>(ShaderBuilderBase<Shader> builder) {
+public class ShaderManager<B_Shader>(ShaderBuilder<B_Shader> builder) {
     static readonly Dictionary<string, bool> EmptyArgs = [];
-    readonly ShaderBuilderBase<Shader> Builder = builder;
+    readonly ShaderBuilder<B_Shader> Builder = builder;
 
-    public async Task<(Shader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => (Builder.CreateShader(path, args ?? EmptyArgs), null);
+    public async Task<(B_Shader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => (Builder.CreateShader(path, args ?? EmptyArgs), null);
 }
 
 #endregion
@@ -240,13 +214,13 @@ public interface ISprite {
 }
 
 /// <summary>
-/// SpriteBuilderBase
+/// SpriteBuilder
 /// </summary>
-/// <typeparam name="Sprite"></typeparam>
-public abstract class SpriteBuilderBase<Sprite> {
-    public abstract Sprite DefaultSprite { get; }
-    public abstract Sprite CreateSprite(ISprite spr);
-    public abstract void DeleteSprite(Sprite spr);
+/// <typeparam name="B_Sprite"></typeparam>
+public abstract class SpriteBuilder<B_Sprite> {
+    public abstract B_Sprite DefaultSprite { get; }
+    public abstract B_Sprite CreateSprite(ISprite spr);
+    public abstract void DeleteSprite(B_Sprite spr);
 }
 
 /// <summary>
@@ -254,14 +228,14 @@ public abstract class SpriteBuilderBase<Sprite> {
 /// </summary>
 /// <typeparam name="Texture"></typeparam>
 /// <param name="builder"></param>
-public class SpriteManager<Sprite>(SpriteBuilderBase<Sprite> builder) {
-    readonly SpriteBuilderBase<Sprite> Builder = builder;
+public class SpriteManager<B_Sprite>(SpriteBuilder<B_Sprite> builder) {
+    readonly SpriteBuilder<B_Sprite> Builder = builder;
     readonly Dictionary<object, Task<ISprite>> PreloadTasks = [];
-    static readonly Dictionary<object, (Sprite spr, object tag)> CachedSprites = [];
+    static readonly Dictionary<object, (B_Sprite spr, object tag)> CachedSprites = [];
 
-    public Sprite DefaultSprite => Builder.DefaultSprite;
+    public B_Sprite DefaultSprite => Builder.DefaultSprite;
 
-    public async Task<(Sprite spr, object tag)> CreateSprite(ISource source, object path) {
+    public async Task<(B_Sprite spr, object tag)> CreateSprite(ISource source, object path) {
         var key = (source, path);
         if (CachedSprites.TryGetValue(key, out var c)) return c;
         var tag = path is ISprite z ? z : await LoadSprite(source, path);
@@ -297,16 +271,16 @@ public class SpriteManager<Sprite>(SpriteBuilderBase<Sprite> builder) {
 #region Texture
 
 /// <summary>
-/// Texture_Dds
+/// TextureAsDds
 /// </summary>
-public struct Texture_Dds(byte[] bytes) {
+public struct TextureAsDds(byte[] bytes) {
     public byte[] Bytes = bytes;
 }
 
 /// <summary>
-/// Texture_Bytes
+/// TextureAsBytes
 /// </summary>
-public struct Texture_Bytes(byte[] bytes, object format, Range[] spans) {
+public struct TextureAsBytes(byte[] bytes, object format, Range[] spans) {
     public byte[] Bytes = bytes;
     public object Format = format;
     public Range[] Spans = spans;
@@ -328,6 +302,7 @@ public interface ITexture {
 /// ITexture
 /// </summary>
 public interface ITextureSelect : ITexture {
+    int MaxId { get; }
     void Select(int id);
 }
 
@@ -337,59 +312,51 @@ public interface ITextureSelect : ITexture {
 public interface ITextureFrames : ITexture {
     int Fps { get; }
     bool HasFrames { get; }
-    bool DecodeFrame();
+    bool NextFrame();
 }
 
 /// <summary>
-/// ITextureFramesSelect
+/// TextureBuilder
 /// </summary>
-public interface ITextureFramesSelect : ITextureFrames {
-    int FrameMax { get; }
-    void FrameSelect(int id);
-}
-
-/// <summary>
-/// TextureBuilderBase
-/// </summary>
-/// <typeparam name="Texture"></typeparam>
-public abstract class TextureBuilderBase<Texture> {
+/// <typeparam name="B_Texture"></typeparam>
+public abstract class TextureBuilder<B_Texture> {
     public static int MaxTextureMaxAnisotropy => GfX.MaxTextureMaxAnisotropy;
-    public abstract Texture DefaultTexture { get; }
-    public abstract Texture CreateNormalMapTexture(Texture src, float strength);
-    public abstract Texture CreateSolidTexture(int width, int height, float[] rgbas);
-    public abstract Texture CreateTexture(Texture reuse, ITexture src, Range? level = null);
-    public abstract void DeleteTexture(Texture src);
+    public abstract B_Texture DefaultTexture { get; }
+    public abstract B_Texture CreateNormalMapTexture(B_Texture src, float strength);
+    public abstract B_Texture CreateSolidTexture(int width, int height, float[] rgbas);
+    public abstract B_Texture CreateTexture(B_Texture reuse, ITexture src, Range? level = null);
+    public abstract void DeleteTexture(B_Texture src);
 }
 
 /// <summary>
 /// TextureManager
 /// </summary>
-/// <typeparam name="Texture"></typeparam>
+/// <typeparam name="B_Texture"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class TextureManager<Texture>(TextureBuilderBase<Texture> builder) {
+public class TextureManager<B_Texture>(TextureBuilder<B_Texture> builder) {
     class Solid(int width, int height, float[] rgbas) {
         public int Width = width;
         public int Height = height;
         public float[] Rgbas = rgbas;
     }
 
-    readonly TextureBuilderBase<Texture> Builder = builder;
+    readonly TextureBuilder<B_Texture> Builder = builder;
     readonly Dictionary<object, Task<ITexture>> PreloadTasks = [];
-    static readonly Dictionary<Texture, Texture> CachedNormalMapTextures = [];
-    static readonly Dictionary<Solid, Texture> CachedSolidTextures = [];
-    static readonly Dictionary<object, (Texture tex, object tag)> CachedTextures = [];
-    public Texture DefaultTexture => Builder.DefaultTexture;
+    static readonly Dictionary<B_Texture, B_Texture> CachedNormalMapTextures = [];
+    static readonly Dictionary<Solid, B_Texture> CachedSolidTextures = [];
+    static readonly Dictionary<object, (B_Texture tex, object tag)> CachedTextures = [];
+    public B_Texture DefaultTexture => Builder.DefaultTexture;
     const float NormalMapIntensity = 0.75f;
 
-    public Texture CreateNormalMapTexture(Texture src, float strength = -1) {
+    public B_Texture CreateNormalMapTexture(B_Texture src, float strength = -1) {
         if (CachedNormalMapTextures.TryGetValue(src, out var s)) return s;
         s = Builder.CreateNormalMapTexture(src, strength < 0 ? NormalMapIntensity : strength);
         CachedNormalMapTextures[src] = s;
         return s;
     }
 
-    public Texture CreateSolidTexture(int width, int height, float[] rgbas) {
+    public B_Texture CreateSolidTexture(int width, int height, float[] rgbas) {
         var src = new Solid(width, height, rgbas);
         if (CachedSolidTextures.TryGetValue(src, out var s)) return s;
         s = Builder.CreateSolidTexture(width, height, rgbas);
@@ -397,7 +364,7 @@ public class TextureManager<Texture>(TextureBuilderBase<Texture> builder) {
         return s;
     }
 
-    public async Task<(Texture tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) {
+    public async Task<(B_Texture tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) {
         var key = (source, path);
         if (CachedTextures.TryGetValue(key, out var c)) return c;
         var tag = path is ITexture z ? z : await LoadTexture(source, path);
@@ -405,7 +372,7 @@ public class TextureManager<Texture>(TextureBuilderBase<Texture> builder) {
         return CachedTextures[key] = (obj, tag);
     }
 
-    public (Texture tex, object tag) ReloadTexture(ISource source, object path, Range? level = null) {
+    public (B_Texture tex, object tag) ReloadTexture(ISource source, object path, Range? level = null) {
         var key = (source, path);
         if (!CachedTextures.TryGetValue(key, out var c)) return (default, default);
         Builder.CreateTexture(c.tex, (ITexture)c.tag, level);
@@ -482,8 +449,8 @@ public class MaterialStd2Prop : MaterialStdProp {
 /// </summary>
 public class MaterialShaderProp : MaterialProp {
     public string ShaderName;
-    public IDictionary<string, bool> ShaderArgs;
-    //public IDictionary<string, object> Data;
+    public Dictionary<string, bool> ShaderArgs;
+    //public Dictionary<string, object> Data;
 }
 
 /// <summary>
@@ -506,31 +473,31 @@ public class MaterialShaderVProp : MaterialShaderProp {
 //public class MaterialTerrainProp : MaterialProp { }
 
 /// <summary>
-/// MaterialBuilderBase
+/// MaterialBuilder
 /// </summary>
-/// <typeparam name="Material"></typeparam>
-/// <typeparam name="Texture"></typeparam>
+/// <typeparam name="B_Material"></typeparam>
+/// <typeparam name="B_Texture"></typeparam>
 /// <param name="textureManager"></param>
-public abstract class MaterialBuilderBase<Material, Texture>(TextureManager<Texture> textureManager) {
-    protected TextureManager<Texture> TextureManager = textureManager;
-    public abstract Material DefaultMaterial { get; }
-    public abstract Material TerrainMaterial { get; }
-    public abstract Task<Material> CreateMaterial(ISource source, object path);
+public abstract class MaterialBuilder<B_Material, B_Texture>(TextureManager<B_Texture> textureManager) {
+    protected TextureManager<B_Texture> TextureManager = textureManager;
+    public abstract B_Material DefaultMaterial { get; }
+    public abstract B_Material TerrainMaterial { get; }
+    public abstract Task<B_Material> CreateMaterial(ISource source, object path);
 }
 
 /// <summary>
 /// Manages loading and instantiation of materials.
 /// </summary>
-public class MaterialManager<Material, Texture>(TextureManager<Texture> textureManager, MaterialBuilderBase<Material, Texture> builder) {
-    readonly MaterialBuilderBase<Material, Texture> Builder = builder;
+public class MaterialManager<B_Material, B_Texture>(TextureManager<B_Texture> textureManager, MaterialBuilder<B_Material, B_Texture> builder) {
+    readonly MaterialBuilder<B_Material, B_Texture> Builder = builder;
     readonly Dictionary<object, Task<MaterialProp>> PreloadTasks = [];
-    static readonly Dictionary<object, (Material material, object tag)> CachedMaterials = [];
+    static readonly Dictionary<object, (B_Material material, object tag)> CachedMaterials = [];
 
-    public TextureManager<Texture> TextureManager { get; } = textureManager;
-    public Material DefaultMaterial => Builder.DefaultMaterial;
-    public Material TerrainMaterial => Builder.TerrainMaterial;
+    public TextureManager<B_Texture> TextureManager { get; } = textureManager;
+    public B_Material DefaultMaterial => Builder.DefaultMaterial;
+    public B_Material TerrainMaterial => Builder.TerrainMaterial;
 
-    public async Task<(Material mat, object tag)> CreateMaterial(ISource source, object path) {
+    public async Task<(B_Material mat, object tag)> CreateMaterial(ISource source, object path) {
         var key = (source, path);
         if (CachedMaterials.TryGetValue(key, out var c)) return c;
         var src = path is MaterialProp z ? z : await LoadMaterial(source, path);
@@ -567,75 +534,75 @@ public interface IOpenGfx { }
 /// <summary>
 /// IOpenGfxApi
 /// </summary>
-/// <typeparam name="Object"></typeparam>
-/// <typeparam name="Material"></typeparam>
-public interface IOpenGfxApi<Object, Material> : IOpenGfx {
-    Object CreateObject(string name, string tag = null, Object parent = default);
+/// <typeparam name="B_Object"></typeparam>
+/// <typeparam name="B_Material"></typeparam>
+public interface IOpenGfxApi<B_Object, B_Material> : IOpenGfx {
+    B_Object CreateObject(string name, string tag = null, B_Object parent = default);
     object CreateMesh(object mesh);
-    void AddMeshRenderer(Object src, object mesh, Material material, bool enabled, bool isStatic);
-    void AddMeshCollider(Object src, object mesh, bool isKinematic, bool isStatic);
-    void Attach(GfxAttach method, Object src, params object[] args);
-    void Parent(Object src, Object parent);
-    void Transform(Object src, Vector3 position, Quaternion rotation, Vector3 localScale);
-    void Transform(Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
-    void AddMissingMeshCollidersRecursively(Object src, bool isStatic);
-    void SetLayerRecursively(Object src, int layer);
-    void SetVisible(Object src, bool visible);
-    void Destroy(Object src);
+    void AddMeshRenderer(B_Object src, object mesh, B_Material material, bool enabled, bool isStatic);
+    void AddMeshCollider(B_Object src, object mesh, bool isKinematic, bool isStatic);
+    void Attach(GfxAttach method, B_Object src, params object[] args);
+    void Parent(B_Object src, B_Object parent);
+    void Transform(B_Object src, Vector3 position, Quaternion rotation, Vector3 localScale);
+    void Transform(B_Object src, Vector3 position, Matrix4x4 rotation, Vector3 localScale);
+    void AddMissingMeshCollidersRecursively(B_Object src, bool isStatic);
+    void SetLayerRecursively(B_Object src, int layer);
+    void SetVisible(B_Object src, bool visible);
+    void Destroy(B_Object src);
 }
 
 /// <summary>
 /// IOpenGfxSprite
 /// </summary>
-public interface IOpenGfxSprite<Object, Sprite> : IOpenGfx {
-    SpriteManager<Sprite> SpriteManager { get; }
+public interface IOpenGfxSprite<B_Object, B_Sprite> : IOpenGfx {
+    SpriteManager<B_Sprite> SpriteManager { get; }
     void PreloadSprite(ISource source, object path);
-    Task<(Sprite spr, object tag)> CreateSprite(ISource source, object path, Object parent = default);
+    Task<(B_Sprite spr, object tag)> CreateSprite(ISource source, object path, B_Object parent = default);
 }
 
 /// <summary>
 /// IOpenGfxModel
 /// </summary>
-public interface IOpenGfxModel<Object, Material, Texture, Shader> : IOpenGfx {
-    MaterialManager<Material, Texture> MaterialManager { get; }
-    ObjectModelManager<Object, Material, Texture> ObjectManager { get; }
-    ShaderManager<Shader> ShaderManager { get; }
-    TextureManager<Texture> TextureManager { get; }
+public interface IOpenGfxModel<B_Object, B_Material, B_Texture, B_Shader> : IOpenGfx {
+    MaterialManager<B_Material, B_Texture> MaterialManager { get; }
+    ObjectModelManager<B_Object, B_Material, B_Texture> ObjectManager { get; }
+    ShaderManager<B_Shader> ShaderManager { get; }
+    TextureManager<B_Texture> TextureManager { get; }
     void PreloadObject(ISource source, object path);
     void PreloadTexture(ISource source, object path);
-    Task<(Object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Object parent = default);
-    Task<(Shader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null);
-    Task<(Texture tex, object tag)> CreateTexture(ISource source, object path, Range? level = null);
-    void PostObject(Object src, Vector3 position, Vector3 eulerAngles, float? scale, Object parent = default);
+    Task<(B_Object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, B_Object parent = default);
+    Task<(B_Shader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null);
+    Task<(B_Texture tex, object tag)> CreateTexture(ISource source, object path, Range? level = null);
+    void PostObject(B_Object src, Vector3 position, Vector3 eulerAngles, float? scale, B_Object parent = default);
 }
 
 /// <summary>
 /// IOpenGfxLight
 /// </summary>
-public interface IOpenGfxLight<Object> : IOpenGfx {
-    Object CreateLight(string name, Vector3? position, float radius, Color color, bool indoors, Object parent = default);
-    Object CreateReflectionProbe(string name, Vector3? position, Object parent = default);
+public interface IOpenGfxLight<B_Object> : IOpenGfx {
+    B_Object CreateLight(string name, Vector3? position, float radius, Color color, bool indoors, B_Object parent = default);
+    B_Object CreateReflectionProbe(string name, Vector3? position, B_Object parent = default);
 }
 
 /// <summary>
 /// GfxTerrainLayer
 /// </summary>
-public class GfxTerrainLayer<Texture_> {
-    public Texture_ Texture;
+public class GfxTerrainLayer<B_Texture> {
+    public B_Texture Texture;
     public float Smoothness;
     public float Metallic;
     public Color Specular;
-    public Texture_ MaskMapTexture;
-    public Texture_ NormalMapTexture;
+    public B_Texture MaskMapTexture;
+    public B_Texture NormalMapTexture;
     public Vector2 TileSize;
 }
 
 /// <summary>
 /// IOpenGfxTerrain
 /// </summary>
-public interface IOpenGfxTerrain<Object, Material, Texture> : IOpenGfx {
-    object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<Texture>[] layers, float[,,] alphaMap);
-    Object CreateTerrain(string name, Vector3? position, object data, Object parent = default);
+public interface IOpenGfxTerrain<B_Object, B_Material, B_Texture> : IOpenGfx {
+    object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<B_Texture>[] layers, float[,,] alphaMap);
+    B_Object CreateTerrain(string name, Vector3? position, object data, B_Object parent = default);
 }
 
 #endregion

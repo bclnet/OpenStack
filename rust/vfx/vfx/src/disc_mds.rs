@@ -53,7 +53,7 @@
 
 use std::io::{Read, Seek, SeekFrom};
 
-use openstack_polyio::prelude::BinaryReaderExt;
+use poly::prelude::BinaryReaderExt;
 
 /// One 80-byte track block, as it appears on disk.
 pub const TRACK_BLOCK_LEN: usize = 80;
@@ -122,7 +122,7 @@ impl MdsHeader {
     /// VERIFY: the skip widths (4, 8, 24, 12) are the least confident part —
     /// they are copied verbatim, and a wrong one shifts every later offset.
     pub fn parse<R: Read + Seek>(r: &mut R) -> Result<Self, MdsError> {
-        let io = |e: openstack_polyio::system_io::polyfill_binary_reader::ReadError| {
+        let io = |e: poly::system_io::polyfill_binary_reader::ReadError| {
             MdsError::Io(e.to_string())
         };
         let mut sig = [0u8; 16];
@@ -264,7 +264,7 @@ pub struct MdsFile {
 impl MdsFile {
     /// C# `Parse(Stream, string path)`.
     pub fn parse<R: Read + Seek>(r: &mut R) -> Result<Self, MdsError> {
-        let io = |e: openstack_polyio::system_io::polyfill_binary_reader::ReadError| {
+        let io = |e: poly::system_io::polyfill_binary_reader::ReadError| {
             MdsError::Io(e.to_string())
         };
         let len = r.stream_len().map_err(io)?;

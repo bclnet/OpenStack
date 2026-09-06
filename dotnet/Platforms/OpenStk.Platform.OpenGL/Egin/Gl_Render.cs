@@ -240,19 +240,19 @@ public static class MeshBatchRenderer {
            : drawCalls.GroupBy(a => context.ReplacementShader);
         foreach (var shaderGroup in groupedDrawCalls) {
             var shader = shaderGroup.Key;
-            var uniformLocationAnimated = shader.GetUniformLocation("bAnimated");
-            var uniformLocationAnimationTexture = shader.GetUniformLocation("animationTexture");
-            var uniformLocationNumBones = shader.GetUniformLocation("fNumBones");
-            var uniformLocationTransform = shader.GetUniformLocation("transform");
-            var uniformLocationTint = shader.GetUniformLocation("m_vTintColorSceneObject");
-            var uniformLocationTintDrawCall = shader.GetUniformLocation("m_vTintColorDrawCall");
-            var uniformLocationTime = shader.GetUniformLocation("g_flTime");
-            var uniformLocationObjectId = shader.GetUniformLocation("sceneObjectId");
-            var uniformLocationMeshId = shader.GetUniformLocation("meshId");
+            var uniformLocationAnimated = shader.UniformLocation("bAnimated");
+            var uniformLocationAnimationTexture = shader.UniformLocation("animationTexture");
+            var uniformLocationNumBones = shader.UniformLocation("fNumBones");
+            var uniformLocationTransform = shader.UniformLocation("transform");
+            var uniformLocationTint = shader.UniformLocation("m_vTintColorSceneObject");
+            var uniformLocationTintDrawCall = shader.UniformLocation("m_vTintColorDrawCall");
+            var uniformLocationTime = shader.UniformLocation("g_flTime");
+            var uniformLocationObjectId = shader.UniformLocation("sceneObjectId");
+            var uniformLocationMeshId = shader.UniformLocation("meshId");
             GL.UseProgram(shader.Program);
-            GL.Uniform3f(shader.GetUniformLocation("vLightPosition"), 1, in cameraPosition);
-            GL.Uniform3f(shader.GetUniformLocation("vEyePosition"), 1, in cameraPosition);
-            GL.UniformMatrix4f(shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in viewProjectionMatrix);
+            GL.Uniform3f(shader.UniformLocation("vLightPosition"), 1, in cameraPosition);
+            GL.Uniform3f(shader.UniformLocation("vEyePosition"), 1, in cameraPosition);
+            GL.UniformMatrix4f(shader.UniformLocation("uProjectionViewMatrix"), 1, false, in viewProjectionMatrix);
 
             // materials
             foreach (var materialGroup in shaderGroup.GroupBy(a => a.Call.Material)) {
@@ -441,7 +441,7 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
         var textureUnit = 1U;
         int location;
         foreach (var texture in Textures) {
-            location = shader.GetUniformLocation(texture.Key);
+            location = shader.UniformLocation(texture.Key);
             if (location > -1) {
                 GL.ActiveTexture(TextureUnit.Texture0 + textureUnit);
                 GL.BindTexture(TextureTarget.Texture2D, texture.Value);
@@ -452,20 +452,20 @@ public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(mate
         switch (Material) {
             case MaterialShaderVProp p:
                 foreach (var param in p.IntParams) {
-                    location = shader.GetUniformLocation(param.Key);
+                    location = shader.UniformLocation(param.Key);
                     if (location > -1) GL.Uniform1d(location, param.Value);
                 }
                 foreach (var param in p.FloatParams) {
-                    location = shader.GetUniformLocation(param.Key);
+                    location = shader.UniformLocation(param.Key);
                     if (location > -1) GL.Uniform1f(location, param.Value);
                 }
                 foreach (var param in p.VectorParams) {
-                    location = shader.GetUniformLocation(param.Key);
+                    location = shader.UniformLocation(param.Key);
                     if (location > -1) GL.Uniform4f(location, param.Value.X, param.Value.Y, param.Value.Z, param.Value.W);
                 }
                 break;
         }
-        var alphaReference = shader.GetUniformLocation("g_flAlphaTestReference");
+        var alphaReference = shader.UniformLocation("g_flAlphaTestReference");
         if (alphaReference > -1) GL.Uniform1f(alphaReference, AlphaTestReference);
         if (IsBlended) {
             GL.DepthMask(false);
@@ -606,10 +606,10 @@ public class OctreeDebugRenderer<T> where T : class {
         VaoHandle = GL.GenVertexArray();
         GL.BindVertexArray(VaoHandle);
         GL.BindBuffer(BufferTarget.ArrayBuffer, VboHandle);
-        var location = Shader.GetAttribLocation("aVertexPosition");
+        var location = Shader.AttribLocation("aVertexPosition");
         GL.EnableVertexAttribArray(location);
         GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, STRIDE, 0);
-        location = Shader.GetAttribLocation("aVertexColor");
+        location = Shader.AttribLocation("aVertexColor");
         GL.EnableVertexAttribArray(location);
         GL.VertexAttribPointer(location, 4, VertexAttribPointerType.Float, false, STRIDE, sizeof(float) * 3);
         GL.BindVertexArray(0);
@@ -670,7 +670,7 @@ public class OctreeDebugRenderer<T> where T : class {
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.UseProgram(Shader.Program);
             var projectionViewMatrix = camera.ViewProjectionMatrix.ToOpenTK();
-            GL.UniformMatrix4f(Shader.GetUniformLocation("uProjectionViewMatrix"), 1, false, in projectionViewMatrix);
+            GL.UniformMatrix4f(Shader.UniformLocation("uProjectionViewMatrix"), 1, false, in projectionViewMatrix);
             GL.BindVertexArray(VaoHandle);
             GL.DrawArrays(PrimitiveType.Lines, 0, VertexCount);
             GL.BindVertexArray(0);

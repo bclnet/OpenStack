@@ -23,7 +23,7 @@
 // tree already has exactly one.
 //
 // Nothing to translate: `f16::from_f32` is this algorithm, tested against the
-// spec. `openstack_polyio::system::half_float::from_f32_truncate` remains
+// spec. `poly::system::half_float::from_f32_truncate` remains
 // available for formats that need to match `PolyIO/HalfFloat`'s truncation
 // byte-for-byte.
 
@@ -90,7 +90,7 @@ mod tests {
         // 1.0 + half a binary16 ULP: RNE goes up, truncation stays at 1.0.
         let v = 1.0f32 + (2.0f32.powi(-11));
         let rne = to_short(v);
-        let trunc = openstack_polyio::system::half_float::from_f32_truncate(v).to_bits();
+        let trunc = poly::system::half_float::from_f32_truncate(v).to_bits();
         assert!(rne >= trunc, "RNE must not land below truncation");
     }
 }

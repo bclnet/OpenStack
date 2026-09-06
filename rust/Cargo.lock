@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "bitflags"
+version = "2.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
+
+[[package]]
 name = "bytemuck"
 version = "1.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19,7 +25,7 @@ checksum = "fc0e56a716f1e132ff6bf4bdac1c944a3fcdc1cae65f70a4a2a1ac3b401d2d1f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -55,7 +61,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "openstack-polyio"
+name = "openstk-aix"
+version = "0.1.0"
+
+[[package]]
+name = "openstk-gfx"
+version = "0.1.0"
+dependencies = [
+ "bitflags",
+ "bytemuck",
+ "glam",
+ "openstk-poly",
+]
+
+[[package]]
+name = "openstk-phy"
+version = "0.1.0"
+
+[[package]]
+name = "openstk-poly"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
@@ -94,9 +118,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.4"
+version = "3.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f"
+checksum = "12df2e0110f65b775f769bb17ef989067a1d931b2eb822bd4346631eeada89f9"
 dependencies = [
  "proc-macro2",
  "quote",

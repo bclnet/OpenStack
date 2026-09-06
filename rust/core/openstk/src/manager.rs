@@ -48,8 +48,8 @@
 use std::collections::HashMap;
 
 use openstack_gfx::gfx::{Backend, GfxAttach};
-use openstack_polyio::system_numerics::polyfill::Int3;
-use openstack_polyio::system_numerics::vector3::Vec3;
+use poly::system_numerics::polyfill::Int3;
+use poly::system_numerics::vector3::Vec3;
 
 /// C# `CellManager.ICellXref` — one placed object in a cell.
 pub trait CellXref {

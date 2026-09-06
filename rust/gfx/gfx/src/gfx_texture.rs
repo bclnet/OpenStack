@@ -39,7 +39,7 @@
 #![allow(non_camel_case_types)]
 
 use bytemuck::{Pod, Zeroable};
-use openstack_polyio::prelude::{BinaryReaderExt, ReadError};
+use poly::prelude::{BinaryReaderExt, ReadError};
 use std::io::{Read, Seek};
 
 bitflags::bitflags! {

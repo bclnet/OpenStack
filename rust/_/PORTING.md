@@ -68,7 +68,7 @@ impl<T: Read + Seek + ?Sized> BinaryReaderExt for T {}
 ```
 
 Any `Read + Seek` picks up the whole surface, exactly as any `BinaryReader` did.
-Callers must `use openstack_polyio::prelude::*` — C# got this from namespace
+Callers must `use poly::prelude::*` — C# got this from namespace
 scope, Rust needs the trait in scope explicitly.
 
 ### `partial class` → one module per file (21 sites)

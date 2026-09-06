@@ -2,7 +2,7 @@ from __future__ import annotations
 import os, io, numpy as np
 from openstk.core import Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxModel, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.system import SystemSfx
 
 #region Client
@@ -16,18 +16,18 @@ class Vanilla3dClientHost(IClientHost):
 #region Platform
 
 # Vanilla3dObjectModelBuilder
-class Vanilla3dObjectModelBuilder(ObjectModelBuilderBase):
+class Vanilla3dObjectModelBuilder(ObjectModelBuilder):
     def ensurePrefab(self) -> None: pass
     def instanceObject(self, src: object) -> object: raise NotImplementedError()
     async def createObject(self, src: object, materialManager: MaterialManager) -> object: raise NotImplementedError()
 
 # Vanilla3dShaderBuilder
-class Vanilla3dShaderBuilder(ShaderBuilderBase):
+class Vanilla3dShaderBuilder(ShaderBuilder):
     _loader: ShaderLoader = None
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
 # Vanilla3dTextureBuilder
-class Vanilla3dTextureBuilder(TextureBuilderBase):
+class Vanilla3dTextureBuilder(TextureBuilder):
     _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> int:
@@ -49,7 +49,7 @@ class Vanilla3dTextureBuilder(TextureBuilderBase):
     def deleteTexture(self, texture: int) -> None: texture.release()
 
 # Vanilla3dMaterialBuilder
-class Vanilla3dMaterialBuilder(MaterialBuilderBase):
+class Vanilla3dMaterialBuilder(MaterialBuilder):
     _defaultMaterial: GLRenderMaterial = None; _terrainMaterial: GLRenderMaterial = None
     @property
     def defaultMaterial(self) -> int:

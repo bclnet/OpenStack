@@ -17,7 +17,7 @@
 // singular matrix where the C# `Matrix3x3.Inverse` property returned NaNs.
 
 use glam::{Mat4, Vec3, Vec4};
-use openstack_polyio::system_numerics::matrix3x3::Matrix3x3;
+use poly::system_numerics::matrix3x3::Matrix3x3;
 
 use crate::log::info;
 

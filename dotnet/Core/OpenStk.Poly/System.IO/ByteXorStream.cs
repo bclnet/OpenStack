@@ -1,19 +1,14 @@
 namespace System.IO;
 
-public class ByteXorStream : Stream {
-    public Stream Stream;
-    public byte Byte;
-
-    public ByteXorStream(Stream stream, byte @byte) {
-        Stream = stream;
-        Byte = @byte;
-    }
+public class ByteXorStream(Stream stream, byte @byte) : Stream {
+    public Stream Stream = stream;
+    public byte Byte = @byte;
 
     public override void Flush() => Stream.Flush();
 
     public override int Read(byte[] buffer, int offset, int count) {
         var read = Stream.Read(buffer, offset, count);
-        for (var i = 0; i < read; i++) buffer[i] ^= Byte;
+        for (var i = 0; i < read; i++) buffer[offset + i] ^= Byte;
         return read;
     }
 

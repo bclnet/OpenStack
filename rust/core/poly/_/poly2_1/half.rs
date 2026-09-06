@@ -15,7 +15,7 @@
 
 pub use half::f16 as Half;
 
-pub use openstack_polyio::system::half_float::{
+pub use poly::system::half_float::{
     from_binary_stream, from_f32, from_f32_truncate, to_binary_stream, to_f32, to_f64,
 };
 
@@ -28,7 +28,7 @@ mod tests {
         // Guards against the two C# half implementations drifting into two
         // different Rust types.
         let v: Half = from_f32(1.5);
-        let w: openstack_polyio::system::half_float::HalfFloat = v;
+        let w: poly::system::half_float::HalfFloat = v;
         assert_eq!(to_f32(w), 1.5);
     }
 }

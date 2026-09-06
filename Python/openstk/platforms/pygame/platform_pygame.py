@@ -2,7 +2,7 @@ from __future__ import annotations
 import traceback
 from numpy import ndarray, array, ones, zeros, float32
 from openstk.core import ISource, Platform
-from openstk.gfx import IOpenGfxModel, ObjectModelBuilderBase, ObjectModelManager, MaterialBuilderBase, MaterialManager, ShaderBuilderBase, ShaderManager, TextureManager, TextureBuilderBase
+from openstk.gfx import IOpenGfxModel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, ShaderBuilder, ShaderManager, TextureManager, TextureBuilder
 from openstk.platforms.pygame.gfx.pygame import PygameX
 from openstk.platforms.system import SystemSfx
 from openstk.client import IClientHost
@@ -18,7 +18,7 @@ class PygameClientHost(IClientHost):
 #region Platform
 
 # PygameObjectModelBuilder
-class PygameObjectModelBuilder(ObjectModelBuilderBase):
+class PygameObjectModelBuilder(ObjectModelBuilder):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
@@ -30,11 +30,11 @@ class PygameObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
 
 # PygameShaderBuilder
-class PygameShaderBuilder(ShaderBuilderBase):
+class PygameShaderBuilder(ShaderBuilder):
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: raise NotImplementedError()
 
 # PygameTextureBuilder
-class PygameTextureBuilder(TextureBuilderBase):
+class PygameTextureBuilder(TextureBuilder):
     _defaultTexture: int = -1
     @property
     def defaultTexture(self) -> int:
@@ -78,7 +78,7 @@ class PygameTextureBuilder(TextureBuilderBase):
     def deleteTexture(self, texture: int) -> None: pass
 
 # PygameMaterialBuilder
-class PygameMaterialBuilder(MaterialBuilderBase):
+class PygameMaterialBuilder(MaterialBuilder):
     _defaultMaterial: Material; _terrainMaterial: Material
     @property
     def defaultMaterial(self) -> Material:

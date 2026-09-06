@@ -31,7 +31,7 @@ public class StrideClientHost : IClientHost {
 // StrideShaderBuilder : MISSING
 
 // StrideTextureBuilder
-class StrideTextureBuilder : TextureBuilderBase<Texture> {
+class StrideTextureBuilder : TextureBuilder<Texture> {
     Texture _defaultTexture;
     public override Texture DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
 
@@ -101,7 +101,7 @@ public class StrideGfxModel : IOpenGfxModel<Entity, Material, Texture, int> {
     public void PreloadObject(ISource source, object path) => throw new NotImplementedException();
     public void PreloadTexture(ISource source, object path) => throw new NotImplementedException();
     public Task<(Entity obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Entity parent = default) => throw new NotImplementedException();
-    public Task<(int sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(int sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => throw new NotImplementedException();
     public Task<(Texture tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
     public void PostObject(Entity src, Vector3 position, Vector3 eulerAngles, float? scale, Entity parent) => throw new NotImplementedException();
 }

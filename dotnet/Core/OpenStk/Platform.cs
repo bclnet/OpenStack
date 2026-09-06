@@ -54,11 +54,6 @@ public abstract class Platform(string id, string name) {
     public Func<IOpenSfx[]> SfxFactory = () => null; // throw new Exception("No SfxFactory");
 
     /// <summary>
-    /// Gets the platforms assert func.
-    /// </summary>
-    public Action<bool> AssertFunc = x => System.Diagnostics.Debug.Assert(x);
-
-    /// <summary>
     /// Gets the platforms log func.
     /// </summary>
     public Action<string> LogFunc = a => System.Diagnostics.Debug.Print(a);
@@ -67,7 +62,6 @@ public abstract class Platform(string id, string name) {
     /// Activates the platform.
     /// </summary>
     public virtual void Activate() {
-        Log.AssertFunc = AssertFunc;
         Log.Func = LogFunc;
     }
 

@@ -3,7 +3,7 @@ import traceback
 from numpy import ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, Texture_Dds, Texture_Bytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilderBase, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilderBase, MaterialManager, Shader, ShaderBuilderBase, ShaderManager, TextureBuilderBase, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsDds, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.pyengine3d.gfx.pyengine3d import PyEngine3dX
 from openstk.platforms.system import SystemSfx
 
@@ -18,7 +18,7 @@ class PyEngine3dClientHost(IClientHost):
 #region Platform
 
 # PyEngine3dObjectModelBuilder
-class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
+class PyEngine3dObjectModelBuilder(ObjectModelBuilder):
     def instanceObject(self, src: object) -> object:
         return 'clone'
     async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
@@ -30,12 +30,12 @@ class PyEngine3dObjectModelBuilder(ObjectModelBuilderBase):
     def ensurePrefab(self) -> None: pass
 
 # PyEngine3dShaderBuilder
-class PyEngine3dShaderBuilder(ShaderBuilderBase):
+class PyEngine3dShaderBuilder(ShaderBuilder):
     _loader: ShaderLoader = None
     def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
 
 # PyEngine3dTextureBuilder
-class PyEngine3dTextureBuilder(TextureBuilderBase):
+class PyEngine3dTextureBuilder(TextureBuilder):
     _defaultTexture: Texture = None
     @property
     def defaultTexture(self) -> Texture:
@@ -58,7 +58,7 @@ class PyEngine3dTextureBuilder(TextureBuilderBase):
 
 
 # PyEngine3dMaterialBuilder
-# class PyEngine3dMaterialBuilder(MaterialBuilderBase):
+# class PyEngine3dMaterialBuilder(MaterialBuilder):
 #     def __init__(self, textureManager: TextureManager):
 #         super().__init__(textureManager)
 
@@ -117,7 +117,7 @@ class PyEngine3dGfxApi(IOpenGfxApi):
     # def destroy(self, src: NodePath) -> None: src.removeNode()
 
 # PyEngine3dMaterialBuilder
-class PyEngine3dMaterialBuilder(MaterialBuilderBase):
+class PyEngine3dMaterialBuilder(MaterialBuilder):
     _defaultMaterial: Material = None; _terrainMaterial: Material = None
     @property
     def defaultMaterial(self) -> Material:

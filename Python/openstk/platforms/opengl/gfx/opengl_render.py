@@ -106,7 +106,7 @@ class TextureRenderer(EginRenderer):
             ('vTANGENT', 3)]
         offset = 0; stride = sizeof_float * sum([x[1] for x in attributes])
         for name, size in attributes:
-            location = self.shader.getAttribLocation(name)
+            location = self.shader.attribLocation(name)
             if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(offset))
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
@@ -182,7 +182,7 @@ class MaterialRenderer(EginRenderer):
             ('vTANGENT', 3)]
         offset = 0; stride = sizeof_float * sum([x[1] for x in attributes])
         for name, size in attributes:
-            location = self.shader.getAttribLocation(name)
+            location = self.shader.attribLocation(name)
             if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(offset))
             offset += sizeof_float * size
         glBindVertexArray(0) # unbind vao
@@ -193,13 +193,13 @@ class MaterialRenderer(EginRenderer):
         glUseProgram(self.shader.program)
         glBindVertexArray(self.vao)
         glEnableVertexAttribArray(0)
-        location = self.shader.getUniformLocation('m_vTintColorSceneObject')
+        location = self.shader.uniformLocation('m_vTintColorSceneObject')
         if location > -1: glUniform4(uniformLocation, ones(4))
-        location = self.shader.getUniformLocation('m_vTintColorDrawCall')
+        location = self.shader.uniformLocation('m_vTintColorDrawCall')
         if location > -1: glUniform3(uniformLocation, ones(3))
-        location = self.shader.getUniformLocation('uProjectionViewMatrix')
+        location = self.shader.uniformLocation('uProjectionViewMatrix')
         if location > -1: glUniformMatrix4(uniformLocation, False, identity_)
-        location = self.shader.getUniformLocation('transform')
+        location = self.shader.uniformLocation('transform')
         if location > -1: glUniformMatrix4(uniformLocation, False, identity_)
         self.material.render(self.shader)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
@@ -262,9 +262,9 @@ class GridRenderer(EginRenderer):
         glBufferData(GL_ARRAY_BUFFER, len(vertices) * sizeof_float, vertices, GL_STATIC_DRAW)
         # attributes
         glEnableVertexAttribArray(0)
-        location = self.shader.getAttribLocation('aVertexPosition')
+        location = self.shader.attribLocation('aVertexPosition')
         if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, STRIDE, ctypes.c_void_p(0))
-        location = self.shader.getAttribLocation('aVertexColor')
+        location = self.shader.attribLocation('aVertexColor')
         if location > -1: glEnableVertexAttribArray(location); glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, STRIDE, ctypes.c_void_p(sizeof_float * 3))
         glBindVertexArray(0) # unbind vao
         glUseProgram(0) # unbind program
@@ -275,7 +275,7 @@ class GridRenderer(EginRenderer):
         glBlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
         glUseProgram(Shader.Program)
         matrix = camera.ViewProjectionMatrix.ToOpenTK()
-        glUniformMatrix4(self.shader.getUniformLocation('uProjectionViewMatrix'), False, matrix)
+        glUniformMatrix4(self.shader.uniformLocation('uProjectionViewMatrix'), False, matrix)
         glBindVertexArray(self.vao)
         glEnableVertexAttribArray(0)
         glDrawArrays(GL_LINES, 0, self.vertexCount)

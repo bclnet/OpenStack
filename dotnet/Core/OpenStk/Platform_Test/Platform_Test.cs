@@ -49,7 +49,7 @@ public class TestGfxModel : IOpenGfxModel<object, object, object, object> {
     public void PreloadObject(ISource source, object path) => throw new NotSupportedException();
     public void PreloadTexture(ISource source, object path) => throw new NotSupportedException();
     public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = null) => throw new NotImplementedException();
-    public Task<(object sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => throw new NotImplementedException();
+    public Task<(object sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => throw new NotImplementedException();
     public Task<(object tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => throw new NotImplementedException();
     public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent = default) => throw new NotImplementedException();
 }

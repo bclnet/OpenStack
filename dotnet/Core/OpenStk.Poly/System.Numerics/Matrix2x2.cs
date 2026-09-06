@@ -47,7 +47,7 @@ public struct Matrix2x2 : IEquatable<Matrix2x2> {
     /// Gets the transpose.
     /// </summary>
     /// <returns>copy of the matrix33</returns>
-    public Matrix3x3 Transpose => new() {
+    public Matrix2x2 Transpose => new() {
         M11 = M11,
         M12 = M21,
         M21 = M12,

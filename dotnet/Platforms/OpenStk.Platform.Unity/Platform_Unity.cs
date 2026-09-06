@@ -39,7 +39,7 @@ public class UnityClientHost : MonoBehaviour, IClientHost {
 #region Platform
 
 // UnityObjectModelBuilder
-class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Texture2D> {
+class UnityObjectModelBuilder : ObjectModelBuilder<GameObject, Material, Texture2D> {
     GameObject _prefabObj;
 
     public override GameObject InstanceObject(GameObject src, GameObject parent) {
@@ -66,12 +66,12 @@ class UnityObjectModelBuilder : ObjectModelBuilderBase<GameObject, Material, Tex
 }
 
 // UnityShaderBuilder
-class UnityShaderBuilder : ShaderBuilderBase<XShader> {
-    public override XShader CreateShader(object path, IDictionary<string, bool> args = null) => XShader.Find((string)path);
+class UnityShaderBuilder : ShaderBuilder<XShader> {
+    public override XShader CreateShader(object path, Dictionary<string, bool> args = null) => XShader.Find((string)path);
 }
 
 // UnityTextureBuilder
-class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
+class UnityTextureBuilder : TextureBuilder<Texture2D> {
     Texture2D _defaultTexture;
     public override Texture2D DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
 
@@ -117,7 +117,7 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
 
     public override Texture2D CreateTexture(Texture2D reuse, ITexture src, Range? range = null) => src.Create("UN", x => {
         switch (x) {
-            case Texture_Bytes t:
+            case TextureAsBytes t:
                 if (t.Bytes == null) return DefaultTexture;
                 else if (t.Format is ValueTuple<Gfx.TextureFormat, TexturePixel> z) {
                     var (format, pixel) = z;
@@ -166,7 +166,7 @@ class UnityTextureBuilder : TextureBuilderBase<Texture2D> {
 /// <summary>
 /// A material that uses the new Standard Shader.
 /// </summary>
-class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilderBase<Material, Texture2D>(textureManager) {
+class UnityMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilder<Material, Texture2D>(textureManager) {
     static readonly int BaseMap = XShader.PropertyToID("_BaseMap"), BumpMap = XShader.PropertyToID("_BumpMap"), Cutoff = XShader.PropertyToID("_Cutoff");
 
     Material _defaultMaterial;
@@ -391,7 +391,7 @@ public class UnityGfxModel : IOpenGfxModel<GameObject, Material, Texture2D, XSha
     public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
     public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
     public Task<(GameObject obj, object tag)> CreateObject(ISource source, object path, bool isStatic, GameObject parent = default) => _objectManager.CreateObject(source, path, parent);
-    public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, IDictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
+    public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
     public Task<(Texture2D tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
 
     const int YardInMWUnits = 64;
@@ -521,7 +521,6 @@ public class UnityPlatform : Platform {
             Caps = PlatformX.Caps.None_;
             GfxFactory = () => [new UnityGfxApi(), new UnityGfxSprite2D(), new UnityGfxSprite3D(), new UnityGfxModel(), new UnityGfxLight(), new UnityGfxTerrain()];
             SfxFactory = () => [new UnitySfx()];
-            AssertFunc = x => UnityEngine.Debug.Assert(x);
             LogFunc = UnityEngine.Debug.Log;
         }
         catch { Debug.Log($"UnityPlatform: Error"); Enabled = false; }

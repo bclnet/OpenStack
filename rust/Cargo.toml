@@ -1,20 +1,21 @@
 [workspace]
 resolver = "2"
 members = [
-    "core/polyio",
+    "aix/aix",
+    "core/poly",
+    "gfx/gfx",
+    "phy/phy",
 ]
 
 [blah]
 members = [
     "aix/aix",
-    "core/openstack",
-    "core/polyfills",
-    "core/polyio",
+    "core/openstk",
+    "core/poly",
     "gfx/gfx",
     "gfx/gfx-egin",
     "gfx/gfx-other",
     "phy/phy",
-    "phy/phy2",
     "platforms/eginx",
     "platforms/godot",
     "platforms/mg",

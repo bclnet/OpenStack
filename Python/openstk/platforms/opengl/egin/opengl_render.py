@@ -214,19 +214,19 @@ class MeshBatchRenderer:
             drawCalls.groupBy(lambda a: context.replacementShader)
         for shaderGroup in groupedDrawCalls:
             shader = shaderGroup.key
-            uniformLocationAnimated = shader.getUniformLocation('bAnimated')
-            uniformLocationAnimationTexture = shader.getUniformLocation('animationTexture')
-            uniformLocationNumBones = shader.getUniformLocation('fNumBones')
-            uniformLocationTransform = shader.getUniformLocation('transform')
-            uniformLocationTint = shader.getUniformLocation('m_vTintColorSceneObject')
-            uniformLocationTintDrawCall = shader.getUniformLocation('m_vTintColorDrawCall')
-            uniformLocationTime = shader.getUniformLocation('g_flTime')
-            uniformLocationObjectId = shader.getUniformLocation('sceneObjectId')
-            uniformLocationMeshId = shader.getUniformLocation('meshId')
+            uniformLocationAnimated = shader.uniformLocation('bAnimated')
+            uniformLocationAnimationTexture = shader.uniformLocation('animationTexture')
+            uniformLocationNumBones = shader.uniformLocation('fNumBones')
+            uniformLocationTransform = shader.uniformLocation('transform')
+            uniformLocationTint = shader.uniformLocation('m_vTintColorSceneObject')
+            uniformLocationTintDrawCall = shader.uniformLocation('m_vTintColorDrawCall')
+            uniformLocationTime = shader.uniformLocation('g_flTime')
+            uniformLocationObjectId = shader.uniformLocation('sceneObjectId')
+            uniformLocationMeshId = shader.uniformLocation('meshId')
             glUseProgram(shader.program)
-            glUniform3(shader.getUniformLocation('vLightPosition'), cameraPosition)
-            glUniform3(shader.getUniformLocation('vEyePosition'), cameraPosition)
-            glUniformMatrix4(shader.getUniformLocation('uProjectionViewMatrix'), False) # ref viewProjectionMatrix
+            glUniform3(shader.uniformLocation('vLightPosition'), cameraPosition)
+            glUniform3(shader.uniformLocation('vEyePosition'), cameraPosition)
+            glUniformMatrix4(shader.uniformLocation('uProjectionViewMatrix'), False) # ref viewProjectionMatrix
 
             # materials
             for materialGroup in shaderGroup.groupBy(lambda a: a.call.material):
@@ -390,7 +390,7 @@ class GLRenderMaterial(RenderMaterial):
         textureUnit = 1
         location: int
         for texture in self.textures:
-            location = shader.getUniformLocation(texture.key)
+            location = shader.uniformLocation(texture.key)
             if location > -1:
                 glActiveTexture(GL_TEXTURE0 + textureUnit)
                 glBindTexture(GL_TEXTURE_2D, texture.Value)
@@ -399,15 +399,15 @@ class GLRenderMaterial(RenderMaterial):
         match self.material:
             case p if isinstance(self.material, MaterialMapProp):
                 for param in p.intParams:
-                    location = shader.getUniformLocation(param.key)
+                    location = shader.uniformLocation(param.key)
                     if location > -1: glUniform1(location, param.value)
                 for param in p.floatParams:
-                    location = shader.getUniformLocation(param.key)
+                    location = shader.uniformLocation(param.key)
                     if location > -1: glUniform1(location, param.value)
                 for param in p.vectorParams:
-                    location = shader.getUniformLocation(param.key)
+                    location = shader.uniformLocation(param.key)
                     if location > -1: glUniform4(location, np.array([param.value[0], param.value[1], param.value[2], param.value[3]]))
-        alphaReference: int = shader.getUniformLocation('g_flAlphaTestReference')
+        alphaReference: int = shader.uniformLocation('g_flAlphaTestReference')
         if alphaReference > -1: glUniform1(alphaReference, alphaTestReference)
         if self.isBlended:
             glDepthMask(False)
@@ -531,10 +531,10 @@ class OctreeDebugRenderer:
         self.vaoHandle = glGenVertexArray()
         bindVertexArray(self.vaoHandle)
         bindBuffer(GL_ARRAY_BUFFER, self.vboHandle)
-        location = self.shader.getAttribLocation('aVertexPosition')
+        location = self.shader.attribLocation('aVertexPosition')
         glEnableVertexAttribArray(location)
         glVertexAttribPointer(location, 3, GL_FLOAT, False, STRIDE, 0)
-        location = self.shader.getAttribLocation('aVertexColor')
+        location = self.shader.attribLocation('aVertexColor')
         glEnableVertexAttribArray(location)
         glVertexAttribPointer(location, 4, GL_FLOAT, False, STRIDE, sizeof(float) * 3)
         glBindVertexArray(0)
@@ -589,7 +589,7 @@ class OctreeDebugRenderer:
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             glUseProgram(self.shader.program)
             projectionViewMatrix = camera.viewProjectionMatrix
-            glUniformMatrix4(self.shader.getUniformLocation('uProjectionViewMatrix'), False, self.projectionViewMatrix)
+            glUniformMatrix4(self.shader.uniformLocation('uProjectionViewMatrix'), False, self.projectionViewMatrix)
             glBindVertexArray(self.vaoHandle)
             glDrawArrays(GL_LINES, 0, self.vertexCount)
             glBindVertexArray(0)
