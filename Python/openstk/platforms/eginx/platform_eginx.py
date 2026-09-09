@@ -6,7 +6,6 @@ from openstk.gfx import IOpenGfxApi, IOpenGfxSprite, IOpenGfxModel, ObjectModelB
 from openstk.client import IClientHost
 from openstk.gfx.egin import Game, GraphicsDeviceManager
 
-
 #region Client
 
 # EginXClientHost
@@ -48,13 +47,9 @@ class EginXGfxApi(IOpenGfxApi):
 # EginXGfxSprite2D
 class EginXGfxSprite2D(IOpenGfxSprite):
     def __init__(self):
-        # self.spriteManager: SpriteManager = SpriteManager(OpenGLTextureBuilder())
-        # self.objectManager: ObjectSpriteManager = ObjectManager(OpenGLObjectModelBuilder())
-        pass
-    # def preloadObject(self, source: ISource, path: object) -> None: raise NotImplementedError()
-    def preloadSprite(self, source: ISource, path: object) -> None: self.textureManager.spriteManager(path)
-    # def createObject(self, source: ISource, path: object, parent: object) -> tuple[object, dict[str, object]]: raise NotImplementedError()
-    def createSprite(self, source: ISource, path: object, level: range = None) -> int: return self.spriteManager.createSprite(path)[0]
+        self.spriteManager: SpriteManager = SpriteManager(OpenGLTextureBuilder())
+    def preload(self, source: ISource, path: object) -> None: self.spriteManager.preload(path)
+    def create(self, source: ISource, path: object, level: range = None) -> int: return self.spriteManager.create(path)[0]
 
 # EginXPlatform
 class EginXPlatform(Platform):

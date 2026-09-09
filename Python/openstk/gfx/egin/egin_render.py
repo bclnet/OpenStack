@@ -1,13 +1,13 @@
 from __future__ import annotations
 import math, numpy as np
 from enum import Enum, Flag
-from openstk.gfx import Renderer #, Shader
+from openstk.gfx import Renderer #, GfxShader
 from openstk.gfx.util import _throw, _np_normalize, _np_getTranslation4x4, _np_createScale4x4, _np_createLookAt4x4, _np_createPerspectiveFieldOfView4x4
 
 # typedefs
 class IMaterial: pass
 class IModel: pass
-class Shader: pass
+class GfxShader: pass
 
 #region Model
 
@@ -15,8 +15,8 @@ class Shader: pass
 class IPickingTexture:
     isActive: bool
     debug: bool
-    shader: Shader
-    debugShader: Shader
+    shader: GfxShader
+    debugShader: GfxShader
     def render() -> None: pass
     def resize(width: int, height: int) -> None: pass
     def finish() -> None: pass
@@ -194,13 +194,13 @@ class RenderMaterial:
                 self.isAdditiveBlend = 'F_ADDITIVE_BLEND' in p.intParams and p.intParams['F_ADDITIVE_BLEND'] == 1
                 self.isRenderBackfaces = 'F_RENDER_BACKFACES' in p.intParams and p.intParams['F_RENDER_BACKFACES'] == 1
             case _: raise Exception(f'Unknown {material}')
-    def render(self, shader: Shader) -> None: pass
+    def render(self, shader: GfxShader) -> None: pass
     def postRender(self) -> None: pass
 
 # DrawCall
 class DrawCall:
     primitiveType: int
-    shader: Shader
+    shader: GfxShader
     baseVertex: int
     # vertexCount: int
     startIndex: int
@@ -554,7 +554,7 @@ class Scene:
         camera: Camera
         lightPosition: np.ndarray
         passx: Renderer.Pass
-        replacementShader: Shader
+        replacementShader: GfxShader
         showDebug: bool
 
     def __init__(self, graphic: IOpenGraphic, meshBatchRenderer: callable, sizeHint: float = 32768):

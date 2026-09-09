@@ -4,7 +4,7 @@ from numpy import ndarray
 from quaternion import quaternion
 from OpenGL.GL import *
 from openstk.core import _throw, AsyncCoroutineQueue, CellManager, CellBuilder
-from openstk.gfx import Shader
+from openstk.gfx import GfxShader
 
 class OpenGLOpenEngine:
     desiredWorkTimePerFrame: float = 1.0 / 200

@@ -4,8 +4,12 @@ using OpenStk.Gfx.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static OpenStk.Gfx.TextureFormat;
 #pragma warning disable CS0649, CS0169
@@ -30,23 +34,147 @@ public class OpenGLClientHost : IClientHost {
 /// OpenGLObjectBuilder
 /// </summary>
 class OpenGLObjectBuilder : ObjectModelBuilder<object, GLRenderMaterial, int> {
-    public override object InstanceObject(object prefab, object parent) {
+    public override object Instance(object prefab, object parent) {
         return "clone";
     }
-    public async override Task<object> CreateObject(ISource source, object path, bool isStatic, MaterialManager<GLRenderMaterial, int> materialManager) {
+    public async override Task<object> Create(ISource source, object path, bool isStatic, MaterialManager<GLRenderMaterial, int> materialManager) {
         var builder = OpenGLX.BuildersByType[path.GetType()];
         var s = await builder(source, path, isStatic, materialManager);
         return s;
     }
-    public override void EnsurePrefab() { }
+    public override void Ensure() { }
 }
 
 /// <summary>
 /// OpenGLShaderBuilder
 /// </summary>
-class OpenGLShaderBuilder : ShaderBuilder<Shader> {
-    static readonly ShaderLoader _loader = new ShaderDebugLoader();
-    public override Shader CreateShader(object path, Dictionary<string, bool> args = null) => _loader.CreateShader(path, args);
+class OpenGLShaderBuilder : ShaderBuilder<GfxShader> {
+    const string ShaderDirectory = "OpenStk.Platform.OpenGL.Gfx.Shaders";
+
+    protected static string GetShaderFileByName(string name) {
+        switch (name) {
+            case "plane": return "plane";
+            case "testtri": return "testtri";
+            case "vrf.error": return "error";
+            case "vrf.grid": return "debug_grid";
+            case "vrf.picking": return "picking";
+            case "vrf.particle.sprite": return "particle_sprite";
+            case "vrf.particle.trail": return "particle_trail";
+            case "tools_sprite.vfx": return "sprite";
+            case "vr_unlit.vfx": return "vr_unlit";
+            case "vr_black_unlit.vfx": return "vr_black_unlit";
+            case "water_dota.vfx": return "water";
+            case "hero.vfx":
+            case "hero_underlords.vfx": return "dota_hero";
+            case "multiblend.vfx": return "multiblend";
+            default:
+                if (name.StartsWith("vr_")) return "vr_standard";
+                Log.Warn($"Unknown shader {name}, defaulting to simple.");
+                return "simple";
+        }
+    }
+
+    protected static string GetShaderSource(string name) {
+#if DEBUG_SHADERS && DEBUG
+        var path = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName), "../../../../", ShaderDirectory.Replace(".", "/"), name);
+        var stream = File.Open(path, FileMode.Open);
+#else
+        var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{ShaderDirectory}.{name}");
+#endif
+        using var r = new StreamReader(stream); return r.ReadToEnd();
+    }
+
+    public override GfxShader Create(object path, Dictionary<string, bool> args = null) {
+        var name = (string)path;
+        var shaderFileName = GetShaderFileByName(name);
+
+        // defines
+        List<string> defines = [];
+
+        // vertex shader
+        var vertexShader = GL.CreateShader(ShaderType.VertexShader);
+        {
+            var shaderSource = GetShaderSource($"{shaderFileName}.vert");
+            GL.ShaderSource(vertexShader, PreprocessVertexShader(shaderSource, args));
+            // defines: find defines supported from source
+            defines.AddRange(FindDefines(shaderSource));
+        }
+        GL.CompileShader(vertexShader);
+        GL.GetShaderi(vertexShader, ShaderParameterName.CompileStatus, out var shaderStatus);
+        if (shaderStatus != 1) {
+            GL.GetShaderInfoLog(vertexShader, out var vsInfo);
+            throw new Exception($"Error setting up Vertex B_Shader \"{name}\": {vsInfo}");
+        }
+
+        // fragment shader
+        var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
+        {
+            var shaderSource = GetShaderSource($"{shaderFileName}.frag");
+            GL.ShaderSource(fragmentShader, UpdateDefines(shaderSource, args));
+            // defines: find render modes supported from source, take union to avoid duplicates
+            defines = [.. defines.Union(FindDefines(shaderSource))];
+        }
+        GL.CompileShader(fragmentShader);
+        GL.GetShaderi(fragmentShader, ShaderParameterName.CompileStatus, out shaderStatus);
+        if (shaderStatus != 1) {
+            GL.GetShaderInfoLog(fragmentShader, out var fsInfo);
+            throw new Exception($"Error setting up Fragment B_Shader \"{name}\": {fsInfo}");
+        }
+
+        // defines: find render modes
+        const string RenderMode = "renderMode_"; const int RenderModeLength = 11;
+        var renderModes = defines.Where(k => k.StartsWith(RenderMode)).Select(k => k[RenderModeLength..]).ToList();
+
+        // build shader
+        var shader = new GfxShader(GL.GetUniformLocation, GL.GetAttribLocation) {
+            Name = name,
+            Parameters = args,
+            Program = GL.CreateProgram(),
+            RenderModes = renderModes,
+        };
+        GL.AttachShader(shader.Program, vertexShader);
+        GL.AttachShader(shader.Program, fragmentShader);
+        GL.LinkProgram(shader.Program);
+        GL.ValidateProgram(shader.Program);
+        GL.GetProgrami(shader.Program, ProgramProperty.LinkStatus, out var linkStatus);
+        GL.DetachShader(shader.Program, vertexShader);
+        GL.DeleteShader(vertexShader);
+        GL.DetachShader(shader.Program, fragmentShader);
+        GL.DeleteShader(fragmentShader);
+        if (linkStatus != 1) {
+            GL.GetProgramInfoLog(shader.Program, out var linkInfo);
+            throw new Exception($"Error linking shaders: {linkInfo} (link status = {linkStatus})");
+        }
+        //Log.Info($"B_Shader {name}({string.Join(", ", args.Keys)}) compiled and linked succesfully");
+        return shader;
+    }
+
+    // Preprocess a vertex shader's source to include the #version plus #defines for parameters
+    static string PreprocessVertexShader(string source, IDictionary<string, bool> args) => ResolveIncludes(UpdateDefines(source, args));
+
+    // Update default defines with possible overrides from the model
+    static string UpdateDefines(string source, IDictionary<string, bool> args) {
+        // find all #define param_(paramName) (paramValue) using regex
+        var defines = Regex.Matches(source, @"#define param_(\S*?) (\S*?)\s*?\n");
+        foreach (Match define in defines)
+            if (args.TryGetValue(define.Groups[1].Value, out var value)) { var index = define.Groups[2].Index; var length = define.Groups[2].Length; source = source.Remove(index, Math.Min(length, source.Length - index)).Insert(index, value ? "1" : "0"); }
+        return source;
+    }
+
+    // Remove any #includes from the shader and replace with the included code
+    static string ResolveIncludes(string source) {
+        var includes = Regex.Matches(source, @"#include ""([^""]*?)"";?\s*\n");
+        foreach (Match define in includes) {
+            var includedCode = GetShaderSource(define.Groups[1].Value);
+            // recursively resolve includes in the included code. (Watch out for cyclic dependencies!)
+            includedCode = ResolveIncludes(includedCode);
+            if (!includedCode.EndsWith('\n')) includedCode += "\n";
+            source = source.Replace(define.Value, includedCode);
+        }
+        return source;
+    }
+
+    static List<string> FindDefines(string source) { var defines = Regex.Matches(source, @"#define param_(\S+)"); return [.. defines.Cast<Match>().Select(_ => _.Groups[1].Value)]; }
 }
 
 /// <summary>
@@ -54,13 +182,13 @@ class OpenGLShaderBuilder : ShaderBuilder<Shader> {
 /// </summary>
 unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
     static int _defaultTexture = -1;
-    public override int DefaultTexture => _defaultTexture > -1 ? _defaultTexture : _defaultTexture = CreateDefaultTexture();
+    public override int Default => _defaultTexture > -1 ? _defaultTexture : _defaultTexture = CreateDefaultTexture();
 
     public void Release() {
         if (_defaultTexture > -1) { GL.DeleteTexture(_defaultTexture); _defaultTexture = -1; }
     }
 
-    int CreateDefaultTexture() => CreateSolidTexture(4, 4, [
+    int CreateDefaultTexture() => CreateSolid(4, 4, [
         0.9f, 0.2f, 0.8f, 1f,
         0f, 0.9f, 0f, 1f,
         0.9f, 0.2f, 0.8f, 1f,
@@ -82,9 +210,9 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override int CreateNormalMapTexture(int src, float strength) => 0;
+    public override int CreateNormalMap(int src, float strength) => 0;
 
-    public override int CreateSolidTexture(int width, int height, float[] pixels) {
+    public override int CreateSolid(int width, int height, float[] pixels) {
         var tex = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, tex);
         GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, pixels);
@@ -97,7 +225,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
         return tex;
     }
 
-    public override int CreateTexture(int reuse, ITexture src, Range? level2 = null) => src.Create("GL", x => {
+    public override int Create(int reuse, ITexture src, Range? level2 = null) => src.Create("GL", x => {
         switch (x) {
             case TextureAsBytes t:
                 var tex = reuse != 0 ? reuse : GL.GenTexture();
@@ -134,7 +262,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
                     return true;
                 }
                 // process
-                if (bytes == null) return DefaultTexture;
+                if (bytes == null) return Default;
                 else if (fmt is ValueTuple<TextureFormat, TexturePixel> z) {
                     var (formatx, pixel) = z;
                     var s = (pixel & TexturePixel.Signed) != 0;
@@ -153,7 +281,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
                             ETC2_EAC => s ? InternalFormat.CompressedSrgb8Alpha8Etc2Eac : InternalFormat.CompressedRgba8Etc2Eac,
                             _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{formatx}")
                         };
-                        if (internalFormat == 0 || !CompressedTexImage2D(src, level, internalFormat)) return DefaultTexture;
+                        if (internalFormat == 0 || !CompressedTexImage2D(src, level, internalFormat)) return Default;
                     }
                     else {
                         var (internalFormat, format, type) = formatx switch {
@@ -170,7 +298,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
                             BGRA1555 => (InternalFormat.Rgba, PixelFormat.Bgra, PixelType.UnsignedShort1555Rev),
                             _ => throw new ArgumentOutOfRangeException("TextureFormat", $"{formatx}")
                         };
-                        if (internalFormat == 0 || !TexImage2D(src, level, internalFormat, format, type)) return DefaultTexture;
+                        if (internalFormat == 0 || !TexImage2D(src, level, internalFormat, format, type)) return Default;
                     }
                 }
                 else throw new ArgumentOutOfRangeException(nameof(fmt), $"{fmt}");
@@ -192,7 +320,7 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
         }
     });
 
-    public override void DeleteTexture(int src) => GL.DeleteTexture(src);
+    public override void Delete(int src) => GL.DeleteTexture(src);
 }
 
 /// <summary>
@@ -200,12 +328,12 @@ unsafe class OpenGLTextureBuilder : TextureBuilder<int> {
 /// </summary>
 class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilder<GLRenderMaterial, int>(textureManager) {
     static GLRenderMaterial _defaultMaterial, _terrainMaterial;
-    public override GLRenderMaterial DefaultMaterial => _defaultMaterial ??= CreateDefaultMaterial();
-    public override GLRenderMaterial TerrainMaterial => _terrainMaterial ??= CreateTerrainMaterial();
+    public override GLRenderMaterial Default => _defaultMaterial ??= CreateDefaultMaterial();
+    public override GLRenderMaterial Terrain => _terrainMaterial ??= CreateTerrainMaterial();
 
     GLRenderMaterial CreateDefaultMaterial() {
         var m = new GLRenderMaterial(new MaterialShaderProp());
-        m.Textures["g_tColor"] = TextureManager.DefaultTexture;
+        m.Textures["g_tColor"] = TextureManager.Default;
         m.Material.ShaderName = "vrf.error";
         return m;
     }
@@ -216,19 +344,19 @@ class OpenGLMaterialBuilder(TextureManager<int> textureManager) : MaterialBuilde
         return m;
     }
 
-    public override async Task<GLRenderMaterial> CreateMaterial(ISource source, object path) {
+    public override async Task<GLRenderMaterial> Create(ISource source, object path) {
         var m = new GLRenderMaterial(path as MaterialShaderProp);
         switch (path) {
             case MaterialShaderVProp p:
-                foreach (var tex in p.TextureParams) (m.Textures[tex.Key], _) = await TextureManager.CreateTexture(source, $"{tex.Value}_c");
+                foreach (var tex in p.TextureParams) (m.Textures[tex.Key], _) = await TextureManager.Create(source, $"{tex.Value}_c");
                 if (p.IntParams.ContainsKey("F_SOLID_COLOR") && p.IntParams["F_SOLID_COLOR"] == 1) {
                     var a = p.VectorParams["g_vColorTint"];
-                    m.Textures["g_tColor"] = TextureManager.CreateSolidTexture(1, 1, [a.X, a.Y, a.Z, a.W]);
+                    m.Textures["g_tColor"] = TextureManager.CreateSolid(1, 1, [a.X, a.Y, a.Z, a.W]);
                 }
-                if (!m.Textures.ContainsKey("g_tColor")) m.Textures["g_tColor"] = TextureManager.DefaultTexture;
+                if (!m.Textures.ContainsKey("g_tColor")) m.Textures["g_tColor"] = TextureManager.Default;
 
                 // Since our shaders only use g_tColor, we have to find at least one texture to use here
-                if (m.Textures["g_tColor"] == TextureManager.DefaultTexture)
+                if (m.Textures["g_tColor"] == TextureManager.Default)
                     foreach (var name in new[] { "g_tColor2", "g_tColor1", "g_tColorA", "g_tColorB", "g_tColorC" })
                         if (m.Textures.ContainsKey(name)) {
                             m.Textures["g_tColor"] = m.Textures[name];
@@ -270,36 +398,36 @@ public class OpenGLGfxSprite3D : IOpenGfxSprite<object, int> {
     }
 
     public SpriteManager<int> SpriteManager => _spriteManager;
-    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
-    public Task<(int spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
+    public void Preload(ISource source, object path) => _spriteManager.Preload(source, path);
+    public Task<(int spr, object tag)> Create(ISource source, object path, object parent = default) => _spriteManager.Create(source, path);
 }
 
 /// <summary>
 /// OpenGLGfxModel
 /// </summary>
-public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, Shader> {
+public class OpenGLGfxModel : IOpenGfxModel<object, GLRenderMaterial, int, GfxShader> {
     readonly MaterialManager<GLRenderMaterial, int> _materialManager;
     readonly ObjectModelManager<object, GLRenderMaterial, int> _objectManager;
-    readonly ShaderManager<Shader> _shaderManager;
+    readonly ShaderManager<GfxShader> _shaderManager;
     readonly TextureManager<int> _textureManager;
     public OpenGLGfxModel() {
         _textureManager = new TextureManager<int>(new OpenGLTextureBuilder());
         _materialManager = new MaterialManager<GLRenderMaterial, int>(_textureManager, new OpenGLMaterialBuilder(_textureManager));
         _objectManager = new ObjectModelManager<object, GLRenderMaterial, int>(_materialManager, new OpenGLObjectBuilder());
-        _shaderManager = new ShaderManager<Shader>(new OpenGLShaderBuilder());
+        _shaderManager = new ShaderManager<GfxShader>(new OpenGLShaderBuilder());
         MeshBufferCache = new GLMeshBufferCache();
     }
 
     public MaterialManager<GLRenderMaterial, int> MaterialManager => _materialManager;
     public ObjectModelManager<object, GLRenderMaterial, int> ObjectManager => _objectManager;
-    public ShaderManager<Shader> ShaderManager => _shaderManager;
+    public ShaderManager<GfxShader> ShaderManager => _shaderManager;
     public TextureManager<int> TextureManager => _textureManager;
-    public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
-    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
-    public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = default) => _objectManager.CreateObject(source, path, isStatic, parent);
-    public Task<(Shader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => _shaderManager.CreateShader(source, path, args);
-    public Task<(int tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.CreateTexture(source, path, level);
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
+    public void Preload(ISource source, object path) => _objectManager.Preload(source, path);
+    public void PreloadTexture(ISource source, object path) => _textureManager.Preload(source, path);
+    public Task<(object obj, object tag)> Create(ISource source, object path, bool isStatic, object parent = default) => _objectManager.Create(source, path, isStatic, parent);
+    public Task<(GfxShader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => _shaderManager.Create(source, path, args);
+    public Task<(int tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => _textureManager.Create(source, path, level);
+    public void Post(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) { }
 
     // cache
     QuadIndexBuffer _quadIndices;
@@ -318,8 +446,8 @@ public class OpenGLGfxTerrain : IOpenGfxTerrain<object, GLRenderMaterial, int> {
         _materialManager = new MaterialManager<GLRenderMaterial, int>(_textureManager, new OpenGLMaterialBuilder(_textureManager));
     }
 
-    public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<int>[] layers, float[,,] alphaMap) => new();
-    public object CreateTerrain(string name, Vector3? position, object data, object parent = default) => null;
+    public object CreateData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<int>[] layers, float[,,] alphaMap) => new();
+    public object Create(string name, Vector3? position, object data, object parent = default) => null;
 }
 
 /// <summary>

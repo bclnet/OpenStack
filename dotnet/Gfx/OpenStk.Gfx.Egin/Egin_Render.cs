@@ -13,8 +13,8 @@ namespace OpenStk.Gfx.Egin;
 public interface IPickingTexture {
     bool IsActive { get; }
     bool Debug { get; }
-    Shader Shader { get; }
-    Shader DebugShader { get; }
+    GfxShader Shader { get; }
+    GfxShader DebugShader { get; }
     void Render();
     void Resize(int width, int height);
     void Finish();
@@ -228,7 +228,7 @@ public abstract class RenderMaterial {
         }
     }
 
-    public abstract void Render(Shader shader);
+    public abstract void Render(GfxShader shader);
 
     public abstract void PostRender();
 }
@@ -238,7 +238,7 @@ public abstract class RenderMaterial {
 /// </summary>
 public class DrawCall {
     public int PrimitiveType;
-    public Shader Shader;
+    public GfxShader Shader;
     public uint BaseVertex;
     //public uint VertexCount;
     public uint StartIndex;
@@ -647,7 +647,7 @@ public class Scene(IOpenGfx[] gfx, Action<List<MeshBatchRequest>, Scene.RenderCo
         public Camera Camera;
         public Vector3? LightPosition;
         public Renderer.Pass Pass;
-        public Shader ReplacementShader;
+        public GfxShader ReplacementShader;
         public bool ShowDebug;
     }
 

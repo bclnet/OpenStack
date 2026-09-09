@@ -28,8 +28,8 @@ public class SpriteRenderer : Renderer {
     public SpriteRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxSprite = (EginXGfxSprite2D)gfx[GfX.XSprite2D];
         Obj = obj;
-        GfxSprite.SpriteManager.DeleteSprite(source, obj);
-        (Sprite, _) = GfxSprite.SpriteManager.CreateSprite(source, obj).Result;
+        GfxSprite.SpriteManager.Delete(source, obj);
+        (Sprite, _) = GfxSprite.SpriteManager.Create(source, obj).Result;
     }
 
     public override void Start() {

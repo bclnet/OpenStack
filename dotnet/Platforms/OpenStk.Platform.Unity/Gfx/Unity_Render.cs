@@ -22,7 +22,7 @@ public class ObjectRenderer(IOpenGfx[] gfx, ISource source, object obj) : Render
     readonly object Obj = obj;
 
     public override void Start() {
-        GfxModel.ObjectManager.CreateObject(source, Obj, true, null).Wait();
+        GfxModel.ObjectManager.Create(source, Obj, true, null).Wait();
     }
 }
 
@@ -41,7 +41,7 @@ public class TextureRenderer(IOpenGfx[] gfx, ISource source, object obj) : Rende
         var obj = GameObject.CreatePrimitive(PrimitiveType.Plane); obj.isStatic = true; obj.name = "B_Texture";
         obj.transform.rotation = Quaternion.Euler(-90f, -180f, 180f);
         var meshRenderer = obj.GetComponent<MeshRenderer>();
-        (meshRenderer.material, _) = GfxModel.MaterialManager.CreateMaterial(source, new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } }).Result;
+        (meshRenderer.material, _) = GfxModel.MaterialManager.Create(source, new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } }).Result;
 
         // cursor
         //var tex = GfxModel.TextureManager.CreateTexture(Obj).tex;

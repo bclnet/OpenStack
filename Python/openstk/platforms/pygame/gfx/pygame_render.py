@@ -28,8 +28,8 @@ class TextureRenderer(Renderer):
         self.surf: object = surf
         self.level: range = level
         self.gfxModel.textureManager.deleteTexture(source, obj)
-        self.tex: int = asyncio.run(self.gfxModel.textureManager.createTexture(source, obj, self.level))[0] or -1
-        self.shader, self.shaderTag = self.gfxModel.shaderManager.createShader(source, 'plane')
+        self.tex: int = asyncio.run(self.gfxModel.textureManager.create(source, obj, self.level))[0] or -1
+        self.shader, self.shaderTag = self.gfxModel.shaderManager.create(source, 'plane')
         self.vao: int = self._setupVao()
         self.background: bool = background
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)

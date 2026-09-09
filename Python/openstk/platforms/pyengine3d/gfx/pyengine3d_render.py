@@ -5,7 +5,7 @@ from openstk.gfx import GfX, Renderer
 
 # typedefs
 class PyEngine3dGfxModel: pass
-class Shader: pass
+class GfxShader: pass
 class Camera: pass
 class IOpenGfx: pass
 
@@ -33,8 +33,8 @@ class TextureRenderer(Renderer):
         self.gfxModel: PyEngine3dGfxModel = gfx[GfX.XModel]
         self.source: ISource = source
         self.obj: object = obj
-        # self.gfxModel.textureManager.deleteTexture(obj)
-        # self.tex: int = self.gfxModel.textureManager.createTexture(obj, self.level)[0]
+        # self.gfxModel.textureManager.delete(obj)
+        # self.tex: int = self.gfxModel.textureManager.create(obj, self.level)[0]
         self.frameDelay: int = 0
 
     def start(self):

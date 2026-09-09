@@ -147,7 +147,7 @@ class BinaryReader:
     def readGuid(self) -> bytes: return self.f.read(16)
 
     # string : special
-    def readL16OString(self, codepage: int = 1252) -> str: raise Exception('Not Implemented')
+    def readL16OString(self, codepage: int = 1252) -> str: raise NotImplementedError()
 
     # string : wide
     def readFWString(self, length: int) -> str: return self.f.read(length)[:length].decode('utf-16', 'replace').rstrip('\00') if length != 0 else None

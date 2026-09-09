@@ -3,7 +3,7 @@ import traceback
 from numpy import ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsDds, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsDds, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilder, MaterialManager, GfxShader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.pyengine3d.gfx.pyengine3d import PyEngine3dX
 from openstk.platforms.system import SystemSfx
 
@@ -19,83 +19,49 @@ class PyEngine3dClientHost(IClientHost):
 
 # PyEngine3dObjectModelBuilder
 class PyEngine3dObjectModelBuilder(ObjectModelBuilder):
-    def instanceObject(self, src: object) -> object:
+    def instance(self, src: object) -> object:
         return 'clone'
-    async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+    async def create(self, source: ISource, path: object, static_: bool, materialManager: MaterialManager) -> object:
         builder = PyEngine3dX.buildersByType[path.__class__.__name__]
         try:
-            s = await builder(source, path, isStatic, materialManager)
+            s = await builder(source, path, static_, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
-    def ensurePrefab(self) -> None: pass
+    def ensure(self) -> None: pass
 
 # PyEngine3dShaderBuilder
 class PyEngine3dShaderBuilder(ShaderBuilder):
-    _loader: ShaderLoader = None
-    def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
+    def createShader(self, path: object, args: dict[str, bool]) -> Shader: raise NotImplementedError()
 
 # PyEngine3dTextureBuilder
 class PyEngine3dTextureBuilder(TextureBuilder):
-    _defaultTexture: Texture = None
+    _default: Texture = None
     @property
-    def defaultTexture(self) -> Texture:
-        if self._defaultTexture: return self._defaultTexture
-        self._defaultTexture = self._createDefaultTexture()
-        return self._defaultTexture
+    def default(self) -> Texture:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
 
     def release(self) -> None:
-        if self._defaultTexture: self._defaultTexture.release(); self._defaultTexture = None
+        if self._default: self._default.release(); self._default = None
 
-    def _createDefaultTexture(self) -> int: return base.loader.loadModel('maps/noise.rgb')
+    def _createDefault(self) -> int: return base.loader.loadModel('maps/noise.rgb')
 
-    def createTexture(self, reuse: int, source: ITexture, level2: range = None) -> int:
+    def create(self, reuse: int, source: ITexture, level2: range = None) -> int:
         try:
-            if not bytes: return self.defaultTexture
+            if not bytes: return self.default
             return base.loader.loadModel('maps/noise.rgb')
         finally: source.end()
 
-    def deleteTexture(self, texture: int) -> None: texture.release()
+    def delete(self, texture: int) -> None: texture.release()
 
-
-# PyEngine3dMaterialBuilder
-# class PyEngine3dMaterialBuilder(MaterialBuilder):
-#     def __init__(self, textureManager: TextureManager):
-#         super().__init__(textureManager)
-
-#     _defaultMaterial: MaterialPoly; _terrainMaterial: MaterialPoly
-#     @property
-#     def defaultMaterial(self) -> MaterialPoly:
-#         if self._defaultMaterial: return self._defaultMaterial
-#         self._defaultMaterial = self._createDefaultMaterial()
-#         return self._defaultMaterial
-#     @property
-#     def terrainMaterial(self) -> MaterialPoly:
-#         if self._terrainMaterial: return self._terrainMaterial
-#         self._terrainMaterial = self._createDefaultMaterial()
-#         return self._terrainMaterial
-
-#     def _createDefaultMaterial() -> MaterialPoly:
-#         m = MaterialPoly(Material(), {'Main': self.textureManager.defaultTexture})
-#         return m
-
-#     def _createTerrainMaterial() -> MaterialPoly:
-#         m = MaterialPoly(Material(), {'Main': self.textureManager.terrainTexture})
-#         return m
-
-#     async def createMaterial(self, source: ISource, path: object) -> MaterialPoly:
-#         match path:
-#             case p if isinstance(path, MaterialStdProp):
-#                 m = MaterialPoly(Material(), {k:(await self.textureManager.createTexture(source, v))[0] for k, v in p.textures.items() if k == 'Main' or k == 'Bump'})
-#                 return m
-#             # case s if isinstance(path, MaterialShaderProp): return m
-#             case _: raise Exception(f'Unknown: {path}')
 
 # PyEngine3dGfxApi
 class PyEngine3dGfxApi(IOpenGfxApi):
     def __init__(self): pass
-    # def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
-    # def addMeshRenderer(self, src: NodePath, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
-    # def addMissingMeshCollidersRecursively(self, src: NodePath, isStatic: bool) -> None: raise NotImplementedError();
+    # def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, static_: bool) -> None: raise NotImplementedError();
+    # def addMeshRenderer(self, src: NodePath, mesh: object, material: Material, enabled: bool, static_: bool) -> None: raise NotImplementedError();
+    # def addMissingMeshCollidersRecursively(self, src: NodePath, static_: bool) -> None: raise NotImplementedError();
     # def attach(self, method: GfxAttach, src: NodePath, args: list[object]) -> None: pass
     # def createMesh(self, mesh: object) -> NodePath: raise NotImplementedError();
     # def createObject(self, name: str, tag: str = None, parent: NodePath = None) -> NodePath:
@@ -118,33 +84,33 @@ class PyEngine3dGfxApi(IOpenGfxApi):
 
 # PyEngine3dMaterialBuilder
 class PyEngine3dMaterialBuilder(MaterialBuilder):
-    _defaultMaterial: Material = None; _terrainMaterial: Material = None
+    _default: Material = None; _terrain: Material = None
     @property
-    def defaultMaterial(self) -> Material:
-        if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial()
-        return self._defaultMaterial
+    def default(self) -> Material:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
     @property
     def terrainMaterial(self) -> Material:
-        if self._terrainMaterial: return self._terrainMaterial
-        self._terrainMaterial = self._createTerrainMaterial()
-        return self._terrainMaterial
+        if self._terrain: return self._terrain
+        self._terrain = self._createTerrain()
+        return self._terrain
 
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    def _createDefaultMaterial() -> Material:
+    def _createDefault() -> Material:
         m = Material()
-        m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.textures['g_tColor'] = self.textureManager.default
         m.material.shaderName = 'vrf.error'
         return m
     
-    def _createTerrainMaterial() -> Material:
+    def _createTerrain() -> Material:
         m = Material()
         m.material.shaderName = 'vrf.error'
         return m
 
-    def createMaterial(self, key: object) -> Material:
+    def create(self, key: object) -> Material:
         match key:
             case _: raise Exception(f'Unknown: {key}')
 
@@ -155,11 +121,11 @@ class PyEngine3dGfxModel(IOpenGfxModel):
         self.materialManager: MaterialManager = MaterialManager(self.textureManager, PyEngine3dMaterialBuilder(self.textureManager))
         self.objectManager: ObjectModelManager = ObjectModelManager(self.materialManager, PyEngine3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(PyEngine3dShaderBuilder())
-    def preloadObject(self, source: ISource, path: object) -> None: self.objectManager.preloadObject(source, path)
-    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preloadTexture(source, path)
-    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(source, path, isStatic, parent)
-    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(source, path, args)
-    def createTexture(self, source: ISource, path: object, level: range = None) -> int: return self.textureManager.createTexture(source, path, level)
+    def preload(self, source: ISource, path: object) -> None: self.objectManager.preload(source, path)
+    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preload(source, path)
+    def create(self, source: ISource, path: object, static_: bool, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.create(source, path, static_, parent)
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.create(source, path, args)
+    def createTexture(self, source: ISource, path: object, level: range = None) -> int: return self.textureManager.create(source, path, level)
 
 # PyEngine3dPlatform
 class PyEngine3dPlatform(Platform):

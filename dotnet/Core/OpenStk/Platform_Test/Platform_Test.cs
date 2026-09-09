@@ -37,8 +37,8 @@ public class TestGfxApi : IOpenGfxApi<object, object> {
 
 public class TestGfxSprite : IOpenGfxSprite<object, object> {
     public SpriteManager<object> SpriteManager => throw new NotImplementedException();
-    public void PreloadSprite(ISource source, object path) => throw new NotSupportedException();
-    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = null) => throw new NotImplementedException();
+    public void Preload(ISource source, object path) => throw new NotSupportedException();
+    public Task<(object spr, object tag)> Create(ISource source, object path, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestGfxModel : IOpenGfxModel<object, object, object, object> {
@@ -46,22 +46,22 @@ public class TestGfxModel : IOpenGfxModel<object, object, object, object> {
     public ObjectModelManager<object, object, object> ObjectManager => throw new NotImplementedException();
     public ShaderManager<object> ShaderManager => throw new NotImplementedException();
     public TextureManager<object> TextureManager => throw new NotImplementedException();
-    public void PreloadObject(ISource source, object path) => throw new NotSupportedException();
+    public void Preload(ISource source, object path) => throw new NotSupportedException();
     public void PreloadTexture(ISource source, object path) => throw new NotSupportedException();
-    public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = null) => throw new NotImplementedException();
+    public Task<(object obj, object tag)> Create(ISource source, object path, bool isStatic, object parent = null) => throw new NotImplementedException();
     public Task<(object sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => throw new NotImplementedException();
     public Task<(object tex, object tag)> CreateTexture(ISource source, object path, Range? level = null) => throw new NotImplementedException();
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent = default) => throw new NotImplementedException();
+    public void Post(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent = default) => throw new NotImplementedException();
 }
 
 public class TestGfxLight : IOpenGfxLight<object> {
-    public object CreateLight(string name, Vector3? position, float radius, Color color, bool indoors, object parent = default) => throw new NotImplementedException();
-    public object CreateReflectionProbe(string name, Vector3? position, object parent = null) => throw new NotImplementedException();
+    public object Create(string name, Vector3? position, float radius, Color color, bool indoors, object parent = default) => throw new NotImplementedException();
+    public object CreateProbe(string name, Vector3? position, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestGfxTerrain : IOpenGfxTerrain<object, object, object> {
-    public object CreateTerrainData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<object>[] layers, float[,,] alphaMap) => throw new NotImplementedException();
-    public object CreateTerrain(string name, Vector3? position, object data, object parent = null) => throw new NotImplementedException();
+    public object CreateData(int offset, float[,] heights, float heightRange, float sampleDistance, GfxTerrainLayer<object>[] layers, float[,,] alphaMap) => throw new NotImplementedException();
+    public object Create(string name, Vector3? position, object data, object parent = null) => throw new NotImplementedException();
 }
 
 public class TestSfx : IOpenSfx {

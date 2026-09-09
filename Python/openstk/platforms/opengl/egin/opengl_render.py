@@ -14,7 +14,7 @@ class IMaterial: pass
 class IMesh: pass
 class IModel: pass
 class AABB: pass
-class Shader: pass
+class GfxShader: pass
 
 #region Camera
 
@@ -132,7 +132,7 @@ class GLMeshBufferCache:
 
     class VAOKey:
         vbib: GLMeshBuffers
-        shader: Shader
+        shader: GfxShader
         vertexIndex: int
         indexIndex: int
         baseVertex: int
@@ -145,7 +145,7 @@ class GLMeshBufferCache:
         self._gpuBuffers.append(vbib, newGpuVbib)
         return newGpuVbib
 
-    def getVertexArrayObject(vbib: IVBIB, shader: Shader, vtxIndex: int, idxIndex: int, baseVertex: int) -> int:
+    def getVertexArrayObject(vbib: IVBIB, shader: GfxShader, vtxIndex: int, idxIndex: int, baseVertex: int) -> int:
         gpuVbib = getVertexIndexBuffers(vbib)
         vaoKey = VAOKey(
             vbib = gpuVbib,
@@ -299,8 +299,8 @@ class GLPickingTexture(IPickingTexture):
         
     onPicked: object
     request: PickingRequest = PickingRequest()
-    shader: Shader
-    debugShader: Shader
+    shader: GfxShader
+    debugShader: GfxShader
     @property
     def isActive(self) -> bool: self.request.activeNextFrame
     debug: bool
@@ -385,7 +385,7 @@ class GLRenderMaterial(RenderMaterial):
     def __init__(self, material: IMaterial):
         super().__init__(material)
 
-    def render(self, shader: Shader) -> None:
+    def render(self, shader: GfxShader) -> None:
         # start at 1, texture unit 0 is reserved for the animation texture
         textureUnit = 1
         location: int
@@ -514,7 +514,7 @@ STRIDE = 4 * 7
 
 # OctreeDebugRenderer
 class OctreeDebugRenderer:
-    shader: Shader
+    shader: GfxShader
     octree: Octree
     vaoHandle: int
     vboHandle: int

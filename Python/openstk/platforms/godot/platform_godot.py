@@ -3,7 +3,7 @@ import math, traceback
 from numpy import ndarray, array, ones, zeros
 from openstk.core import ISource, Platform
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, MaterialBuilder, MaterialManager, GfxShader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.godot.gfx.godot import GodotX
 from openstk.platforms.system import SystemSfx
 from panda3d.core import PandaNode, NodePath, Texture, TextureStage, PNMImage, PTAUchar, CPTAUchar, PointLight, GeoMipTerrain
@@ -23,47 +23,46 @@ class GodotClientHost(IClientHost):
 
 # GodotObjectModelBuilder
 class GodotObjectModelBuilder(ObjectModelBuilder):
-    def instanceObject(self, src: object) -> object:
+    def instance(self, src: object) -> object:
         return 'clone'
-    async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+    async def create(self, source: ISource, path: object, static_: bool, materialManager: MaterialManager) -> object:
         builder = GodotX.buildersByType[path.__class__.__name__]
         try:
-            s = await builder(source, path, isStatic, materialManager)
+            s = await builder(source, path, static_, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
-    def ensurePrefab(self) -> None: pass
+    def ensure(self) -> None: pass
 
 # GodotShaderBuilder
 class GodotShaderBuilder(ShaderBuilder):
-    _loader: ShaderLoader = None
-    def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
+    def createShader(self, path: object, args: dict[str, bool]) -> GfxShader: raise NotImplementedError()
 
 # GodotTextureBuilder
 # https://docs.panda3d.org/1.10/python/programming/texturing/simple-texturing#simple-texturing
 # https://docs.panda3d.org/1.10/python/programming/texturing/creating-textures#creating-new-textures-from-scratch
 class GodotTextureBuilder(TextureBuilder):
-    _defaultTexture: Texture = None
+    _default: Texture = None
     @property
-    def defaultTexture(self) -> Texture:
-        if self._defaultTexture: return self._defaultTexture
-        self._defaultTexture = self._createDefaultTexture()
-        return self._defaultTexture
+    def default(self) -> Texture:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
 
     def release(self) -> None:
-        if self._defaultTexture: self._defaultTexture.release(); self._defaultTexture = None
+        if self._default: self._default.release(); self._default = None
 
-    def _createDefaultTexture(self) -> Texture: return base.loader.loadModel('maps/noise.rgb')
+    def _createDefault(self) -> Texture: return base.loader.loadModel('maps/noise.rgb')
 
-    def createNormalMapTexture(self, src: Texture, strength: float) -> Texture:
+    def createNormalMap(self, src: Texture, strength: float) -> Texture:
         return 0
 
-    def createSolidTexture(self, width: int, height: int, pixels: object) -> Texture:
+    def createSolid(self, width: int, height: int, pixels: object) -> Texture:
         tex = Texture('texture')
         tex.setup2dTexture(width, height, Texture.TUnsignedByte, Texture.F_rgb)
         # tex.setClearColor(pixels)
         return 0
 
-    def createTexture(self, reuse: Texture, src: ITexture, level2: range = None) -> Texture:
+    def create(self, reuse: Texture, src: ITexture, level2: range = None) -> Texture:
         tex = reuse if reuse != None else Texture('texture')
         numMipMaps = max(1, src.mipMaps)
         width = src.width; height = src.height
@@ -74,7 +73,7 @@ class GodotTextureBuilder(TextureBuilder):
                 case TextureAsBytes():
                     bytes, fmt, spans = (x.bytes, x.format, x.spans)
                     # process
-                    if not bytes: return self.defaultTexture
+                    if not bytes: return self.default
                     elif isinstance(fmt, tuple):
                         formatx, pixel = fmt
                         s = pixel & TexturePixel.Signed
@@ -124,7 +123,7 @@ class GodotTextureBuilder(TextureBuilder):
                 case _: raise Exception(f'Unknown x: {x}')
         return src.create('PD', _lambdax)
 
-    def deleteTexture(self, texture: Texture) -> None: texture.release()
+    def delete(self, texture: Texture) -> None: texture.release()
 
 # GodotMaterialBuilder
 # https://docs.panda3d.org/1.10/python/programming/render-attributes/materials
@@ -132,39 +131,39 @@ class GodotMaterialBuilder(MaterialBuilder):
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    _defaultMaterial: Material; _terrainMaterial: Material
+    _default: Material; _terrain: Material
     @property
-    def defaultMaterial(self) -> Material:
-        if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial()
-        return self._defaultMaterial
+    def default(self) -> Material:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
     @property
-    def terrainMaterial(self) -> Material:
-        if self._terrainMaterial: return self._terrainMaterial
-        self._terrainMaterial = self._createDefaultMaterial()
-        return self._terrainMaterial
+    def terrain(self) -> Material:
+        if self._terrain: return self._terrain
+        self._terrain = self._createTerrain()
+        return self._terrain
 
-    def _createDefaultMaterial() -> Material:
+    def _createDefault() -> Material:
         m = Material(None)
-        m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.textures['g_tColor'] = self.textureManager.default
         m.material.shaderName = 'vrf.error'
         return m
 
-    def _createTerrainMaterial() -> Material:
+    def _createTerrain() -> Material:
         m = Material()
         m.material.shaderName = 'vrf.error'
         return m
 
-    def createMaterial(self, path: object) -> Material:
+    def create(self, path: object) -> Material:
         match path:
             case _: raise Exception(f'Unknown: {key}')
 
 # GodotGfxApi
 class GodotGfxApi(IOpenGfxApi):
     def __init__(self): pass
-    def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
-    def addMeshRenderer(self, src: NodePath, mesh: object, material: GLRenderMaterial, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
-    def addMissingMeshCollidersRecursively(self, src: NodePath, isStatic: bool) -> None: raise NotImplementedError();
+    def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, static_: bool) -> None: raise NotImplementedError();
+    def addMeshRenderer(self, src: NodePath, mesh: object, material: GLRenderMaterial, enabled: bool, static_: bool) -> None: raise NotImplementedError();
+    def addMissingMeshCollidersRecursively(self, src: NodePath, static_: bool) -> None: raise NotImplementedError();
     def attach(self, method: GfxAttach, src: NodePath, args: list[object]) -> None: pass
     def createMesh(self, mesh: object) -> NodePath: raise NotImplementedError();
     def createObject(self, name: str, tag: str = None, parent: NodePath = None) -> NodePath:
@@ -192,16 +191,16 @@ class GodotGfxModel(IOpenGfxModel):
         self.materialManager: MaterialManager = MaterialManager(self.textureManager, GodotMaterialBuilder(self.textureManager))
         self.objectManager: ObjectModelManager = ObjectModelManager(self.materialManager, GodotObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(GodotShaderBuilder())
-    def preloadObject(self, source: ISource, path: object) -> None: self.objectManager.preloadObject(source, path)
-    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preloadTexture(source, path)
-    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.createObject(source, path, isStatic, parent)
-    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> Shader: return self.shaderManager.createShader(source, path, args)
-    def createTexture(self, source: ISource, path: object, level: range = None) -> int: return self.textureManager.createTexture(source, path, level)
+    def preload(self, source: ISource, path: object) -> None: self.objectManager.preload(source, path)
+    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preload(source, path)
+    def create(self, source: ISource, path: object, static_: bool, parent: object = None) -> tuple[object, dict[str, object]]: return self.objectManager.create(source, path, static_, parent)
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> GfxShader: return self.shaderManager.create(source, path, args)
+    def createTexture(self, source: ISource, path: object, level: range = None) -> int: return self.textureManager.create(source, path, level)
 
 # GodotGfxLight
 class GodotGfxLight(IOpenGfxLight):
     def __init__(self): pass
-    def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: NodePath = None) -> NodePath:
+    def create(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: NodePath = None) -> NodePath:
         n = PointLight(name)
         n.setColor((0.7, 0.7, 0.7, 1))
         p = parent or base.render
@@ -209,7 +208,7 @@ class GodotGfxLight(IOpenGfxLight):
         if position: s.setPos(vector3ToPanda(position))
         base.render.setLight(s)
         return s
-    def createReflectionProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
+    def createProbe(self, name: str, position: Vector3, parent: object = None) -> object: return 'probe'
 
 # GodotGfxTerrain
 class GodotGfxTerrain(IOpenGfxTerrain):
@@ -238,7 +237,7 @@ class GodotGfxTerrain(IOpenGfxTerrain):
                     s.setGray(x, y, h) # Set pixel: 0.0 (black) is lowest, 1.0 (white) is highest
         def setAlphamaps(self, x: int, y: int, alphamap: ndarray) -> None: self.alphamap = alphamap
     def __init__(self): pass
-    def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object:
+    def createData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object:
         hShape = heights.shape; aShape = alphaMap.shape
         assert(hShape[0] == hShape[1] and heightRange >= 0 and sampleDistance >= 0)
         resolution = hShape[0]
@@ -255,7 +254,7 @@ class GodotGfxTerrain(IOpenGfxTerrain):
             tileSize=s.tileSize) for s in layers]
         if alphaMap.size == 0: assert(aShape[0] == aShape[1]); s.alphamapResolution = alphaMap[0]; s.setAlphamaps(0, 0, alphaMap)
         return s
-    def createTerrain(self, name: str, position: Vector3, data: object, parent: NodePath = None) -> NodePath:
+    def create(self, name: str, position: Vector3, data: object, parent: NodePath = None) -> NodePath:
         # print(f't: {parent}')
         t = GeoMipTerrain(name) # Create the GeoMipTerrain instance
         t.setHeightfield(data.heights) # Load a heightfield image (preferably power-of-two plus one, e.g., 513x513)

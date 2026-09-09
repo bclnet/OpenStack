@@ -35,8 +35,8 @@ public class TextureRenderer : Renderer {
         Source = source;
         Obj = obj;
         Level = level;
-        GfxModel.TextureManager.DeleteTexture(source, obj);
-        Texture = GfxModel.TextureManager.CreateTexture(source, obj, level).Result.tex;
+        GfxModel.TextureManager.Delete(source, obj);
+        Texture = GfxModel.TextureManager.Create(source, obj, level).Result.tex;
     }
 
     public override void Start() {
@@ -49,7 +49,7 @@ public class TextureRenderer : Renderer {
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.NextFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        GfxModel.TextureManager.ReloadTexture(Source, obj, Level);
+        GfxModel.TextureManager.Reload(Source, obj, Level);
     }
 }
 

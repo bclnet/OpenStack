@@ -260,8 +260,7 @@ class DDS_HEADER:
     def _makeformat(f: DDS_PIXELFORMAT) -> object: return ('Raw', f.dwRGBBitCount >> 2, (TextureFormat.RGBA32, TexturePixel.Unknown))
 
     @staticmethod
-    def convertDxt3ToDtx5(data: bytes, width: int, height: int, mipMaps: int) -> None:
-        raise Exception('Not Implemented')
+    def convertDxt3ToDtx5(data: bytes, width: int, height: int, mipMaps: int) -> None: raise NotImplementedError()
 
 #endregion
 

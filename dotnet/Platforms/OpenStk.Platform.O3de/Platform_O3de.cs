@@ -32,8 +32,8 @@ public class O3deGfxSprite3D : IOpenGfxSprite<object, object> {
     }
 
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
-    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = default) => _spriteManager.CreateSprite(source, path);
+    public void Preload(ISource source, object path) => _spriteManager.Preload(source, path);
+    public Task<(object spr, object tag)> Create(ISource source, object path, object parent = default) => _spriteManager.Create(source, path);
 }
 
 // O3deGfxModel
@@ -53,12 +53,12 @@ public class O3deGfxModel : IOpenGfxModel<object, object, object, object> {
     public ObjectModelManager<object, object, object> ObjectManager => _objectManager;
     public ShaderManager<object> ShaderManager => _shaderManager;
     public TextureManager<object> TextureManager => _textureManager;
-    public void PreloadObject(ISource source, object path) => throw new NotImplementedException();
-    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
-    public Task<(object obj, object tag)> CreateObject(ISource source, object path, bool isStatic, object parent = default) => _objectManager.CreateObject(source, path, isStatic, parent);
+    public void Preload(ISource source, object path) => throw new NotImplementedException();
+    public void PreloadTexture(ISource source, object path) => _textureManager.Preload(source, path);
+    public Task<(object obj, object tag)> Create(ISource source, object path, bool isStatic, object parent = default) => _objectManager.Create(source, path, isStatic, parent);
     public Task<(object sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<(object tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.CreateTexture(source, path, level);
-    public void PostObject(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
+    public Task<(object tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.Create(source, path, level);
+    public void Post(object src, Vector3 position, Vector3 eulerAngles, float? scale, object parent) => throw new NotImplementedException();
 }
 
 // O3deSfx

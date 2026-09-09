@@ -9,7 +9,7 @@ from openstk.platforms.panda3d.gfx.panda3dopenengine import Panda3dOpenEngine
 
 # typedefs
 class Panda3dGfxModel: pass
-class Shader: pass
+class GfxShader: pass
 class Camera: pass
 class Texture: pass
 class IOpenGfx: pass
@@ -44,7 +44,7 @@ class TextureRenderer(Renderer):
     def start(self):
         # self.gfxModel.textureManager.deleteTexture(self.obj)
         obj = base.render.attachNewNode(CardMaker('card').generate())
-        tex = asyncio.run(self.gfxModel.textureManager.createTexture(self.source, self.obj, None))[0]
+        tex = asyncio.run(self.gfxModel.textureManager.create(self.source, self.obj, None))[0]
         # tex = base.loader.loadModel('maps/noise.rgb')
         obj.setTexture(tex)
         obj.setScale(8.0, 8.0, 8.0)
@@ -70,7 +70,7 @@ class ObjectRenderer(Renderer):
         self.obj: object = obj
 
     def start(self) -> None:
-        asyncio.run(self.gfxModel.objectManager.createObject(self.source, self.obj, True, None))
+        asyncio.run(self.gfxModel.objectManager.create(self.source, self.obj, True, None))
 
 #endregion
 

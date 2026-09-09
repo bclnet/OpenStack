@@ -1,19 +1,19 @@
 from __future__ import annotations
 import os, io, pathlib
 from openstk.core import ISource, BinaryReader, PlatformX
-from openstk.sfx import IOpenSfx2, AudioBuilderBase, AudioManager
+from openstk.sfx import IOpenSfx2, AudioBuilder, AudioManager
 
 #region Platform
 
 # SystemAudioBuilder
-class SystemAudioBuilder(AudioBuilderBase):
-    def createAudio(self, path: object) -> object: raise NotImplementedError()
-    def deleteAudio(self, audio: object) -> None: raise NotImplementedError()
+class SystemAudioBuilder(AudioBuilder):
+    def create(self, path: object) -> object: raise NotImplementedError()
+    def delete(self, audio: object) -> None: raise NotImplementedError()
 
 # SystemSfx
 class SystemSfx(IOpenSfx2):
     def __init__(self):
         self.audioManager: AudioManager = AudioManager(SystemAudioBuilder())
-    def createAudio(self, source: ISource, path: object) -> tuple[int, object]: return self.audioManager.createAudio(source, path)
+    def create(self, source: ISource, path: object) -> tuple[int, object]: return self.audioManager.create(source, path)
 
 #endregion

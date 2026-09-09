@@ -3,7 +3,7 @@ import os, re
 from numpy import ndarray
 from quaternion import quaternion
 from openstk.core import _throw, AsyncCoroutineQueue, CellManager, CellBuilder
-from openstk.gfx import Shader
+from openstk.gfx import GfxShader
 
 class Panda3dOpenEngine:
     desiredWorkTimePerFrame: float = 1.0 / 200

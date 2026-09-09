@@ -39,36 +39,36 @@ class GfxBlendMode(Enum): Zero = 0; One = 1; SrcColor = 0x0300; OneMinusSrcColor
 
 # ObjectSpriteBuilder
 class ObjectSpriteBuilder:
-    def instanceObject(self, src: B_Object) -> B_Object: pass
-    def createObject(self, path: object) -> B_Object: pass
-    def ensurePrefab(self) -> None: pass
+    def instance(self, src: B_Object) -> B_Object: pass
+    def create(self, path: object) -> B_Object: pass
+    def ensure(self) -> None: pass
 
 # ObjectSpriteManager
 class ObjectSpriteManager:
-    _cachedObjects: dict[object, (B_Object, object)] = {}
+    _cached: dict[object, (B_Object, object)] = {}
     def __init__(self, builder: ObjectSpriteBuilder):
         self._builder: ObjectSpriteBuilder = builder
-        self._preloadTasks: dict[object, object] = {}
+        self._tasks: dict[object, object] = {}
 
-    async def createObject(self, source: ISource, path: object, parent: B_Object = None) -> tuple[B_Object, object]:
+    async def create(self, source: ISource, path: object, parent: B_Object = None) -> tuple[B_Object, object]:
         key = (source, path); tag = None
-        if not key in self._cachedObjects: obj = self._cachedObjects[key] = (await self._loadObject(source, path), tag)
-        else: obj = self._cachedObjects[key]
-        return (self._builder.instanceObject(obj[0], parent), obj[1])
+        if not key in self._cached: obj = self._cached[key] = (await self._load(source, path), tag)
+        else: obj = self._cached[key]
+        return (self._builder.instance(obj[0], parent), obj[1])
 
-    def preloadObject(self, source: ISource, path: object) -> None:
+    def preload(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if key in self._cachedObjects: return
-        if not key in self._preloadTasks: self._preloadTasks[key] = source.getAsset(object, path)
+        if key in self._cached: return
+        if not key in self._tasks: self._tasks[key] = source.getAsset(object, path)
 
-    async def _loadObject(self, path: object) -> tuple[B_Object, object]:
+    async def _load(self, path: object) -> tuple[B_Object, object]:
         key = (source, path)
-        assert(not key in self._cachedObjects)
-        self._builder.ensurePrefab()
-        self.preloadObject(source, path)
-        obj = await self._preloadTasks[key]
-        self._preloadTasks.pop(key)
-        return (self._builder.createObject(obj), obj)
+        assert(not key in self._cached)
+        self._builder.ensure()
+        self.preload(source, path)
+        obj = await self._tasks[key]
+        self._tasks.pop(key)
+        return (self._builder.create(obj), obj)
 
 #endregion
 
@@ -80,48 +80,67 @@ class IObjectModel:
 
 # ObjectModelBuilder
 class ObjectModelBuilder:
-    def instanceObject(self, src: B_Object) -> B_Object: pass
-    def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> B_Object: pass
-    def ensurePrefab(self) -> None: pass
+    def instance(self, src: B_Object) -> B_Object: pass
+    def create(self, source: ISource, path: object, static_: bool, materialManager: MaterialManager) -> B_Object: pass
+    def ensure(self) -> None: pass
 
 # ObjectModelManager
 class ObjectModelManager:
-    _cachedObjects: dict[object, (B_Object, object)] = {}
+    _cached: dict[object, (B_Object, object)] = {}
     def __init__(self, materialManager: MaterialManager, builder: ObjectModelBuilder):
         self._materialManager: MaterialManager = materialManager
         self._builder: ObjectModelBuilder = builder
-        self._preloadTasks: dict[object, object] = {}
+        self._tasks: dict[object, object] = {}
 
-    async def createObject(self, source: ISource, path: object, isStatic: bool, parent: B_Object = None) -> tuple[B_Object, object]:
+    async def create(self, source: ISource, path: object, static_: bool, parent: B_Object = None) -> tuple[B_Object, object]:
         key = (source, path)
         try:
-            if not key in self._cachedObjects: s = self._cachedObjects[key] = await self._loadObject(source, path, isStatic)
-            else: s = self._cachedObjects[key]
-            return (self._builder.instanceObject(s[0]), s[1])
+            if not key in self._cached: s = self._cached[key] = await self._load(source, path, static_)
+            else: s = self._cached[key]
+            return (self._builder.instance(s[0]), s[1])
         except: return (None, None)
 
-    def preloadObject(self, source: ISource, path: object) -> None:
+    def preload(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if key in self._cachedObjects: return
-        if not key in self._preloadTasks: self._preloadTasks[key] = source.getAsset(object, path)
+        if key in self._cached: return
+        if not key in self._tasks: self._tasks[key] = source.getAsset(object, path)
 
-    async def _loadObject(self, source: ISource, path: object, isStatic: bool) -> tuple[B_Object, object]:
+    async def _load(self, source: ISource, path: object, static_: bool) -> tuple[B_Object, object]:
         key = (source, path)
-        assert(not key in self._cachedObjects)
-        self._builder.ensurePrefab()
-        self.preloadObject(source, path)
+        assert(not key in self._cached)
+        self._builder.ensure()
+        self.preload(source, path)
         try:
-            obj = await self._preloadTasks[key]
-            return (await self._builder.createObject(source, obj, isStatic, self._materialManager), obj)
+            obj = await self._tasks[key]
+            return (await self._builder.create(source, obj, static_, self._materialManager), obj)
         except: print(sys.exc_info()[1]); raise
-        finally: self._preloadTasks.pop(key)
+        finally: self._tasks.pop(key)
 
 #endregion
 
 #region Shader
 
-# Shader
-class Shader:
+# ShaderSeed: int = 0x13141516
+# _cachedShaders: dict[int, B_Shader] = {}
+# _shaderDefines: dict[str, list[str]] = {}
+# cache = not name.startswith('#')
+# def _calculateShaderCacheHash(self, name: str, args: dict[str, bool]) -> int:
+#     b = [name]
+#     parameters = set(self._shaderDefines[name]).intersection(args.keys())
+#     for key in parameters: b.append(key); b.append('t' if args[key] else 'f')
+#     return hash('\n'.join(b))
+# # cache
+# if cache and shaderFileName in self._shaderDefines:
+#     shaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+#     if shaderCacheHash in self._cachedShaders: return self._cachedShaders[shaderCacheHash]
+# cache shader
+# if cache:
+#     self._shaderDefines[shaderFileName] = defines
+#     newShaderCacheHash = self._calculateShaderCacheHash(shaderFileName, args)
+#     self._cachedShaders[newShaderCacheHash] = shader
+
+# GfxShader
+class GfxShader:
     def __init__(self, uniformLocation: callable, attribLocation: callable, name: str = None, program: int = None, parameters: dict[str, bool] = None, renderModes: list[str] = None):
         self._uniformLocation: callable = uniformLocation or _throw('Null')
         self._attribLocation: callable = attribLocation or _throw('Null')
@@ -140,15 +159,19 @@ class Shader:
 
 # ShaderBuilder
 class ShaderBuilder:
-    def createShader(self, path: object, args: dict[str, bool]) -> Shader: pass
+    def create(self, path: object, args: dict[str, bool]) -> B_Shader: pass
 
 # ShaderManager
 class ShaderManager:
+    _cached: dict[object, (B_Shader, object)] = {}
     def __init__(self, builder: ShaderBuilder):
         self._builder: ShaderBuilder = builder
         self.emptyArgs: dict[str, bool] = {}
 
-    async def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[Shader, object]: return (self._builder.createShader(path, args or self.emptyArgs), None)
+    async def create(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[B_Shader, object]:
+        argx = ','.join([k for k, v in args.items() if v]) if args else None
+        key = (source, path, argx)
+        return (self._builder.create(path, args or self.emptyArgs), None)
 
 #endregion
 
@@ -162,44 +185,44 @@ class ISprite:
 
 # SpriteBuilder
 class SpriteBuilder:
-    defaultSprite: B_Sprite
-    def createSprite(self, spr: ISprite) -> B_Sprite: pass
-    def deleteSprite(self, spr: B_Sprite) -> None: pass
+    default: B_Sprite
+    def create(self, spr: ISprite) -> B_Sprite: pass
+    def delete(self, spr: B_Sprite) -> None: pass
 
 # SpriteManager
 class SpriteManager:
-    _cachedSprites: dict[object, (B_Sprite, object)] = {}
+    _cached: dict[object, (B_Sprite, object)] = {}
     def __init__(self, builder: SpriteBuilder):
         self._builder: SpriteBuilder = builder
-        self._preloadTasks: dict[object, object] = {}
+        self._tasks: dict[object, object] = {}
 
     @property
-    def defaultSprite(self) -> B_Sprite: return self._builder.defaultSprite
+    def default(self) -> B_Sprite: return self._builder.default
 
-    async def createSprite(self, source: ISource, path: object, level: range = None) -> tuple[B_Sprite, object]:
+    async def create(self, source: ISource, path: object, level: range = None) -> tuple[B_Sprite, object]:
         key = (source, path)
-        if key in self._cachedSprites: return self._cachedSprites[key]
-        tag = path if isinstance(path, ISprite) else await self._loadSprite(source, path)
-        obj = self._builder.createSprite(tag) if tag else self._builder.defaultSprite
-        self._cachedSprites[key] = (obj, tag); return (obj, tag)
+        if key in self._cached: return self._cached[key]
+        tag = path if isinstance(path, ISprite) else await self._load(source, path)
+        obj = self._builder.create(tag) if tag else self._builder.default
+        self._cached[key] = (obj, tag); return (obj, tag)
 
-    def preloadSprite(self, source: ISource, path: object) -> None:
+    def preload(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if key in self._cachedSprites: return
-        if not key in self._preloadTasks: self._preloadTasks[key] = source.getAsset(type(ISprite), path)
+        if key in self._cached: return
+        if not key in self._tasks: self._tasks[key] = source.getAsset(type(ISprite), path)
 
-    def deleteSprite(self, source: ISource, path: object) -> None:
+    def delete(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if not key in self._cachedSprites: return
-        self._builder.deleteTexture(self._cachedSprites[0])
-        self._cachedSprites.pop(key)
+        if not key in self._cached: return
+        self._builder.delete(self._cached[0])
+        self._cached.pop(key)
 
-    async def _loadSprite(self, source: ISource, path: object) -> ISprite:
+    async def _load(self, source: ISource, path: object) -> ISprite:
         key = (source, path)
-        assert(not key in self._cachedSprites)
-        self.preloadSprite(source, s)
-        obj = await self._preloadTasks[key]
-        self._preloadTasks.pop(key)
+        assert(not key in self._cached)
+        self.preload(source, s)
+        obj = await self._tasks[key]
+        self._tasks.pop(key)
         return obj
 
 #endregion
@@ -241,11 +264,11 @@ class ITextureFrames(ITexture):
 # TextureBuilder
 class TextureBuilder:
     maxTextureMaxAnisotropy: int = GfX.maxTextureMaxAnisotropy
-    defaultTexture: B_Texture
-    def createTexture(self, reuse: B_Texture, tex: ITexture, level: range = None) -> B_Texture: pass
-    def createSolidTexture(self, width: int, height: int, rgba: list[float]) -> B_Texture: pass
+    default: B_Texture
+    def create(self, reuse: B_Texture, tex: ITexture, level: range = None) -> B_Texture: pass
+    def createSolid(self, width: int, height: int, rgba: list[float]) -> B_Texture: pass
     def createNormalMap(self, tex: B_Texture, strength: float) -> B_Texture: pass
-    def deleteTexture(self, tex: B_Texture) -> None: pass
+    def delete(self, tex: B_Texture) -> None: pass
 
 # TextureManager
 class TextureManager:
@@ -257,60 +280,60 @@ class TextureManager:
         def __hash__(self): return hash((self.width, self.height, hash((s for s in self.rgbas))))
 
     normalMapIntensity: float = 0.75
-    _cachedNormalMapTextures: dict[B_Texture, B_Texture] = {}
-    _cachedSolidTextures: dict[Solid, B_Texture] = {}
-    _cachedTextures: dict[object, (B_Texture, object)] = {}
+    _cachedNormalMaps: dict[B_Texture, B_Texture] = {}
+    _cachedSolids: dict[Solid, B_Texture] = {}
+    _cached: dict[object, (B_Texture, object)] = {}
     def __init__(self, builder: TextureBuilder):
         self._builder: TextureBuilder = builder
-        self._preloadTasks: dict[object, object] = {}
+        self._tasks: dict[object, object] = {}
 
     @property
-    def defaultTexture(self) -> B_Texture: return self._builder.defaultTexture
+    def default(self) -> B_Texture: return self._builder.default
 
-    def createNormalMapTexture(self, src: B_Texture, strength: float = -1) -> B_Texture:
-        if src in self._cachedNormalMapTextures: return self._cachedNormalMapTextures[src]
-        s = self._builder.createNormalMapTexture(src, TextureManager.normalMapIntensity if strength < 0 else strength)
-        self._cachedNormalMapTextures[src] = s
+    def createNormalMap(self, src: B_Texture, strength: float = -1) -> B_Texture:
+        if src in self._cachedNormalMaps: return self._cachedNormalMaps[src]
+        s = self._builder.createNormalMap(src, TextureManager.normalMapIntensity if strength < 0 else strength)
+        self._cachedNormalMaps[src] = s
         return s
 
-    def createSolidTexture(self, width: int, height: int, rgbas: object = None) -> B_Texture:
+    def createSolid(self, width: int, height: int, rgbas: object = None) -> B_Texture:
         src = TextureManager.Solid(width, height, rgbas)
-        if src in self._cachedSolidTextures: return self._cachedSolidTextures[src]
-        s = self._builder.createSolidTexture(width, height, rgbas)
-        self._cachedSolidTextures[src] = s
+        if src in self._cachedSolids: return self._cachedSolids[src]
+        s = self._builder.createSolid(width, height, rgbas)
+        self._cachedSolids[src] = s
         return s
 
-    async def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[B_Texture, object]:
+    async def create(self, source: ISource, path: object, level: range = None) -> tuple[B_Texture, object]:
         key = (source, path)
-        if key in self._cachedTextures: return self._cachedTextures[key]
-        tag = path if isinstance(path, ITexture) else await self._loadTexture(source, path)
-        obj = self._builder.createTexture(None, tag, level) if tag else self._builder.defaultTexture
-        self._cachedTextures[key] = (obj, tag); return (obj, tag)
+        if key in self._cached: return self._cached[key]
+        tag = path if isinstance(path, ITexture) else await self._load(source, path)
+        obj = self._builder.create(None, tag, level) if tag else self._builder.default
+        self._cached[key] = (obj, tag); return (obj, tag)
 
-    def reloadTexture(self, source: ISource, path: object, level: range = None) -> tuple[B_Texture, object]:
+    def reload(self, source: ISource, path: object, level: range = None) -> tuple[B_Texture, object]:
         key = (source, path)
-        if key not in self._cachedTextures: return (None, None)
-        c = self._cachedTextures[key]
-        self._builder.createTexture(c[0], c[1], level)
+        if key not in self._cached: return (None, None)
+        c = self._cached[key]
+        self._builder.create(c[0], c[1], level)
         return c
 
-    def preloadTexture(self, source: ISource, path: object) -> None:
+    def preload(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if key in self._cachedTextures: return
-        if not key in self._preloadTasks: self._preloadTasks[key] = source.getAsset(type(ITexture), path)
+        if key in self._cached: return
+        if not key in self._tasks: self._tasks[key] = source.getAsset(type(ITexture), path)
 
-    def deleteTexture(self, source: ISource, path: object) -> None:
+    def delete(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if not key in self._cachedTextures: return
-        self._builder.deleteTexture(self._cachedTextures[0])
-        self._cachedTextures.pop(key)
+        if not key in self._cached: return
+        self._builder.delete(self._cached[0])
+        self._cached.pop(key)
 
-    async def _loadTexture(self, source: ISource, path: object) -> ITexture:
+    async def _load(self, source: ISource, path: object) -> ITexture:
         key = (source, path)
-        assert(not key in self._cachedTextures)
-        self.preloadTexture(source, path)
-        obj = await self._preloadTasks[key]
-        self._preloadTasks.pop(key)
+        assert(not key in self._cached)
+        self.preload(source, path)
+        obj = await self._tasks[key]
+        self._tasks.pop(key)
         return obj
 
 #endregion
@@ -369,35 +392,35 @@ class MaterialBuilder:
     defaultMaterial: B_Material
     terrainMaterial: B_Material
     def __init__(self, textureManager: TextureManager): self.textureManager = textureManager
-    def createMaterial(self, source: ISource, path: object) -> B_Material: pass
+    def create(self, source: ISource, path: object) -> B_Material: pass
 
 # MaterialManager
 class MaterialManager:
-    _cachedMaterials: dict[object, (B_Material, object)] = {}
+    _cached: dict[object, (B_Material, object)] = {}
     def __init__(self, textureManager: TextureManager, builder: MaterialBuilder):
         self._textureManager: TextureManager = textureManager
         self._builder: MaterialBuilder = builder
-        self._preloadTasks: dict[object, object] = {}
+        self._tasks: dict[object, object] = {}
 
-    async def createMaterial(self, source: ISource, path: object) -> tuple[B_Material, object]:
+    async def create(self, source: ISource, path: object) -> tuple[B_Material, object]:
         key = (source, path)
-        if key in self._cachedMaterials: return self._cachedMaterials[key]
-        src = path if isinstance(path, MaterialProp) else await self._loadMaterial(source, path)
-        obj = await self._builder.createMaterial(source, src) if src else self._builder.defaultMaterial
+        if key in self._cached: return self._cached[key]
+        src = path if isinstance(path, MaterialProp) else await self._load(source, path)
+        obj = await self._builder.create(source, src) if src else self._builder.default
         tag = src.tag if src else None
-        self._cachedMaterials[key] = (obj, tag); return (obj, tag)
+        self._cached[key] = (obj, tag); return (obj, tag)
 
-    def preloadMaterial(self, source: ISource, path: object) -> None:
+    def preload(self, source: ISource, path: object) -> None:
         key = (source, path)
-        if key in self._cachedMaterials: return
-        if not key in self._preloadTasks: self._preloadTasks[key] = surce.getAsset(typeof(MaterialProp), path)
+        if key in self._cached: return
+        if not key in self._tasks: self._tasks[key] = surce.getAsset(typeof(MaterialProp), path)
 
-    async def _loadMaterial(self, source: ISource, path: object) -> MaterialProp:
+    async def _load(self, source: ISource, path: object) -> MaterialProp:
         key = (source, path)
-        assert(not key in self._cachedMaterials)
-        self.preloadMaterial(source, key)
-        obj = await self.preloadTasks[key]
-        self.preloadTasks.pop(key)
+        assert(not key in self._cached)
+        self.preload(source, key)
+        obj = await self._tasks[key]
+        self._tasks.pop(key)
         return obj
 
 #endregion
@@ -411,21 +434,18 @@ class IOpenGfx: pass
 class IOpenGfxApi(IOpenGfx):
     def createObject(self, name: str, tag: str = None, parent: object = None) -> B_Object: pass
     def createMesh(self, mesh: object) -> object: pass
-    def addMeshRenderer(self, src: B_Object, mesh: object, material: B_Material, enabled: bool, isStatic: bool) -> None: pass
-    def addMeshCollider(self, src: B_Object, mesh: object, isKinematic: bool, isStatic: bool) -> None: pass
+    def addMeshRenderer(self, src: B_Object, mesh: object, material: B_Material, enabled: bool, static_: bool) -> None: pass
+    def addMeshCollider(self, src: B_Object, mesh: object, isKinematic: bool, static_: bool) -> None: pass
     def setParent(self, src: B_Object, parent: B_Object) -> None: pass
     def transform(self, src: B_Object, position: ndarray, rotation: ndarray, localScale: ndarray) -> None: pass
-    def addMissingMeshCollidersRecursively(self, src: B_Object, isStatic: bool) -> None: pass
+    def addMissingMeshCollidersRecursively(self, src: B_Object, static_: bool) -> None: pass
     def setLayerRecursively(self, src: B_Object, layer: int) -> None: pass
 
 # IOpenGfxSprite
 class IOpenGfxSprite(IOpenGfx):
-    # objectManager: ObjectSpriteManager
     spriteManager: SpriteManager
-    # def preloadObject(self, source: ISource, path: object) -> None: pass
-    def preloadSprite(self, source: ISource, path: object) -> None: pass
-    # def createObject(self, source: ISource, path: object, parent: B_Object = None) -> B_Object: pass
-    def createSprite(self, source: ISource, path: object, parent: B_Object = None) -> B_Object: pass
+    def preload(self, source: ISource, path: object) -> None: pass
+    def create(self, source: ISource, path: object, parent: B_Object = None) -> B_Object: pass
 
 # IOpenGfxModel
 class IOpenGfxModel(IOpenGfx):
@@ -433,17 +453,17 @@ class IOpenGfxModel(IOpenGfx):
     objectManager: ObjectModelManager
     shaderManager: ShaderManager
     textureManager: TextureManager
-    def preloadObject(self, source: ISource, path: object) -> None: pass
+    def preload(self, source: ISource, path: object) -> None: pass
     def preloadTexture(self, source: ISource, path: object) -> None: pass
-    def createObject(self, source: ISource, path: object, isStatic: bool, parent: B_Object = None) -> tuple[B_Object, object]: pass
-    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[Shader, object]: pass
+    def create(self, source: ISource, path: object, static_: bool, parent: B_Object = None) -> tuple[B_Object, object]: pass
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[B_Shader, object]: pass
     def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[B_Texture, object]: pass
-    def postObject(self, src: B_Object, position: Vector3, eulerAngles: Vector3, scale: float, parent: B_Object = None) -> None: pass
+    def post(self, src: B_Object, position: Vector3, eulerAngles: Vector3, scale: float, parent: B_Object = None) -> None: pass
 
 # IOpenGfxLight
 class IOpenGfxLight(IOpenGfx):
-    def createLight(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: B_Object = None) -> B_Object: pass
-    def createReflectionProbe(self, name: str, position: Vector3, parent: B_Object = None) -> B_Object: pass
+    def create(self, name: str, position: Vector3, radius: float, color: Color, indoors: bool, parent: B_Object = None) -> B_Object: pass
+    def createProbe(self, name: str, position: Vector3, parent: B_Object = None) -> B_Object: pass
 
 # GfxTerrainLayer:
 class GfxTerrainLayer[Texture_]:
@@ -458,7 +478,7 @@ class GfxTerrainLayer[Texture_]:
 
 # IOpenGfxTerrain
 class IOpenGfxTerrain(IOpenGfx):
-    def createTerrainData(self, offset: int, heights: list[list[float]], heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer[B_Texture]], alphaMap: list[list[list[float]]]) -> B_Object: pass
-    def createTerrain(self, name: str, position: Vector3, data: object, parent: B_Object = None) -> B_Object: pass
+    def createData(self, offset: int, heights: list[list[float]], heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer[B_Texture]], alphaMap: list[list[list[float]]]) -> B_Object: pass
+    def create(self, name: str, position: Vector3, data: object, parent: B_Object = None) -> B_Object: pass
 
 #endregion

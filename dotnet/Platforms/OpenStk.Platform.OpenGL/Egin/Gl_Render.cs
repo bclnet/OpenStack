@@ -147,7 +147,7 @@ public class GLMeshBufferCache {
 
     struct VAOKey {
         public GLMeshBuffers VBIB;
-        public Shader Shader;
+        public GfxShader Shader;
         public uint VertexIndex;
         public uint IndexIndex;
         public uint BaseVertex;
@@ -162,7 +162,7 @@ public class GLMeshBufferCache {
         return newGpuVbib;
     }
 
-    public int GetVertexArrayObject(IVBIB vbib, Shader shader, uint vtxIndex, uint idxIndex, uint baseVertex) {
+    public int GetVertexArrayObject(IVBIB vbib, GfxShader shader, uint vtxIndex, uint idxIndex, uint baseVertex) {
         var gpuVbib = GetVertexIndexBuffers(vbib);
         var vaoKey = new VAOKey {
             VBIB = gpuVbib,
@@ -343,8 +343,8 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
 
     public event EventHandler<PickingResponse> OnPicked;
     public readonly PickingRequest Request = new();
-    public Shader Shader { get; }
-    public Shader DebugShader { get; }
+    public GfxShader Shader { get; }
+    public GfxShader DebugShader { get; }
     public bool IsActive => Request.ActiveNextFrame;
     public bool Debug { get; }
     int width = 4;
@@ -354,8 +354,8 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
     int depthHandle;
 
     public GLPickingTexture(OpenGLGfxModel gfxModel, ISource source, EventHandler<PickingResponse> onPicked) {
-        (Shader, _) = gfxModel.ShaderManager.CreateShader(source, "vrf.picking", new Dictionary<string, bool>()).Result;
-        (DebugShader, _) = gfxModel.ShaderManager.CreateShader(source, "vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } }).Result;
+        (Shader, _) = gfxModel.ShaderManager.Create(source, "vrf.picking", new Dictionary<string, bool>()).Result;
+        (DebugShader, _) = gfxModel.ShaderManager.Create(source, "vrf.picking", new Dictionary<string, bool>() { { "F_DEBUG_PICKER", true } }).Result;
         OnPicked += onPicked;
         Setup();
     }
@@ -436,7 +436,7 @@ public class GLPickingTexture : IDisposable, IPickingTexture {
 /// GLRenderMaterial
 /// </summary>
 public class GLRenderMaterial(MaterialShaderProp material) : RenderMaterial(material) {
-    public override void Render(Shader shader) {
+    public override void Render(GfxShader shader) {
         // start at 1, texture unit 0 is reserved for the animation texture
         var textureUnit = 1U;
         int location;
@@ -493,7 +493,7 @@ public class GLRenderableMesh(IOpenGfx[] gfx, ISource source, IMesh mesh, int me
             // recycle old shader parameters that are not render modes since we are scrapping those anyway
             var parameters = s.Shader.Parameters.Where(kvp => !kvp.Key.StartsWith("renderMode")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             if (renderMode != null && s.Shader.RenderModes.Contains(renderMode)) parameters.Add($"renderMode_{renderMode}", true);
-            (s.Shader, _) = GfxModel.ShaderManager.CreateShader(Source, s.Shader.Name, parameters).Result;
+            (s.Shader, _) = GfxModel.ShaderManager.Create(Source, s.Shader.Name, parameters).Result;
             s.VertexArrayObject = GfxModel.MeshBufferCache.GetVertexArrayObject(Mesh.VBIB, s.Shader, s.VertexBuffer.Id, s.IndexBuffer.Id, s.BaseVertex);
         }
     }
@@ -508,7 +508,7 @@ public class GLRenderableMesh(IOpenGfx[] gfx, ISource source, IMesh mesh, int me
             foreach (var objectDrawCall in sceneObject.GetArray("m_drawCalls")) {
                 var materialName = objectDrawCall.Get<string>("m_material") ?? objectDrawCall.Get<string>("m_pMaterial");
                 if (skinMaterials != null && skinMaterials.ContainsKey(materialName)) materialName = skinMaterials[materialName];
-                var (material, _) = GfxModel.MaterialManager.CreateMaterial(Source, $"{materialName}_c").Result;
+                var (material, _) = GfxModel.MaterialManager.Create(Source, $"{materialName}_c").Result;
                 var isOverlay = material.Material is MaterialShaderVProp z && z.IntParams.ContainsKey("F_OVERLAY");
                 if (isOverlay) continue; // ignore overlays for now
                 var shaderArgs = new Dictionary<string, bool>();
@@ -569,12 +569,12 @@ public class GLRenderableMesh(IOpenGfx[] gfx, ISource source, IMesh mesh, int me
         // add shader parameters from material to the shader parameters from the draw call
         var combinedShaderArgs = shaderArgs.Concat(material.Material.ShaderArgs).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         // load shader
-        (drawCall.Shader, _) = GfxModel.ShaderManager.CreateShader(Source, drawCall.Material.Material.ShaderName, combinedShaderArgs).Result;
+        (drawCall.Shader, _) = GfxModel.ShaderManager.Create(Source, drawCall.Material.Material.ShaderName, combinedShaderArgs).Result;
         // bind and validate shader
         GL.UseProgram(drawCall.Shader.Program);
         // tint and normal
-        if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", GfxModel.TextureManager.CreateSolidTexture(1, 1, [1f, 1f, 1f, 1f]));
-        if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", GfxModel.TextureManager.CreateSolidTexture(1, 1, [0.5f, 1f, 0.5f, 1f]));
+        if (!drawCall.Material.Textures.ContainsKey("g_tTintMask")) drawCall.Material.Textures.Add("g_tTintMask", GfxModel.TextureManager.CreateSolid(1, 1, [1f, 1f, 1f, 1f]));
+        if (!drawCall.Material.Textures.ContainsKey("g_tNormal")) drawCall.Material.Textures.Add("g_tNormal", GfxModel.TextureManager.CreateSolid(1, 1, [0.5f, 1f, 0.5f, 1f]));
     }
 }
 
@@ -588,7 +588,7 @@ public class GLRenderableMesh(IOpenGfx[] gfx, ISource source, IMesh mesh, int me
 public class OctreeDebugRenderer<T> where T : class {
     const int STRIDE = sizeof(float) * 7;
 
-    readonly Shader Shader;
+    readonly GfxShader Shader;
     readonly object ShaderTag;
     readonly Octree<T> Octree;
     readonly int VaoHandle;
@@ -599,7 +599,7 @@ public class OctreeDebugRenderer<T> where T : class {
     public OctreeDebugRenderer(Octree<T> octree, OpenGLGfxModel gfxModel, ISource source, bool dynamic) {
         Octree = octree;
         Dynamic = dynamic;
-        (Shader, ShaderTag) = gfxModel.ShaderManager.CreateShader(source, "vrf.grid").Result;
+        (Shader, ShaderTag) = gfxModel.ShaderManager.Create(source, "vrf.grid").Result;
         GL.UseProgram(Shader.Program);
         VboHandle = GL.GenBuffer();
         if (!dynamic) Rebuild();

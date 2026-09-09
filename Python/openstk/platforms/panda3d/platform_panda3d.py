@@ -3,7 +3,7 @@ import math, traceback
 from numpy import ndarray, array, ones, zeros
 from openstk.core import Platform, PlatformX
 from openstk.client import IClientHost
-from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsDds, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilder, MaterialManager, Shader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
+from openstk.gfx import IOpenGfxApi, IOpenGfxModel, IOpenGfxLight, IOpenGfxTerrain, TextureAsDds, TextureAsBytes, TextureFlags, TextureFormat, TexturePixel, ObjectModelBuilder, ObjectModelManager, IMaterial, MaterialStdProp, MaterialBuilder, MaterialManager, GfxShader, ShaderBuilder, ShaderManager, TextureBuilder, TextureManager
 from openstk.platforms.panda3d.gfx.panda3d import Panda3dX
 from openstk.platforms.system import SystemSfx
 
@@ -24,47 +24,46 @@ class Panda3dClientHost(IClientHost):
 
 # Panda3dObjectModelBuilder
 class Panda3dObjectModelBuilder(ObjectModelBuilder):
-    def instanceObject(self, src: object) -> object:
+    def instance(self, src: object) -> object:
         return 'clone'
-    async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+    async def create(self, source: ISource, path: object, static_: bool, materialManager: MaterialManager) -> object:
         builder = Panda3dX.buildersByType[path.__class__.__name__]
         try:
-            s = await builder(source, path, isStatic, materialManager)
+            s = await builder(source, path, static_, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
-    def ensurePrefab(self) -> None: pass
+    def ensure(self) -> None: pass
 
 # Panda3dShaderBuilder
 class Panda3dShaderBuilder(ShaderBuilder):
-    _loader: ShaderLoader = None
-    def createShader(self, path: object, args: dict[str, bool]) -> Shader: return self._loader.createShader(path, args)
+    def create(self, path: object, args: dict[str, bool]) -> GfxShader: raise NotImplementedError()
 
 # Panda3dTextureBuilder
 # https://docs.panda3d.org/1.10/python/programming/texturing/simple-texturing#simple-texturing
 # https://docs.panda3d.org/1.10/python/programming/texturing/creating-textures#creating-new-textures-from-scratch
 class Panda3dTextureBuilder(TextureBuilder):
-    _defaultTexture: Texture = None
+    _default: Texture = None
     @property
-    def defaultTexture(self) -> Texture:
-        if self._defaultTexture: return self._defaultTexture
-        self._defaultTexture = self._createDefaultTexture()
-        return self._defaultTexture
+    def default(self) -> Texture:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
 
     def release(self) -> None:
-        if self._defaultTexture: self._defaultTexture.release(); self._defaultTexture = None
+        if self._default: self._default.release(); self._default = None
 
-    def _createDefaultTexture(self) -> Texture: return base.loader.loadModel('maps/noise.rgb')
+    def _createDefault(self) -> Texture: return base.loader.loadModel('maps/noise.rgb')
 
-    def createNormalMapTexture(self, src: Texture, strength: float) -> Texture:
+    def createNormalMap(self, src: Texture, strength: float) -> Texture:
         return 0
 
-    def createSolidTexture(self, width: int, height: int, pixels: object) -> Texture:
+    def createSolid(self, width: int, height: int, pixels: object) -> Texture:
         tex = Texture('texture')
         tex.setup2dTexture(width, height, Texture.TUnsignedByte, Texture.F_rgb)
         # tex.setClearColor(pixels)
         return 0
 
-    def createTexture(self, reuse: Texture, src: ITexture, level2: range = None) -> Texture:
+    def create(self, reuse: Texture, src: ITexture, level2: range = None) -> Texture:
         @staticmethod
         def _lambdax(x: object) -> Texture:
             match x:
@@ -105,7 +104,7 @@ class Panda3dTextureBuilder(TextureBuilder):
                         else: pass #GL.TexImage2D(TextureTarget.Texture2D, 0, internalFormat, width, height, 0, format, type, (IntPtr)data)
                         return True
                     # process
-                    if not bytes: return self.defaultTexture
+                    if not bytes: return self.default
                     elif isinstance(fmt, tuple):
                         formatx, pixel = fmt
                         s = pixel & TexturePixel.Signed
@@ -125,7 +124,7 @@ class Panda3dTextureBuilder(TextureBuilder):
                                 case _: raise Exception(f'Unknown format: {formatx}')
                             # tex.setup2dTexture(width, height, Texture.TUnsignedByte, format)
                             # tex.setRamImage(bytes, compression)
-                            if compression == 0 or not compressedTexImage2D(src, level, compression): return self.defaultTexture
+                            if compression == 0 or not compressedTexImage2D(src, level, compression): return self.default
                         else:
                             match formatx:
                                 case TextureFormat.I8: type, format = Texture.TUnsignedByte, Texture.FLuminance
@@ -171,7 +170,7 @@ class MaterialPoly():
         #     bumpTex = p.textures['Bump'] if 'Bump' in p.textures else None
         #     if bumpTex:
         #         s = TextureStage('norm'); s.setMode(TextureStage.M_normal)
-        #         ts.append((self.textureManager.createTexture(bumpTex).tex, s))
+        #         ts.append((self.textureManager.create(bumpTex).tex, s))
         pass
 
 # Panda3dMaterialBuilder
@@ -182,28 +181,28 @@ class Panda3dMaterialBuilder(MaterialBuilder):
 
     _defaultMaterial: MaterialPoly; _terrainMaterial: MaterialPoly
     @property
-    def defaultMaterial(self) -> MaterialPoly:
-        if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial()
-        return self._defaultMaterial
+    def default(self) -> MaterialPoly:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
     @property
-    def terrainMaterial(self) -> MaterialPoly:
-        if self._terrainMaterial: return self._terrainMaterial
-        self._terrainMaterial = self._createDefaultMaterial()
-        return self._terrainMaterial
+    def terrain(self) -> MaterialPoly:
+        if self._terrain: return self._terrain
+        self._terrain = self._createTerrain()
+        return self._terrain
 
-    def _createDefaultMaterial() -> MaterialPoly:
-        m = MaterialPoly(Material(), {'Main': self.textureManager.defaultTexture})
+    def _createDefault() -> MaterialPoly:
+        m = MaterialPoly(Material(), {'Main': self.textureManager.default})
         return m
 
-    def _createTerrainMaterial() -> MaterialPoly:
-        m = MaterialPoly(Material(), {'Main': self.textureManager.terrainTexture})
+    def _createTerrain() -> MaterialPoly:
+        m = MaterialPoly(Material(), {'Main': self.textureManager.terrain})
         return m
 
-    async def createMaterial(self, source: ISource, path: object) -> MaterialPoly:
+    async def create(self, source: ISource, path: object) -> MaterialPoly:
         match path:
             case p if isinstance(path, MaterialStdProp):
-                m = MaterialPoly(Material(), {k:(await self.textureManager.createTexture(source, v))[0] for k, v in p.textures.items() if k == 'Main' or k == 'Bump'})
+                m = MaterialPoly(Material(), {k:(await self.textureManager.create(source, v))[0] for k, v in p.textures.items() if k == 'Main' or k == 'Bump'})
                 return m
             # case s if isinstance(path, MaterialShaderProp): return m
             case _: raise Exception(f'Unknown: {path}')
@@ -211,9 +210,9 @@ class Panda3dMaterialBuilder(MaterialBuilder):
 # Panda3dGfxApi
 class Panda3dGfxApi(IOpenGfxApi):
     def __init__(self): pass
-    def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, isStatic: bool) -> None: raise NotImplementedError();
-    def addMeshRenderer(self, src: NodePath, mesh: object, material: Material, enabled: bool, isStatic: bool) -> None: raise NotImplementedError();
-    def addMissingMeshCollidersRecursively(self, src: NodePath, isStatic: bool) -> None: raise NotImplementedError();
+    def addMeshCollider(self, src: NodePath, mesh: object, isKinematic: bool, static_: bool) -> None: raise NotImplementedError();
+    def addMeshRenderer(self, src: NodePath, mesh: object, material: Material, enabled: bool, static_: bool) -> None: raise NotImplementedError();
+    def addMissingMeshCollidersRecursively(self, src: NodePath, static_: bool) -> None: raise NotImplementedError();
     def attach(self, method: GfxAttach, src: NodePath, args: list[object]) -> None: pass
     def createMesh(self, mesh: object) -> NodePath: raise NotImplementedError();
     def createObject(self, name: str, tag: str = None, parent: NodePath = None) -> NodePath:
@@ -241,11 +240,11 @@ class Panda3dGfxModel(IOpenGfxModel):
         self.materialManager: MaterialManager = MaterialManager(self.textureManager, Panda3dMaterialBuilder(self.textureManager))
         self.objectManager: ObjectModelManager = ObjectModelManager(self.materialManager, Panda3dObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(Panda3dShaderBuilder())
-    def preloadObject(self, source: ISource, path: object) -> None: self.objectManager.preloadObject(source, path)
-    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preloadTexture(source, path)
-    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, object]: return self.objectManager.createObject(source, path, isStatic, parent)
-    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[Shader, object]: return self.shaderManager.createShader(source, path, args)
-    def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[int, object]: return self.textureManager.createTexture(source, path, level)
+    def preload(self, source: ISource, path: object) -> None: self.objectManager.preload(source, path)
+    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preload(source, path)
+    def create(self, source: ISource, path: object, static_: bool, parent: object = None) -> tuple[object, object]: return self.objectManager.create(source, path, static_, parent)
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[GfxShader, object]: return self.shaderManager.create(source, path, args)
+    def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[int, object]: return self.textureManager.create(source, path, level)
 
 # Panda3dGfxLight
 class Panda3dGfxLight(IOpenGfxLight):
@@ -287,7 +286,7 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
                     s.setGray(x, y, h) # Set pixel: 0.0 (black) is lowest, 1.0 (white) is highest
         def setAlphamaps(self, x: int, y: int, alphamap: ndarray) -> None: self.alphamap = alphamap
     def __init__(self): pass
-    def createTerrainData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object:
+    def createData(self, offset: int, heights: ndarray, heightRange: float, sampleDistance: float, layers: list[GfxTerrainLayer], alphaMap: ndarray) -> object:
         hShape = heights.shape; aShape = alphaMap.shape
         assert(hShape[0] == hShape[1] and heightRange >= 0 and sampleDistance >= 0)
         resolution = hShape[0]
@@ -304,7 +303,7 @@ class Panda3dGfxTerrain(IOpenGfxTerrain):
             tileSize=s.tileSize) for s in layers]
         if alphaMap.size == 0: assert(aShape[0] == aShape[1]); s.alphamapResolution = alphaMap[0]; s.setAlphamaps(0, 0, alphaMap)
         return s
-    def createTerrain(self, name: str, position: Vector3, data: object, parent: NodePath = None) -> NodePath:
+    def create(self, name: str, position: Vector3, data: object, parent: NodePath = None) -> NodePath:
         # print(f't: {parent}')
         t = GeoMipTerrain(name) # Create the GeoMipTerrain instance
         t.setHeightfield(data.heights) # Load a heightfield image (preferably power-of-two plus one, e.g., 513x513)

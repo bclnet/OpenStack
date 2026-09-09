@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -9,12 +10,12 @@ namespace OpenStk.Sfx;
 #region Audio
 
 /// <summary>
-///  AudioBuilderBase
+///  AudioBuilder
 /// </summary>
-/// <typeparam name="Audio"></typeparam>
-public abstract class AudioBuilderBase<Audio> {
-    public abstract Audio CreateAudio(ISource source, object path);
-    public abstract void DeleteAudio(ISource source, Audio audio);
+/// <typeparam name="B_Audio"></typeparam>
+public abstract class AudioBuilder<B_Audio> {
+    public abstract B_Audio Create(ISource source, object path);
+    public abstract void Delete(ISource source, B_Audio audio);
 }
 
 /// <summary>
@@ -23,40 +24,40 @@ public abstract class AudioBuilderBase<Audio> {
 /// <typeparam name="Audio"></typeparam>
 /// <param name="source"></param>
 /// <param name="builder"></param>
-public class AudioManager<Audio>(AudioBuilderBase<Audio> builder) {
-    readonly AudioBuilderBase<Audio> Builder = builder;
-    readonly Dictionary<object, (Audio aud, object tag)> CachedAudios = [];
-    readonly Dictionary<object, Task<object>> PreloadTasks = [];
+public class AudioManager<Audio>(AudioBuilder<Audio> builder) {
+    readonly AudioBuilder<Audio> Builder = builder;
+    readonly Dictionary<object, (Audio aud, object tag)> Cached = [];
+    readonly Dictionary<object, Task<object>> Tasks = [];
 
-    public (Audio aud, object tag) CreateAudio(ISource source, object path) {
+    public (Audio aud, object tag) Create(ISource source, object path) {
         var key = (source, path);
-        if (CachedAudios.TryGetValue(key, out var c)) return c;
+        if (Cached.TryGetValue(key, out var c)) return c;
         // load & cache the audio.
-        var tag = LoadAudio(source, path).Result;
-        var obj = tag != null ? Builder.CreateAudio(source, tag) : default;
-        return CachedAudios[key] = (obj, tag);
+        var tag = Load(source, path).Result;
+        var obj = tag != null ? Builder.Create(source, tag) : default;
+        return Cached[key] = (obj, tag);
     }
 
-    public void PreloadAudio(ISource source, object path) {
+    public void Preload(ISource source, object path) {
         var key = (source, path);
-        if (CachedAudios.ContainsKey(key)) return;
+        if (Cached.ContainsKey(key)) return;
         // start loading the texture file asynchronously if we haven't already started.
-        if (!PreloadTasks.ContainsKey(key)) PreloadTasks[key] = source.GetAsset<object>(path);
+        if (!Tasks.ContainsKey(key)) Tasks[key] = source.GetAsset<object>(path);
     }
 
-    public void DeleteAudio(ISource source, object path) {
+    public void Delete(ISource source, object path) {
         var key = (source, path);
-        if (!CachedAudios.TryGetValue(key, out var c)) return;
-        Builder.DeleteAudio(source, c.aud);
-        CachedAudios.Remove(key);
+        if (!Cached.TryGetValue(key, out var c)) return;
+        Builder.Delete(source, c.aud);
+        Cached.Remove(key);
     }
 
-    async Task<object> LoadAudio(ISource source, object path) {
+    async Task<object> Load(ISource source, object path) {
         var key = (source, path);
-        Log.Assert(!CachedAudios.ContainsKey(key));
-        PreloadAudio(source, path);
-        var obj = await PreloadTasks[key];
-        PreloadTasks.Remove(key);
+        Debug.Assert(!Cached.ContainsKey(key));
+        Preload(source, path);
+        var obj = await Tasks[key];
+        Tasks.Remove(key);
         return obj;
     }
 }

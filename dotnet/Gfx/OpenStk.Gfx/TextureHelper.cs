@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace OpenStk.Gfx;
@@ -37,7 +38,7 @@ public static class TextureHelper {
     //: throw new ArgumentOutOfRangeException(nameof(format), $"{format}");
 
     public static int GetMipmapCount(int width, int height) {
-        Log.Assert(width > 0 && height > 0);
+        Debug.Assert(width > 0 && height > 0);
         var longerLength = Math.Max(width, height);
         var mipMapCount = 0;
         var currentLongerLength = longerLength;
@@ -46,7 +47,7 @@ public static class TextureHelper {
     }
 
     public static int GetMipmapDataSize(int width, int height, int bytesPerPixel) {
-        Log.Assert(width > 0 && height > 0 && bytesPerPixel > 0);
+        Debug.Assert(width > 0 && height > 0 && bytesPerPixel > 0);
         var dataSize = 0;
         var currentWidth = width;
         var currentHeight = height;
@@ -84,10 +85,10 @@ public static class TextureHelper {
     public static void Downscale4Component32BitPixelsX2(byte[] srcBytes, int srcStartIndex, int srcRowCount, int srcColumnCount, byte[] dstBytes, int dstStartIndex) {
         var bytesPerPixel = 4;
         var componentCount = 4;
-        Log.Assert(srcStartIndex >= 0 && srcRowCount >= 0 && srcColumnCount >= 0 && (srcStartIndex + (bytesPerPixel * srcRowCount * srcColumnCount)) <= srcBytes.Length);
+        Debug.Assert(srcStartIndex >= 0 && srcRowCount >= 0 && srcColumnCount >= 0 && (srcStartIndex + (bytesPerPixel * srcRowCount * srcColumnCount)) <= srcBytes.Length);
         var dstRowCount = srcRowCount / 2;
         var dstColumnCount = srcColumnCount / 2;
-        Log.Assert(dstStartIndex >= 0 && (dstStartIndex + (bytesPerPixel * dstRowCount * dstColumnCount)) <= dstBytes.Length);
+        Debug.Assert(dstStartIndex >= 0 && (dstStartIndex + (bytesPerPixel * dstRowCount * dstColumnCount)) <= dstBytes.Length);
         for (var dstRowIndex = 0; dstRowIndex < dstRowCount; dstRowIndex++)
             for (var dstColumnIndex = 0; dstColumnIndex < dstColumnCount; dstColumnIndex++) {
                 var srcRowIndex0 = 2 * dstRowIndex;

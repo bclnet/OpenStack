@@ -11,7 +11,7 @@ namespace OpenStk;
 public class Log {
     public static Action<bool> AssertFunc;
     public static Action<string> Func;
-    public static void Assert(bool condition, string message = null) { } // => AssertFunc(condition);
+    //public static void Assert(bool condition, string message = null) { } // => AssertFunc(condition);
     public static void Info(string message = null) => Func(message);
     public static void Warn(string message) => Func($"WARN: {message}");
     public static void Error(string message) => Func($"ERROR: {message}");

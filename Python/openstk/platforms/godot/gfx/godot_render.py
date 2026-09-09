@@ -9,7 +9,7 @@ from openstk.platforms.panda3d.gfx.panda3dopenengine import Panda3dOpenEngine
 
 # typedefs
 class Panda3dGfxModel: pass
-class Shader: pass
+class GfxShader: pass
 class Camera: pass
 class Texture: pass
 class IOpenGfx: pass
@@ -43,7 +43,7 @@ class TextureRenderer(Renderer):
     def start(self):
         # self.gfxModel.textureManager.deleteTexture(self.obj)
         obj = base.render.attachNewNode(CardMaker('card').generate())
-        tex = self.gfxModel.textureManager.createTexture(self.obj, None)[0]
+        tex = self.gfxModel.textureManager.create(self.obj, None)[0]
         # tex = base.loader.loadModel('maps/noise.rgb')
         obj.setTexture(tex)
         obj.setScale(8.0, 8.0, 8.0)
@@ -55,7 +55,7 @@ class TextureRenderer(Renderer):
     #     self.frameDelay += deltaTime
     #     if self.frameDelay <= obj.fps or not obj.decodeFrame(): return
     #     self.frameDelay = 0 # reset delay between frames
-    #     self.gfxModel.textureManager.reloadTexture(obj)
+    #     self.gfxModel.textureManager.reload(obj)
 
 #endregion
 

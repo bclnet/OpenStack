@@ -222,11 +222,11 @@ public class CellBuilder<Object, Material, Texture, Shader>(ISource source, IQue
     async Task CreateCell(ICell cell, Object parent, CellRef r) {
         if (r.Record == null) return; //{ Log.Info($"Unknown Object: {r.Obj.Name}"); return; }
         Object modelObj = default; var obj = r.Obj;
-        if (r.ModelPath != null) { (modelObj, _) = await GfxModel.CreateObject(Source, r.ModelPath, true); GfxModel.PostObject(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
+        if (r.ModelPath != null) { (modelObj, _) = await GfxModel.Create(Source, r.ModelPath, true); GfxModel.Post(modelObj, obj.Position, obj.EulerAngles, obj.Scale, parent); }
         if (r.Record is ILigh ligh && GfxLight != null) {
-            var s = GfxLight.CreateLight("Light", null, ligh.Radius, ligh.LightColor, cell.IsInterior);
+            var s = GfxLight.Create("Light", null, ligh.Radius, ligh.LightColor, cell.IsInterior);
             if (modelObj != null) GfxApi.Attach(GfxAttach.Find, s, modelObj, "AttachLight");
-            else GfxModel.PostObject(s, obj.Position, obj.EulerAngles, obj.Scale, parent);
+            else GfxModel.Post(s, obj.Position, obj.EulerAngles, obj.Scale, parent);
         }
     }
 
@@ -279,8 +279,8 @@ public class CellBuilder<Object, Material, Texture, Shader>(ISource source, IQue
                     Specular = Color.Black,
                     TileSize = new Vector2(6, 6)
                 };
-                layer.MaskMapTexture = textureManager.CreateSolidTexture(1, 1, [layer.Metallic, 0f, 0f, layer.Smoothness]);
-                layer.NormalMapTexture = textureManager.CreateNormalMapTexture(tex);
+                layer.MaskMapTexture = textureManager.CreateSolid(1, 1, [layer.Metallic, 0f, 0f, layer.Smoothness]);
+                layer.NormalMapTexture = textureManager.CreateNormalMap(tex);
                 TerrainLayers[tex] = layer;
             }
             var layerIndex = layers.Count; layers.Add(layer); layerIndexs.Add(index, layerIndex);
@@ -302,15 +302,15 @@ public class CellBuilder<Object, Material, Texture, Shader>(ISource source, IQue
         var heightRange = (maxHeight - minHeight) / MeterInUnits;
         var position = new Vector3(land.GridId.X * CellLengthInMeters, land.GridId.Y * CellLengthInMeters, minHeight / MeterInUnits);
         var sampleDistance = CellLengthInMeters / (LAND_SIDELENGTH_IN_SAMPLES - 1);
-        var terrainData = GfxTerrain.CreateTerrainData(0, newHeights, heightRange, sampleDistance, newLayers, alphaMap);
-        GfxTerrain.CreateTerrain("terrain", position, terrainData, parent);
+        var terrainData = GfxTerrain.CreateData(0, newHeights, heightRange, sampleDistance, newLayers, alphaMap);
+        GfxTerrain.Create("terrain", position, terrainData, parent);
     }
 
     async Task CreateReflectionProbe(ICell cell, Object parent) {
         if (cell.IsInterior) return;
         var gridId = cell.GridId;
         var position = new Vector3(gridId.X * CellLengthInMeters, 0f, gridId.Y * CellLengthInMeters);
-        GfxLight.CreateReflectionProbe("probe", position, parent);
+        GfxLight.CreateProbe("probe", position, parent);
     }
 }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,7 @@ public static unsafe class EndiannessUtils {
     /// <summary>reverses pairs of octets in-place: <c>0xAABBIIJJPPQQYYZZ</c> &lt;=> <c>0xBBAAJJIIQQPPZZYY</c></summary>
     public static void MutatingByteSwap16(Span<byte> a) {
         var l = a.Length;
-        Log.Assert(l % 2 is 0, "octets must be in pairs");
+        Debug.Assert(l % 2 is 0, "octets must be in pairs");
         fixed (byte* p = &a[0]) for (var i = 0; i < l; i += 2)
                 (p[i + 1], p[i]) = (p[i], p[i + 1]);
     }
@@ -21,7 +22,7 @@ public static unsafe class EndiannessUtils {
     /// <summary>reverses groups of 4 octets in-place: <c>0xAABBCCDDWWXXYYZZ</c> &lt;=> <c>0xDDCCBBAAZZYYXXWW</c></summary>
     public static void MutatingByteSwap32(Span<byte> a) {
         var l = a.Length;
-        Log.Assert(l % 4 is 0, "octets must be in groups of 4");
+        Debug.Assert(l % 4 is 0, "octets must be in groups of 4");
         fixed (byte* p = &a[0]) for (var i = 0; i < l; i += 4) {
             var b = p[i];
             p[i] = p[i + 3];

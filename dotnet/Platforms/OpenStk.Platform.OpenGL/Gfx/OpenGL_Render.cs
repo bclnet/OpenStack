@@ -16,14 +16,14 @@ namespace OpenStk.Gfx.OpenGL;
 /// </summary>
 public class TestTriRenderer : EginRenderer {
     readonly OpenGLGfxModel GfxModel;
-    readonly Shader Shader;
+    readonly GfxShader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
     public TestTriRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, "testtri").Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.Create(source, "testtri").Result;
         Vao = SetupVao();
     }
 
@@ -73,7 +73,7 @@ public class TextureRenderer : EginRenderer {
     readonly object Obj;
     readonly Range Level;
     readonly int Tex;
-    readonly Shader Shader;
+    readonly GfxShader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public bool Background;
@@ -85,9 +85,9 @@ public class TextureRenderer : EginRenderer {
         Source = source;
         Obj = obj;
         Level = level;
-        GfxModel.TextureManager.DeleteTexture(source, obj);
-        (Tex, _) = GfxModel.TextureManager.CreateTexture(source, obj, level).Result;
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, "plane").Result;
+        GfxModel.TextureManager.Delete(source, obj);
+        (Tex, _) = GfxModel.TextureManager.Create(source, obj, level).Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.Create(source, "plane").Result;
         Vao = SetupVao();
         Background = background;
     }
@@ -146,7 +146,7 @@ public class TextureRenderer : EginRenderer {
         FrameDelay += (int)deltaTime;
         if (FrameDelay <= obj.Fps || !obj.NextFrame()) return;
         FrameDelay = 0; // reset delay between frames
-        GfxModel.TextureManager.ReloadTexture(Source, obj, Level);
+        GfxModel.TextureManager.Reload(Source, obj, Level);
     }
 }
 
@@ -163,7 +163,7 @@ public class ObjectRenderer(IOpenGfx[] gfx, ISource source, object obj) : EginRe
     readonly object Obj = obj;
 
     public override void Start() {
-        GfxModel.ObjectManager.CreateObject(Source, Obj, true, null).Wait();
+        GfxModel.ObjectManager.Create(Source, Obj, true, null).Wait();
     }
 }
 
@@ -178,16 +178,16 @@ public class ObjectRenderer(IOpenGfx[] gfx, ISource source, object obj) : EginRe
 public class MaterialRenderer : EginRenderer {
     readonly OpenGLGfxModel GfxModel;
     readonly GLRenderMaterial Material;
-    readonly Shader Shader;
+    readonly GfxShader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     public AABB BoundingBox => new(-1f, -1f, -1f, 1f, 1f, 1f);
 
     public MaterialRenderer(IOpenGfx[] gfx, ISource source, object obj) {
         GfxModel = (OpenGLGfxModel)gfx[GfX.XModel];
-        GfxModel.TextureManager.DeleteTexture(source, obj);
-        (Material, _) = GfxModel.MaterialManager.CreateMaterial(source, obj).Result;
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, Material.Material.ShaderName, Material.Material.ShaderArgs).Result;
+        GfxModel.TextureManager.Delete(source, obj);
+        (Material, _) = GfxModel.MaterialManager.Create(source, obj).Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.Create(source, Material.Material.ShaderName, Material.Material.ShaderArgs).Result;
         Vao = SetupVao();
     }
 
@@ -257,7 +257,7 @@ public class MaterialRenderer : EginRenderer {
 /// </summary>
 public class GridRenderer : EginRenderer {
     readonly OpenGLGfxModel GfxModel;
-    readonly Shader Shader;
+    readonly GfxShader Shader;
     readonly object ShaderTag;
     readonly int Vao;
     int VertexCount;
@@ -268,7 +268,7 @@ public class GridRenderer : EginRenderer {
         BoundingBox = new AABB(
             -cellWidth * 0.5f * gridWidthInCells, -cellWidth * 0.5f * gridWidthInCells, 0,
             cellWidth * 0.5f * gridWidthInCells, cellWidth * 0.5f * gridWidthInCells, 0);
-        (Shader, ShaderTag) = GfxModel.ShaderManager.CreateShader(source, "vrf.grid").Result;
+        (Shader, ShaderTag) = GfxModel.ShaderManager.Create(source, "vrf.grid").Result;
         Vao = SetupVao(cellWidth, gridWidthInCells);
     }
 
@@ -349,7 +349,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
 
     public class SpritesRenderer : IParticleRenderer {
         const int VertexSize = 9;
-        readonly Shader Shader;
+        readonly GfxShader Shader;
         readonly object ShaderTag;
         readonly int Vao;
         readonly int Texture;
@@ -364,7 +364,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
         int VertexBufferHandle;
 
         public SpritesRenderer(ISource source, IDictionary<string, object> keyValues, OpenGLGfxModel gfxModel) {
-            (Shader, ShaderTag) = gfxModel.ShaderManager.CreateShader(source, "vrf.particle.sprite").Result;
+            (Shader, ShaderTag) = gfxModel.ShaderManager.Create(source, "vrf.particle.sprite").Result;
             QuadIndices = gfxModel.QuadIndices;
 
             // The same quad is reused for all particles
@@ -377,11 +377,11 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
                 if (textures.Length > 0) textureName = textures[0].Get<string>("m_hTexture");
             }
             if (textureName != null) {
-                (Texture, TextureTag) = gfxModel.TextureManager.CreateTexture(source, textureName).Result;
+                (Texture, TextureTag) = gfxModel.TextureManager.Create(source, textureName).Result;
                 if (TextureTag is IDictionary<string, object> info)
                     TextureSequences = info.Get<TextureSequences>("sequences");
             }
-            else Texture = gfxModel.TextureManager.DefaultTexture;
+            else Texture = gfxModel.TextureManager.Default;
 
             Additive = keyValues.Get<bool>("m_bAdditive");
             OverbrightFactor = keyValues.GetFloat("m_flOverbrightFactor", 1f);
@@ -581,7 +581,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
     #region TrailsRenderer
 
     public class TrailsRenderer : IParticleRenderer {
-        readonly Shader Shader;
+        readonly GfxShader Shader;
         readonly object ShaderTag;
         readonly int QuadVao;
         readonly int Texture;
@@ -601,7 +601,7 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
         readonly float LengthFadeInTime;
 
         public TrailsRenderer(ISource source, IDictionary<string, object> keyValues, OpenGLGfxModel gfxModel) {
-            (Shader, ShaderTag) = gfxModel.ShaderManager.CreateShader(source, "vrf.particle.trail", new Dictionary<string, bool>()).Result;
+            (Shader, ShaderTag) = gfxModel.ShaderManager.Create(source, "vrf.particle.trail", new Dictionary<string, bool>()).Result;
 
             // The same quad is reused for all particles
             QuadVao = SetupQuadBuffer();
@@ -614,10 +614,10 @@ public class ParticleRenderer(IOpenGfx[] gfx, ISource source, object obj) : Egin
             }
 
             if (textureName != null) {
-                (Texture, TextureTag) = gfxModel.TextureManager.CreateTexture(source, textureName).Result;
+                (Texture, TextureTag) = gfxModel.TextureManager.Create(source, textureName).Result;
                 if (TextureTag is IDictionary<string, object> info) TextureSequences = info.Get<TextureSequences>("sequences");
             }
-            else Texture = gfxModel.TextureManager.DefaultTexture;
+            else Texture = gfxModel.TextureManager.Default;
 
             Additive = keyValues.Get<bool>("m_bAdditive");
             OverbrightFactor = keyValues.GetFloat("m_flOverbrightFactor", 1f);

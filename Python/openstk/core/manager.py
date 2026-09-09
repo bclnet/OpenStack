@@ -204,7 +204,7 @@ class CellBuilder(CellBuilderX):
     async def createCell(self, cell: ICell, parent: object, r: CellRef) -> None:
         if not r.record: return #log.info(f'Unknown Object: {r.obj.name}'); return
         modelObj: object = None; obj = r.obj
-        if r.modelPath: modelObj, _ = await self.gfxModel.createObject(self.source, r.modelPath, True); self.gfxModel.postObject(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
+        if r.modelPath: modelObj, _ = await self.gfxModel.create(self.source, r.modelPath, True); self.gfxModel.post(modelObj, obj.position, obj.eulerAngles, obj.scale, parent)
         if self.gfxLight and isinstance(r.record, CellManager.ILigh):
             ligh = r.record
             s = self.gfxLight.createLight('Light', None, ligh.radius, ligh.lightColor, cell.isInterior)

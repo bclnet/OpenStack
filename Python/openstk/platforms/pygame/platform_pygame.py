@@ -19,33 +19,33 @@ class PygameClientHost(IClientHost):
 
 # PygameObjectModelBuilder
 class PygameObjectModelBuilder(ObjectModelBuilder):
-    def instanceObject(self, src: object) -> object:
+    def instance(self, src: object) -> object:
         return 'clone'
-    async def createObject(self, source: ISource, path: object, isStatic: bool, materialManager: MaterialManager) -> object:
+    async def create(self, source: ISource, path: object, static_: bool, materialManager: MaterialManager) -> object:
         builder = PygameX.buildersByType[path.__class__.__name__]
         try:
-            s = await builder(source, path, isStatic, materialManager)
+            s = await builder(source, path, static_, materialManager)
             return s
         except Exception as e: print(e); traceback.print_exc()
-    def ensurePrefab(self) -> None: pass
+    def ensure(self) -> None: pass
 
 # PygameShaderBuilder
 class PygameShaderBuilder(ShaderBuilder):
-    def createShader(self, path: object, args: dict[str, bool]) -> Shader: raise NotImplementedError()
+    def create(self, path: object, args: dict[str, bool]) -> GfxShader: raise NotImplementedError()
 
 # PygameTextureBuilder
 class PygameTextureBuilder(TextureBuilder):
-    _defaultTexture: int = -1
+    _default: int = -1
     @property
-    def defaultTexture(self) -> int:
-        if self._defaultTexture > -1: return self._defaultTexture
-        self._defaultTexture = self._createDefaultTexture()
-        return self._defaultTexture
+    def default(self) -> int:
+        if self._default > -1: return self._default
+        self._default = self._createDefault()
+        return self._default
 
     def release(self) -> None:
-        if self._defaultTexture > -1: glDeleteTexture(self._defaultTexture); self._defaultTexture = -1
+        if self._default > -1: glDeleteTexture(self._default); self._default = -1
 
-    def _createDefaultTexture(self) -> int: return self.createSolidTexture(4, 4, array([
+    def _createDefault(self) -> int: return self.createSolid(4, 4, array([
         0.9, 0.2, 0.8, 1.0,
         0.0, 0.9, 0.0, 1.0,
         0.9, 0.2, 0.8, 1.0,
@@ -67,45 +67,45 @@ class PygameTextureBuilder(TextureBuilder):
         0.9, 0.2, 0.8, 1.0
         ], dtype = float32))
 
-    def createTexture(self, reuse: int, source: ITexture, level2: range = None) -> int:
+    def create(self, reuse: int, source: ITexture, level2: range = None) -> int:
         pass
 
-    def createSolidTexture(self, width: int, height: int, pixels: array) -> int:
+    def createSolid(self, width: int, height: int, pixels: array) -> int:
         pass
 
     def createNormalMap(self, source: int, strength: float) -> int: raise NotImplementedError()
 
-    def deleteTexture(self, texture: int) -> None: pass
+    def delete(self, texture: int) -> None: pass
 
 # PygameMaterialBuilder
 class PygameMaterialBuilder(MaterialBuilder):
     _defaultMaterial: Material; _terrainMaterial: Material
     @property
-    def defaultMaterial(self) -> Material:
-        if self._defaultMaterial: return self._defaultMaterial
-        self._defaultMaterial = self._createDefaultMaterial()
-        return self._defaultMaterial
+    def default(self) -> Material:
+        if self._default: return self._default
+        self._default = self._createDefault()
+        return self._default
     @property
-    def terrainMaterial(self) -> Material:
-        if self._terrainMaterial: return self._terrainMaterial
-        self._terrainMaterial = self._createTerrainMaterial()
-        return self._terrainMaterial
+    def terrain(self) -> Material:
+        if self._terrain: return self._terrain
+        self._terrain = self._createTerrain()
+        return self._terrain
 
     def __init__(self, textureManager: TextureManager):
         super().__init__(textureManager)
 
-    def _createDefaultMaterial() -> Material:
+    def _createDefault() -> Material:
         m = Material()
-        m.textures['g_tColor'] = self.textureManager.defaultTexture
+        m.textures['g_tColor'] = self.textureManager.default
         m.material.shaderName = 'vrf.error'
         return m
 
-    def _createTerrainMaterial() -> Material:
+    def _createTerrain() -> Material:
         m = Material()
         m.material.shaderName = 'vrf.error'
         return m
 
-    def createMaterial(self, key: object) -> Material:
+    def create(self, key: object) -> Material:
         match key:
             case _: raise Exception(f'Unknown: {key}')
 
@@ -116,11 +116,11 @@ class PygameGfxModel(IOpenGfxModel):
         self.materialManager: MaterialManager = MaterialManager(self.textureManager, PygameMaterialBuilder(self.textureManager))
         self.objectManager: ObjectModelManager = ObjectModelManager(self.materialManager, PygameObjectModelBuilder())
         self.shaderManager: ShaderManager = ShaderManager(PygameShaderBuilder())
-    def preloadObject(self, source: ISource, path: object) -> None: self.objectManager.preloadObject(path)
-    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preloadTexture(path)
-    def createObject(self, source: ISource, path: object, isStatic: bool, parent: object = None) -> tuple[object, object]: return self.objectManager.createObject(source, path, isStatic, parent)
-    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[Shader, object]: return self.shaderManager.createShader(source, path, args)
-    def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[int, object]: return self.textureManager.createTexture(source, path, level)
+    def preload(self, source: ISource, path: object) -> None: self.objectManager.preload(path)
+    def preloadTexture(self, source: ISource, path: object) -> None: self.textureManager.preload(path)
+    def create(self, source: ISource, path: object, static_: bool, parent: object = None) -> tuple[object, object]: return self.objectManager.create(source, path, static_, parent)
+    def createShader(self, source: ISource, path: object, args: dict[str, bool] = None) -> tuple[GfxShader, object]: return self.shaderManager.create(source, path, args)
+    def createTexture(self, source: ISource, path: object, level: range = None) -> tuple[int, object]: return self.textureManager.create(source, path, level)
 
 # PygamePlatform
 class PygamePlatform(Platform):

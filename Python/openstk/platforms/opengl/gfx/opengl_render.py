@@ -14,7 +14,7 @@ sizeof_float = ctypes.sizeof(GLfloat)
 
 # typedefs
 class OpenGLGfxModel: pass
-class Shader: pass
+class GfxShader: pass
 class Camera: pass
 class IOpenGfx: pass
 
@@ -24,7 +24,7 @@ class IOpenGfx: pass
 class TestTriRenderer(EginRenderer):
     def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
-        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, 'testtri'))
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.create(source, 'testtri'))
         self.vao: int = self._setupVao()
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
@@ -71,9 +71,9 @@ class TextureRenderer(EginRenderer):
         self.source: ISource = source
         self.obj: object = obj
         self.level: range = level
-        self.gfxModel.textureManager.deleteTexture(source, obj)
-        self.tex: int = asyncio.run(self.gfxModel.textureManager.createTexture(source, obj, self.level))[0] or -1
-        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, 'plane'))
+        self.gfxModel.textureManager.delete(source, obj)
+        self.tex: int = asyncio.run(self.gfxModel.textureManager.create(source, obj, self.level))[0] or -1
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.create(source, 'plane'))
         self.vao: int = self._setupVao()
         self.background: bool = background
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
@@ -152,9 +152,9 @@ class ObjectRenderer(EginRenderer):
 class MaterialRenderer(EginRenderer):
     def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
-        self.gfxModel.textureManager.deleteTexture(source, obj)
+        self.gfxModel.textureManager.delete(source, obj)
         self.material, _ = asyncio.run(self.gfxModel.materialManager.createMaterial(source, obj)) #GLRenderMaterial
-        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, material.material.shaderName, material.material.getShaderArgs()))
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.create(source, material.material.shaderName, material.material.getShaderArgs()))
         self.vao: int = self._setupVao()
         self.boundingBox: AABB = AABB(-1., -1., -1., 1., 1., 1.)
 
@@ -217,7 +217,7 @@ class MaterialRenderer(EginRenderer):
 class GridRenderer(EginRenderer):
     def __init__(self, gfx: list[IOpenGfx], source: ISource, cellWidth: float, gridWidthInCells: int):
         self.gfxModel: OpenGLGfxModel = gfx[GfX.XModel]
-        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.createShader(source, 'vrf.grid'))
+        self.shader, self.shaderTag = asyncio.run(self.gfxModel.shaderManager.create(source, 'vrf.grid'))
         self.vao: int = self._setupVao(cellWidth, gridWidthInCells)
         self.boundingBox = AABB(
             -cellWidth * 0.5 * gridWidthInCells, -cellWidth * 0.5 * gridWidthInCells, 0,
@@ -273,7 +273,7 @@ class GridRenderer(EginRenderer):
     def render(self, camera: Camera, passx: Pass) -> None:
         glEnable(GL_BLEND)
         glBlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
-        glUseProgram(Shader.Program)
+        glUseProgram(self.shader.program)
         matrix = camera.ViewProjectionMatrix.ToOpenTK()
         glUniformMatrix4(self.shader.uniformLocation('uProjectionViewMatrix'), False, matrix)
         glBindVertexArray(self.vao)

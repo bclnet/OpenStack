@@ -29,14 +29,14 @@ public class GodotClientHost : IClientHost {
 class GodotObjectModelBuilder : ObjectModelBuilder<Node, Material, Texture2D> {
     Node _prefabObj;
 
-    public override Node InstanceObject(Node src, Node parent) {
+    public override Node Instance(Node src, Node parent) {
         //var s = UnityEngine.Object.Instantiate(src);
         //if (parent != null) s.transform.parent = parent.transform;
         //return s;
         throw new NotImplementedException();
     }
 
-    public async override Task<Node> CreateObject(ISource source, object path, bool isStatic, MaterialManager<Material, Texture2D> materialManager) {
+    public async override Task<Node> Create(ISource source, object path, bool isStatic, MaterialManager<Material, Texture2D> materialManager) {
         var builder = GodotX.BuildersByType[path.GetType()];
         var s = await builder(source, path, isStatic, materialManager);
         s.Reparent(_prefabObj);
@@ -47,7 +47,7 @@ class GodotObjectModelBuilder : ObjectModelBuilder<Node, Material, Texture2D> {
         return s;
     }
 
-    public override void EnsurePrefab() {
+    public override void Ensure() {
         if (_prefabObj != null) return;
         _prefabObj = new Node3D { Name = "_Prefabs" };
         //_prefabObj.Visible = false;
@@ -59,13 +59,13 @@ class GodotObjectModelBuilder : ObjectModelBuilder<Node, Material, Texture2D> {
 // GodotTextureBuilder
 class GodotTextureBuilder : TextureBuilder<Texture2D> {
     Texture2D _defaultTexture;
-    public override Texture2D DefaultTexture => _defaultTexture ??= CreateDefaultTexture();
+    public override Texture2D Default => _defaultTexture ??= CreateDefaultTexture();
 
     public void Release() {
         if (_defaultTexture != null) { /*DeleteTexture(_defaultTexture);*/ _defaultTexture = null; }
     }
 
-    Texture2D CreateDefaultTexture() => CreateSolidTexture(4, 4, [
+    Texture2D CreateDefaultTexture() => CreateSolid(4, 4, [
         0.9f, 0.2f, 0.8f, 1f,
         0f, 0.9f, 0f, 1f,
         0.9f, 0.2f, 0.8f, 1f,
@@ -87,18 +87,18 @@ class GodotTextureBuilder : TextureBuilder<Texture2D> {
         0.9f, 0.2f, 0.8f, 1f,
     ]);
 
-    public override Texture2D CreateNormalMapTexture(Texture2D src, float strength) => throw new NotImplementedException();
-    public override Texture2D CreateSolidTexture(int width, int height, float[] rgbas) {
+    public override Texture2D CreateNormalMap(Texture2D src, float strength) => throw new NotImplementedException();
+    public override Texture2D CreateSolid(int width, int height, float[] rgbas) {
         var img = Image.CreateEmpty(width, height, false, Image.Format.Rgba8);
         img.Fill(new Color(rgbas[0], rgbas[1], rgbas[2], rgbas[3]));
         var tex = ImageTexture.CreateFromImage(img);
         return tex;
     }
     // https://docs.godotengine.org/en/stable/classes/class_image.html
-    public override Texture2D CreateTexture(Texture2D reuse, ITexture src, System.Range? range = null) => src.Create("GD", x => {
+    public override Texture2D Create(Texture2D reuse, ITexture src, System.Range? range = null) => src.Create("GD", x => {
         switch (x) {
             case TextureAsBytes t:
-                if (t.Bytes == null) return DefaultTexture;
+                if (t.Bytes == null) return Default;
                 else if (t.Format is ValueTuple<TextureFormat, TexturePixel> z) {
                     var (format, pixel) = z;
                     bool s = (pixel & TexturePixel.Signed) != 0, f = (pixel & TexturePixel.Float) != 0;
@@ -138,17 +138,17 @@ class GodotTextureBuilder : TextureBuilder<Texture2D> {
             default: throw new ArgumentOutOfRangeException(nameof(x), $"{x}");
         }
     });
-    public override void DeleteTexture(Texture2D src) => src.TakeOverPath(null);
+    public override void Delete(Texture2D src) => src.TakeOverPath(null);
 }
 
 class GodotMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialBuilder<Material, Texture2D>(textureManager) {
     Material _defaultMaterial;
-    public override Material DefaultMaterial => _defaultMaterial ??= new StandardMaterial3D();
+    public override Material Default => _defaultMaterial ??= new StandardMaterial3D();
 
     Material _terrainMaterial;
-    public override Material TerrainMaterial => _terrainMaterial ??= new StandardMaterial3D();
+    public override Material Terrain => _terrainMaterial ??= new StandardMaterial3D();
 
-    public override async Task<Material> CreateMaterial(ISource source, object path) {
+    public override async Task<Material> Create(ISource source, object path) {
         switch (path) {
             case MaterialStdProp p: {
                     var m = new StandardMaterial3D();
@@ -159,10 +159,10 @@ class GodotMaterialBuilder(TextureManager<Texture2D> textureManager) : MaterialB
                     //else if (p.AlphaTest) m.EnableKeyword("_ALPHATEST_ON");
                     var mainTex = p.Textures.TryGetValue("Main", out var z) ? z : default;
                     if (mainTex != null) {
-                        m.AlbedoTexture = (await TextureManager.CreateTexture(source, mainTex)).tex;
+                        m.AlbedoTexture = (await TextureManager.Create(source, mainTex)).tex;
                         var bumpTex = p.Textures.TryGetValue("Bump", out z) ? z : default;
                         if (bumpTex != null)
-                            m.NormalTexture = (await TextureManager.CreateTexture(source, bumpTex)).tex;
+                            m.NormalTexture = (await TextureManager.Create(source, bumpTex)).tex;
                     }
                     return m;
                 }
@@ -223,8 +223,8 @@ public class GodotGfxSprite2D : IOpenGfxSprite<Node, Sprite2D> {
     }
 
     public SpriteManager<Sprite2D> SpriteManager => _spriteManager;
-    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
-    public Task<(Sprite2D spr, object tag)> CreateSprite(ISource source, object path, Node parent = default) => _spriteManager.CreateSprite(source, path);
+    public void Preload(ISource source, object path) => _spriteManager.Preload(source, path);
+    public Task<(Sprite2D spr, object tag)> Create(ISource source, object path, Node parent = default) => _spriteManager.Create(source, path);
 }
 
 // GodotGfxSprite3D
@@ -235,8 +235,8 @@ public class GodotGfxSprite3D : IOpenGfxSprite<Node, Sprite3D> {
     }
 
     public SpriteManager<Sprite3D> SpriteManager => _spriteManager;
-    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
-    public Task<(Sprite3D spr, object tag)> CreateSprite(ISource source, object path, Node parent = default) => _spriteManager.CreateSprite(source, path);
+    public void Preload(ISource source, object path) => _spriteManager.Preload(source, path);
+    public Task<(Sprite3D spr, object tag)> Create(ISource source, object path, Node parent = default) => _spriteManager.Create(source, path);
 }
 
 // GodotGfxModel
@@ -256,12 +256,12 @@ public class GodotGfxModel : IOpenGfxModel<Node, Material, Texture2D, XShader> {
     public ObjectModelManager<Node, Material, Texture2D> ObjectManager => _objectManager;
     public ShaderManager<XShader> ShaderManager => throw new NotImplementedException(); //_shaderManager;
     public TextureManager<Texture2D> TextureManager => _textureManager;
-    public void PreloadObject(ISource source, object path) => _objectManager.PreloadObject(source, path);
-    public void PreloadTexture(ISource source, object path) => _textureManager.PreloadTexture(source, path);
-    public Task<(Node obj, object tag)> CreateObject(ISource source, object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
+    public void Preload(ISource source, object path) => _objectManager.Preload(source, path);
+    public void PreloadTexture(ISource source, object path) => _textureManager.Preload(source, path);
+    public Task<(Node obj, object tag)> Create(ISource source, object path, bool isStatic, Node parent = default) => throw new NotImplementedException();
     public Task<(XShader sha, object tag)> CreateShader(ISource source, object path, Dictionary<string, bool> args = null) => throw new NotImplementedException();
-    public Task<(Texture2D tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.CreateTexture(source, path, level);
-    public void PostObject(Node src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node parent) => throw new NotImplementedException();
+    public Task<(Texture2D tex, object tag)> CreateTexture(ISource source, object path, System.Range? level = null) => _textureManager.Create(source, path, level);
+    public void Post(Node src, System.Numerics.Vector3 position, System.Numerics.Vector3 eulerAngles, float? scale, Node parent) => throw new NotImplementedException();
 }
 
 // GodotSfx

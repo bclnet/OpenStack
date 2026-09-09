@@ -56,8 +56,8 @@ public class EginXGfxSprite2D : IOpenGfxSprite<object, object> {
     }
 
     public SpriteManager<object> SpriteManager => _spriteManager;
-    public void PreloadSprite(ISource source, object path) => _spriteManager.PreloadSprite(source, path);
-    public Task<(object spr, object tag)> CreateSprite(ISource source, object path, object parent = null) => _spriteManager.CreateSprite(source, path);
+    public void Preload(ISource source, object path) => _spriteManager.Preload(source, path);
+    public Task<(object spr, object tag)> Create(ISource source, object path, object parent = null) => _spriteManager.Create(source, path);
 }
 
 // EginXPlatform

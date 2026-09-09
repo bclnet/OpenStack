@@ -2,6 +2,7 @@ using OpenStk.ExtServices;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -282,7 +283,7 @@ class Blob_ECM(FileSystem vfx) : Blob {
             }
         }
         var listIndex = Index.BinarySearchLowerBound(idx => idx.LogicalOffset, offset);
-        Log.Assert(listIndex < Index.Count, "insertion point may not be after end");
+        Debug.Assert(listIndex < Index.Count, "insertion point may not be after end");
         return listIndex;
     }
 
@@ -4249,7 +4250,7 @@ class MdsFormat {
                 var trackHeader = new byte[80];
                 var track = new ATrack();
                 var bytesRead = s.Read(trackHeader, offset: 0, count: trackHeader.Length);
-                Log.Assert(bytesRead == trackHeader.Length, "reached end-of-file while reading track header");
+                Debug.Assert(bytesRead == trackHeader.Length, "reached end-of-file while reading track header");
                 track.Mode = r.ReadByte();
                 track.SubMode = r.ReadByte();
                 track.ADR_Control = r.ReadByte();
@@ -4308,7 +4309,7 @@ class MdsFormat {
 
                         // read the filename
                         var bytesRead2 = s.Read(fname, offset: 0, count: fname.Length);
-                        Log.Assert(bytesRead2 == fname.Length, "reached end-of-file while reading track filename");
+                        Debug.Assert(bytesRead2 == fname.Length, "reached end-of-file while reading track filename");
 
                         // if widechar is 1 filename is stored using 16-bit, otherwise 8-bit is used
                         fileName = f.WideChar == 1

@@ -43,7 +43,7 @@ public class TextureRenderer : Renderer {
             Mesh = new PlaneMesh { Size = new Vector2(12f, 12f) },
             //RotationDegrees = new Vector3(-90f, -180f, 180f)
         };
-        var (material, _) = GfxModel.MaterialManager.CreateMaterial(Source, new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } }).Result;
+        var (material, _) = GfxModel.MaterialManager.Create(Source, new MaterialStdProp { Textures = new Dictionary<string, object> { ["Main"] = Obj } }).Result;
         obj.SetSurfaceOverrideMaterial(0, material);
         Parent.AddChild(obj);
     }
@@ -66,7 +66,7 @@ public class ObjectRenderer(object parent, IOpenGfx[] gfx, ISource source, objec
     readonly object Obj = obj;
 
     public override void Start() {
-        GfxModel.ObjectManager.CreateObject(source, Obj, true, null).Wait();
+        GfxModel.ObjectManager.Create(source, Obj, true, null).Wait();
     }
 }
 

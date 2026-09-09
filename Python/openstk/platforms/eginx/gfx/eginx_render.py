@@ -5,7 +5,7 @@ from openstk.gfx import GfX, Renderer
 
 # typedefs
 class ExGfxModel: pass
-class Shader: pass
+class GfxShader: pass
 class Camera: pass
 class IOpenGfx: pass
 
@@ -32,8 +32,8 @@ class TextureRenderer(Renderer):
     def __init__(self, gfx: list[IOpenGfx], source: ISource, obj: object):
         self.gfxModel: ExGfxModel = gfx[GfX.XModel]
         self.obj = obj
-        # gfxModel.textureManager.deleteTexture(obj)
-        # self.tex: int = gfxModel.textureManager.createTexture(obj, self.level)[0]
+        # gfxModel.textureManager.delete(obj)
+        # self.tex: int = gfxModel.textureManager.create(obj, self.level)[0]
         self.frameDelay: int = 0
 
     def start(self):
