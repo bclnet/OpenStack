@@ -20,7 +20,7 @@ pub mod io;
 /// The names worth importing together. C# got these via `global using` and
 /// namespace-wide extension methods; Rust needs the traits in scope explicitly.
 pub mod prelude {
-    pub use crate::core::{AssetPath, IHaveSource, ISource, ISourceExt};
+    pub use crate::core::{SourcePath, SourceTag, IHaveSource, ISource, ISourceExt};
 
     // pub use crate::io::bit_stream::BitStream;
     // pub use crate::io::byte_xor_stream::ByteXorStream;

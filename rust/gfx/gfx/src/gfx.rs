@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::any::Any;
 
-use crate::core::ISource;
+use openstk_poly::core::{BoxFuture, SourcePath, SourceTag, ISource};
 use crate::gfx_texture::TextureFlags;
 
 //#region Gfx
@@ -66,24 +66,23 @@ impl Shader {
 }
 
 pub trait ShaderBuilder<B: Backend> {
-    fn create(&mut self, name: &str, args: &HashMap<String, bool>) -> B::Shader;
+    fn create(&mut self, path: &SourcePath, args: &HashMap<String, bool>) -> B::Shader;
 }
 
 pub struct ShaderManager<B: Backend, SB: ShaderBuilder<B>> {
     builder: SB,
-    cached: HashMap<String, B::Shader>,
+    cached: HashMap<(dyn ISource, SourcePath, String), B::Shader>,
 }
-
 impl<B: Backend, SB: ShaderBuilder<B>> ShaderManager<B, SB> {
     pub fn new(builder: SB) -> Self {
         Self { builder, cached: HashMap::new() }
     }
 
-    pub fn create(&mut self, source: ISource, name: &str, args: &Option<HashMap<String, bool>>) -> B::Shader {
+    pub fn create(&mut self, source: &dyn ISource, path: &SourcePath, args: &Option<HashMap<String, bool>>) -> B::Shader {
         let argx: &str = args.map_or(String::new(), |v| v.iter().filter(|(_, &v)| v).map(|(k, _)| k.as_str()).collect().join(","));
         let key = (source, path, argx);
         if let Some(s) = self.cached.get(&key) { return s.clone(); }
-        let s = self.builder.create(name, args);
+        let s = self.builder.create(path, args);
         self.cached.insert(key, s.clone());
         s
     }
@@ -107,38 +106,38 @@ pub trait SpriteBuilder<B: Backend> {
 
 pub struct SpriteManager<B: Backend, SB: SpriteBuilder<B>> {
     builder: SB,
-    cached: HashMap<String, B::Sprite>,
+    tasks: HashMap<(dyn ISource, SourcePath), BoxFuture::All<dyn Any>>,
+    cached: HashMap<(dyn ISource, SourcePath), (B::Sprite, dyn Any)>,
 }
-
 impl<B: Backend, SB: SpriteBuilder<B>> SpriteManager<B, SB> {
     pub fn new(builder: SB) -> Self {
         Self { builder, cached: HashMap::new(), }
     }
     
-    pub async fn create(&mut self, source: ISource, path: &dyn Any) -> (B::Texture, Any) {
+    pub async fn create(&mut self, source: &dyn ISource, path: &SourcePath) -> (B::Sprite, SourceTag) {
         let key = (source, path);
-        if let Some(c) = self.cached.get(key) { return c.clone(); }
-        let tag = if let Some(z) = path.downcast_ref::<ISprite>() { z } else { load(source, path)?.await };
-        let obj = if tag != None { self.builder.create(tag); } else { self.builder.default };
+        if let Some(c) = self.cached.get(&key) { return c.clone(); }
+        let tag = if let Some(z) = path.downcast_ref::<dyn ISprite>() { z } else { self.load(source, path).await? };
+        let obj = if let Some(v) = tag { self.builder.create(v); } else { self.builder.default() };
         self.cached.insert(key, (obj.clone(), tag.clone()))
     }
 
-    pub fn preload(&mut self, source: ISource, path: &dyn Any) {
+    pub fn preload(&mut self, source: &dyn ISource, path: &SourcePath) {
         let key = (source, path);
         if let Some(c) = self.cached.get(key) { return; }
         self.tasks.entry(key).or_insert_with(|| source.getAsset::<ISprite>(path));
     }
 
-    pub fn delete(&mut self, source: ISource, path: &dyn Any) {
+    pub fn delete(&mut self, source: &dyn ISource, path: &SourcePath) {
         let key = (source, path);
         let Some(c) = self.cached.get(key) else { return; };
         self.builder.delete(c.spr);
         self.cached.remove(key);
     }
 
-    async fn load(&mut self, source: ISource, path: &dyn Any) -> ISprite {
+    async fn load(&mut self, source: &dyn ISource, path: &SourcePath) -> &dyn ISprite {
         let key = (source, path);
-        assert(!self.cached.containsKey(key));
+        assert!(!self.cached.contains_key(key));
         self.preload(source, path);
         let obj = self.tasks[key].await;
         self.tasks.remove(key);
@@ -209,7 +208,7 @@ impl Hash for SolidKey {
 
 pub struct TextureManager<B: Backend, TB: TextureBuilder<B>> {
     builder: TB,
-    cached: HashMap<String, (B::Texture, TextureFlags)>,
+    cached: HashMap<(dyn ISource, SourcePath), (B::Texture, TextureFlags)>,
     cachedNormalMaps: HashMap<B::Texture, B::Texture>,
     cachedSolids: HashMap<SolidKey, B::Texture>,
 }
@@ -240,44 +239,36 @@ impl<B: Backend, TB: TextureBuilder<B>> TextureManager<B, TB> {
         t
     }
 
-    pub fn create(&mut self, path: &dyn Any, src: &dyn ITexture, level: Option<std::ops::Range<u32>>) -> B::Texture {
-        if let Some((t, _)) = self.cached.get(path) { return t.clone(); }
+    pub fn create(&mut self, source: &dyn ISource, path: &SourcePath, src: &dyn ITexture, level: Option<std::ops::Range<u32>>) -> B::Texture {
+        let key = (source, path);
+        if let Some(t) = self.cached.get(key) { return t.clone(); }
         let t = self.builder.create(None, src, level);
-        self.cached.insert(path.to_string(), (t.clone(), src.texFlags()));
+        self.cached.insert(key, (t.clone(), src.texFlags()));
         t
     }
 
-    pub fn reload(&mut self, path: &dyn Any, src: &dyn ITexture, level: Option<std::ops::Range<u32>>) -> Option<B::Texture> {
-        let existing = self.cached.get(path).map(|(t, _)| t.clone())?;
+    pub fn reload(&mut self, source: &dyn ISource, path: &SourcePath, src: &dyn ITexture, level: Option<std::ops::Range<u32>>) -> Option<B::Texture> {
+        let key = (source, path);
+        let existing = self.cached.get(key).map(|(t, _)| t.clone())?;
         let t = self.builder.create(Some(existing), src, level);
         self.cached.insert(path.to_string(), (t.clone(), src.texFlags()));
         Some(t)
     }
 
-    /// Evict one entry, deleting the GPU handle. No C# equivalent.
-    pub fn remove(&mut self, path: &dyn Any) {
-        if let Some((t, _)) = self.cached.remove(path) {
-            self.builder.delete(&t);
-        }
+    pub fn remove(&mut self, source: &dyn ISource, path: &SourcePath) {
+        let key = (source, path);
+        if let Some(t) = self.cached.remove(key) { self.builder.delete(&t); }
     }
 
-    /// Evict everything. No C# equivalent — the caches there were unbounded.
     pub fn clear(&mut self) {
-        for (t, _) in self.cached.values() {
-            self.builder.delete(t);
-        }
+        for (t, _) in self.cached.values() { self.builder.delete(t); }
         self.cached.clear();
         self.cachedNormalMaps.clear();
         self.cachedSolids.clear();
     }
 
-    // pub fn len(&self) -> usize {
-    //     self.cached.len()
-    // }
-
-    // pub fn is_empty(&self) -> bool {
-    //     self.cached.is_empty()
-    // }
+    // pub fn len(&self) -> usize { self.cached.len() }
+    // pub fn is_empty(&self) -> bool { self.cached.is_empty() }
 }
 
 //#endregion
@@ -322,18 +313,18 @@ pub trait MaterialBuilder<B: Backend> {
 
 pub struct MaterialManager<B: Backend, MB: MaterialBuilder<B>> {
     builder: MB,
-    cached: HashMap<String, B::Material>,
+    cached: HashMap<(dyn ISource, SourcePath), (B::Material, SourceTag)>,
 }
-
 impl<B: Backend, MB: MaterialBuilder<B>> MaterialManager<B, MB> {
     pub fn new(builder: MB) -> Self {
         Self { builder, cached: HashMap::new() }
     }
 
-    pub fn create(&mut self, path: &dyn Any, src: &dyn IMaterial) -> B::Material {
-        if let Some(m) = self.cached.get(path) { return m.clone(); }
+    pub fn create(&mut self, source: &dyn ISource, path: &SourcePath, src: &dyn IMaterial) -> (B::Material, SourceTag) {
+        let key = (source, path);
+        if let Some(m) = self.cached.get(key) { return m.clone(); }
         let m = self.builder.create(src);
-        self.cached.insert(path.to_string(), m.clone());
+        self.cached.insert(key, m.clone());
         m
     }
 
